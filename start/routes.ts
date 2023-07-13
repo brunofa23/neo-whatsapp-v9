@@ -15,8 +15,8 @@ Route.get('/logout', async () => {
 
 Route.get('/teste', async () => {
   const result = Database.connection('mssql').from('teste').select('*')
-  console.log("entrei aqui", await Database.connection('mssql').from('teste').select('*'))
-  return Database.connection('mssql').from('teste').select('*')
+  //console.log("entrei aqui", await Database.connection('mssql').from('pac').select('*'))
+  return (await Database.connection('mssql').from('pac').select('*').where('pac_reg', '=', '15'))
 })
 
 

@@ -28,8 +28,10 @@
     "mssql": "^4.1.0",
     "mysql2": "^3.5.0",
     "proxy-addr": "^2.0.7",
+    "qrcode-terminal": "^0.12.0",
     "reflect-metadata": "^0.1.13",
     "source-map-support": "^0.5.21",
-    "tedious": "^16.1.0"
+    "tedious": "^16.1.0",
+    "whatsapp-web.js": "^1.21.0"
   }
 }

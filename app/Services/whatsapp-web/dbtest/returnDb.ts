@@ -1,3 +1,6 @@
+//import Database from '@ioc:Adonis/Lucid/Database'
+
+
 async function numbersPhones() {
 
   const listPhones = await require('../dbtest/numbersPhones.json')
@@ -6,4 +9,9 @@ async function numbersPhones() {
 
 }
 
-module.exports = { numbersPhones }
+async function pacList() {
+  //const result = await Database.connection('mssql').from('pac').select('*').where('pac_reg', '=', '15')
+  //return result
+}
+
+module.exports = { numbersPhones, pacList }

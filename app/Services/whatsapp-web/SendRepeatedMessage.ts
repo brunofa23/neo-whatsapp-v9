@@ -1,11 +1,16 @@
+
 import { verifyNumber } from '../../Services/whatsapp-web/VerifyNumber'
-//import Database from '@ioc:Adonis/Lucid/Database';
+const Teste = require('../../Controllers/Http/TestesController')
 
 
 async function sendRepeatedMessage(client) {
+
+  const _teste = Teste.teste()
   //await Database.connection('mssql').from('pac').select('*').where('pac_reg', '=', '15')
   //console.log("TESTE>>>", teste.name())
   //1 - Buscar os pacientes dos filtros selecionados
+  const ListadePacientes = pacList()
+  console.log("ListadePacientes?????????", ListadePacientes)
   //return (await Database.connection('mssql').from('pac').select('*').where('pac_reg', '=', '15'))
 
 

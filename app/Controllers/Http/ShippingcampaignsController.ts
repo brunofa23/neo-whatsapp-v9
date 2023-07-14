@@ -31,6 +31,8 @@ export default class ShippingcampaignsController {
 
 }
 
+module.exports = { scheduledPatients }
+
 
 
 

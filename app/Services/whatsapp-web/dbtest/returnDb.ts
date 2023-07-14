@@ -1,5 +1,3 @@
-//import Database from '@ioc:Adonis/Lucid/Database'
-
 
 async function numbersPhones() {
 
@@ -10,8 +8,9 @@ async function numbersPhones() {
 }
 
 async function pacList() {
-  //const result = await Database.connection('mssql').from('pac').select('*').where('pac_reg', '=', '15')
-  //return result
+
+  const result = await Database.connection('mssql').from('pac').select('*').where('pac_reg', '=', '15')
+  return result
 }
 
 module.exports = { numbersPhones, pacList }

@@ -9,6 +9,8 @@ Route.group(() => {
 
   Route.get('/scheduledPatients', 'ShippingcampaignsController.scheduledPatients').as('confirmacaoagenda')
 
+  Route.get('/teste1', "TestesControler.teste")
+
 
 
 }).prefix('/api')
@@ -19,6 +21,8 @@ Route.get('/teste', async () => {
   //console.log("entrei aqui", await Database.connection('mssql').from('pac').select('*'))
   return (await Database.connection('mssql').from('pac').select('*').where('pac_reg', '=', '15'))
 })
+
+
 
 
 Route.get('/mysql', async () => {

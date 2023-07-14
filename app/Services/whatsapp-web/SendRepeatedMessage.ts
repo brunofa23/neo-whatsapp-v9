@@ -1,10 +1,12 @@
 import { verifyNumber } from '../../Services/whatsapp-web/VerifyNumber'
-import Database from '@ioc:Adonis/Lucid/Database';
+//import Database from '@ioc:Adonis/Lucid/Database';
+
 
 async function sendRepeatedMessage(client) {
-
+  //await Database.connection('mssql').from('pac').select('*').where('pac_reg', '=', '15')
+  //console.log("TESTE>>>", teste.name())
   //1 - Buscar os pacientes dos filtros selecionados
-  return (await Database.connection('mssql').from('pac').select('*').where('pac_reg', '=', '15'))
+  //return (await Database.connection('mssql').from('pac').select('*').where('pac_reg', '=', '15'))
 
 
   //2 - Validar e filtrar os numeros válidos do Whatsapp

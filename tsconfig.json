@@ -23,7 +23,10 @@
       ],
       "Database/*": [
         "./database/*"
-      ]
+      ],
+      "Services/*":[
+        "./app/Services/*"
+      ],
     },
     "types": [
       "@adonisjs/core",

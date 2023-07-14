@@ -13,8 +13,7 @@ export default class ShippingcampaignsController {
         CAST(YEAR(AGM_HINI) AS VARCHAR(4))
      ) AS data_formatada
      from pac inner join agm on(agm_pac = PAC_REG)
-     where  AGM_HINI between :AGM_HINI_INI and :AGM_HINI_FIM and AGM_STAT not in ('C')
-     and pac_reg=:PAC_REG
+     where  AGM_HINI between '2023-07-14' and '2023-07-15' and AGM_STAT not in ('C')
      group by pac_nome, AGM_HINI, pac_reg`
 
     try {
@@ -31,7 +30,6 @@ export default class ShippingcampaignsController {
 
 }
 
-module.exports = { scheduledPatients }
 
 
 

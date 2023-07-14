@@ -2,7 +2,15 @@ import { verifyNumber } from '../../Services/whatsapp-web/VerifyNumber'
 
 async function sendRepeatedMessage(client) {
 
-  //const phoneNumber = '553185228619@c.us'
+  //1 - Buscar os pacientes dos filtros selecionados
+
+
+  //2 - Validar e filtrar os numeros válidos do Whatsapp
+  //verifyNumber
+
+
+
+
   const message = 'Olá, gostaria de confirmar seu agendamento? \nSim\nNão'; // Mensagem a ser enviada
   const listPacToSendMessage = await verifyNumber(client)
   //console.log("LISTA DE PACIENTES PARA ENVIAR:::", listPacToSendMessage)

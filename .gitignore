@@ -5,5 +5,3 @@ coverage
 .DS_STORE
 tmp
 .history
-.wwebjs_cache
-.wwebjs_auth

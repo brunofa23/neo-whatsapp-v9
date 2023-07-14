@@ -3,6 +3,7 @@ build
 coverage
 .vscode
 .DS_STORE
-.env
 tmp
 .history
+.wwebjs_cache
+.wwebjs_auth

@@ -10,31 +10,27 @@ async function verifyNumber(client) {
   try {
 
     for (const numberPhone of listPhonesToVerify) {
-      console.log("VERIFICAR CADA NUMERO:::", numberPhone.phone)
       const verifiedNumber = await client.getNumberId(numberPhone.phone)
+
+
       if (verifiedNumber) {
         //console.log("NUMERO VALIDO", verifiedNumber)
-        listPac.push(verifiedNumber)
+        listPac.push({ name: numberPhone.nome, phone: verifiedNumber.user, valid: true })
       }
       else {
-        console.log("NUMERO INVÁLIDO", verifiedNumber)
+        listPac.push({ name: numberPhone.nome, phone: numberPhone.phone, valid: false })
       }
 
     }
-
-    // const numero = await client.getNumberId('31985228619')
+    //const numero = await client.getNumberId('31990691174')
+    //console.log('NÚMERO VÁLIDO:', numero);
     // listPac.push(numero)
-    // console.log('NÚMERO VÁLIDO 222:', listPac);
 
   } catch (error) {
     console.log("ERRO:::", error)
   }
-
   console.log("NUMEROS VERIFICADOS>>>", listPac)
-
   return listPac
-
-
 
 }
 

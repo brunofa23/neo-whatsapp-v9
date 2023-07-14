@@ -20,7 +20,7 @@ client.on('ready', async () => {
   //chamar função que fica rodando e disparando mensagens
   const intervalId = setInterval(() => {
     sendRepeatedMessage(client)
-  }, 5000)
+  }, 15000)
 });
 
 client.initialize();

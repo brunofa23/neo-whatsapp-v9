@@ -1,4 +1,5 @@
 import { verifyNumber } from '../../Services/whatsapp-web/VerifyNumber'
+
 async function sendRepeatedMessage(client) {
 
   //const phoneNumber = '553185228619@c.us'
@@ -16,7 +17,6 @@ async function sendRepeatedMessage(client) {
   // });
 
 }
-
 
 module.exports = { sendRepeatedMessage }
 

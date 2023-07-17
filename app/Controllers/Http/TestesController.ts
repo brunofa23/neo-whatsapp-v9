@@ -32,15 +32,27 @@ async function scheduledPatients() {
 
 async function Shipping() {
 
-  const pacQuery = "select * from teste"
-  const result = await Database.connection('mssql2').rawQuery(pacQuery)
-  return result
-  // const shipping = await Shippingcampaign.all()
-  // console.log("shipping", shipping)
-  // return shipping
+  // const pacQuery = "select * from shippingcampaigns"
+  // const result = await Database.connection('mssql2').rawQuery(pacQuery)
+  // return result
+
+  const shipping = await Shippingcampaign.all()
+  console.log("shipping", shipping)
+  return shipping
 }
 
-module.exports = { scheduledPatients, Shipping }
+async function store() {
+  const body = {
+    name: 'Jose',
+    gender: 'M',
+    cellphone: '31222222',
+    message: 'Olá tudo bemmmmmm'
+  }
+  const data = await Shippingcampaign.create(body)
+
+}
+
+module.exports = { scheduledPatients, Shipping, store }
 
 
 

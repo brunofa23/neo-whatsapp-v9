@@ -33,4 +33,18 @@ export default class ShippingcampaignsController {
 
   }
 
+
+
+  public async store2() {
+    const body = {
+      name: 'Jose',
+      gender: 'M',
+      cellphone: '31222222',
+      message: 'Olá tudo bemmmmmm'
+    }
+    const data = await Shippingcampaign.create(body)
+    return data
+
+  }
+
 }

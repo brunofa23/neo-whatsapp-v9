@@ -7,7 +7,7 @@ Route.get('/', async () => {
 
 Route.group(() => {
 
-  Route.get('/scheduledPatients', 'ShippingcampaignsController.scheduledPatients').as('confirmacaoagenda')
+  //Route.get('/scheduledPatients', 'ShippingcampaignsController.scheduledPatients').as('confirmacaoagenda')
 
   // Route.get('/teste1', "TestesControler.teste")
 

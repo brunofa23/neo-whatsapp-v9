@@ -3,9 +3,9 @@ import { DateTime } from 'luxon'
 
 export default class Shippingcampaign extends BaseModel {
 
-  static get connection() {
-    return 'mssql2';
-  }
+  // static get connection() {
+  //   return 'mssql2';
+  // }
 
   @column({ isPrimary: true })
   public id: number

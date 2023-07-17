@@ -6,9 +6,11 @@ async function sendRepeatedMessage(client) {
   const shippingCampaigns = await require('../../Controllers/Http/ShippingcampaignsController')
   console.log("BUSCA NO SMART:", await shippingCampaigns.scheduledPatients())
 
+
+
   //2 - Validar e filtrar os numeros válidos do Whatsapp
   //verifyNumber
-  const _verifyNumber = await verifyNumber(client, shippingCampaigns)
+  //const _verifyNumber = await verifyNumber(client, shippingCampaigns)
 
   //const message = 'Olá, gostaria de confirmar seu agendamento? \nSim\nNão'; // Mensagem a ser enviada
   //const listPacToSendMessage = await verifyNumber(client)

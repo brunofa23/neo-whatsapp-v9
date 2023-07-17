@@ -1,12 +1,8 @@
+import { typeServerConfig } from '@ioc:Adonis/Core/Server';
+import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Database from '@ioc:Adonis/Lucid/Database'
+import Shippingcampaign from 'App/Models/Shippingcampaign'
 
-//const database = require('config/database')
-async function teste() {
-  //return "teste1"
-  const teste = await Database.connection('mssql').from('pac').select('*').where('pac_reg', '=', '15')
-  console.log("teste 1", teste)
-
-}
 
 async function scheduledPatients() {
 
@@ -33,7 +29,18 @@ async function scheduledPatients() {
   }
 }
 
-module.exports = { teste, scheduledPatients }
+
+async function Shipping() {
+
+  const pacQuery = "select * from teste"
+  const result = await Database.connection('mssql2').rawQuery(pacQuery)
+  return result
+  // const shipping = await Shippingcampaign.all()
+  // console.log("shipping", shipping)
+  // return shipping
+}
+
+module.exports = { scheduledPatients, Shipping }
 
 
 

@@ -6,7 +6,9 @@ import { verifyNumber } from '../../Services/whatsapp-web/VerifyNumber'
 
 import moment = require('moment');
 
-async function sendRepeatedMessage() {
+async function sendRepeatedMessage(client) {
+
+  const yesterday = moment().subtract(1, 'day').format('YYYY-MM-DD');
   //1 - Buscar os pacientes dos filtros selecionados
   const dataSource = new DatasourcesController
   const dataSourceList = await dataSource.scheduledPatients()
@@ -16,18 +18,18 @@ async function sendRepeatedMessage() {
     for (const data of dataSourceList) {
       const shipping = new Shippingcampaign()
 
-      const firstName = String(data.pac_nome).trim().split(" ")
       shipping.reg = data.pac_reg
       shipping.name = String(data.pac_nome).trim()
-      //shipping.appointmentdate = data.agm_hini
       shipping.cellphone = data.pac_celular
-      shipping.message = `Olá ${firstName[0]}, somos da Neo, gostariamos de confirmar agendamento para o dia ${String(data.data_agm).trim()} com o Dr(a).${String(data.psv_nome).trim()} \n1-Sim \n2-Não `
+      shipping.message = data.message//`Olá ${firstName[0]}, somos da Neo, gostariamos de confirmar agendamento para o dia ${String(data.data_agm).trim()} com o Dr(a).${String(data.psv_nome).trim()} \n1-Sim \n2-Não `
 
       const verifyExist = await Shippingcampaign.query()
-        .where('reg', '=', data.pac_reg).first()
-      console.log("QUERYYYYYYY", verifyExist)
+        .where('reg', '=', data.pac_reg)
+        .andWhere('created_at', '>=', yesterday)
+        .first()
+      console.log("query", verifyExist)
       if (!verifyExist) {
-        console.log("Adicionado>>>", verifyExist)
+        //console.log("Adicionado>>>", verifyExist)
         await Shippingcampaign.create(shipping)
       }
     }
@@ -35,12 +37,12 @@ async function sendRepeatedMessage() {
     console.log("erro no create", error)
   }
 
-  //3 - Validar e filtrar os numeros válidos do Whatsapp verifyNumber
-  const yesterday = moment().subtract(1, 'day').format('YYYY-MM-DD');
+  //  3 - Validar e filtrar os numeros válidos do Whatsapp verifyNumber
   const shippingCampaignList =
     await Shippingcampaign.query().whereNull('phonevalid')
       .andWhere('created_at', '>=', yesterday)
       .whereNull('messagesent')
+      .orWhere('messagesent', '=', 0)
 
   for (let dataRow of shippingCampaignList) {
     dataRow.cellphoneserialized = await verifyNumber(client, dataRow.cellphone)
@@ -58,7 +60,7 @@ async function sendRepeatedMessage() {
   for (const dataRow of shippingCampaignList) {
     try {
       if (dataRow.phonevalid && !dataRow.messagesent) {
-        //const send = client.sendMessage(dataRow.cellphoneserialized, dataRow.message)
+        const send = client.sendMessage(dataRow.cellphoneserialized, dataRow.message)
         dataRow.messagesent = true
         dataRow.save()
       }
@@ -68,19 +70,19 @@ async function sendRepeatedMessage() {
   }
 
 
-  // const shipping = shippingCampaignList.map(shippingCampaign => {
-  //   return {
-  //     name: shippingCampaign.name,
-  //     cellphone: shippingCampaign.cellphone,
-  //     cellphoneserialized: shippingCampaign.cellphoneserialized,
-  //     phonevalid: shippingCampaign.phonevalid,
-  //     message: shippingCampaign.message,
-  //     messagesent: shippingCampaign.messagesent
-  //   }
-  // })
+  const shipping = shippingCampaignList.map(shippingCampaign => {
+    return {
+      name: shippingCampaign.name,
+      cellphone: shippingCampaign.cellphone,
+      cellphoneserialized: shippingCampaign.cellphoneserialized,
+      phonevalid: shippingCampaign.phonevalid,
+      message: shippingCampaign.message,
+      messagesent: shippingCampaign.messagesent
+    }
+  })
 
   //  console.log("SHIPPING::", shipping)
-  //  console.log("LISTA ENVIADA::", shippingCampaignList)
+  console.log("LISTA ENVIADA::", shipping)
 
 
 }

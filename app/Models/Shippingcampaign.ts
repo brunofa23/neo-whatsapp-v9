@@ -17,12 +17,6 @@ export default class Shippingcampaign extends BaseModel {
   public name: string
 
   @column()
-  public appointmentdate: DateTime
-
-  @column()
-  public gender: string
-
-  @column()
   public cellphone: string
 
   @column()

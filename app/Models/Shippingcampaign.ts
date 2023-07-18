@@ -3,15 +3,21 @@ import { DateTime } from 'luxon'
 
 export default class Shippingcampaign extends BaseModel {
 
-  // static get connection() {
-  //   return 'mssql2';
-  // }
+  static get connection() {
+    return 'mssql2';
+  }
 
   @column({ isPrimary: true })
   public id: number
 
   @column()
+  public reg: number
+
+  @column()
   public name: string
+
+  @column()
+  public appointmentdate: DateTime
 
   @column()
   public gender: string

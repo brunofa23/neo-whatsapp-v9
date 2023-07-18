@@ -3,22 +3,22 @@ import { numbersPhones } from '../../Services/whatsapp-web/dbtest/returnDb.ts'
 async function verifyNumber(client, cellphone) {
 
   if (!validatePhone(cellphone))
-    return false
+    return null
   if (cellphone == null || cellphone == undefined)
-    return false
+    return null
 
   try {
     const verifiedPhone = await client.getNumberId(cellphone)
     if (verifiedPhone) {
       console.log("válido", verifiedPhone)
-      return true
+      return verifiedPhone.user
     }
     else {
-      console.log("inválido", verifiedPhone)
-      return false
+      //console.log("inválido", verifiedPhone)
+      return null
     }
   } catch (error) {
-    return false
+    return null
   }
 }
 

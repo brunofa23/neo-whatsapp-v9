@@ -27,7 +27,7 @@ async function sendRepeatedMessage(client) {
         .where('reg', '=', data.pac_reg)
         .andWhere('created_at', '>=', yesterday)
         .first()
-      console.log("query", verifyExist)
+      //console.log("query", verifyExist)
       if (!verifyExist) {
         //console.log("Adicionado>>>", verifyExist)
         await Shippingcampaign.create(shipping)
@@ -82,7 +82,7 @@ async function sendRepeatedMessage(client) {
   })
 
   //  console.log("SHIPPING::", shipping)
-  console.log("LISTA ENVIADA::", shipping)
+  //console.log("LISTA ENVIADA::", shipping)
 
 
 }

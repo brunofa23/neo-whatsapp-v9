@@ -11,10 +11,13 @@ export default class extends BaseSchema {
   public async up() {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id').primary().notNullable()
+      table.integer('reg')
       table.string('name').notNullable()
+      table.datetime('appointmentdate')
       table.string('gender')
-      table.string('cellphone').notNullable()
-      table.string('message')
+      table.string('cellphone')
+      table.string('cellphoneserialized')
+      table.string('message', 350)
       table.boolean('phonevalid')
       table.boolean('messagesent')
 

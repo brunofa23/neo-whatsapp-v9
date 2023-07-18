@@ -2,6 +2,8 @@ import { sendRepeatedMessage } from '../../../app/Services/whatsapp-web/SendRepe
 
 async function executeWhatsapp() {
 
+  //sendRepeatedMessage()
+
   const { Client, LocalAuth } = require('whatsapp-web.js');
   const qrcode = require('qrcode-terminal');
 

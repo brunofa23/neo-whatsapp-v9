@@ -20,6 +20,9 @@ export default class Shippingcampaign extends BaseModel {
   public cellphone: string
 
   @column()
+  public cellphoneserialized: string
+
+  @column()
   public message: string
 
   @column()

@@ -1,4 +1,4 @@
-import { numbersPhones } from '../../Services/whatsapp-web/dbtest/returnDb.ts'
+//import { numbersPhones } from '../../Services/whatsapp-web/dbtest/returnDb.ts'
 
 async function verifyNumber(client, cellphone) {
 

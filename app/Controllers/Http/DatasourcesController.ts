@@ -7,7 +7,7 @@ export default class DatasourcesController {
 
   async scheduledPatients() {
 
-    const pacQuery = `SELECT pac_reg, pac_nome, '3185228619' AS pac_celular, pac_ind_whatsapp, agm_hini,
+    const pacQuery = `SELECT pac_reg, pac_nome, '31985228619' AS pac_celular, pac_ind_whatsapp, agm_hini,
     CONCAT(
       RIGHT('0' + CAST(DAY(AGM_HINI) AS VARCHAR(2)), 2), '/',
       RIGHT('0' + CAST(MONTH(AGM_HINI) AS VARCHAR(2)), 2), '/',
@@ -28,7 +28,7 @@ WHERE row_num = 1`
 
     try {
       const result = await Database.connection('mssql').rawQuery(pacQuery)
-      console.log("QUERY", result)
+      //console.log("QUERY", result)
       return result
     } catch (error) {
       return error

@@ -1,4 +1,5 @@
 import { sendRepeatedMessage } from '../../../app/Services/whatsapp-web/SendRepeatedMessage'
+import ChatMonitoring from '../../Services/whatsapp-web/ChatMonitoring'
 
 async function executeWhatsapp() {
 
@@ -29,6 +30,12 @@ async function executeWhatsapp() {
 
   client.initialize();
   console.log("Inicializado")
+
+  const chatMonitoring = new ChatMonitoring
+  await chatMonitoring.monitoring(client)
+
+
+
 
 }
 

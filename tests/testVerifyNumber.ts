@@ -5,4 +5,4 @@ function validatePhone(phone) {
   return regexTelefoneCelular.test(phone);
 }
 
-console.log(validatePhone("553185228619"))
+//console.log(validatePhone("553185228619"))

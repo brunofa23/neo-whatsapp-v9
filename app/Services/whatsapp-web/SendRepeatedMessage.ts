@@ -1,13 +1,15 @@
 import DatasourcesController from 'App/Controllers/Http/DatasourcesController'
 import Chat from 'App/Models/Chat';
 import Shippingcampaign from 'App/Models/Shippingcampaign'
-import { sendRepeatedMessage } from 'App/Services/whatsapp-web/SendRepeatedMessage';
+import { Client } from 'whatsapp-web.js';
+
+//import { verifyNumber } from 'App/Services/whatsapp-web/SendRepeatedMessage';
 
 import { verifyNumber } from '../../Services/whatsapp-web/VerifyNumber'
 
 import moment = require('moment');
 
-async function sendRepeatedMessage(client) {
+async function sendRepeatedMessage(client: Client) {
 
   const yesterday = moment().subtract(1, 'day').format('YYYY-MM-DD');
   //1 - Buscar os pacientes dos filtros selecionados
@@ -15,21 +17,6 @@ async function sendRepeatedMessage(client) {
   const dataSourceList = await dataSource.scheduledPatients()
   const chat = new Chat
 
-  // const bodyChat = {
-  //   name: "Teste",
-  //   cellphone: '319898989998',
-  //   cellphoneserialized: "932323232998",
-  //   message: 'teste de mensagem'
-
-  // }
-  // try {
-  //   console.log("CHAT", bodyChat)
-  //   await Chat.create(bodyChat)
-
-  // } catch (error) {
-  //   console.log("errrrrrrorrrr:", error)
-  // }
-  // return
 
   //2 - Inserir na Tabela Shippingcampaign
   try {
@@ -38,6 +25,8 @@ async function sendRepeatedMessage(client) {
       shipping.reg = data.pac_reg
       shipping.name = String(data.pac_nome).trim()
       shipping.cellphone = data.pac_celular
+      shipping.phonevalid = false
+      shipping.messagesent = false
       shipping.message = String(data.message).replace('@p0', '?').replace('@p1', '?') //`Olá ${firstName[0]}, somos da Neo, gostariamos de confirmar agendamento para o dia ${String(data.data_agm).trim()} com o Dr(a).${String(data.psv_nome).trim()} \n1-Sim \n2-Não `
 
       const verifyExist = await Shippingcampaign.query()
@@ -63,8 +52,10 @@ async function sendRepeatedMessage(client) {
 
   for (let dataRow of shippingCampaignList) {
     dataRow.cellphoneserialized = await verifyNumber(client, dataRow.cellphone)
-    dataRow.phonevalid = (dataRow.cellphone == null || dataRow.cellphone == undefined) ? false : true
     dataRow.messagesent = false
+    if (dataRow.cellphoneserialized) {
+      dataRow.phonevalid = true
+    }
     try {
       dataRow.save()
     } catch (error) {
@@ -77,9 +68,15 @@ async function sendRepeatedMessage(client) {
   for (const dataRow of shippingCampaignList) {
     try {
       if (dataRow.phonevalid && !dataRow.messagesent) {
-        const send = client.sendMessage(dataRow.cellphoneserialized, dataRow.message)
-        dataRow.messagesent = true
-        dataRow.save()
+        //const send = await client.sendMessage(dataRow.cellphoneserialized, dataRow.message)
+        await client.sendMessage(dataRow.cellphoneserialized, dataRow.message)
+          .then((response) => {
+            console.log("SEND......", response)
+            dataRow.messagesent = true
+            dataRow.save()
+          }).catch((error) => {
+            console.log("ERRRRO:::", error)
+          })
 
         const bodyChat = {
           name: dataRow.name,
@@ -89,6 +86,7 @@ async function sendRepeatedMessage(client) {
           shippingcampaigns_id: dataRow.id
         }
         //console.log("CHAT", bodyChat)
+        console.log("PASSEI AQUI 5", bodyChat)
         await Chat.create(bodyChat)
 
       }

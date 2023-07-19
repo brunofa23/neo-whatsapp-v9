@@ -8,7 +8,7 @@ export default class extends BaseSchema {
       table.increments('id').primary().notNullable()
       table.string('name').notNullable()
       table.string('cellphone')
-      table.string('cellphoneserialized')
+      table.string('cellphoneserialized').nullable
       table.string('message', 350)
       table.string('response')
       table.integer('shippingcampaigns_id').references('shippingcampaigns.id')

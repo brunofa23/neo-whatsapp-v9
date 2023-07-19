@@ -1,4 +1,5 @@
 import DatasourcesController from 'App/Controllers/Http/DatasourcesController'
+import Chat from 'App/Models/Chat';
 import Shippingcampaign from 'App/Models/Shippingcampaign'
 import { sendRepeatedMessage } from 'App/Services/whatsapp-web/SendRepeatedMessage';
 
@@ -12,16 +13,32 @@ async function sendRepeatedMessage(client) {
   //1 - Buscar os pacientes dos filtros selecionados
   const dataSource = new DatasourcesController
   const dataSourceList = await dataSource.scheduledPatients()
+  const chat = new Chat
+
+  // const bodyChat = {
+  //   name: "Teste",
+  //   cellphone: '319898989998',
+  //   cellphoneserialized: "932323232998",
+  //   message: 'teste de mensagem'
+
+  // }
+  // try {
+  //   console.log("CHAT", bodyChat)
+  //   await Chat.create(bodyChat)
+
+  // } catch (error) {
+  //   console.log("errrrrrrorrrr:", error)
+  // }
+  // return
 
   //2 - Inserir na Tabela Shippingcampaign
   try {
     for (const data of dataSourceList) {
       const shipping = new Shippingcampaign()
-
       shipping.reg = data.pac_reg
       shipping.name = String(data.pac_nome).trim()
       shipping.cellphone = data.pac_celular
-      shipping.message = data.message//`Olá ${firstName[0]}, somos da Neo, gostariamos de confirmar agendamento para o dia ${String(data.data_agm).trim()} com o Dr(a).${String(data.psv_nome).trim()} \n1-Sim \n2-Não `
+      shipping.message = String(data.message).replace('@p0', '?').replace('@p1', '?') //`Olá ${firstName[0]}, somos da Neo, gostariamos de confirmar agendamento para o dia ${String(data.data_agm).trim()} com o Dr(a).${String(data.psv_nome).trim()} \n1-Sim \n2-Não `
 
       const verifyExist = await Shippingcampaign.query()
         .where('reg', '=', data.pac_reg)
@@ -63,23 +80,33 @@ async function sendRepeatedMessage(client) {
         const send = client.sendMessage(dataRow.cellphoneserialized, dataRow.message)
         dataRow.messagesent = true
         dataRow.save()
+
+        const bodyChat = {
+          name: dataRow.name,
+          cellphone: dataRow.cellphone,
+          cellphoneserialized: dataRow.cellphoneserialized,
+          message: dataRow.message,
+          shippingcampaigns_id: dataRow.id
+        }
+        //console.log("CHAT", bodyChat)
+        await Chat.create(bodyChat)
+
       }
     } catch (error) {
       console.log("ERRO:::", error)
     }
   }
 
-
-  const shipping = shippingCampaignList.map(shippingCampaign => {
-    return {
-      name: shippingCampaign.name,
-      cellphone: shippingCampaign.cellphone,
-      cellphoneserialized: shippingCampaign.cellphoneserialized,
-      phonevalid: shippingCampaign.phonevalid,
-      message: shippingCampaign.message,
-      messagesent: shippingCampaign.messagesent
-    }
-  })
+  // const shipping = shippingCampaignList.map(shippingCampaign => {
+  //   return {
+  //     name: shippingCampaign.name,
+  //     cellphone: shippingCampaign.cellphone,
+  //     cellphoneserialized: shippingCampaign.cellphoneserialized,
+  //     phonevalid: shippingCampaign.phonevalid,
+  //     message: shippingCampaign.message,
+  //     messagesent: shippingCampaign.messagesent
+  //   }
+  // })
 
   //  console.log("SHIPPING::", shipping)
   //console.log("LISTA ENVIADA::", shipping)

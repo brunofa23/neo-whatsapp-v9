@@ -11,6 +11,7 @@ export default class extends BaseSchema {
   public async up() {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id').primary().notNullable()
+      table.integer('interaction').notNullable()
       table.integer('reg')
       table.string('name').notNullable()
       table.string('cellphone')

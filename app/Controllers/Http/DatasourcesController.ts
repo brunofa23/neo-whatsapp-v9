@@ -13,11 +13,7 @@ export default class DatasourcesController {
       RIGHT('0' + CAST(MONTH(AGM_HINI) AS VARCHAR(2)), 2), '/',
       CAST(YEAR(AGM_HINI) AS VARCHAR(4))
     ) AS data_agm,
-    'Olá ' + SUBSTRING(pac_nome, 1, CHARINDEX(' ', pac_nome) - 1) +
-  ' tudo bem? temos uma consulta agendada para o dia'+
-  FORMAT(CONVERT(datetime,agm_hini), 'dd/MM/yyyy HH:mm')+' gostaria de confirmar? 1-Sim 2-Não'
-   AS message
-
+  CONCAT('Olá ',SUBSTRING(pac_nome, 1, CHARINDEX(' ', pac_nome) - 1), ' tudo bem? temos uma consulta agendada para o dia', FORMAT(CONVERT(datetime,agm_hini), 'dd/MM/yyyy HH:mm')+' gostaria de confirmar? 1-Sim 2-Não') as message
   FROM (
 SELECT pac_reg, pac_nome, '3185228619' AS pac_celular, pac_ind_whatsapp, agm_hini,
       ROW_NUMBER() OVER (PARTITION BY pac_nome ORDER BY agm_hini) AS row_num

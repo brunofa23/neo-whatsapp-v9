@@ -1,19 +1,12 @@
-import { BaseModel, column, hasOne, HasOne } from '@ioc:Adonis/Lucid/Orm'
+import { BaseModel, column, hasOne } from '@ioc:Adonis/Lucid/Orm'
 import { DateTime } from 'luxon'
 
-import Chat from './Chat';
-
-export default class Shippingcampaign extends BaseModel {
-
-  static get connection() {
-    return 'mssql2';
-  }
-
+export default class Chat extends BaseModel {
   @column({ isPrimary: true })
   public id: number
 
   @column()
-  public reg: number
+  public shippingcampaigns_id: number
 
   @column()
   public name: string
@@ -28,10 +21,7 @@ export default class Shippingcampaign extends BaseModel {
   public message: string
 
   @column()
-  public phonevalid: boolean
-
-  @column()
-  public messagesent: boolean
+  public response: string
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
@@ -39,6 +29,5 @@ export default class Shippingcampaign extends BaseModel {
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   public updatedAt: DateTime
 
-  @hasOne(() => Chat)
-  public chat: HasOne<typeof Chat>
+
 }

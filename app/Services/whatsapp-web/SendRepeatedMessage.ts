@@ -22,6 +22,8 @@ async function sendRepeatedMessage(client: Client) {
   try {
     for (const data of dataSourceList) {
       const shipping = new Shippingcampaign()
+
+      shipping.interaction = data.interaction
       shipping.reg = data.pac_reg
       shipping.name = String(data.pac_nome).trim()
       shipping.cellphone = data.pac_celular
@@ -79,6 +81,7 @@ async function sendRepeatedMessage(client: Client) {
           })
 
         const bodyChat = {
+          interaction: dataRow.interaction,
           name: dataRow.name,
           cellphone: dataRow.cellphone,
           cellphoneserialized: dataRow.cellphoneserialized,

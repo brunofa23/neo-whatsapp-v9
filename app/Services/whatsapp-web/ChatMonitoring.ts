@@ -8,7 +8,8 @@ export default class Monitoring {
     try {
       client.on('message', async message => {
 
-        //console.log("MENSAGEM::", message)
+        console.log("MENSAGEM::", message.from)
+
 
         if (message.body === 'ola') {
           client.sendMessage(message.from, "Olá tudo bem com vc?")

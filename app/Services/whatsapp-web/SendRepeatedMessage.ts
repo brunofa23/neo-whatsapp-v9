@@ -73,7 +73,7 @@ async function sendRepeatedMessage(client: Client) {
         //const send = await client.sendMessage(dataRow.cellphoneserialized, dataRow.message)
         await client.sendMessage(dataRow.cellphoneserialized, dataRow.message)
           .then((response) => {
-            console.log("SEND......", response)
+            //console.log("SEND......", response)
             dataRow.messagesent = true
             dataRow.save()
           }).catch((error) => {
@@ -89,7 +89,7 @@ async function sendRepeatedMessage(client: Client) {
           shippingcampaigns_id: dataRow.id
         }
         //console.log("CHAT", bodyChat)
-        console.log("PASSEI AQUI 5", bodyChat)
+        //console.log("PASSEI AQUI 5", bodyChat)
         await Chat.create(bodyChat)
 
       }

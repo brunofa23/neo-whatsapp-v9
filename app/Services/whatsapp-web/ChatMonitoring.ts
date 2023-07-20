@@ -6,7 +6,6 @@ import { verifyNumber } from '../../Services/whatsapp-web/VerifyNumber'
 export default class Monitoring {
 
   async monitoring(client: Client) {
-
     console.log("CHAT MONITORING................")
     try {
       client.on('message', async message => {
@@ -14,6 +13,7 @@ export default class Monitoring {
         //const chat = await Chat.findBy('cellphoneserialized', message.from)
         const chat = await Chat.query().where('cellphoneserialized', '=', message.from).whereNull('response').first()
         let chat2 = new Chat()
+
         if (chat) {
           if (chat.interaction == 1) {//confirmação de agenda
             if (message.body == 'Sim')//presença confirmada

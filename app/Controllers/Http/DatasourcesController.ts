@@ -7,7 +7,7 @@ export default class DatasourcesController {
 
   async scheduledPatients() {
 
-    const pacQuery = `SELECT 1 interaction, pac_reg, pac_nome, '31985228619' AS pac_celular, pac_ind_whatsapp, agm_hini,
+    const pacQuery = `SELECT top 1 1 interaction, pac_reg, pac_nome, '31985228619' AS pac_celular, pac_ind_whatsapp, agm_hini,
     CONCAT(
       RIGHT('0' + CAST(DAY(AGM_HINI) AS VARCHAR(2)), 2), '/',
       RIGHT('0' + CAST(MONTH(AGM_HINI) AS VARCHAR(2)), 2), '/',

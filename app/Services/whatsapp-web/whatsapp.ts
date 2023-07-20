@@ -34,9 +34,6 @@ async function executeWhatsapp() {
   const chatMonitoring = new ChatMonitoring
   await chatMonitoring.monitoring(client)
 
-
-
-
 }
 
 module.exports = { executeWhatsapp }

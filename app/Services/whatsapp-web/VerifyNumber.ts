@@ -10,11 +10,11 @@ async function verifyNumber(client, cellphone) {
   try {
     const verifiedPhone = await client.getNumberId(cellphone)
     if (verifiedPhone) {
-      console.log("válido", verifiedPhone)
+      //console.log("válido", verifiedPhone)
       return verifiedPhone._serialized
     }
     else {
-      console.log("inválido", verifiedPhone)
+      //console.log("inválido", verifiedPhone)
       return null
     }
   } catch (error) {

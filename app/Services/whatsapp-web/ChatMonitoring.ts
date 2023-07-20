@@ -1,7 +1,7 @@
-import { verifyNumber } from '../../Services/whatsapp-web/VerifyNumber'
-import { Client } from 'whatsapp-web.js';
 import Chat from 'App/Models/Chat';
+import { Client } from 'whatsapp-web.js';
 
+import { verifyNumber } from '../../Services/whatsapp-web/VerifyNumber'
 
 export default class Monitoring {
 

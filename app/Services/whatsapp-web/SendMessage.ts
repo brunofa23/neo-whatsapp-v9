@@ -1,10 +1,9 @@
+import Chat from "App/Models/Chat"
 import Shippingcampaign from "App/Models/Shippingcampaign"
 import { Client } from "whatsapp-web.js"
-import Chat from "App/Models/Chat"
 
 export default async (client: Client, shippingCampaignList: Shippingcampaign[]) => {
 
-  //4 - Enviar a mensagem...
   for (const dataRow of shippingCampaignList) {
     try {
       if (dataRow.phonevalid && !dataRow.messagesent) {
@@ -19,6 +18,8 @@ export default async (client: Client, shippingCampaignList: Shippingcampaign[]) 
 
         const bodyChat = {
           interaction: dataRow.interaction,
+          idexternal: dataRow.idexternal,
+          reg: dataRow.reg,
           name: dataRow.name,
           cellphone: dataRow.cellphone,
           cellphoneserialized: dataRow.cellphoneserialized,

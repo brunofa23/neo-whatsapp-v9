@@ -1,3 +1,4 @@
+import DatasourcesController from 'App/Controllers/Http/DatasourcesController';
 import Chat from 'App/Models/Chat';
 import { Client } from 'whatsapp-web.js';
 
@@ -10,55 +11,65 @@ export default class Monitoring {
     try {
       client.on('message', async message => {
 
-        //const chat = await Chat.findBy('cellphoneserialized', message.from)
         const chat = await Chat.query().where('cellphoneserialized', '=', message.from).whereNull('response').first()
-        let chat2 = new Chat()
 
         if (chat) {
           if (chat.interaction == 1) {//confirmação de agenda
-            if (message.body == 'Sim')//presença confirmada
+            //interação 1 *************************
+            if (message.body.toUpperCase() == 'SIM' || message.body == '1')//presença confirmada
             {
               client.sendMessage(message.from, "Tudo bem, sua presença foi confirmada. Obrigado!!!")
               chat.response = message.body
               await chat.save()
-              //ir no Smart e marcar presença
+              const datasourcesController = new DatasourcesController
+              //Salvar no Smart e marcar presença
+              await datasourcesController.confirmSchedule(chat.idexternal)
 
             } else
-              if (message.body == "Não")//Não vai confirmar a presença
+              if (message.body.toUpperCase() == "NÃO" || message.body.toUpperCase() == "NAO" || message.body.toUpperCase() == "2")//Não vai confirmar a presença
               {
                 chat.response = message.body
-                chat.save()
+                await chat.save()
 
+                //vai para interação 2
                 client.sendMessage(message.from, "Gostaria de reagendar para outro horário? \n1-Sim \n2-Não")
-
+                const chat2 = new Chat()
                 chat2.interaction = 2
+                chat2.idexternal = chat.idexternal
+                chat2.reg = chat.reg
                 chat2.name = chat.name
                 chat2.cellphone = chat.cellphone
                 chat2.cellphoneserialized = message.from
+                chat2.shippingcampaigns_id = chat.shippingcampaigns_id
                 chat2.message = "Gostaria de reagendar para outro horário? \n1-Sim \n2-Não"
                 await Chat.create(chat2)
-              }
+
+              } else (client.sendMessage(message.from, 'Resposta inválida, por favor responda 1-Sim ou 2-Não.'))
+            //********************************************/
+
           } if (chat.interaction == 2) {
+
+            const chat2 = await Chat.find(chat.id)
             if (message.body == "Sim") {
               client.sendMessage(message.from, "Tudo bem, estamos encaminhando sua chamada.")
               //const numeroDestino = '5531990691174';
               const numeroDestino = await verifyNumber(client, '5531990691174')
               console.log("NUMERO DESTINO", numeroDestino)
+
               const mensagem = `Olá ${chat.name} para quando gostaria de reagendar a consulta?`;
               const linkRedirecionamento = `https://api.whatsapp.com/send?phone=${chat.cellphone}&text=${encodeURIComponent(mensagem)}`;
-
-              //client.sendMessage(numeroDestino, "Segue o link para reagendamento de Consulta...")
-              client.sendMessage(numeroDestino, `${linkRedirecionamento}`).then(() => {
+              client.sendMessage(numeroDestino, `${linkRedirecionamento}`).then(async () => {
                 console.log('Mensagem enviada!');
+                chat2.response = message.body
+                await chat2.save()
               }).catch((erro) => {
                 console.error('Erro ao enviar a mensagem:', erro);
               });
 
-              //gerar um link e enviar para um determinado numero da atendente
             } else if (message.body == "Não") {
               client.sendMessage(message.from, "Tudo bem, iremos encerrar a conversa. A Neo agradece.")
-              chat2.message = message.body
-              chat.save()
+              chat2.response = message.body
+              await chat2.save()
             }
 
           }

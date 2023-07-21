@@ -12,6 +12,12 @@ export default class Chat extends BaseModel {
   public interaction: number
 
   @column()
+  public idexternal: number
+
+  @column()
+  public reg: number
+
+  @column()
   public name: string
 
   @column()

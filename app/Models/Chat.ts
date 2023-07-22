@@ -12,6 +12,9 @@ export default class Chat extends BaseModel {
   public interaction: number
 
   @column()
+  public interactionseq: number
+
+  @column()
   public idexternal: number
 
   @column()

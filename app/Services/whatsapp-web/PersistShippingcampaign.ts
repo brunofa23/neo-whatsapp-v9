@@ -12,11 +12,12 @@ export default async () => {
 
     const yesterday = moment().subtract(1, 'day').format('YYYY-MM-DD');
     const shipping = new Shippingcampaign()
-    shipping.interaction = data.interaction
-    shipping.idexternal = data.agm_id
-    shipping.reg = data.pac_reg
-    shipping.name = String(data.pac_nome).trim()
-    shipping.cellphone = data.pac_celular
+    shipping.interaction_id = data.interaction_id
+    shipping.interaction_seq = data.interaction_seq
+    shipping.idexternal = data.idexternal
+    shipping.reg = data.reg
+    shipping.name = String(data.name).trim()
+    shipping.cellphone = data.cellphone
     shipping.phonevalid = false
     shipping.messagesent = false
     shipping.message = String(data.message).replace(/@p[0-9]/g, '?')//`Olá ${firstName[0]}, somos da Neo, gostariamos de confirmar agendamento para o dia ${String(data.data_agm).trim()} com o Dr(a).${String(data.psv_nome).trim()} \n1-Sim \n2-Não `

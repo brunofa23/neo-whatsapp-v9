@@ -27,12 +27,12 @@ export default class DatasourcesController {
     // ) AS subquery
     // WHERE row_num = 1`
 
-    const pacQuery = `SELECT top 1 1 interaction, pac_reg, pac_nome, '31985228619' AS pac_celular, pac_ind_whatsapp, agm_hini,
+    const pacQuery = `SELECT top 1 1 interaction_id,1 interaction_seq, pac_reg reg, pac_nome name, '31985228619' AS cellphone, pac_ind_whatsapp, agm_hini,
     CONCAT(
       RIGHT('0' + CAST(DAY(AGM_HINI) AS VARCHAR(2)), 2), '/',
       RIGHT('0' + CAST(MONTH(AGM_HINI) AS VARCHAR(2)), 2), '/',
       CAST(YEAR(AGM_HINI) AS VARCHAR(4))
-    ) AS data_agm, agm_id,
+    ) AS data_agm, agm_id idexternal,
   CONCAT('Olá ',SUBSTRING(pac_nome, 1, CHARINDEX(' ', pac_nome) - 1), ' tudo bem? temos uma consulta agendada para o dia', FORMAT(CONVERT(datetime,agm_hini), 'dd/MM/yyyy HH:mm')+' gostaria de confirmar? 1-Sim 2-Não') as message
   FROM (
 SELECT pac_reg, pac_nome, '3185228619' AS pac_celular, pac_ind_whatsapp, agm_hini,agm_id,

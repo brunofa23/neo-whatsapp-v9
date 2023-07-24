@@ -1,7 +1,7 @@
-import { Client } from 'whatsapp-web.js';
 import PersistShippingcampaign from './PersistShippingcampaign';
 import PersistValidationPhones from './PersistValidationPhones';
 import SendMessage from './SendMessage';
+import { Client } from 'whatsapp-web.js';
 
 async function sendRepeatedMessage(client: Client) {
 

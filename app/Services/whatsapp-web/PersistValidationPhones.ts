@@ -6,7 +6,6 @@ import { verifyNumber } from './VerifyNumber'
 
 export default async (client: Client) => {
 
-
   const yesterday = moment().subtract(1, 'day').format('YYYY-MM-DD');
   const shippingCampaignList =
     await Shippingcampaign.query().whereNull('phonevalid')

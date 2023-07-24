@@ -17,7 +17,8 @@ export default async (client: Client, shippingCampaignList: Shippingcampaign[]) 
           })
 
         const bodyChat = {
-          interaction: dataRow.interaction,
+          interaction_id: dataRow.interaction_id,
+          interaction_seq: dataRow.interaction_seq,
           idexternal: dataRow.idexternal,
           reg: dataRow.reg,
           name: dataRow.name,

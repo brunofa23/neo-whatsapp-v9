@@ -13,7 +13,10 @@ export default class Shippingcampaign extends BaseModel {
   public id: number
 
   @column()
-  public interaction: number
+  public interaction_id: number
+
+  @column()
+  public interaction_seq: number
 
   @column()
   public idexternal: number

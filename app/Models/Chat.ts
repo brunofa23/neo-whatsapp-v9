@@ -9,10 +9,10 @@ export default class Chat extends BaseModel {
   public shippingcampaigns_id: number
 
   @column()
-  public interaction: number
+  public interaction_id: number
 
   @column()
-  public interactionseq: number
+  public interaction_seq: number
 
   @column()
   public idexternal: number

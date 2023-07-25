@@ -59,10 +59,12 @@ export default class DatasourcesController {
   }
 
   async confirmSchedule(id: number) {
-    const query = `update agm set agm_confirm_stat = 'C' where agm_id=:id`
+    const query = `update agm set AGM_CONFIRM_STAT = 'C' where agm_id = ${id}` //`update agm set agm_confirm_stat = 'C' where agm_id=:id`
     try {
       console.log("EXECUTANDO UPDATE NO SMART...", id)
-      await Database.connection('mssql').rawQuery(query, { id: id })
+      const result = await Database.connection('mssql').rawQuery(query)
+      console.log("QUERY>>>", result)
+
     } catch (error) {
       return error
     }

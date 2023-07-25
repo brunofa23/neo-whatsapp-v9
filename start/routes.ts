@@ -12,14 +12,9 @@ Route.get('/', async () => {
 Route.group(() => {
   Route.get('/teste', async () => {
     await executeWhatsapp()
-    //const teste = await sendRepeatedMessage()
-    //return teste
-    //const teste = require('../../neo-whatsapp-v9/app/Services/whatsapp-web/teste.ts')
-    //return teste.listPac()
-    //const result = Database.connection('mssql').from('teste').select('*')
-    //console.log("entrei aqui", await Database.connection('mssql').from('pac').select('*'))
-    //return (await Database.connection('mssql').from('pac').select('*').where('pac_reg', '=', '15'))
   })
+
+  Route.post('/restart', 'ShippingcampaignsController.resetWhatsapp')
 
 }).prefix('/api')
 

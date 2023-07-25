@@ -1,5 +1,6 @@
 import Chat from 'App/Models/Chat';
 import { Client } from 'whatsapp-web.js';
+
 import ConfirmSchedule from './ConfirmSchedule'
 
 export default class Monitoring {
@@ -25,9 +26,7 @@ export default class Monitoring {
             }).catch((error) => {
               console.error('Failed to get number ID:', error);
             });
-
             //console.log("GET NUMBERID>>>", verifyNumber)
-
           } catch (error) {
             console.log("ERRO:::", error)
           }

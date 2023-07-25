@@ -1,5 +1,3 @@
-//import { numbersPhones } from '../../Services/whatsapp-web/dbtest/returnDb.ts'
-
 async function verifyNumber(client, cellphone) {
 
   if (!validatePhone(cellphone))

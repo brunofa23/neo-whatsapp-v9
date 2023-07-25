@@ -13,13 +13,20 @@ async function executeWhatsapp(logout: boolean = false) {
       args: ['--no-sandbox', '--max-memory=512MB'],
       headless: true
     }
-
-
   });
 
   client.on('qr', (qr) => {
     qrcode.generate(qr, { small: true });
     console.log(qr);
+  });
+
+  client.on('authenticated', () => {
+    console.log('AUTHENTICATED');
+  });
+
+  client.on('auth_failure', msg => {
+    // Fired if session restore was unsuccessful
+    console.error('AUTHENTICATION FAILURE', msg);
   });
 
   client.on('ready', async () => {
@@ -33,15 +40,16 @@ async function executeWhatsapp(logout: boolean = false) {
 
   if (logout) {
 
-    // client.on('disconnected', (reason) => {
-    //   console.log("EXECUTANDO DISCONECT")
-    //   console.log("REASON>>>", reason)
-    //   // Destroy and reinitialize the client when disconnected
+
+  }
+
+  client.on('disconnected', (reason) => {
+    console.log("EXECUTANDO DISCONECT")
+    console.log("REASON>>>", reason)
+    // Destroy and reinitialize the client when disconnected
     client.destroy();
     client.initialize();
-
-    // });
-  }
+  });
 
 
   client.initialize();

@@ -8,8 +8,6 @@ export default async () => {
   const dataSource = new DatasourcesController
   const dataSourceList = await dataSource.scheduledPatients()
 
-  console.log("LISTA::", dataSourceList)
-
   for (const data of dataSourceList) {
 
     const yesterday = moment().subtract(1, 'day').format('YYYY-MM-DD');

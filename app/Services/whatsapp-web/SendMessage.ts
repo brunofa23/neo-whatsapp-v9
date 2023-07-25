@@ -8,7 +8,7 @@ export default async (client: Client, shippingCampaignList: Shippingcampaign[]) 
   async function sendMessages() {
     for (const dataRow of shippingCampaignList) {
       try {
-        await new Promise(resolve => setTimeout(resolve, 10000));
+        //await new Promise(resolve => setTimeout(resolve, 3000));
         if (dataRow.phonevalid && !dataRow.messagesent) {
           //const send = await client.sendMessage(dataRow.cellphoneserialized, dataRow.message)
           await client.sendMessage(dataRow.cellphoneserialized, dataRow.message)

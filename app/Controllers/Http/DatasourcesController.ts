@@ -28,7 +28,7 @@ export default class DatasourcesController {
     // WHERE row_num = 1`
 
     const pacQuery = `
-    SELECT 1 interaction_id,1 interaction_seq, pac_reg reg, pac_nome name, pac_celular AS cellphone, pac_ind_whatsapp, agm_hini, agm_confirm_stat,
+    SELECT 1 interaction_id,1 interaction_seq, pac_reg reg, pac_nome name, pac_celular AS cellphone, pac_ind_whatsapp, agm_hini, agm_confirm_stat,str_nome,PSV_APEL,SMK_ROT,
         CONCAT(
           RIGHT('0' + CAST(DAY(AGM_HINI) AS VARCHAR(2)), 2), '/',
           RIGHT('0' + CAST(MONTH(AGM_HINI) AS VARCHAR(2)), 2), '/',
@@ -36,18 +36,26 @@ export default class DatasourcesController {
         ) AS data_agm, agm_id idexternal,
       CONCAT('Olá ',SUBSTRING(pac_nome, 1, CHARINDEX(' ', pac_nome) - 1), ' tudo bem? Temos uma consulta agendada para o dia ', FORMAT(CONVERT(datetime,agm_hini), 'dd/MM/yyyy HH:mm')+' gostaria de confirmar? \n1-Sim \n2-Não') as message
       FROM (
-    SELECT pac_reg, pac_nome, pac_celular, pac_ind_whatsapp, agm_hini,agm_id,agm_confirm_stat,
-          ROW_NUMBER() OVER (PARTITION BY pac_nome ORDER BY agm_hini) AS row_num
+    SELECT pac_reg, pac_nome, pac_celular, pac_ind_whatsapp, agm_hini,agm_id,agm_confirm_stat,str_nome,PSV_APEL, SMK_ROT,
+				 ROW_NUMBER() OVER (PARTITION BY pac_nome ORDER BY agm_hini) AS row_num
     FROM pac
     INNER JOIN agm ON (agm_pac = PAC_REG)
     INNER JOIN psv ON (agm_med = PSV_COD)
+	INNER JOIN STR ON (AGM_STR_COD=str_cod)
+	INNER JOIN MED ON (AGM_MED=PSV_COD)
+	INNER JOIN SMK ON (AGM_SMK=SMK_COD)
+
     WHERE agm_id is not null and
-    AGM_HINI BETWEEN CONVERT(DATETIME, CONVERT(DATE, GETDATE()))
-       AND CAST(DATEADD(DAY, 2, GETDATE()) AS DATE)
+	PSV_CC <> 99999 AND
+    AGM_HINI BETWEEN
+		  CAST(DATEADD(DAY, 2, GETDATE()) AS DATE)
+       AND CAST(DATEADD(DAY, 5, GETDATE()) AS DATE)
        AND AGM_STAT NOT IN ('C','B')
     ) AS subquery
     WHERE row_num = 1
-    and pac_reg in (23202, 252143)`
+	ORDER BY AGM_HINI`
+    //pac_reg in (23202, 252143)
+
 
     try {
       const result = await Database.connection('mssql').rawQuery(pacQuery)

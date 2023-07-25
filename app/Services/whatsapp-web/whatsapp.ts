@@ -1,6 +1,6 @@
 import { sendRepeatedMessage } from 'App/Services/whatsapp-web/SendRepeatedMessage';
 
-import ChatMonitoring from '../../Services/whatsapp-web/ChatMonitoring'
+import ChatMonitoring from './ChatMonitoring/ChatMonitoring'
 
 async function executeWhatsapp() {
 

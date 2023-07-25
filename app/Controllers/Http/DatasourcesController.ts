@@ -27,7 +27,7 @@ export default class DatasourcesController {
     // ) AS subquery
     // WHERE row_num = 1`
 
-    const pacQuery = `SELECT top 1 1 interaction_id,1 interaction_seq, pac_reg reg, pac_nome name, '31985228619' AS cellphone, pac_ind_whatsapp, agm_hini,
+    const pacQuery = `SELECT top 1 1 interaction_id,1 interaction_seq, pac_reg reg, pac_nome name, '31990691174' AS cellphone, pac_ind_whatsapp, agm_hini,
     CONCAT(
       RIGHT('0' + CAST(DAY(AGM_HINI) AS VARCHAR(2)), 2), '/',
       RIGHT('0' + CAST(MONTH(AGM_HINI) AS VARCHAR(2)), 2), '/',
@@ -43,7 +43,7 @@ INNER JOIN psv ON (agm_med = PSV_COD)
 WHERE agm_id is not null and
 AGM_HINI BETWEEN CONVERT(DATETIME, CONVERT(DATE, GETDATE()))
    AND CAST(DATEADD(DAY, 2, GETDATE()) AS DATE)
-   AND AGM_STAT NOT IN ('C')
+   AND AGM_STAT NOT IN ('C','B')
 ) AS subquery
 WHERE row_num = 1`
 

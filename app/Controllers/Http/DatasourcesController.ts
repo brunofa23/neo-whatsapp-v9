@@ -78,7 +78,7 @@ ORDER BY AGM_HINI;`
     const query = `update agm set AGM_CONFIRM_STAT = 'C' where agm_id = ${id}` //`update agm set agm_confirm_stat = 'C' where agm_id=:id`
     try {
       console.log("EXECUTANDO UPDATE NO SMART...", query)
-      const result = await Database.connection('mssql').raw(query)
+      const result = await Database.connection('mssql').rawQuery(query)
       console.log("QUERY>>>", result)
 
     } catch (error) {

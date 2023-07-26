@@ -36,13 +36,15 @@ export default class DatasourcesController {
         ', é para confirmar seu horário conosco, agendado para o dia ',
         FORMAT(CONVERT(datetime, agm_hini), 'dd/MM/yyyy HH:mm'),
         ' na Unidade ' + RTRIM(str_nome),
-        ' com o Dr(a).',
+        ' com Dr(a).',
         SUBSTRING(PSV_APEL, 1, CHARINDEX(' ', PSV_APEL) - 1),
         ' podemos confirmar?\n1 para sim \n2 para reagendamento'
-    ) AS message
+    ) AS message,
+	concat('{"address":"',CONCAT(EMP_END,', ',emp_comp,', ',EMP_END_BAIRRO),'"}') AS otherfields
+
 FROM (
     SELECT
-        pac_reg, pac_nome, pac_celular, pac_ind_whatsapp, agm_hini, agm_id, agm_confirm_stat, str_nome, PSV_APEL, SMK_ROT, pac_sexo,
+        pac_reg, pac_nome, pac_celular, pac_ind_whatsapp, agm_hini, agm_id, agm_confirm_stat, str_nome, PSV_APEL, SMK_ROT, pac_sexo,emp_end, emp_comp,EMP_END_BAIRRO,
         ROW_NUMBER() OVER (PARTITION BY pac_nome ORDER BY agm_hini) AS row_num
     FROM pac
     INNER JOIN agm ON (agm_pac = PAC_REG)
@@ -50,6 +52,7 @@ FROM (
     INNER JOIN STR ON (AGM_STR_COD = str_cod)
     INNER JOIN MED ON (AGM_MED = PSV_COD)
     INNER JOIN SMK ON (AGM_SMK = SMK_COD)
+	inner join emp on (STR_EMP_COD=emp_cod)
     WHERE
         agm_id IS NOT NULL
         AND PSV_CC <> 99999
@@ -75,7 +78,7 @@ ORDER BY AGM_HINI;`
     const query = `update agm set AGM_CONFIRM_STAT = 'C' where agm_id = ${id}` //`update agm set agm_confirm_stat = 'C' where agm_id=:id`
     try {
       console.log("EXECUTANDO UPDATE NO SMART...", query)
-      const result = await Database.connection('mssql').rawQuery(query)
+      const result = await Database.connection('mssql').raw(query)
       console.log("QUERY>>>", result)
 
     } catch (error) {

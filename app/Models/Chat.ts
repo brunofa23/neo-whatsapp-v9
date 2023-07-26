@@ -1,5 +1,7 @@
-import { BaseModel, column, hasOne } from '@ioc:Adonis/Lucid/Orm'
+import { BaseModel, column, hasOne, HasOne } from '@ioc:Adonis/Lucid/Orm'
 import { DateTime } from 'luxon'
+
+import Shippingcampaign from './Shippingcampaign'
 
 export default class Chat extends BaseModel {
   @column({ isPrimary: true })
@@ -41,5 +43,10 @@ export default class Chat extends BaseModel {
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   public updatedAt: DateTime
 
+  @hasOne(() => Shippingcampaign, {
+    foreignKey: 'id',
+    localKey: 'shippingcampaigns_id'
+  })
+  public shippingcampaign: HasOne<typeof Shippingcampaign>
 
 }

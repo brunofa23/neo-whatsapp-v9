@@ -1,9 +1,8 @@
+import { stateTyping } from '../util'
+import { verifyNumber } from '../VerifyNumber'
 import DatasourcesController from 'App/Controllers/Http/DatasourcesController';
 import Chat from 'App/Models/Chat';
 import { Client, Message } from 'whatsapp-web.js';
-
-import { stateTyping } from '../util'
-import { verifyNumber } from '../VerifyNumber'
 
 export default async (client: Client, message: Message, chat: Chat) => {
 
@@ -11,8 +10,10 @@ export default async (client: Client, message: Message, chat: Chat) => {
   if (chat.interaction_seq == 1) {
     if (message.body.toUpperCase() == 'SIM' || message.body == '1')//presença confirmada
     {
-      await stateTyping(message)
-      client.sendMessage(message.from, `Muito obrigada, seu agendamento foi confirmado. Esperamos por você. Ótimo dia. Lembrando que para qualquer dúvida, estamos disponíveis pelo whatsapp 3132350003.`)
+      await stateTyping(message)//status de digitando...
+      const chatOtherFields = JSON.parse(chat.shippingcampaign.otherfields)
+      client.sendMessage(message.from, `Muito obrigada, seu agendamento foi confirmado, o endereço de sua consulta é ${chatOtherFields.address}. Esperamos por você. Ótimo dia. Lembrando que para qualquer dúvida, estamos disponíveis pelo whatsapp 3132350003.`)
+      //client.sendMessage(message.from, `Teste>>>${chat.shippingcampaign.otherfields}`)
       chat.response = message.body
       await chat.save()
       const datasourcesController = new DatasourcesController
@@ -25,8 +26,8 @@ export default async (client: Client, message: Message, chat: Chat) => {
         await chat.save()
         await stateTyping(message)
 
-        client.sendMessage(message.from,
-          `Entendi, sabemos que nosso dia está muito atarefado. Favor clicar no link que estou enviando para conversar com nossa atendente e podermos agendar novo horário para você.`)
+        const message2 = `Entendi, sabemos que nosso dia está muito atarefado. Favor clicar no link que estou enviando para conversar com nossa atendente e podermos agendar novo horário para você.`
+        client.sendMessage(message.from, message2)
         const chat2 = new Chat()
         chat2.interaction_id = chat.interaction_id
         chat2.interaction_seq = 2
@@ -36,10 +37,14 @@ export default async (client: Client, message: Message, chat: Chat) => {
         chat2.cellphone = chat.cellphone
         chat2.cellphoneserialized = message.from
         chat2.shippingcampaigns_id = chat.shippingcampaigns_id
-        chat2.message = "Gostaria de reagendar para outro horário? \n1-Sim \n2-Não"
+        chat2.message = message2
         Chat.create(chat2)
 
-      } else (client.sendMessage(message.from, 'Resposta inválida, por favor responda \n1-Sim \n2-Não.'))
+        const linkRedirecionamento = `https://api.whatsapp.com/send?phone=5531985228619&text=${encodeURIComponent("Olá, gostaria de fazer um reagendamento de consulta.")}`;
+        client.sendMessage(message.from, linkRedirecionamento)
+
+
+      } else (client.sendMessage(message.from, 'Resposta inválida, por favor responda \n1 para confirmar o agendamento. \n2 para reagendamento.'))
   } else
     //PERGUNTA 2 - GOSTARIA DE REAGENDAR
     if (chat.interaction_seq == 2) {

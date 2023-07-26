@@ -37,6 +37,9 @@ export default class Shippingcampaign extends BaseModel {
   public message: string
 
   @column()
+  public otherfields: string
+
+  @column()
   public phonevalid: boolean
 
   @column()
@@ -48,6 +51,8 @@ export default class Shippingcampaign extends BaseModel {
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   public updatedAt: DateTime
 
-  @hasOne(() => Chat)
+  @hasOne(() => Chat, {
+    foreignKey: 'shippingcampaigns_id'
+  })
   public chat: HasOne<typeof Chat>
 }

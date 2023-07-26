@@ -19,6 +19,7 @@ export default class extends BaseSchema {
       table.string('cellphone')
       table.string('cellphoneserialized')
       table.string('message', 350)
+      table.string('otherfields', 400)
       table.boolean('phonevalid')
       table.boolean('messagesent')
 
@@ -33,3 +34,5 @@ export default class extends BaseSchema {
     this.schema.dropTable(this.tableName)
   }
 }
+
+

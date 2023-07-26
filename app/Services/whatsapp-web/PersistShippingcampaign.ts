@@ -7,7 +7,7 @@ export default async () => {
 
   const dataSource = new DatasourcesController
   const dataSourceList = await dataSource.scheduledPatients()
-
+  //console.log("DADOS:::", dataSourceList)
   for (const data of dataSourceList) {
 
     const yesterday = moment().subtract(1, 'day').format('YYYY-MM-DD');
@@ -21,6 +21,7 @@ export default async () => {
     shipping.phonevalid = false
     shipping.messagesent = false
     shipping.message = String(data.message).replace(/@p[0-9]/g, '?')//`Olá ${firstName[0]}, somos da Neo, gostariamos de confirmar agendamento para o dia ${String(data.data_agm).trim()} com o Dr(a).${String(data.psv_nome).trim()} \n1-Sim \n2-Não `
+    shipping.otherfields = data.otherfields
 
     const verifyExist = await Shippingcampaign.query()
       .where('reg', '=', data.reg)

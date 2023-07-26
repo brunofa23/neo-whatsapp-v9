@@ -2,8 +2,8 @@ import DatasourcesController from 'App/Controllers/Http/DatasourcesController';
 import Chat from 'App/Models/Chat';
 import { Client, Message } from 'whatsapp-web.js';
 
-import { verifyNumber } from '../VerifyNumber'
 import { stateTyping } from '../util'
+import { verifyNumber } from '../VerifyNumber'
 
 export default async (client: Client, message: Message, chat: Chat) => {
 
@@ -12,7 +12,7 @@ export default async (client: Client, message: Message, chat: Chat) => {
     if (message.body.toUpperCase() == 'SIM' || message.body == '1')//presença confirmada
     {
       await stateTyping(message)
-      client.sendMessage(message.from, "Tudo bem, sua presença foi confirmada. Obrigado!!!")
+      client.sendMessage(message.from, `Muito obrigada, seu agendamento foi confirmado. Esperamos por você. Ótimo dia. Lembrando que para qualquer dúvida, estamos disponíveis pelo whatsapp 3132350003.`)
       chat.response = message.body
       await chat.save()
       const datasourcesController = new DatasourcesController
@@ -25,7 +25,8 @@ export default async (client: Client, message: Message, chat: Chat) => {
         await chat.save()
         await stateTyping(message)
 
-        client.sendMessage(message.from, "Gostaria de reagendar para outro horário? \n1-Sim \n2-Não")
+        client.sendMessage(message.from,
+          `Entendi, sabemos que nosso dia está muito atarefado. Favor clicar no link que estou enviando para conversar com nossa atendente e podermos agendar novo horário para você.`)
         const chat2 = new Chat()
         chat2.interaction_id = chat.interaction_id
         chat2.interaction_seq = 2

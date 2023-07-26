@@ -16,6 +16,8 @@ Route.group(() => {
 
   Route.post('/restart', 'ShippingcampaignsController.resetWhatsapp')
 
+  Route.get('/chat', 'ShippingcampaignsController.chat')
+
 }).prefix('/api')
 
 

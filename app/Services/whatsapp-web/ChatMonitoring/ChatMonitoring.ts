@@ -8,7 +8,11 @@ export default class Monitoring {
     console.log("CHAT MONITORING................")
     try {
       client.on('message', async message => {
-        const chat = await Chat.query().where('cellphoneserialized', '=', message.from).whereNull('response').first()
+        const chat = await Chat.query()
+          .preload('shippingcampaign')
+          .where('cellphoneserialized', '=', message.from)
+          .whereNull('response').first()
+        //console.log("QUERY CHAT>>>>>", chat)
         if (chat) {
           if (chat.interaction_id == 1)
             await ConfirmSchedule(client, message, chat)

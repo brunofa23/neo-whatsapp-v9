@@ -2,6 +2,7 @@ import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Shippingcampaign from 'App/Models/Shippingcampaign'
 import { executeWhatsapp } from '../../Services/whatsapp-web/whatsapp.ts'
 import Chat from 'App/Models/Chat'
+import Database from '@ioc:Adonis/Lucid/Database'
 
 export default class ShippingcampaignsController {
 
@@ -42,22 +43,36 @@ export default class ShippingcampaignsController {
   }
 
   public async chat({ response, request }) {
-    //return "Teste Chat"
+
+    //return "tester"
+    const id = 567508
+    const query = `update agm set AGM_CONFIRM_STAT = 'C' where agm_id = ${id}` //`update agm set agm_confirm_stat = 'C' where agm_id=:id`
+    //const query = "select top 10 * from agm order by agm_hini desc"
     try {
-      const chat = await Chat.query()
-        .preload('shippingcampaign').first()
-      const jsonString = chat?.shippingcampaign.otherfields
-      const jsonObject = JSON.parse(jsonString);
-      console.log("CHAT CONTROLLER", jsonObject.address)
+      console.log("EXECUTANDO UPDATE NO SMART...", query)
+      const result = await Database.connection('mssql').rawQuery(query)
+      console.log("QUERY>>>", result)
+      return result
 
-      // const chat = await Shippingcampaign.query()
-      //   .preload('chat')
-
-      return response.status(200).send(chat)
     } catch (error) {
       return error
-      //throw new BadRequest('Bad Request', 401, 'erro')
     }
+
+    // try {
+    //   const chat = await Chat.query()
+    //     .preload('shippingcampaign').first()
+    //   const jsonString = chat?.shippingcampaign.otherfields
+    //   const jsonObject = JSON.parse(jsonString);
+    //   console.log("CHAT CONTROLLER", jsonObject.address)
+
+    //   // const chat = await Shippingcampaign.query()
+    //   //   .preload('chat')
+
+    //   return response.status(200).send(chat)
+    // } catch (error) {
+    //   return error
+    //   //throw new BadRequest('Bad Request', 401, 'erro')
+    // }
 
   }
 

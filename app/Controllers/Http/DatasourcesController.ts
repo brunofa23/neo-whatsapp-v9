@@ -43,7 +43,7 @@ export default class DatasourcesController {
 		RTRIM(str_nome)
 		,'*',
         ' com ', psv_trat
-		,' *',
+		,'*',
         SUBSTRING(PSV_APEL, 1, CHARINDEX(' ', PSV_APEL) - 1)
 		,'*',
         ' podemos confirmar?\n*1* para sim \n*2* para reagendamento'
@@ -88,7 +88,7 @@ AND
 		AND AGM_CONFIRM_STAT NOT IN ('C')
 ) AS subquery
 WHERE row_num = 1
-AND pac_reg in (23202, 252143,343367)
+AND pac_reg in (23202, 252143,343367, 203540)
 ORDER BY AGM_HINI;`
 
     //cod dr Rodrigo:91102

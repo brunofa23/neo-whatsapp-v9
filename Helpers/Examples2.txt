@@ -1,0 +1,146 @@
+const qrcode = require('qrcode-terminal');
+const { Client, LocalAuth, Contact, PrivateChat, Buttons, List, Location } = require('whatsapp-web.js');
+
+const client = new Client({
+    authStrategy: new LocalAuth(),
+    puppeteer: {
+        headless: true,
+        setRequestInterception: true,
+        setBypassCSP: true,
+        setJavaScriptEnabled: false
+    }
+
+});
+
+
+// Change to false if you don't want to reject incoming calls
+// let rejectCalls = true;
+// client.on('call', async (call) => {
+//     console.log('Call received, rejecting. GOTO Line 261 to disable', call);
+//     if (rejectCalls) await call.reject();
+//     await client.sendMessage(call.from, `[${call.fromMe ? 'Outgoing' : 'Incoming'}] Phone call from ${call.from}, type ${call.isGroup ? 'group' : ''} ${call.isVideo ? 'video' : 'audio'} call. ${rejectCalls ? 'This call was automatically rejected by the script.' : ''}`);
+// });
+
+// client.on('loading_screen', (percent, message) => {
+//     console.log('LOADING SCREEN', percent, message);
+// });
+//console.log("INICIALIZADO!!!")
+
+client.on('qr', qr => {
+    console.log('QR RECEIVED', qr);
+    qrcode.generate(qr, { small: true });
+});
+
+client.on('authenticated', () => {
+    console.log('AUTHENTICATED');
+});
+
+client.on('auth_failure', msg => {
+    // Fired if session restore was unsuccessful
+    console.error('AUTHENTICATION FAILURE', msg);
+});
+
+client.initialize();
+client.on('ready', () => {
+    console.log('Cliente conectado e pronto!!');
+});
+
+// const phoneNumber = "553185228619@c.us"
+// const message = "teste automático"
+// client.sendMessage(phoneNumber, message).then(() => {
+//     console.log("Mensagem enviada")
+// }).catch((error) => {
+//     console.log("Erro ao enviar mensagem:", error)
+// })
+
+// client.on('message_create', (msg) => {
+//     // Fired on all message creations, including your own
+//     if (msg.fromMe) {
+//         console.log("TESTE")
+//     }
+// });
+
+// client.on('message', async message => {
+
+//     // if (!message.fromMe) {
+//     //     // Acessar o ID do chat a partir da mensagem
+//     //     const chatId = message.chatId._serialized;
+
+//     //     // Fazer algo com a mensagem recebida no chat específico
+//     //     console.log(`Mensagem recebida no chat: ${chatId}`);
+//     //     console.log(`Conteúdo da mensagem: ${message.body}`);
+//     // }
+
+//     if (message.body === 'Sim') {
+//         client.sendMessage(message.from, "Consulta Confirmada, Obrigado");
+//         console.log("message", message)
+
+//     } else
+//         if (message.body === 'Não') {
+//             client.sendMessage(message.from, "Gostaria de reagendar? sim / não");
+//             console.log("message", message)
+//         }
+// })
+
+
+
+// function encerrarConversa() {
+//     client.destroy()
+//         .then(() => {
+//             console.log('Conversa encerrada com sucesso.');
+//         })
+//         .catch((error) => {
+//             console.error('Erro ao encerrar a conversa:', error);
+//         });
+// }
+
+// function loopComPausa(totalLoops) {
+//     let loopCount = 0;
+
+//     async function realizarLoop() {
+//         if (loopCount < totalLoops) {
+//             // Lógica do loop aqui
+//             console.log(`Executando loop ${loopCount + 1}`);
+//             loopCount++;
+//             const number = '553185228619@c.us'; // Número de telefone para o qual você deseja enviar a mensagem
+//             const _message = 'Olá! Temos uma consulta para o dia 30/06/2023, podemos confirmar?'; // Conteúdo da mensagem
+//             console.log("executei message")
+
+//             await client.sendMessage(number, _message)
+//                 .then((response) => {
+//                     console.log('Mensagem enviada com sucesso!', message);
+//                 })
+//                 .catch((error) => {
+//                     console.error('Erro ao enviar a mensagem:', error);
+//                 });
+
+//             setTimeout(realizarLoop, 20000); // Pausa de 2 segundos
+//         }
+//     }
+
+//     realizarLoop();
+// }
+
+
+client.on('message_ack', (msg, ack) => {
+    /*
+        == ACK VALUES ==
+        ACK_ERROR: -1
+        ACK_PENDING: 0
+        ACK_SERVER: 1
+        ACK_DEVICE: 2
+        ACK_READ: 3
+        ACK_PLAYED: 4
+    */
+
+    if (ack == 3) {
+        // The message was read
+    }
+
+});
+
+
+// Exemplo de uso:
+//loopComPausa(10);
+
+

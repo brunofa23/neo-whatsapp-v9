@@ -7,7 +7,6 @@ export default class DatasourcesController {
 
   async scheduledPatients() {
 
-
     const pacQuery = `SELECT
     1 AS interaction_id,
     1 AS interaction_seq,
@@ -40,7 +39,7 @@ export default class DatasourcesController {
         SUBSTRING(PSV_APEL, 1, CHARINDEX(' ', PSV_APEL) - 1),
         ' podemos confirmar?\n1 para sim \n2 para reagendamento'
     ) AS message,
-	concat('{"address":"',CONCAT(EMP_END,', ',emp_comp,', ',EMP_END_BAIRRO),'"}') AS otherfields
+    concat('{"address":"',CONCAT(EMP_END,', ',emp_comp,', ',EMP_END_BAIRRO),'", "medic":"',SUBSTRING(PSV_APEL, 1, CHARINDEX(' ', PSV_APEL) - 1),'"}') AS otherfields
 
 FROM (
     SELECT

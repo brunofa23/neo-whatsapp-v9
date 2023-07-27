@@ -32,7 +32,7 @@ export default async (client: Client, message: Message, chat: Chat) => {
         const message2 = `Entendi, sabemos que nosso dia está muito atarefado. Favor clicar no link que estou enviando para conversar com nossa atendente e podermos agendar novo horário para você.`
         client.sendMessage(message.from, message2)
 
-        const messageLink = `Olá, sou ${chat.name} e gostaria de reagendar uma consulta com o médico ${chatOtherFields.medic} `
+        const messageLink = `Olá, sou ${chat.name} e gostaria de reagendar uma consulta com ${chatOtherFields.medic}`
         const phoneNumber = "5531985228619"
         const encodedMessage = encodeURIComponent(messageLink);
         const linkRedirect = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodedMessage}`;

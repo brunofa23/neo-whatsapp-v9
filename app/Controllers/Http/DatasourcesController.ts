@@ -42,17 +42,17 @@ export default class DatasourcesController {
 		,'*',
 		RTRIM(str_nome)
 		,'*',
-        ' com Dr(a).'
-		,'*',
+        ' com ', psv_trat
+		,' *',
         SUBSTRING(PSV_APEL, 1, CHARINDEX(' ', PSV_APEL) - 1)
 		,'*',
         ' podemos confirmar?\n*1* para sim \n*2* para reagendamento'
     ) AS message,
-    concat('{"address":"',CONCAT(EMP_END,', ',emp_comp,', ',EMP_END_BAIRRO),'", "medic":"',SUBSTRING(PSV_APEL, 1, CHARINDEX(' ', PSV_APEL) - 1),'"}') AS otherfields
+    concat('{"address":"',CONCAT(EMP_END,', ',emp_comp,', ',EMP_END_BAIRRO),'", "medic":"',psv_trat,' ',SUBSTRING(PSV_APEL, 1, CHARINDEX(' ', PSV_APEL) - 1),'"}') AS otherfields
 
 FROM (
     SELECT
-        pac_reg, pac_nome, pac_celular, pac_ind_whatsapp, agm_hini, agm_id, agm_confirm_stat, str_nome, PSV_APEL, SMK_ROT, pac_sexo,emp_end, emp_comp,EMP_END_BAIRRO,
+        pac_reg, pac_nome, pac_celular, pac_ind_whatsapp, agm_hini, agm_id, agm_confirm_stat, str_nome, PSV_APEL, SMK_ROT, pac_sexo,emp_end, emp_comp,EMP_END_BAIRRO,psv_trat,
         ROW_NUMBER() OVER (PARTITION BY pac_nome ORDER BY agm_hini) AS row_num
     FROM pac
     INNER JOIN agm ON (agm_pac = PAC_REG)
@@ -71,7 +71,7 @@ FROM (
             THEN CAST(DATEADD(DAY, 2, GETDATE()) AS DATE)
         WHEN DATEPART(WEEKDAY, GETDATE()) = 6 -- Sexta-feira
             THEN CAST(DATEADD(DAY, 4, GETDATE()) AS DATE)
-        WHEN DATEPART(WEEKDAY, GETDATE()) > 1 AND DATEPART(WEEKDAY, GETDATE()) < 5 -- Outros dias da semana (domingo a quarta-feira)
+        WHEN DATEPART(WEEKDAY, GETDATE()) > 1 AND DATEPART(WEEKDAY, GETDATE()) < 5 -- Outros dias da semana (segunda a quarta-feira)
             THEN CAST(DATEADD(DAY, 2, GETDATE()) AS DATE)
     END
 AND
@@ -80,7 +80,7 @@ AND
             THEN CAST(DATEADD(DAY, 5, GETDATE()) AS DATE)
         WHEN DATEPART(WEEKDAY, GETDATE()) = 6 -- Sexta-feira
             THEN CAST(DATEADD(DAY, 5, GETDATE()) AS DATE)
-        WHEN DATEPART(WEEKDAY, GETDATE()) > 1 AND DATEPART(WEEKDAY, GETDATE()) < 5-- Outros dias da semana (domingo a quarta-feira)
+        WHEN DATEPART(WEEKDAY, GETDATE()) > 1 AND DATEPART(WEEKDAY, GETDATE()) < 5-- Outros dias da semana (segunda a quarta-feira)
             THEN CAST(DATEADD(DAY, 3, GETDATE()) AS DATE)
     END
 		/****************************************/
@@ -88,8 +88,10 @@ AND
 		AND AGM_CONFIRM_STAT NOT IN ('C')
 ) AS subquery
 WHERE row_num = 1
-AND pac_reg in (23202, 252143,343367, 91102)
+AND pac_reg in (23202, 252143,343367)
 ORDER BY AGM_HINI;`
+
+    //cod dr Rodrigo:91102
 
     try {
       const result = await Database.connection('mssql').rawQuery(pacQuery)

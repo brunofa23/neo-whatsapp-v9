@@ -5,7 +5,7 @@ import ConfirmSchedule from './ConfirmSchedule'
 
 export default class Monitoring {
   async monitoring(client: Client) {
-    console.log("CHAT MONITORING................")
+
     try {
       client.on('message', async message => {
         const chat = await Chat.query()
@@ -15,20 +15,19 @@ export default class Monitoring {
 
         if (chat) {
           if (chat.interaction_id == 1) {
-            console.log("ENTREI NO CHAT 1...")
             await ConfirmSchedule(client, message, chat)
           }
 
         } else {
           if (message.body.toUpperCase() === 'OI' || message.body.toUpperCase() === 'OLÁ') {
             console.log("ENTREI NO OI...")
-            client.sendMessage(message.from, "Olá, sou a atendente virutual.")
+            client.sendMessage(message.from, "Olá, sou a atendente virtual.")
             return
           }
 
           else if (message.body.startsWith("verificar")) {
             const string = message.body;
-            const numbers = string.match(/\d/g).join("");
+            1            const numbers = string.match(/\d/g).join("");
             console.log("Resultado do telefone:", numbers)
 
             try {
@@ -38,8 +37,6 @@ export default class Monitoring {
               }).catch((error) => {
                 console.error('Failed to get number ID:', error);
               });
-
-
               //console.log("GET NUMBERID>>>", verifyNumber)
             } catch (error) {
               console.log("ERRO:::", error)

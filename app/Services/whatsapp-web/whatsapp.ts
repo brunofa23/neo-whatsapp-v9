@@ -46,12 +46,6 @@ async function executeWhatsapp(logout: boolean = false) {
     }, 15000)
   });
 
-
-  if (logout) {
-
-
-  }
-
   client.on('disconnected', (reason) => {
     console.log("EXECUTANDO DISCONECT")
     console.log("REASON>>>", reason)

@@ -1,37 +1,29 @@
-import { numbersPhones } from '../../Services/whatsapp-web/dbtest/returnDb.ts'
+async function verifyNumber(client, cellphone) {
 
-async function verifyNumber(client) {
+  if (!validatePhone(cellphone))
+    return null
+  if (cellphone == null || cellphone == undefined)
+    return null
 
-  console.log("executando VERIFICAÇÃO DE NUMEROS")
-  //buscar no banco todos os pacientes para confirmação
-  const listPhonesToVerify = await numbersPhones()
-  //verificar quais números possuem whatsapp e retornar
-  const listPac = []
   try {
-
-    for (const numberPhone of listPhonesToVerify) {
-      const verifiedNumber = await client.getNumberId(numberPhone.phone)
-
-
-      if (verifiedNumber) {
-        //console.log("NUMERO VALIDO", verifiedNumber)
-        listPac.push({ name: numberPhone.nome, phone: verifiedNumber.user, valid: true })
-      }
-      else {
-        listPac.push({ name: numberPhone.nome, phone: numberPhone.phone, valid: false })
-      }
-
+    const verifiedPhone = await client.getNumberId(cellphone)
+    if (verifiedPhone) {
+      //console.log("válido", verifiedPhone)
+      return verifiedPhone._serialized
     }
-    //const numero = await client.getNumberId('31990691174')
-    //console.log('NÚMERO VÁLIDO:', numero);
-    // listPac.push(numero)
-
+    else {
+      //console.log("inválido", verifiedPhone)
+      return null
+    }
   } catch (error) {
-    console.log("ERRO:::", error)
+    return null
   }
-  console.log("NUMEROS VERIFICADOS>>>", listPac)
-  return listPac
+}
 
+function validatePhone(cellphone) {
+  // Expressão regular para validar o formato de um número de celular no Brasil
+  const regexTelefoneCelular = /^(\+55|55)?\s?(?:\(?0?[1-9]{2}\)?)?\s?(?:9\s?)?[6789]\d{3}[-\s]?\d{4}$/;
+  return regexTelefoneCelular.test(cellphone);
 }
 
 module.exports = { verifyNumber }

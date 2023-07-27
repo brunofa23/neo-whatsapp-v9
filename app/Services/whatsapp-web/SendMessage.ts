@@ -9,8 +9,8 @@ export default async (client: Client, shippingCampaignList: Shippingcampaign[]) 
       try {
         //await new Promise(resolve => setTimeout(resolve, 3000));
         if (dataRow.phonevalid && !dataRow.messagesent
-          && (dataRow.cellphone == '31990691174' || dataRow.cellphone == '31998911872' || dataRow.cellphone == '31985228619' || dataRow.cellphone == '31987840445')) {
-
+          //&& (dataRow.cellphone == '31990691174' || dataRow.cellphone == '31998911872' || dataRow.cellphone == '31985228619' || dataRow.cellphone == '31987840445')
+        ) {
           await client.sendMessage(dataRow.cellphoneserialized, dataRow.message)
             .then((response) => {
               dataRow.messagesent = true

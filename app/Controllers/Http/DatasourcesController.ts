@@ -57,7 +57,7 @@ FROM (
         agm_id IS NOT NULL
         AND PSV_CC <> 99999
         AND AGM_HINI BETWEEN
-            CAST(DATEADD(DAY, 2, GETDATE()) AS DATE)
+            CAST(DATEADD(DAY, 1, GETDATE()) AS DATE)
             AND CAST(DATEADD(DAY, 3, GETDATE()) AS DATE)
         AND AGM_STAT NOT IN ('C', 'B')
 ) AS subquery

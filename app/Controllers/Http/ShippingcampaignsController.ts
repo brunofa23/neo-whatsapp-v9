@@ -50,9 +50,15 @@ export default class ShippingcampaignsController {
     //const query = "select top 10 * from agm order by agm_hini desc"
     try {
       console.log("EXECUTANDO UPDATE NO SMART...", query)
-      const result = await Database.connection('mssql').rawQuery(query)
-      console.log("QUERY>>>", result)
-      return result
+      //const result = await Database.connection('mssql').rawQuery(query)
+      await Database.connection('mssql').rawQuery(query).then((result) => {
+        return `executado com sucesso:: ${result}`
+      }).catch((error) => {
+        return `Error: ${error}`
+      })
+
+      //console.log("QUERY>>>", result)
+      //return result
 
     } catch (error) {
       return error

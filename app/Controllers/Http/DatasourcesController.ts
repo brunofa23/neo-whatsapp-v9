@@ -25,19 +25,28 @@ export default class DatasourcesController {
     ) AS data_agm,
     agm_id AS idexternal,
     CONCAT(
-        'Olá tudo bem? Eu sou a Iris, atendimento virtual do Neo, Núcleo de Excelência em Oftalmologia. O motivo do meu contato, ',
+        'Olá tudo bem? Eu sou a Iris, atendimento virtual do *Neo, Núcleo de Excelência em Oftalmologia*. O motivo do meu contato, ',
         CASE
             WHEN pac_sexo = 'M' THEN 'Sr. '
             WHEN pac_sexo = 'F' THEN 'Sra. '
             ELSE ''
-        END,
-        SUBSTRING(pac_nome, 1, CHARINDEX(' ', pac_nome) - 1),
-        ', é para confirmar seu horário conosco, agendado para o dia ',
-        FORMAT(CONVERT(datetime, agm_hini), 'dd/MM/yyyy HH:mm'),
-        ' na Unidade ' + RTRIM(str_nome),
-        ' com Dr(a).',
-        SUBSTRING(PSV_APEL, 1, CHARINDEX(' ', PSV_APEL) - 1),
-        ' podemos confirmar?\n1 para sim \n2 para reagendamento'
+        END
+		,'*',
+        SUBSTRING(pac_nome, 1, CHARINDEX(' ', pac_nome) - 1)
+		,'*',
+        ', é para confirmar seu horário conosco, agendado para o dia '
+		,'*',
+        FORMAT(CONVERT(datetime, agm_hini), 'dd/MM/yyyy HH:mm')
+		,'*',
+        ' na Unidade '
+		,'*',
+		RTRIM(str_nome)
+		,'*',
+        ' com Dr(a).'
+		,'*',
+        SUBSTRING(PSV_APEL, 1, CHARINDEX(' ', PSV_APEL) - 1)
+		,'*',
+        ' podemos confirmar?\n*1* para sim \n*2* para reagendamento'
     ) AS message,
     concat('{"address":"',CONCAT(EMP_END,', ',emp_comp,', ',EMP_END_BAIRRO),'", "medic":"',SUBSTRING(PSV_APEL, 1, CHARINDEX(' ', PSV_APEL) - 1),'"}') AS otherfields
 
@@ -61,7 +70,7 @@ FROM (
         AND AGM_STAT NOT IN ('C', 'B')
 ) AS subquery
 WHERE row_num = 1
-AND pac_reg in (23202, 252143)
+AND pac_reg in (23202, 252143,343367)
 ORDER BY AGM_HINI;`
 
     try {
@@ -77,8 +86,7 @@ ORDER BY AGM_HINI;`
     const query = `update agm set AGM_CONFIRM_STAT = 'C' where agm_id = ${id}` //`update agm set agm_confirm_stat = 'C' where agm_id=:id`
     try {
       console.log("EXECUTANDO UPDATE NO SMART...", query)
-      const result = await Database.connection('mssql').rawQuery(query)
-      console.log("QUERY>>>", result)
+      await Database.connection('mssql').rawQuery(query)
 
     } catch (error) {
       return error

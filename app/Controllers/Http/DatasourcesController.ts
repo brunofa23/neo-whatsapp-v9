@@ -64,13 +64,31 @@ FROM (
     WHERE
         agm_id IS NOT NULL
         AND PSV_CC <> 99999
-        AND AGM_HINI BETWEEN
-            CAST(DATEADD(DAY, 1, GETDATE()) AS DATE)
-            AND CAST(DATEADD(DAY, 3, GETDATE()) AS DATE)
-        AND AGM_STAT NOT IN ('C', 'B')
+		/*************************************/
+		AND AGM_HINI BETWEEN
+    CASE
+        WHEN DATEPART(WEEKDAY, GETDATE()) = 5 -- Quinta-feira
+            THEN CAST(DATEADD(DAY, 2, GETDATE()) AS DATE)
+        WHEN DATEPART(WEEKDAY, GETDATE()) = 6 -- Sexta-feira
+            THEN CAST(DATEADD(DAY, 4, GETDATE()) AS DATE)
+        WHEN DATEPART(WEEKDAY, GETDATE()) > 1 AND DATEPART(WEEKDAY, GETDATE()) < 5 -- Outros dias da semana (domingo a quarta-feira)
+            THEN CAST(DATEADD(DAY, 2, GETDATE()) AS DATE)
+    END
+AND
+    CASE
+        WHEN DATEPART(WEEKDAY, GETDATE()) = 5 -- Quinta-feira
+            THEN CAST(DATEADD(DAY, 5, GETDATE()) AS DATE)
+        WHEN DATEPART(WEEKDAY, GETDATE()) = 6 -- Sexta-feira
+            THEN CAST(DATEADD(DAY, 5, GETDATE()) AS DATE)
+        WHEN DATEPART(WEEKDAY, GETDATE()) > 1 AND DATEPART(WEEKDAY, GETDATE()) < 5-- Outros dias da semana (domingo a quarta-feira)
+            THEN CAST(DATEADD(DAY, 3, GETDATE()) AS DATE)
+    END
+		/****************************************/
+		AND AGM_STAT NOT IN ('C', 'B')
+		AND AGM_CONFIRM_STAT NOT IN ('C')
 ) AS subquery
 WHERE row_num = 1
-AND pac_reg in (23202, 252143,343367)
+AND pac_reg in (23202, 252143,343367, 91102)
 ORDER BY AGM_HINI;`
 
     try {

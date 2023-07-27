@@ -88,10 +88,12 @@ AND
 		AND AGM_CONFIRM_STAT NOT IN ('C')
 ) AS subquery
 WHERE row_num = 1
-AND pac_reg in (23202, 252143,343367, 203540)
+AND pac_reg in (23202, 252143,343367)
 ORDER BY AGM_HINI;`
 
     //cod dr Rodrigo:91102
+    //cod dr Tiago:203540
+
 
     try {
       const result = await Database.connection('mssql').rawQuery(pacQuery)

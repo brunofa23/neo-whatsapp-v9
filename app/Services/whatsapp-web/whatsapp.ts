@@ -15,6 +15,15 @@ async function executeWhatsapp(logout: boolean = false) {
     }
   });
 
+  // Change to false if you don't want to reject incoming calls
+  let rejectCalls = true;
+  client.on('call', async (call) => {
+    console.log('Call received, rejecting. GOTO Line 261 to disable', call);
+    if (rejectCalls) await call.reject();
+    //await client.sendMessage(call.from, `[${call.fromMe ? 'Outgoing' : 'Incoming'}] Phone call from ${call.from}, type ${call.isGroup ? 'group' : ''} ${call.isVideo ? 'video' : 'audio'} call. ${rejectCalls ? 'This call was automatically rejected by the script.' : ''}`);
+    await client.sendMessage(call.from, `[${call.fromMe ? 'Outgoing' : 'Incoming'}] Este número de telefone está programado para não receber chamadas. `);
+  });
+
   client.on('qr', (qr) => {
     qrcode.generate(qr, { small: true });
     console.log(qr);
@@ -36,12 +45,6 @@ async function executeWhatsapp(logout: boolean = false) {
       sendRepeatedMessage(client)
     }, 15000)
   });
-
-
-  if (logout) {
-
-
-  }
 
   client.on('disconnected', (reason) => {
     console.log("EXECUTANDO DISCONECT")

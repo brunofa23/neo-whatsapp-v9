@@ -5,3 +5,9 @@ coverage
 .DS_STORE
 tmp
 .history
+<<<<<<< HEAD
+=======
+.wwebjs_auth
+.wwebjs_cache
+.env
+>>>>>>> development

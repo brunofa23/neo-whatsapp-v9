@@ -27,7 +27,7 @@ export default class Monitoring {
 
           else if (message.body.startsWith("verificar")) {
             const string = message.body;
-            1            const numbers = string.match(/\d/g).join("");
+            const numbers = string.match(/\d/g).join("");
             console.log("Resultado do telefone:", numbers)
 
             try {

@@ -4,6 +4,9 @@ import { executeWhatsapp } from '../../Services/whatsapp-web/whatsapp.ts'
 import Chat from 'App/Models/Chat'
 import Database from '@ioc:Adonis/Lucid/Database'
 
+import { DateFormat } from '../../Services/whatsapp-web/util.ts'
+import { DateTime } from 'luxon'
+
 export default class ShippingcampaignsController {
 
   static get connection() {
@@ -44,6 +47,13 @@ export default class ShippingcampaignsController {
 
   public async chat({ response, request }) {
 
+    //const date = DateTime.local()
+    const dateFormatLocal = await DateFormat("dd/MM/yyyy")
+    return dateFormatLocal
+
+
+
+
     //return "tester"
     const id = 567508
     const query = `update agm set AGM_CONFIRM_STAT = 'C' where agm_id = ${id}` //`update agm set agm_confirm_stat = 'C' where agm_id=:id`
@@ -64,21 +74,6 @@ export default class ShippingcampaignsController {
       return error
     }
 
-    // try {
-    //   const chat = await Chat.query()
-    //     .preload('shippingcampaign').first()
-    //   const jsonString = chat?.shippingcampaign.otherfields
-    //   const jsonObject = JSON.parse(jsonString);
-    //   console.log("CHAT CONTROLLER", jsonObject.address)
-
-    //   // const chat = await Shippingcampaign.query()
-    //   //   .preload('chat')
-
-    //   return response.status(200).send(chat)
-    // } catch (error) {
-    //   return error
-    //   //throw new BadRequest('Bad Request', 401, 'erro')
-    // }
 
   }
 

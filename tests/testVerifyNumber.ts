@@ -1,9 +1,15 @@
+const { DateTime } = require('luxon');
 
-function validatePhone(phone) {
-  console.log("teste")
-  // Expressão regular para validar o formato de um número de celular no Brasil
-  const regexTelefoneCelular = /^(\+55|55)?\s?(?:\(?0?[1-9]{2}\)?)?\s?(?:9\s?)?[6789]\d{3}[-\s]?\d{4}$/;
-  return regexTelefoneCelular.test(phone);
+function dateFormat(format, date = DateTime.local()) {
+  // Verificar se a data é válida
+  if (!(date instanceof DateTime)) {
+    throw new Error('A data fornecida não é válida. Certifique-se de passar um objeto DateTime.');
+  }
+
+  // Formatando a data no formato especificado
+  return date.toFormat(format);
 }
 
-console.log(validatePhone("553185228619"))
+// Exemplo de uso:
+const formattedDate = dateFormat("dd/MM/yyyy HH:mm:ss");
+console.log(formattedDate); // Exibe a data atual no formato especificado

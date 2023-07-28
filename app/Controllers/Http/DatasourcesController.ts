@@ -1,7 +1,8 @@
 // import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Database from '@ioc:Adonis/Lucid/Database'
-
+import { DateFormat } from '../../Services/whatsapp-web/util'
 import moment = require('moment');
+import { DateTime } from 'luxon';
 
 export default class DatasourcesController {
 
@@ -101,7 +102,9 @@ export default class DatasourcesController {
   }
 
   async confirmSchedule(id: number) {
-    const query = `update agm set AGM_CONFIRM_STAT = 'C' where agm_id = ${id}` //`update agm set agm_confirm_stat = 'C' where agm_id=:id`
+    const date = DateFormat("dd/MM/yyyy HH:mm:ss", DateTime.local())
+
+    const query = `update agm set AGM_CONFIRM_STAT = 'C', AGM_CONFIRM_OBS=${date} where agm_id = ${id}` //`update agm set agm_confirm_stat = 'C' where agm_id=:id`
     try {
       console.log("EXECUTANDO UPDATE NO SMART...", query)
       await Database.connection('mssql').rawQuery(query)

@@ -1,6 +1,7 @@
 import { sendRepeatedMessage, logout } from 'App/Services/whatsapp-web/SendRepeatedMessage';
 
 import ChatMonitoring from './ChatMonitoring/ChatMonitoring'
+import Mehtods from '../../Services/whatsapp-web/ChatMonitoring/ClientMethods.ts'
 
 async function executeWhatsapp(logout: boolean = false) {
 
@@ -54,16 +55,16 @@ async function executeWhatsapp(logout: boolean = false) {
     client.initialize();
   });
 
-
   client.initialize();
   console.log("Inicializado")
 
   const chatMonitoring = new ChatMonitoring
   await chatMonitoring.monitoring(client)
 
-
-
-
+  if (logout) {
+    const execMethod = new Mehtods
+    await execMethod.executeMethod(client, "logout")
+  }
 
 }
 

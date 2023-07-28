@@ -41,18 +41,17 @@ export default class ShippingcampaignsController {
 
   public async resetWhatsapp() {
     console.log("EXECUTANDO RESET ZAP")
-    await executeWhatsapp(true)
-
+    await executeWhatsapp()
   }
 
+  public async logout() {
+    console.log("EXECUTANDO LOGOUT...")
+    await executeWhatsapp(true)
+  }
+
+
+
   public async chat({ response, request }) {
-
-    //const date = DateTime.local()
-    const dateFormatLocal = await DateFormat("dd/MM/yyyy")
-    return dateFormatLocal
-
-
-
 
     //return "tester"
     const id = 567508

@@ -13,8 +13,8 @@ Route.group(() => {
   Route.get('/teste', async () => {
     await executeWhatsapp()
   })
-
   Route.post('/restart', 'ShippingcampaignsController.resetWhatsapp')
+  Route.post('/logout', 'ShippingcampaignsController.logout')
 
   Route.post('/chat', 'ShippingcampaignsController.chat')
 

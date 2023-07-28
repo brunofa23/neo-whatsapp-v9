@@ -12,8 +12,7 @@ export default class DatasourcesController {
 
     const env = process.env.NODE_ENV
 
-    const pacQueryDev = `use smartoft2;
-    SELECT
+    const pacQueryDev = `SELECT
         1 AS interaction_id,
         1 AS interaction_seq,
         pac_reg AS reg,
@@ -92,8 +91,7 @@ export default class DatasourcesController {
     AND pac_reg IN (23202, 252143, 343367)
     ORDER BY AGM_HINI;`
 
-    const pacQueryProd = `use smartoft2;
-    SELECT
+    const pacQueryProd = `SELECT
         1 AS interaction_id,
         1 AS interaction_seq,
         pac_reg AS reg,

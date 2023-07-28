@@ -43,6 +43,18 @@ export default class Monitoring {
             }
             return
           }
+
+          else if (message.body === "destroy") {
+            client.destroy()
+              .then(() => {
+                console.log('Conversa encerrada com sucesso.');
+              })
+              .catch((error) => {
+                console.error('Erro ao encerrar a conversa:', error);
+              });
+            return
+          }
+
           else {
             console.log("ENTREI NA FINALIZAÇÃO...")
             client.sendMessage(message.from, "Olá, esta conversa já foi encerrada. O Neo Agradece. ")

@@ -40,7 +40,7 @@ export default class DatasourcesController {
         ' com ' + psv_trat + '*' +
         SUBSTRING(PSV_APEL, 1, CHARINDEX(' ', PSV_APEL) - 1) + '*' +
         ' podemos confirmar?\n*1* para sim \n*2* para reagendamento' AS message,
-        '{"address":"' + EMP_END + ', ' + emp_comp + ', ' + EMP_END_BAIRRO + '", "medic":"' + psv_trat + ' ' + SUBSTRING(PSV_APEL, 1, CHARINDEX(' ', PSV_APEL) - 1) + '"}' AS otherfields
+        '{"address":"' + EMP_END +', '+ emp_comp+'","medic":"'+psv_trat+' '+SUBSTRING(PSV_APEL, 1, CHARINDEX(' ', PSV_APEL) - 1)+'"}'   AS otherfields
     FROM (
         SELECT
             pac_reg, pac_nome, pac_celular, pac_ind_whatsapp, agm_hini, agm_id, agm_confirm_stat, str_nome, PSV_APEL, SMK_ROT, pac_sexo, emp_end, emp_comp, EMP_END_BAIRRO, psv_trat,

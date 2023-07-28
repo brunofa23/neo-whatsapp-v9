@@ -5,6 +5,8 @@ export default class Methods {
     console.log("EXECUTE METHODS...")
     try {
 
+
+
       client.on('message', async message => {
 
         if (message.body.startsWith("verificar")) {

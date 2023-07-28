@@ -57,7 +57,6 @@ export default class Monitoring {
           }
 
           else {
-            console.log("ENTREI NA FINALIZAÇÃO...")
             client.sendMessage(message.from, "Olá, esta conversa já foi encerrada. O Neo Agradece. ")
 
           }

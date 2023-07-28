@@ -1,7 +1,7 @@
 import { sendRepeatedMessage, logout } from 'App/Services/whatsapp-web/SendRepeatedMessage';
 
 import ChatMonitoring from './ChatMonitoring/ChatMonitoring'
-import Mehtods from '../../Services/whatsapp-web/ChatMonitoring/ClientMethods.ts'
+import Mehtods from '../../Services/whatsapp-web/ChatMonitoring/ClientMethods'
 
 async function executeWhatsapp(logout: boolean = false) {
 

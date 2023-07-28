@@ -1,3 +1,5 @@
-2023/07/14-18:14:45.892 5fdc Reusing MANIFEST C:\Users\Notebook-Bruno\OneDrive\Desktop\projetosNode\neo-whatsapp-v9\.wwebjs_auth\session\Default\File System\Origins/MANIFEST-000001
-2023/07/14-18:14:45.892 5fdc Recovering log #3
-2023/07/14-18:14:45.893 5fdc Reusing old log C:\Users\Notebook-Bruno\OneDrive\Desktop\projetosNode\neo-whatsapp-v9\.wwebjs_auth\session\Default\File System\Origins/000003.log 
+2023/07/28-10:34:05.627 56b8 Log #3: 3 ops saved to Table #4 OK
+2023/07/28-10:34:05.633 56b8 Archiving C:\Users\Notebook-Bruno\OneDrive\Desktop\projetosNode\neo-whatsapp-v9\.wwebjs_auth\session\Default\File System\Origins/000003.log: OK
+2023/07/28-10:34:05.633 56b8 Table #4: 3 entries OK
+2023/07/28-10:34:05.636 56b8 Archiving C:\Users\Notebook-Bruno\OneDrive\Desktop\projetosNode\neo-whatsapp-v9\.wwebjs_auth\session\Default\File System\Origins/MANIFEST-000001: OK
+2023/07/28-10:34:05.658 56b8 **** Repaired leveldb C:\Users\Notebook-Bruno\OneDrive\Desktop\projetosNode\neo-whatsapp-v9\.wwebjs_auth\session\Default\File System\Origins; recovered 1 files; 181 bytes. Some data may have been lost. ****

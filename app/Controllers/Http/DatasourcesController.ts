@@ -2,8 +2,6 @@ import { Env } from '@ioc:Adonis/Core/Env';
 // import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Database from '@ioc:Adonis/Lucid/Database'
 import { DateFormat } from '../../Services/whatsapp-web/util'
-
-
 import { DateTime } from 'luxon';
 
 export default class DatasourcesController {

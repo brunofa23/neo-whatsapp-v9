@@ -45,7 +45,8 @@ export default class Monitoring {
           }
 
           else if (message.body === "destroy") {
-            client.destroy()
+            //client.destroy()
+            client.logout()
               .then(() => {
                 console.log('Conversa encerrada com sucesso.');
               })

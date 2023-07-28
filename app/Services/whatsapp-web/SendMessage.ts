@@ -31,6 +31,7 @@ export default async (client: Client, shippingCampaignList: Shippingcampaign[]) 
             shippingcampaigns_id: dataRow.id
           }
           await Chat.create(bodyChat)
+          console.log("Mensagem enviada:", dataRow.name)
 
         }
       } catch (error) {

@@ -7,7 +7,7 @@ async function stateTyping(message: Message) {
   return await new Promise(resolve => setTimeout(resolve, 3000));
 }
 
-function dateFormat(format, date = DateTime.local()) {
+async function DateFormat(format, date = DateTime.local()) {
   // Verificar se a data é válida
   //const formattedDate = dateFormat("dd/MM/yyyy HH:mm:ss");
 
@@ -19,4 +19,4 @@ function dateFormat(format, date = DateTime.local()) {
   return date.toFormat(format);
 }
 
-module.exports = { stateTyping, dateFormat }
+module.exports = { stateTyping, DateFormat }

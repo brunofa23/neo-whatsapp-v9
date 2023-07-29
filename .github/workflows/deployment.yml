@@ -3,7 +3,7 @@ name: Delete and Merge
 on:
   push:
     branches:
-      - main
+      - development
 
 jobs:
   delete_and_merge:
@@ -18,11 +18,11 @@ jobs:
       - name: Checkout main-production branch
         uses: actions/checkout@v2
         with:
-          ref: main-production
+          ref: development
 
-      - run: git status
-      - name: Checkout main-test
-        run: git checkout main-test
+        run: git status
+      - name: Checkout main
+        run: git checkout main
 
       - name: Git Pull
         run: git pull

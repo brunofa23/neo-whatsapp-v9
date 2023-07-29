@@ -20,14 +20,10 @@ jobs:
         with:
           ref: main-production
 
-<<<<<<< HEAD
-      - name: Checkout main-production
-        run: git checkout main-production
-=======
       - run: git status
       - name: Checkout main-test
         run: git checkout main-test
->>>>>>> development
+
 
       - name: Git Pull
         run: git pull

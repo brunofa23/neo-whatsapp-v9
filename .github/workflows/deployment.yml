@@ -23,6 +23,9 @@ jobs:
       - name: Checkout main-production
         run: git checkout main-production
 
+      - name: Git Pull
+        run: git pull
+
       - name: Merge main into main-production
         run: git merge main
 

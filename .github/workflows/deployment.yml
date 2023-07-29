@@ -15,8 +15,6 @@ jobs:
           git config --global user.email "brunofa23@gmail.com"
           git config --global user.name "Bruno Favato"
 
-      - name: Delete main-production branch
-        run: git push --delete origin main-production || true
 
       - name: Checkout main-production branch
         uses: actions/checkout@v2

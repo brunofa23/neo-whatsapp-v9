@@ -15,16 +15,20 @@ jobs:
           git config --global user.email "brunofa23@gmail.com"
           git config --global user.name "Bruno Favato"
 
-      - name: Delete main-production branch
-        run: git push --delete origin main-production || true
-
       - name: Checkout main-production branch
         uses: actions/checkout@v2
         with:
           ref: main-production
 
+      - run: git status
+      - name: Checkout main-test
+        run: git checkout main-test
+
+      - name: Git Pull
+        run: git pull
+
       - name: Merge main into main-production
-        run: git merge main
+        run: git merge development
 
       - name: Push changes to main-production branch
         uses: ad-m/github-push-action@v0.6.0

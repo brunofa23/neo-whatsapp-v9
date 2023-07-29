@@ -8,7 +8,7 @@ export default async (client: Client, shippingCampaignList: Shippingcampaign[]) 
     for (const dataRow of shippingCampaignList) {
       //*************************** */
       try {
-        await new Promise(resolve => setTimeout(resolve, 8000));
+        //await new Promise(resolve => setTimeout(resolve, 8000));
         if (dataRow.phonevalid && !dataRow.messagesent
           //&& (dataRow.cellphone == '31990691174' || dataRow.cellphone == '31998911872' || dataRow.cellphone == '31985228619' || dataRow.cellphone == '31987840445')
         ) {

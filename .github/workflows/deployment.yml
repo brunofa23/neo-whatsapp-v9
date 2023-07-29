@@ -27,6 +27,6 @@ jobs:
     - run: pwd && npm ci
     - run: node ace build --production --ignore-ts-errors
     - run: git add -A
-    - run: git commit -m 'Nova atualização'
     - run: git push --follow-tags origin main-production
+    - run: git commit -m 'Nova atualização'
 

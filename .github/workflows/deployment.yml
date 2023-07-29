@@ -1,28 +1,33 @@
-name: Build and deploy api
-concurrency: deploy_production
+name: Delete and Merge
+
 on:
   push:
     branches:
       - main
+
 jobs:
-
-  build:
-    name: Build api typescript project and deploy it to server
+  delete_and_merge:
     runs-on: ubuntu-latest
+
     steps:
+      - name: Configure git user credentials
+        run: |
+          git config --global user.email "brunofa23@gmail.com"
+          git config --global user.name "Bruno Favato"
 
-    - uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
-    - uses: actions/setup-node@v3
-      with:
-        node-version: 16
+      - name: Delete main-production branch
+        run: git push --delete origin main-production || true
 
-    - run: git config --global user.email "brunofa23@gmail.com"
-    - run: git config --global user.name "Bruno Favato"
-    - run: git status
-    - run: git checkout main-production
-    - run: git pull
-    - run: git merge main
-    - run: git add -A
-    - run: git push origin main-production
+      - name: Checkout main-production branch
+        uses: actions/checkout@v2
+        with:
+          ref: main-production
+
+      - name: Merge main into main-production
+        run: git merge main
+
+      - name: Push changes to main-production branch
+        uses: ad-m/github-push-action@v0.6.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: main-production

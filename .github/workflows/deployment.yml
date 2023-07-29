@@ -15,11 +15,13 @@ jobs:
           git config --global user.email "brunofa23@gmail.com"
           git config --global user.name "Bruno Favato"
 
-
       - name: Checkout main-production branch
         uses: actions/checkout@v2
         with:
           ref: main-production
+
+      - name: Checkout main-production
+        run: git checkout main-production
 
       - name: Merge main into main-production
         run: git merge main

@@ -64,7 +64,7 @@ export default class DatasourcesController {
                     THEN CAST(DATEADD(DAY, 2, GETDATE()) AS DATE)
           WHEN DATEPART(WEEKDAY, GETDATE()) = 5 -- Quinta-feira
                     THEN CAST(DATEADD(DAY, 2, GETDATE()) AS DATE)
-          WHEN DATEPART(WEEKDAY, GETDATE()) = 6 -- Sexta-feira
+          WHEN DATEPART(WEEKDAY, GETDATE()) >= 6 -- Sexta-feira
                     THEN CAST(DATEADD(DAY, 3, GETDATE()) AS DATE)
             END
             AND
@@ -77,7 +77,7 @@ export default class DatasourcesController {
                     THEN CAST(DATEADD(DAY, 3, GETDATE()) AS DATE)
           WHEN DATEPART(WEEKDAY, GETDATE()) = 5 -- Quinta-feira
                     THEN CAST(DATEADD(DAY, 3, GETDATE()) AS DATE)
-          WHEN DATEPART(WEEKDAY, GETDATE()) = 6 -- Sexta-feira
+          WHEN DATEPART(WEEKDAY, GETDATE()) >= 6 -- Sexta-feira
                     THEN CAST(DATEADD(DAY, 4, GETDATE()) AS DATE)
             END
 

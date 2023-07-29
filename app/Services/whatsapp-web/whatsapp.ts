@@ -39,13 +39,18 @@ async function executeWhatsapp(logout: boolean = false) {
     console.error('AUTHENTICATION FAILURE', msg);
   });
 
+
   client.on('ready', async () => {
     console.log('Lendo na Inicialização!');
+
     //chamar função que fica rodando e disparando mensagens
-    const intervalId = setInterval(() => {
-      sendRepeatedMessage(client)
-    }, 15000)
+    setInterval(async () => {
+      const verify = await sendRepeatedMessage(client)
+    }, 30000)
+
   });
+
+
 
   client.on('disconnected', (reason) => {
     console.log("EXECUTANDO DISCONECT")

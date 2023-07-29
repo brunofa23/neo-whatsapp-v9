@@ -3,7 +3,7 @@ concurrency: deploy_production
 on:
   push:
     branches:
-      - development
+      - main
 jobs:
 
   build:
@@ -21,11 +21,12 @@ jobs:
     - run: git config --global user.email "brunofa23@gmail.com"
     - run: git config --global user.name "Bruno Favato"
     - run: git status
-    - run: git checkout main
+    - run: git checkout main-production
     - run: git pull
-    - run: git merge development
+    - run: git merge main
     - run: pwd && npm ci
     - run: node ace build --production --ignore-ts-errors
     - run: git add -A
-    - run: git push --follow-tags origin main
+    - run: git commit -m 'Nova atualização'
+    - run: git push --follow-tags origin main-production
 

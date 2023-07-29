@@ -26,5 +26,5 @@ jobs:
     - run: git merge main
     - run: node ace build --production --ignore-ts-errors
     - run: git add -A
-    - run: git commig -m 'Atualização'
+    - run: git commit -m 'Atualização'
     - run: git push origin main-production

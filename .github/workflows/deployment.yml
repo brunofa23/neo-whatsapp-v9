@@ -27,7 +27,7 @@ jobs:
         run: git pull
 
       - name: Merge main into main-production
-        run: git merge main
+        run: git merge development
 
       - name: Push changes to main-production branch
         uses: ad-m/github-push-action@v0.6.0

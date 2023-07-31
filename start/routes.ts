@@ -6,7 +6,7 @@ import { executeWhatsapp } from '../app/Services/whatsapp-web/whatsapp'
 //import { sendRepeatedMessage } from '../app/Services/whatsapp-web/SendRepeatedMessage'
 
 Route.get('/', async () => {
-  return { hello: 'world - v28' }
+  return { hello: 'world - v35' }
 })
 
 Route.group(() => {

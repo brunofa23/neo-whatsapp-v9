@@ -7,3 +7,7 @@ git push origin --delete development-test
 ## para atualizar e não está atualizando
 git fetch --all
 git reset --hard origin/<nome-do-branch>
+
+
+# sobrepoe as alterações de uma branch em outra
+git merge --squash feature-branch

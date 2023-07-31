@@ -1,36 +1,45 @@
 name: Build and deploy api
-concurrency: deploy_production
 on:
   push:
     branches:
       - main
-jobs:
 
+jobs:
   build:
     name: Build api typescript project and deploy it to server
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
-    - uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
-    - uses: actions/setup-node@v3
-      with:
-        node-version: 16
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
 
-    - run: git config --global user.email "brunofa23@gmail.com"
-    - run: git config --global user.name "Bruno Favato"
-    - run: git status
-    - run: git checkout main
-    - run: git pull
-    - run: git checkout main-production
-    - run: git pull
-    - run: git merge main
-    - GITHUB_TOKEN: ${{ secrets.chatbot }}
-    - run: git push origin main-production
+      #- name: Install dependencies
+      #  run: npm install
 
+      # Aqui, você pode executar os comandos de build e deploy do seu projeto
+      # Substitua os comandos abaixo pelos que você usa para buildar e fazer o deploy.
 
+      #- name: Build project
+      #  run: npm run build
 
+      # Configurar o e-mail e nome do usuário do Git
+      - name: Set up Git user
+        run: |
+             git config --global user.email "brunofa23@gmail.com"
+             git config --global user.name "Bruno Favato"
 
+      # Supondo que você deseje realizar o deploy a partir da branch main-production
+      - name: Checkout main-production
+        run: git checkout main-production
+      - name: Pull latest changes from main-production
+        run: git pull
 
+      - name: Merge changes from main
+        run: git merge main
 
+      - name: Push changes to GitHub
+        run: git push origin main-production

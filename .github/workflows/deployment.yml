@@ -25,12 +25,9 @@ jobs:
     - run: git pull
     - run: git checkout main-production
     - run: git pull
-
     - run: git merge main
-    - name: Push changes to GitHub
-    - run: git push origin main-production
-    - env:
     - GITHUB_TOKEN: ${{ secrets.chatbot }}
+    - run: git push origin main-production
 
 
 

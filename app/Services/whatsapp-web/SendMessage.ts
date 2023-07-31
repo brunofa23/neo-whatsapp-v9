@@ -2,13 +2,16 @@ import Chat from "App/Models/Chat"
 import Shippingcampaign from "App/Models/Shippingcampaign"
 import { Client } from "whatsapp-web.js"
 
+global.executingSendMessage = false
 export default async (client: Client, shippingCampaignList: Shippingcampaign[]) => {
-
   async function sendMessages() {
+
     for (const dataRow of shippingCampaignList) {
       //*************************** */
+      global.executingSendMessage = true
+      console.log("VALOR dentro do loop", global.executingSendMessage)
       try {
-        //await new Promise(resolve => setTimeout(resolve, 8000));
+        await new Promise(resolve => setTimeout(resolve, 8000));
         if (dataRow.phonevalid && !dataRow.messagesent
           //&& (dataRow.cellphone == '31990691174' || dataRow.cellphone == '31998911872' || dataRow.cellphone == '31985228619' || dataRow.cellphone == '31987840445')
         ) {
@@ -40,15 +43,10 @@ export default async (client: Client, shippingCampaignList: Shippingcampaign[]) 
       await Chat.create(bodyChat)
       console.log("Mensagem enviada:", dataRow.name)
 
+
       //****************************** */
-
     }
-
-
+    global.executingSendMessage = false
   }
   await sendMessages()
-
-
-
-
 }

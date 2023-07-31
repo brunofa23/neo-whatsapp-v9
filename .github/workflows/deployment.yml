@@ -34,7 +34,7 @@ jobs:
 
       # Supondo que você deseje realizar o deploy a partir da branch main-production
       - name: Checkout main-production
-        run: git checkout main-production
+        run: git checkout test-deploy
       - name: Pull latest changes from main-production
         run: git pull
 
@@ -42,4 +42,4 @@ jobs:
         run: git merge main
 
       - name: Push changes to GitHub
-        run: git push origin main-production
+        run: git push origin test-deploy

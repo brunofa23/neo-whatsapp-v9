@@ -8,7 +8,7 @@ async function executeWhatsapp(logout: boolean = false) {
   const { Client, LocalAuth } = require('whatsapp-web.js');
   const qrcode = require('qrcode-terminal');
 
-  console.log("***CHAT BOT V-13***")
+  console.log("***CHAT BOT V-14***")
 
 
   const client = new Client({

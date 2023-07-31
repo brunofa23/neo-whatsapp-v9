@@ -23,6 +23,7 @@ jobs:
              git config --global user.email "brunofa23@gmail.com"
              git config --global user.name "Bruno Favato"
 
+
       # Supondo que você deseje realizar o deploy a partir da branch main-production
       - name: Checkout main-production
         run: git checkout main-production

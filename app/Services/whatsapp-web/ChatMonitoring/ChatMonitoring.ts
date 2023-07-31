@@ -57,10 +57,10 @@ export default class Monitoring {
             return
           }
 
-          // else if (chat) {
-          //   client.sendMessage(message.from, "Olá, esta conversa já foi encerrada. O Neo Agradece. ")
+          else {
+            client.sendMessage(message.from, "Olá, esta conversa já foi encerrada. O Neo Agradece! ")
 
-          // }
+          }
 
         }
 

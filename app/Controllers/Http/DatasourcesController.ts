@@ -86,7 +86,7 @@ export default class DatasourcesController {
             AND AGM_CONFIRM_STAT NOT IN ('C')
     ) AS subquery
     WHERE row_num = 1
-    AND pac_reg IN (23202, 252143, 343367)
+    AND pac_reg IN (23202, 252143, 343367, 343367, 343368)
     ORDER BY AGM_HINI;`
 
     const pacQueryProd = `SELECT

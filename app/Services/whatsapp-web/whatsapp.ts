@@ -42,15 +42,13 @@ async function executeWhatsapp(logout: boolean = false) {
 
   client.on('ready', async () => {
     console.log('Lendo na Inicialização!');
-
+    const EXECUTE_SEND_REPEATED_MESSAGE: number = process.env.EXECUTE_SEND_REPEATED_MESSAGE
     //chamar função que fica rodando e disparando mensagens
     setInterval(async () => {
       const verify = await sendRepeatedMessage(client)
-    }, 10000)
+    }, EXECUTE_SEND_REPEATED_MESSAGE)
 
   });
-
-
 
   client.on('disconnected', (reason) => {
     console.log("EXECUTANDO DISCONECT")

@@ -41,6 +41,6 @@ jobs:
       # Substitua os comandos abaixo pelos que você usa para buildar e fazer o deploy.
       - name: Build project
         run: node ace build --production --ignore-ts-errors
-        run: npm ci --prefix ./build --production
+        #run: npm ci --prefix ./build --production
 
-        
+

@@ -1,7 +1,7 @@
-import { sendRepeatedMessage, logout } from 'App/Services/whatsapp-web/SendRepeatedMessage';
+import { logout, sendRepeatedMessage } from 'App/Services/whatsapp-web/SendRepeatedMessage';
 
-import ChatMonitoring from './ChatMonitoring/ChatMonitoring'
 import Mehtods from '../../Services/whatsapp-web/ChatMonitoring/ClientMethods'
+import ChatMonitoring from './ChatMonitoring/ChatMonitoring'
 
 async function executeWhatsapp(logout: boolean = false) {
 
@@ -46,7 +46,7 @@ async function executeWhatsapp(logout: boolean = false) {
     //chamar função que fica rodando e disparando mensagens
     setInterval(async () => {
       const verify = await sendRepeatedMessage(client)
-    }, 30000)
+    }, 10000)
 
   });
 

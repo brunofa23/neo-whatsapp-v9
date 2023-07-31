@@ -16,6 +16,7 @@ export default class Monitoring {
         if (chat) {
           if (chat.interaction_id == 1) {
             await ConfirmSchedule(client, message, chat)
+            return
           }
 
         } else {
@@ -56,10 +57,10 @@ export default class Monitoring {
             return
           }
 
-          else {
-            client.sendMessage(message.from, "Olá, esta conversa já foi encerrada. O Neo Agradece. ")
+          // else if (chat) {
+          //   client.sendMessage(message.from, "Olá, esta conversa já foi encerrada. O Neo Agradece. ")
 
-          }
+          // }
 
         }
 

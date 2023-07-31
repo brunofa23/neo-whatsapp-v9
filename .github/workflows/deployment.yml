@@ -17,14 +17,14 @@ jobs:
         with:
           node-version: 16
 
-      - name: Install dependencies
-        run: npm install
+      #- name: Install dependencies
+      #  run: npm install
 
       # Aqui, você pode executar os comandos de build e deploy do seu projeto
       # Substitua os comandos abaixo pelos que você usa para buildar e fazer o deploy.
 
-      - name: Build project
-        run: npm run build
+      #- name: Build project
+      #  run: npm run build
 
       # Configurar o e-mail e nome do usuário do Git
       - name: Set up Git user

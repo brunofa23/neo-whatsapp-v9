@@ -17,6 +17,13 @@ jobs:
         with:
           node-version: 16
 
+    # permissions:
+    #   deployments: write
+    #   contents: write
+    #   statuses: write
+    #   actions: write
+    #   checks: read
+
       #- name: Install dependencies
       #  run: npm install
 

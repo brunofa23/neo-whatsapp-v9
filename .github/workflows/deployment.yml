@@ -17,6 +17,7 @@ jobs:
         with:
           node-version: 16
 
+<<<<<<< HEAD
 
       #- name: Install dependencies
       #  run: npm install
@@ -27,12 +28,13 @@ jobs:
       #- name: Build project
       #  run: npm run build
 
+=======
+>>>>>>> development
       # Configurar o e-mail e nome do usuário do Git
       - name: Set up Git user
         run: |
              git config --global user.email "brunofa23@gmail.com"
              git config --global user.name "Bruno Favato"
-
 
       # Supondo que você deseje realizar o deploy a partir da branch main-production
       - name: Checkout main-production
@@ -46,3 +48,12 @@ jobs:
       - name: Push changes to GitHub
         run: git push origin main-production
 
+<<<<<<< HEAD
+=======
+      - name: Install dependencies
+        run: npm install
+      # Aqui, você pode executar os comandos de build e deploy do seu projeto
+      # Substitua os comandos abaixo pelos que você usa para buildar e fazer o deploy.
+      - name: Build project
+        run: node ace build --production --ignore-ts-errors
+>>>>>>> development

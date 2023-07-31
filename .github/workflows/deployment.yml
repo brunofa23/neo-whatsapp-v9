@@ -35,8 +35,8 @@ jobs:
       - name: Push changes to GitHub
         run: git push origin main-production
 
-      #- name: Install dependencies
-      #  run: npm install
+      - name: Install dependencies
+        run: npm install
       # Aqui, você pode executar os comandos de build e deploy do seu projeto
       # Substitua os comandos abaixo pelos que você usa para buildar e fazer o deploy.
       - name: Build project

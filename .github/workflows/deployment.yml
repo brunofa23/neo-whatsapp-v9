@@ -21,12 +21,14 @@ jobs:
     - run: git config --global user.email "brunofa23@gmail.com"
     - run: git config --global user.name "Bruno Favato"
     - run: git status
+    - run: git add .
+    - run: git commit -m 'envio automatico'
+    - run: git push origin development
+    - run: git checkout main
+    - run: git pull
+    - run: git merge development
     - run: git checkout main-production
     - run: git pull
     - run: git merge main
-    - run: pwd && npm ci
-    - run: node ace build --production --ignore-ts-errors
-    - run: git add -A
-    - run: git push --follow-tags origin main-production
-    - run: git commit -m 'Nova atualização'
+
 

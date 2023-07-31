@@ -7,7 +7,10 @@ async function executeWhatsapp(logout: boolean = false) {
 
   const { Client, LocalAuth } = require('whatsapp-web.js');
   const qrcode = require('qrcode-terminal');
-  console.log("Entrei Whatsapp class")
+
+  console.log("***CHAT BOT V-10***")
+
+
   const client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: {

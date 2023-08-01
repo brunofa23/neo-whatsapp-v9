@@ -1,1 +1,0 @@
-{"version":3,"file":"Interaction.js","sourceRoot":"","sources":["../../../database/seeders/Interaction.ts"],"names":[],"mappings":";;;;;AAAA,2FAAiD;AACjD,uFAAiD;AAEjD,eAAqB,SAAQ,gBAAU;IAC9B,KAAK,CAAC,GAAG;QACd,MAAM,kBAAQ,CAAC,KAAK,CAAC,cAAc,CAAC,CAAC,MAAM,CAAC;YAC1C,EAAE,EAAE,EAAE,GAAG,EAAE,GAAG,EAAE,GAAG,EAAE,IAAI,EAAE,uBAAuB,EAAE;SACrD,CAAC,CAAA;IAEJ,CAAC;CACF;AAPD,4BAOC"}

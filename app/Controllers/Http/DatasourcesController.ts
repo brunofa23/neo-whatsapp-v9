@@ -1,15 +1,19 @@
 import { Env } from '@ioc:Adonis/Core/Env';
 // import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Database from '@ioc:Adonis/Lucid/Database'
-import { DateFormat } from '../../Services/whatsapp-web/util'
+import Interaction from 'App/Models/Interaction';
 import { DateTime } from 'luxon';
+
+import { DateFormat } from '../../Services/whatsapp-web/util'
 
 export default class DatasourcesController {
 
   async scheduledPatients() {
 
-    const env = process.env.NODE_ENV
+    const pacQueryModel = await Interaction.find(1)
+    console.log("QUERYYYYY>>>><", pacQueryModel?.query)
 
+    const env = process.env.NODE_ENV
     const pacQueryDev = `SELECT
         1 AS interaction_id,
         1 AS interaction_seq,

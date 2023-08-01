@@ -31,7 +31,7 @@ const whatsapp_1 = require("../app/Services/whatsapp-web/whatsapp");
 Server_1.default.middleware.register([
     () => Promise.resolve().then(() => __importStar(global[Symbol.for('ioc.use')]("Adonis/Core/BodyParser"))),
 ]);
-console.log("***CHAT BOT V-18***");
+console.log("***CHAT BOT V-19***");
 (0, whatsapp_1.executeWhatsapp)();
 Server_1.default.middleware.registerNamed({});
 //# sourceMappingURL=kernel.js.map

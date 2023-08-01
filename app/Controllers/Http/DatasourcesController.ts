@@ -11,7 +11,7 @@ export default class DatasourcesController {
   async scheduledPatients() {
 
     const pacQueryModel = await Interaction.find(1)
-    console.log("QUERYYYYY>>>>", pacQueryModel?.query)
+    //console.log("QUERYYYYY>>>>", pacQueryModel?.query)
 
     const env = process.env.NODE_ENV
     const pacQueryDev = `SELECT

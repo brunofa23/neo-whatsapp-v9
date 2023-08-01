@@ -13,4 +13,8 @@ git reset --hard origin/<nome-do-branch>
 git merge --squash feature-branch
 
 
-
+# passos para atualizar uma branch no git
+git status
+git add .
+git commit -m 'nome'
+git push origin <branch>

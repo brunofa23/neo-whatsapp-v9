@@ -1,8 +1,9 @@
-import { stateTyping } from '../util'
-import { verifyNumber } from '../VerifyNumber'
 import DatasourcesController from 'App/Controllers/Http/DatasourcesController';
 import Chat from 'App/Models/Chat';
 import { Client, Message } from 'whatsapp-web.js';
+
+import { stateTyping } from '../util'
+import { verifyNumber } from '../VerifyNumber'
 
 export default async (client: Client, message: Message, chat: Chat) => {
 
@@ -51,7 +52,7 @@ export default async (client: Client, message: Message, chat: Chat) => {
         chat2.response = "Reagendada"
         Chat.create(chat2)
 
-      } else (client.sendMessage(message.from, 'Resposta inválida, por favor responda \n1 para confirmar o agendamento. \n2 para reagendamento.'))
+      } else (client.sendMessage(message.from, 'Não consegui identificar uma resposta, por favor responda \n*1* para confirmar o agendamento. \n*2* para reagendamento.'))
 
   }
 

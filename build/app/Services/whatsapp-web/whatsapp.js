@@ -10,7 +10,9 @@ async function executeWhatsapp(logout = false) {
     const { Client, LocalAuth } = require('whatsapp-web.js');
     const qrcode = require('qrcode-terminal');
     const client = new Client({
-        authStrategy: new LocalAuth(),
+        authStrategy: new LocalAuth({
+            dataPath: '../../../credentialsWhatsapp'
+        }),
         puppeteer: {
             args: ['--no-sandbox', '--max-memory=512MB'],
             headless: true

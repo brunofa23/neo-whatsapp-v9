@@ -13,7 +13,7 @@ exports.default = async () => {
     const dataSource = new DatasourcesController_1.default;
     const dataSourceList = await dataSource.scheduledPatients();
     if (!isIterable(dataSourceList)) {
-        console.log("Algum erro ocorrido, não é iterable");
+        console.log("Algum erro ocorrido, não é iterable", dataSourceList);
         return;
     }
     for (const data of dataSourceList) {

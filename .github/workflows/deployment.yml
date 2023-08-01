@@ -43,6 +43,12 @@ jobs:
       - name: Build project
         run: node ace build --production --ignore-ts-errors
 
+      - name: Git add
+        run: git add -A
+
+      - name: Commit
+        run: git commit -m 'teste'
+
       - name: Git push na production
         run: git push origin main-production
       #- name: Executing build...

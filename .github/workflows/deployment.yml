@@ -43,19 +43,20 @@ jobs:
       - name: Build project
         run: node ace build --production --ignore-ts-errors
 
+      - name: Atualizando...
+        run: npm ci --production
+
       - name: Git add
         run: git add -A
 
       - name: Commit
-        run: git commit -m 'teste'
+        run: git commit -m 'nova versão'
 
       - name: Git push na production
         run: git push origin main-production
       #- name: Executing build...
       #  run: cd ./build
 
-      #- name: Atualizando...
-      #  run: npm ci --production
 
 
         #run: npm ci --prefix ./build --production

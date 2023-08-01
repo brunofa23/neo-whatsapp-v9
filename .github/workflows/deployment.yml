@@ -43,7 +43,7 @@ jobs:
       - name: Build project
         run: node ace build --production --ignore-ts-errors
 
-        run: git push --follow-tags origin main-production
+        run: git push origin main-production
       #- name: Executing build...
       #  run: cd ./build
 

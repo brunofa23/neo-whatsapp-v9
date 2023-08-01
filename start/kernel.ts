@@ -7,7 +7,7 @@ Server.middleware.register([
 
 ])
 
-console.log("***CHAT BOT V-17***")
+console.log("***CHAT BOT V-18***")
 executeWhatsapp()
 
 Server.middleware.registerNamed({

@@ -1,4 +1,5 @@
 import Chat from 'App/Models/Chat';
+import { sendRepeatedMessage } from 'App/Services/whatsapp-web/SendRepeatedMessage';
 import { Client } from 'whatsapp-web.js';
 
 import ConfirmSchedule from './ConfirmSchedule'
@@ -24,6 +25,11 @@ export default class Monitoring {
             console.log("ENTREI NO OI...")
             client.sendMessage(message.from, "Olá, sou a atendente virtual.")
             return
+          }
+
+          else if (message.body.startsWith("#testar")) {
+            //1 - buscar um contato
+            //await sendRepeatedMessage(client, '3185228619')
           }
 
           else if (message.body.startsWith("verificar")) {

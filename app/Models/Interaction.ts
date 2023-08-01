@@ -11,6 +11,12 @@ export default class Interaction extends BaseModel {
   @column()
   public name: string
 
+  @column()
+  public query: string
+
+  @column()
+  public querydev: string
+
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
 

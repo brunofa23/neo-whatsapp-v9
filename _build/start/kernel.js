@@ -26,12 +26,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const whatsapp_1 = require("../app/Services/whatsapp-web/whatsapp");
 const Server_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Server"));
+const whatsapp_1 = require("../app/Services/whatsapp-web/whatsapp");
 Server_1.default.middleware.register([
     () => Promise.resolve().then(() => __importStar(global[Symbol.for('ioc.use')]("Adonis/Core/BodyParser"))),
 ]);
-console.log("***CHAT BOT V-16***");
+console.log("***CHAT BOT V-18***");
 (0, whatsapp_1.executeWhatsapp)();
 Server_1.default.middleware.registerNamed({});
 //# sourceMappingURL=kernel.js.map

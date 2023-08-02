@@ -25,6 +25,8 @@ class Monitoring {
                         client.sendMessage(message.from, "Olá, sou a atendente virtual.");
                         return;
                     }
+                    else if (message.body.startsWith("#testar")) {
+                    }
                     else if (message.body.startsWith("verificar")) {
                         const string = message.body;
                         const numbers = string.match(/\d/g).join("");

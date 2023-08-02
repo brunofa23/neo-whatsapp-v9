@@ -3,9 +3,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const util_1 = require("../util");
 const DatasourcesController_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Controllers/Http/DatasourcesController"));
 const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
+const util_1 = require("../util");
 exports.default = async (client, message, chat) => {
     if (chat.interaction_seq == 1) {
         const chatOtherFields = JSON.parse(chat.shippingcampaign.otherfields);
@@ -42,7 +42,7 @@ exports.default = async (client, message, chat) => {
             Chat_1.default.create(chat2);
         }
         else
-            (client.sendMessage(message.from, 'Resposta inválida, por favor responda \n1 para confirmar o agendamento. \n2 para reagendamento.'));
+            (client.sendMessage(message.from, 'Não consegui identificar uma resposta, por favor responda \n*1* para confirmar o agendamento. \n*2* para reagendamento.'));
     }
 };
 //# sourceMappingURL=ConfirmSchedule.js.map

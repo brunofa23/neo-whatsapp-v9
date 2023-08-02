@@ -13,9 +13,7 @@ export default async (client: Client, shippingCampaignList: Shippingcampaign[]) 
       global.executingSendMessage = true
       try {
         await new Promise(resolve => setTimeout(resolve, timeExecuteSendMessage));
-        if (dataRow.phonevalid && !dataRow.messagesent
-
-        ) {
+        if (dataRow.phonevalid && !dataRow.messagesent) {
           await client.sendMessage(dataRow.cellphoneserialized, dataRow.message)
             .then(async (response) => {
               dataRow.messagesent = true
@@ -24,25 +22,26 @@ export default async (client: Client, shippingCampaignList: Shippingcampaign[]) 
             }).catch((error) => {
               console.log("ERRRRO:::", error)
             })
+
+          const bodyChat = {
+            interaction_id: dataRow.interaction_id,
+            interaction_seq: dataRow.interaction_seq,
+            idexternal: dataRow.idexternal,
+            reg: dataRow.reg,
+            name: dataRow.name,
+            cellphone: dataRow.cellphone,
+            cellphoneserialized: dataRow.cellphoneserialized,
+            message: dataRow.message,
+            shippingcampaigns_id: dataRow.id
+          }
+          await Chat.create(bodyChat)
+          console.log("Mensagem enviada:", dataRow.name, "cellphone", dataRow.cellphoneserialized, "phonevalid", dataRow.phonevalid)
+
         }
 
       } catch (error) {
         console.log("ERRO:::", error)
       }
-
-      const bodyChat = {
-        interaction_id: dataRow.interaction_id,
-        interaction_seq: dataRow.interaction_seq,
-        idexternal: dataRow.idexternal,
-        reg: dataRow.reg,
-        name: dataRow.name,
-        cellphone: dataRow.cellphone,
-        cellphoneserialized: dataRow.cellphoneserialized,
-        message: dataRow.message,
-        shippingcampaigns_id: dataRow.id
-      }
-      await Chat.create(bodyChat)
-      console.log("Mensagem enviada:", dataRow.name)
 
 
       //****************************** */

@@ -20,7 +20,7 @@ export default async (client: Client) => {
       dataRow.phonevalid = true
     }
     try {
-      dataRow.save()
+      await dataRow.save()
     } catch (error) {
       console.log("ERRO:", error)
     }

@@ -10,8 +10,6 @@ async function sendRepeatedMessage(client: Client) {
   const date = await DateFormat("dd/MM/yyyy HH:mm:ss", DateTime.local())
   console.log(`Processo Inicializado ${date}`)
 
-  //console.log("testando numerPhone::", numberPhone)
-
   if (!global.executingSendMessage) {
     //1 - Insere na tabela as informações que buscou no Smart
     await PersistShippingcampaign()

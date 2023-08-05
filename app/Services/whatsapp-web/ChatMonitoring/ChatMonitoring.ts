@@ -9,6 +9,7 @@ export default class Monitoring {
 
     try {
       client.on('message', async message => {
+
         const chat = await Chat.query()
           .preload('shippingcampaign')
           .where('cellphoneserialized', '=', message.from)
@@ -16,6 +17,8 @@ export default class Monitoring {
 
         if (chat) {
           if (chat.interaction_id == 1) {
+            global.contSend--
+            console.log("valor do contSend", global.contSend)
             await ConfirmSchedule(client, message, chat)
             return
           }

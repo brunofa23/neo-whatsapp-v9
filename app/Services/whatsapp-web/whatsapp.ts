@@ -1,12 +1,14 @@
 import { logout, sendRepeatedMessage } from 'App/Services/whatsapp-web/SendRepeatedMessage';
+import SendMessage from 'App/Services/whatsapp-web/SendMessage'
 
 import Mehtods from '../../Services/whatsapp-web/ChatMonitoring/ClientMethods'
 import ChatMonitoring from './ChatMonitoring/ChatMonitoring'
 
-async function executeWhatsapp(logout: boolean = false) {
+async function executeWhatsapp() {
 
   const { Client, LocalAuth } = require('whatsapp-web.js');
   const qrcode = require('qrcode-terminal');
+
 
   const client = new Client({
     authStrategy: new LocalAuth(),
@@ -16,7 +18,6 @@ async function executeWhatsapp(logout: boolean = false) {
       setRequestInterception: true,
       setBypassCSP: true,
       setJavaScriptEnabled: false
-
     }
   });
 
@@ -47,10 +48,19 @@ async function executeWhatsapp(logout: boolean = false) {
   client.on('ready', async () => {
     console.log('Lendo na Inicialização!');
     const EXECUTE_SEND_REPEATED_MESSAGE: number = process.env.EXECUTE_SEND_REPEATED_MESSAGE
+    const EXECUTE_SEND_MESSAGE: number = process.env.EXECUTE_SEND_MESSAGE
     //chamar função que fica rodando e disparando mensagens
     setInterval(async () => {
-      const verify = await sendRepeatedMessage(client)
+      await sendRepeatedMessage(client)
     }, EXECUTE_SEND_REPEATED_MESSAGE)
+
+    setInterval(async () => {
+      console.log("Executando ENVIO DE MENSAGEM 787...")
+      //Envia as mensagens e persiste na tabela chat
+      if (!global.executingSendMessage) {
+        await SendMessage(client)
+      }
+    }, EXECUTE_SEND_MESSAGE)
 
   });
 
@@ -68,10 +78,6 @@ async function executeWhatsapp(logout: boolean = false) {
   const chatMonitoring = new ChatMonitoring
   await chatMonitoring.monitoring(client)
 
-  if (logout) {
-    const execMethod = new Mehtods
-    await execMethod.executeMethod(client, "logout")
-  }
 
 }
 

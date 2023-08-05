@@ -27,7 +27,7 @@ async function GenerateRandomTime(min: number, max: number) {
   const scaledValue = randomValue * range;
   const shiftedValue = scaledValue + min;
   // Arredonda o valor para um número inteiro
-  const finalValue = Math.round(shiftedValue) * 1000;
+  const finalValue = Math.round(shiftedValue * 1000)
   return finalValue;
 }
 

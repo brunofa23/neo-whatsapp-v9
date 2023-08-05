@@ -38,7 +38,7 @@ export default async (client: Client) => {
     }
 
     for (const dataRow of shippingCampaignList) {
-      const time = await GenerateRandomTime(10, 15)
+      const time = await GenerateRandomTime(12, 20)
       //*************************** */
       global.executingSendMessage = true
       if (global.contSend < 3) {
@@ -47,7 +47,6 @@ export default async (client: Client) => {
           global.contSend = 0
         console.log("valor do contSend", global.contSend)
         try {
-          await new Promise(resolve => setTimeout(resolve, time));
           //verificar o numero
           const validationCellPhone = await verifyNumber(client, dataRow.cellphone)
           console.log("VALIDAÇÃO DE TELEFONE", validationCellPhone)
@@ -77,6 +76,8 @@ export default async (client: Client) => {
               }).catch((error) => {
                 console.log("ERRRRO:::", error)
               })
+
+            await new Promise(resolve => setTimeout(resolve, time));
             console.log("Mensagem enviada:", dataRow.name, "cellphone", dataRow.cellphoneserialized, "phonevalid", dataRow.phonevalid)
 
           }

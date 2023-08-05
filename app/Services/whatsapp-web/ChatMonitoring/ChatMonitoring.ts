@@ -18,7 +18,6 @@ export default class Monitoring {
         if (chat) {
           if (chat.interaction_id == 1) {
             global.contSend--
-            console.log("valor do contSend", global.contSend)
             await ConfirmSchedule(client, message, chat)
             return
           }

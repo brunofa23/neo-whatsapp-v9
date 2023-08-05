@@ -18,6 +18,7 @@ async function DateFormat(format, date = DateTime.local()) {
   return date.toFormat(format);
 }
 
+
 async function GenerateRandomTime(min: number, max: number) {
   // Calcula um valor randômico entre 0 e 1
   const randomValue = Math.random();
@@ -26,7 +27,7 @@ async function GenerateRandomTime(min: number, max: number) {
   const scaledValue = randomValue * range;
   const shiftedValue = scaledValue + min;
   // Arredonda o valor para um número inteiro
-  const finalValue = Math.round(shiftedValue) * 10;
+  const finalValue = Math.round(shiftedValue) * 1000;
   return finalValue;
 }
 

@@ -47,7 +47,7 @@ async function executeWhatsapp() {
     //chamar função que fica rodando e disparando mensagens
     setInterval(async () => {
       await sendRepeatedMessage(client)
-    }, await GenerateRandomTime(400000, 700000))
+    }, await GenerateRandomTime(25, 30))
 
     setInterval(async () => {
       console.log("Executando ENVIO DE MENSAGEM 787...")
@@ -55,7 +55,7 @@ async function executeWhatsapp() {
       if (!global.executingSendMessage) {
         await SendMessage(client)
       }
-    }, await GenerateRandomTime(10000, 20000))
+    }, await GenerateRandomTime(18, 20))
 
   });
 

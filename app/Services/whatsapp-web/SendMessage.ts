@@ -3,10 +3,11 @@ import Chat from "App/Models/Chat"
 import Shippingcampaign from "App/Models/Shippingcampaign"
 import { Client } from "whatsapp-web.js"
 import moment = require('moment');
+import { GenerateRandomTime } from './util'
 
 global.executingSendMessage = false
 global.contSend = 0
-const timeExecuteSendMessage: number = process.env.EXECUTE_SEND_MESSAGE
+
 
 export default async (client: Client) => {
   async function sendMessages() {
@@ -24,12 +25,15 @@ export default async (client: Client) => {
     // console.log("SHIPPONG CAMPAIGN LIST", shippingCampaignMap)
 
     for (const dataRow of shippingCampaignList) {
+
+      const time = await GenerateRandomTime(1200, 1600)
       //*************************** */
       global.executingSendMessage = true
       if (global.contSend < 4) {
         console.log("valor do contSend", global.contSend)
         try {
-          await new Promise(resolve => setTimeout(resolve, timeExecuteSendMessage));
+          await new Promise(resolve => setTimeout(resolve, time));
+          console.log("TIME", time)
           //verificar o numero
           const validationCellPhone = await verifyNumber(client, dataRow.cellphone)
           console.log("VALIDAÇÃO DE TELEFONE", validationCellPhone)

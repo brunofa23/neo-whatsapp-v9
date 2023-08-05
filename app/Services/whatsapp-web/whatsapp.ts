@@ -1,14 +1,12 @@
 import { logout, sendRepeatedMessage } from 'App/Services/whatsapp-web/SendRepeatedMessage';
 import SendMessage from 'App/Services/whatsapp-web/SendMessage'
 
-import Mehtods from '../../Services/whatsapp-web/ChatMonitoring/ClientMethods'
 import ChatMonitoring from './ChatMonitoring/ChatMonitoring'
-
+import { GenerateRandomTime } from './util'
 async function executeWhatsapp() {
 
   const { Client, LocalAuth } = require('whatsapp-web.js');
   const qrcode = require('qrcode-terminal');
-
 
   const client = new Client({
     authStrategy: new LocalAuth(),
@@ -47,12 +45,12 @@ async function executeWhatsapp() {
 
   client.on('ready', async () => {
     console.log('Lendo na Inicialização!');
-    const EXECUTE_SEND_REPEATED_MESSAGE: number = process.env.EXECUTE_SEND_REPEATED_MESSAGE
-    const EXECUTE_SEND_MESSAGE: number = process.env.EXECUTE_SEND_MESSAGE
+
     //chamar função que fica rodando e disparando mensagens
     setInterval(async () => {
       await sendRepeatedMessage(client)
-    }, EXECUTE_SEND_REPEATED_MESSAGE)
+    }, await GenerateRandomTime(2000, 5000))
+
 
     setInterval(async () => {
       console.log("Executando ENVIO DE MENSAGEM 787...")
@@ -60,7 +58,7 @@ async function executeWhatsapp() {
       if (!global.executingSendMessage) {
         await SendMessage(client)
       }
-    }, EXECUTE_SEND_MESSAGE)
+    }, await GenerateRandomTime(1000, 2000))
 
   });
 

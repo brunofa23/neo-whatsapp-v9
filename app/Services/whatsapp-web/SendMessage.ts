@@ -33,7 +33,6 @@ export default async (client: Client) => {
         console.log("valor do contSend", global.contSend)
         try {
           await new Promise(resolve => setTimeout(resolve, time));
-          console.log("TIME", time)
           //verificar o numero
           const validationCellPhone = await verifyNumber(client, dataRow.cellphone)
           console.log("VALIDAÇÃO DE TELEFONE", validationCellPhone)

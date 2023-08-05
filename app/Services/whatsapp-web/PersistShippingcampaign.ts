@@ -6,6 +6,12 @@ function isIterable(obj) {
   return obj !== null && typeof obj[Symbol.iterator] === 'function';
 }
 
+async function greeting(message: String) {
+  const greeting = ['Olá!', 'Oi tudo bem?', 'Saudações!', 'Oi como vai?']
+  const presentation = ['Eu me chamo Iris', 'Eu sou a Iris', 'Aqui é a Iris']
+  return message.replace('{greeting}', greeting[Math.floor(Math.random() * greeting.length)]).replace('{presentation}', presentation[Math.floor(Math.random() * presentation.length)])
+}
+
 export default async () => {
   const dataSource = new DatasourcesController
   const dataSourceList = await dataSource.scheduledPatients()
@@ -28,7 +34,7 @@ export default async () => {
       shipping.cellphone = data.cellphone
       shipping.phonevalid = false
       shipping.messagesent = false
-      shipping.message = String(data.message).replace(/@p[0-9]/g, '?')//`Olá ${firstName[0]}, somos da Neo, gostariamos de confirmar agendamento para o dia ${String(data.data_agm).trim()} com o Dr(a).${String(data.psv_nome).trim()} \n1-Sim \n2-Não `
+      shipping.message = await greeting(String(data.message).replace(/@p[0-9]/g, '?'))
       shipping.otherfields = data.otherfields
 
       const verifyExist = await Shippingcampaign.query()

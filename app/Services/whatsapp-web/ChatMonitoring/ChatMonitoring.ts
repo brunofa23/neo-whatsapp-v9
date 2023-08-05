@@ -15,6 +15,9 @@ export default class Monitoring {
           .where('cellphoneserialized', '=', message.from)
           .whereNull('response').first()
 
+
+        console.log("MENSAGEM RECEBIDA APOS DISCONECTADO...", message.body, message.from)
+
         if (chat) {
           if (chat.interaction_id == 1) {
             global.contSend--

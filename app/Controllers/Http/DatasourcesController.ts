@@ -102,7 +102,6 @@ export default class DatasourcesController {
     else pacQuery = pacQueryModel?.query
 
     try {
-
       //console.log("QUERY", pacQuery)
       const result = await Database.connection('mssql').rawQuery(pacQuery)
       return result

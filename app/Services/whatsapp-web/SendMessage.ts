@@ -26,10 +26,10 @@ export default async (client: Client) => {
 
     for (const dataRow of shippingCampaignList) {
 
-      const time = await GenerateRandomTime(1200, 1600)
+      const time = await GenerateRandomTime(12000, 16000)
       //*************************** */
       global.executingSendMessage = true
-      if (global.contSend < 4) {
+      if (global.contSend < 3) {
         console.log("valor do contSend", global.contSend)
         try {
           await new Promise(resolve => setTimeout(resolve, time));

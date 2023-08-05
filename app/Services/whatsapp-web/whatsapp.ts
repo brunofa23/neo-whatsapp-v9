@@ -1,8 +1,9 @@
-import { logout, sendRepeatedMessage } from 'App/Services/whatsapp-web/SendRepeatedMessage';
 import SendMessage from 'App/Services/whatsapp-web/SendMessage'
+import { logout, sendRepeatedMessage } from 'App/Services/whatsapp-web/SendRepeatedMessage';
 
 import ChatMonitoring from './ChatMonitoring/ChatMonitoring'
 import { GenerateRandomTime } from './util'
+
 async function executeWhatsapp() {
 
   const { Client, LocalAuth } = require('whatsapp-web.js');
@@ -40,7 +41,6 @@ async function executeWhatsapp() {
     // Fired if session restore was unsuccessful
     console.error('AUTHENTICATION FAILURE', msg);
   });
-
 
   client.on('ready', async () => {
     console.log('Lendo na Inicialização!');

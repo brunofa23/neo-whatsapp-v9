@@ -2,8 +2,6 @@ import { DateTime } from 'luxon';
 import { Client } from 'whatsapp-web.js';
 
 import PersistShippingcampaign from './PersistShippingcampaign';
-import PersistValidationPhones from './PersistValidationPhones';
-import SendMessage from './SendMessage';
 import { DateFormat } from './util'
 
 async function sendRepeatedMessage(client: Client) {

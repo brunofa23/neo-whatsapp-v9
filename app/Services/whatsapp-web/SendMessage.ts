@@ -3,7 +3,8 @@ import Chat from "App/Models/Chat"
 import Shippingcampaign from "App/Models/Shippingcampaign"
 import { Client } from "whatsapp-web.js"
 import moment = require('moment');
-import { GenerateRandomTime } from './util'
+import { GenerateRandomTime, DateFormat } from './util'
+import { DateTime } from 'luxon';
 
 global.executingSendMessage = false
 global.contSend = 0
@@ -19,17 +20,31 @@ export default async (client: Client) => {
       .orWhere('messagesent', '=', 0)
       .whereNotNull('cellphone')
 
+    const dateStart = await DateFormat("yyyy-MM-dd 00:00:00", DateTime.local())
+    const dateEnd = await DateFormat("yyyy-MM-dd 23:59:00", DateTime.local())
+    const maxLimitSendMessage = await Shippingcampaign.query()
+      .where('messagesent', '=', '1')
+      .andWhereBetween('created_at', [dateStart, dateEnd])
+
     // const shippingCampaignMap = shippingCampaignList.map(campaign => {
     //   return { id: campaign.id, cellphone: campaign.cellphone, name: campaign.name, phonevalid: campaign.phonevalid };
     // });
     // console.log("SHIPPONG CAMPAIGN LIST", shippingCampaignMap)
 
-    for (const dataRow of shippingCampaignList) {
+    console.log("TOTAL DE MSG ENVIADAS", maxLimitSendMessage.length)
+    if (maxLimitSendMessage.length >= parseInt(process.env.MAX_LIMIT_SEND_MESSAGE)) {
+      console.log("LIMITE ATINGIDO DE ENVIOS")
+      return
+    }
 
-      const time = await GenerateRandomTime(12000, 16000)
+    for (const dataRow of shippingCampaignList) {
+      const time = await GenerateRandomTime(10, 15)
       //*************************** */
       global.executingSendMessage = true
       if (global.contSend < 3) {
+
+        if (global.contSend < 0)
+          global.contSend = 0
         console.log("valor do contSend", global.contSend)
         try {
           await new Promise(resolve => setTimeout(resolve, time));

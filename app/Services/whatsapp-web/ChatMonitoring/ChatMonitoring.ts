@@ -16,7 +16,7 @@ export default class Monitoring {
           .whereNull('response').first()
 
 
-        console.log("MENSAGEM RECEBIDA APOS DISCONECTADO...", message.body, message.from)
+        //console.log("MENSAGEM RECEBIDA APOS DISCONECTADO...", message.body, message.from)
 
         if (chat) {
           if (chat.interaction_id == 1) {
@@ -66,6 +66,11 @@ export default class Monitoring {
                 console.error('Erro ao encerrar a conversa:', error);
               });
             return
+          }
+
+          else if (message.body === 'PinChat') {
+
+            console.log("CLIENTE", message)
           }
 
           else {

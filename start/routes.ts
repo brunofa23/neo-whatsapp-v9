@@ -17,6 +17,9 @@ Route.group(() => {
   Route.post('/logout', 'ShippingcampaignsController.logout')
 
   Route.post('/chat', 'ShippingcampaignsController.chat')
+  Route.get('/maxlimitsendmessage', 'ShippingcampaignsController.maxLimitSendMessage')
+  Route.get('/datasources', 'DatasourcesController.DataSource')
+
 
 }).prefix('/api')
 

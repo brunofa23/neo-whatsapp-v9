@@ -9,7 +9,7 @@ import { DateTime } from 'luxon';
 
 global.executingSendMessage = false
 global.contSend = 0
-let monitoringContSend
+let monitoringContSend = 0
 
 
 export default async (client: Client) => {
@@ -44,6 +44,10 @@ export default async (client: Client) => {
       //*************************** */
       global.executingSendMessage = true
       monitoringContSend++
+      if (monitoringContSend >= 20) {
+        global.contSent = 0
+      }
+
       if (global.contSend < 3) {
 
         if (global.contSend < 0)

@@ -11,7 +11,7 @@ function isIterable(obj) {
 }
 exports.default = async () => {
     const dataSource = new DatasourcesController_1.default;
-    const dataSourceList = await dataSource.scheduledPatients();
+    const dataSourceList = await dataSource.DataSource();
     if (!isIterable(dataSourceList)) {
         console.log("Algum erro ocorrido, não é iterable", dataSourceList);
         return;

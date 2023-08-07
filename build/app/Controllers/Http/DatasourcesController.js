@@ -8,7 +8,27 @@ const Interaction_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/
 const luxon_1 = require("luxon");
 const util_1 = require("../../Services/whatsapp-web/util");
 class DatasourcesController {
+    async DataSource() {
+        const interactionList = await Interaction_1.default.all();
+        for (const interaction of interactionList) {
+            if (interaction.id == 1) {
+                console.log("CONFIRMAÇÃO DE AGENDAS", interaction.name);
+                return await this.scheduledPatients();
+            }
+            else if (interaction.id == 2) {
+                console.log("Teste de envio amadurecimento do chip", interaction.name);
+            }
+            if (interaction.id == 3) {
+                console.log("AVALIAÇÃO DOS PACIENTES", interaction.name);
+            }
+        }
+    }
     async scheduledPatients() {
+        async function greeting(message) {
+            const greeting = ['Olá!', 'Oi tudo bem?', 'Saudações!', 'Oi como vai?'];
+            const presentation = ['Eu me chamo Iris', 'Eu sou a Iris', 'Aqui é a Iris'];
+            return message.replace('{greeting}', greeting[Math.floor(Math.random() * greeting.length)]).replace('{presentation}', presentation[Math.floor(Math.random() * presentation.length)]);
+        }
         const pacQueryModel = await Interaction_1.default.find(1);
         const env = process.env.NODE_ENV;
         const pacQueryDev = `SELECT
@@ -96,6 +116,10 @@ class DatasourcesController {
             pacQuery = pacQueryModel?.query;
         try {
             const result = await Database_1.default.connection('mssql').rawQuery(pacQuery);
+            for (const data of result) {
+                const message = await greeting(data.message);
+                data.message = message;
+            }
             return result;
         }
         catch (error) {

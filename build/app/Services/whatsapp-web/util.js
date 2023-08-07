@@ -12,5 +12,13 @@ async function DateFormat(format, date = luxon_1.DateTime.local()) {
     }
     return date.toFormat(format);
 }
-module.exports = { stateTyping, DateFormat };
+async function GenerateRandomTime(min, max) {
+    const randomValue = Math.random();
+    const range = max - min;
+    const scaledValue = randomValue * range;
+    const shiftedValue = scaledValue + min;
+    const finalValue = Math.round(shiftedValue * 1000);
+    return finalValue;
+}
+module.exports = { stateTyping, DateFormat, GenerateRandomTime };
 //# sourceMappingURL=util.js.map

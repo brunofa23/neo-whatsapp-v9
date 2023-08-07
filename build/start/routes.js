@@ -16,6 +16,8 @@ Route_1.default.group(() => {
     Route_1.default.post('/restart', 'ShippingcampaignsController.resetWhatsapp');
     Route_1.default.post('/logout', 'ShippingcampaignsController.logout');
     Route_1.default.post('/chat', 'ShippingcampaignsController.chat');
+    Route_1.default.get('/maxlimitsendmessage', 'ShippingcampaignsController.maxLimitSendMessage');
+    Route_1.default.get('/datasources', 'DatasourcesController.DataSource');
 }).prefix('/api');
 Route_1.default.get('/mysql', async () => {
     return Database_1.default.connection('mysql').from('emp').select('*');

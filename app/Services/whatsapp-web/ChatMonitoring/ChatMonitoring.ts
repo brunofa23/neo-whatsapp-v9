@@ -45,7 +45,7 @@ export default class Monitoring {
             try {
               client.getNumberId(numbers).then((result) => {
                 console.log('Number ID:', result);
-                client.sendMessage(message.from, "teste")
+                client.sendMessage(message.from, `Número de Whatsapp validado: ${result?._serialized}`)
               }).catch((error) => {
                 console.error('Failed to get number ID:', error);
               });
@@ -54,6 +54,15 @@ export default class Monitoring {
               console.log("ERRO:::", error)
             }
             return
+          }
+          else if (message.body === "contsend") {
+            client.sendMessage(message.from, `Total de conversas aguardando resposta:${global.contSend}`)
+
+          }
+          else if (message.body === "contsendreset") {
+            global.contSend = 0
+            client.sendMessage(message.from, `Conversas reinicializadas com sucesso!!!`)
+
           }
 
           else if (message.body === "destroy") {

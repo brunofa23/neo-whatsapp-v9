@@ -17,6 +17,9 @@ export default class Interaction extends BaseModel {
   @column()
   public querydev: string
 
+  @column()
+  public status: boolean
+
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
 

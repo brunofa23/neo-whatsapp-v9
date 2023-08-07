@@ -9,7 +9,7 @@ const luxon_1 = require("luxon");
 const util_1 = require("../../Services/whatsapp-web/util");
 class DatasourcesController {
     async DataSource() {
-        const interactionList = await Interaction_1.default.all();
+        const interactionList = await Interaction_1.default.query().where('status', '=', 1);
         for (const interaction of interactionList) {
             if (interaction.id == 1) {
                 console.log("CONFIRMAÇÃO DE AGENDAS", interaction.name);

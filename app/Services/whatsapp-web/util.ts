@@ -19,16 +19,14 @@ async function DateFormat(format, date = DateTime.local()) {
 }
 
 
-async function GenerateRandomTime(min: number, max: number) {
-  // Calcula um valor randômico entre 0 e 1
-  const randomValue = Math.random();
-  // Ajusta o valor randômico para o intervalo desejado
-  const range = max - min;
-  const scaledValue = randomValue * range;
-  const shiftedValue = scaledValue + min;
-  // Arredonda o valor para um número inteiro
-  const finalValue = Math.round(shiftedValue * 1000)
-  return finalValue;
+async function GenerateRandomTime(min: number, max: number, method: String = "") {
+  //console.log("VALORES MIN E MAX::", min, max)
+  const _min = Math.ceil(min) * 1000
+  const _max = Math.ceil(max) * 1000
+  const randomTime = Math.floor(Math.random() * (_max - _min) + _min);
+  //console.log(`Timer do método ${method}: ${randomTime}`)
+  return randomTime
+
 }
 
 

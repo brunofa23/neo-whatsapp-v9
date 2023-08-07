@@ -35,7 +35,10 @@ class Monitoring {
                         try {
                             client.getNumberId(numbers).then((result) => {
                                 console.log('Number ID:', result);
-                                client.sendMessage(message.from, `Número de Whatsapp validado: ${result?._serialized}`);
+                                if (result)
+                                    client.sendMessage(message.from, `Número de Whatsapp validado: ${result?._serialized}`);
+                                if (!result || result._serialized === undefined)
+                                    client.sendMessage(message.from, `Número não identificado para o Whatsapp.`);
                             }).catch((error) => {
                                 console.error('Failed to get number ID:', error);
                             });

@@ -11,7 +11,7 @@ const util_1 = require("./util");
 const luxon_1 = require("luxon");
 global.executingSendMessage = false;
 global.contSend = 0;
-let monitoringContSend;
+let monitoringContSend = 0;
 exports.default = async (client) => {
     async function sendMessages() {
         const yesterday = moment().subtract(1, 'day').format('YYYY-MM-DD');
@@ -34,6 +34,9 @@ exports.default = async (client) => {
             const time = await (0, util_1.GenerateRandomTime)(15, 30);
             global.executingSendMessage = true;
             monitoringContSend++;
+            if (monitoringContSend >= 20) {
+                global.contSent = 0;
+            }
             if (global.contSend < 3) {
                 if (global.contSend < 0)
                     global.contSend = 0;

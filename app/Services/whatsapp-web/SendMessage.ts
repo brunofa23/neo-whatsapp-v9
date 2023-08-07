@@ -50,12 +50,11 @@ export default async (client: Client) => {
         try {
           //verificar o numero
           const validationCellPhone = await verifyNumber(client, dataRow.cellphone)
-          console.log("VALIDAÇÃO DE TELEFONE", validationCellPhone)
+          console.log(`VALIDAÇÃO DE TELEFONE DO PACIENTE:${dataRow.name}:`, validationCellPhone)
           global.contSend++
           if (validationCellPhone) {
             await client.sendMessage(validationCellPhone, dataRow.message)
               .then(async (response) => {
-                console.log("Entrei no envio", validationCellPhone)
                 dataRow.messagesent = true
                 dataRow.phonevalid = true
                 dataRow.cellphoneserialized = validationCellPhone

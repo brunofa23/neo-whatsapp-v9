@@ -58,7 +58,7 @@ async function executeWhatsapp() {
       }, await GenerateRandomTime(startTimeSendMessageRepeated, endtTimeSendMessageRepeated, '****Send Message Repeated'))
 
       setInterval(async () => {
-        console.log("Executando ENVIO DE MENSAGEM...")
+        //console.log("Executando ENVIO DE MENSAGEM...")
         //Envia as mensagens e persiste na tabela chat
         if (!global.executingSendMessage) {
           await SendMessage(client)

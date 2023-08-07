@@ -12,9 +12,8 @@ export default class DatasourcesController {
   //retornar todos as querys de campaign
   async DataSource() {
 
-    const interactionList = await Interaction.all()
-    //console.log("queryList:::", queryList)
-
+    const interactionList = await Interaction.query().where('status', '=', 1)
+    //console.log("queryList:::", interactionList)
     for (const interaction of interactionList) {
       if (interaction.id == 1) {
         console.log("CONFIRMAÇÃO DE AGENDAS", interaction.name)

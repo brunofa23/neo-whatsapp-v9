@@ -1,8 +1,9 @@
 import SendMessage from 'App/Services/whatsapp-web/SendMessage'
 import { logout, sendRepeatedMessage } from 'App/Services/whatsapp-web/SendRepeatedMessage';
+import { DateTime } from 'luxon';
 
 import ChatMonitoring from './ChatMonitoring/ChatMonitoring'
-import { GenerateRandomTime } from './util'
+import { DateFormat, GenerateRandomTime } from './util'
 
 async function executeWhatsapp() {
 
@@ -45,17 +46,19 @@ async function executeWhatsapp() {
   client.on('ready', async () => {
     console.log('Lendo na Inicialização!');
     //chamar função que fica rodando e disparando mensagens
-    setInterval(async () => {
-      await sendRepeatedMessage(client)
-    }, await GenerateRandomTime(25, 30))
-
-    setInterval(async () => {
-      console.log("Executando ENVIO DE MENSAGEM 787...")
-      //Envia as mensagens e persiste na tabela chat
-      if (!global.executingSendMessage) {
-        await SendMessage(client)
-      }
-    }, await GenerateRandomTime(18, 20))
+    const hourSend = await DateFormat("HH", DateTime.local())
+    if (parseInt(hourSend) > 7 && parseInt(hourSend) < 20) {
+      setInterval(async () => {
+        await sendRepeatedMessage(client)
+      }, await GenerateRandomTime(25, 30))
+      setInterval(async () => {
+        console.log("Executando ENVIO DE MENSAGEM...")
+        //Envia as mensagens e persiste na tabela chat
+        if (!global.executingSendMessage) {
+          await SendMessage(client)
+        }
+      }, await GenerateRandomTime(18, 20))
+    }
 
   });
 

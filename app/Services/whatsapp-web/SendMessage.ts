@@ -9,6 +9,7 @@ import { DateTime } from 'luxon';
 
 global.executingSendMessage = false
 global.contSend = 0
+let monitoringContSend
 
 
 export default async (client: Client) => {
@@ -42,6 +43,7 @@ export default async (client: Client) => {
       const time = await GenerateRandomTime(15, 30)
       //*************************** */
       global.executingSendMessage = true
+      monitoringContSend++
       if (global.contSend < 3) {
 
         if (global.contSend < 0)
@@ -52,6 +54,7 @@ export default async (client: Client) => {
           const validationCellPhone = await verifyNumber(client, dataRow.cellphone)
           console.log(`VALIDAÇÃO DE TELEFONE DO PACIENTE:${dataRow.name}:`, validationCellPhone)
           global.contSend++
+
           if (validationCellPhone) {
             await client.sendMessage(validationCellPhone, dataRow.message)
               .then(async (response) => {
@@ -79,7 +82,6 @@ export default async (client: Client) => {
 
             await new Promise(resolve => setTimeout(resolve, time));
             console.log("Mensagem enviada:", dataRow.name, "cellphone", dataRow.cellphoneserialized, "phonevalid", dataRow.phonevalid)
-
           }
 
         } catch (error) {
@@ -87,8 +89,10 @@ export default async (client: Client) => {
         }
 
       }
+
       //****************************** */
     }
+    console.log("Aguardando resposta:", global.contSend, " Total de vezes:", monitoringContSend)
     global.executingSendMessage = false
   }
   await sendMessages()

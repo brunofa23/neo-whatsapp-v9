@@ -16,7 +16,7 @@ export default class DatasourcesController {
     //console.log("queryList:::", interactionList)
     for (const interaction of interactionList) {
       if (interaction.id == 1) {
-        console.log("CONFIRMAÇÃO DE AGENDAS", interaction.name)
+        //console.log("CONFIRMAÇÃO DE AGENDAS", interaction.name)
         return await this.scheduledPatients()
       } else
         if (interaction.id == 2) {

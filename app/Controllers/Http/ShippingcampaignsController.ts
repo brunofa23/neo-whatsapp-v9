@@ -13,24 +13,19 @@ export default class ShippingcampaignsController {
     return 'mssql2';
   }
   public async index({ response, request }) {
-
     try {
       const shippingCampaign = await Shippingcampaign.all()
-
       return response.status(200).send(shippingCampaign)
     } catch (error) {
       return error
       //throw new BadRequest('Bad Request', 401, 'erro')
     }
-
   }
 
   public async store({ response, request }) {
-
     try {
       const shippingCampaign = await Shippingcampaign
         .query()
-
       return response.status(200).send(shippingCampaign)
     } catch (error) {
       return error
@@ -39,15 +34,20 @@ export default class ShippingcampaignsController {
 
   }
 
-  public async resetWhatsapp() {
-    console.log("EXECUTANDO RESET ZAP")
-    await executeWhatsapp()
+
+  public async messagesSent() {
+    try {
+      const maxLimitSendMessage =
+        await Shippingcampaign.query()
+          .where('messagesent', '=', '1')
+
+      return maxLimitSendMessage
+    } catch (error) {
+      return error
+
+    }
   }
 
-  public async logout() {
-    console.log("EXECUTANDO LOGOUT...")
-    await executeWhatsapp(true)
-  }
 
 
 

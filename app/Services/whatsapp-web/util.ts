@@ -1,5 +1,6 @@
-import { Message } from 'whatsapp-web.js';
 import { DateTime } from 'luxon';
+import { Message } from 'whatsapp-web.js';
+
 async function stateTyping(message: Message) {
   //console.log("passei pelo STATETYPING...")
   const chatTyping = await message.getChat();
@@ -18,5 +19,18 @@ async function DateFormat(format, date = DateTime.local()) {
 }
 
 
+async function GenerateRandomTime(min: number, max: number) {
+  // Calcula um valor randômico entre 0 e 1
+  const randomValue = Math.random();
+  // Ajusta o valor randômico para o intervalo desejado
+  const range = max - min;
+  const scaledValue = randomValue * range;
+  const shiftedValue = scaledValue + min;
+  // Arredonda o valor para um número inteiro
+  const finalValue = Math.round(shiftedValue * 1000)
+  return finalValue;
+}
 
-module.exports = { stateTyping, DateFormat }
+
+
+module.exports = { stateTyping, DateFormat, GenerateRandomTime }

@@ -1,9 +1,10 @@
+import SendMessage from 'App/Services/whatsapp-web/SendMessage'
 import { logout, sendRepeatedMessage } from 'App/Services/whatsapp-web/SendRepeatedMessage';
 
-import Mehtods from '../../Services/whatsapp-web/ChatMonitoring/ClientMethods'
 import ChatMonitoring from './ChatMonitoring/ChatMonitoring'
+import { GenerateRandomTime } from './util'
 
-async function executeWhatsapp(logout: boolean = false) {
+async function executeWhatsapp() {
 
   const { Client, LocalAuth } = require('whatsapp-web.js');
   const qrcode = require('qrcode-terminal');
@@ -16,7 +17,6 @@ async function executeWhatsapp(logout: boolean = false) {
       setRequestInterception: true,
       setBypassCSP: true,
       setJavaScriptEnabled: false
-
     }
   });
 
@@ -25,7 +25,6 @@ async function executeWhatsapp(logout: boolean = false) {
   client.on('call', async (call) => {
     console.log('Call received, rejecting. GOTO Line 261 to disable', call);
     if (rejectCalls) await call.reject();
-    //await client.sendMessage(call.from, `[${call.fromMe ? 'Outgoing' : 'Incoming'}] Phone call from ${call.from}, type ${call.isGroup ? 'group' : ''} ${call.isVideo ? 'video' : 'audio'} call. ${rejectCalls ? 'This call was automatically rejected by the script.' : ''}`);
     await client.sendMessage(call.from, `[${call.fromMe ? 'Outgoing' : 'Incoming'}] Este número de telefone está programado para não receber chamadas. `);
   });
 
@@ -43,14 +42,20 @@ async function executeWhatsapp(logout: boolean = false) {
     console.error('AUTHENTICATION FAILURE', msg);
   });
 
-
   client.on('ready', async () => {
     console.log('Lendo na Inicialização!');
-    const EXECUTE_SEND_REPEATED_MESSAGE: number = process.env.EXECUTE_SEND_REPEATED_MESSAGE
     //chamar função que fica rodando e disparando mensagens
     setInterval(async () => {
-      const verify = await sendRepeatedMessage(client)
-    }, EXECUTE_SEND_REPEATED_MESSAGE)
+      await sendRepeatedMessage(client)
+    }, await GenerateRandomTime(25, 30))
+
+    setInterval(async () => {
+      console.log("Executando ENVIO DE MENSAGEM 787...")
+      //Envia as mensagens e persiste na tabela chat
+      if (!global.executingSendMessage) {
+        await SendMessage(client)
+      }
+    }, await GenerateRandomTime(18, 20))
 
   });
 
@@ -68,10 +73,6 @@ async function executeWhatsapp(logout: boolean = false) {
   const chatMonitoring = new ChatMonitoring
   await chatMonitoring.monitoring(client)
 
-  if (logout) {
-    const execMethod = new Mehtods
-    await execMethod.executeMethod(client, "logout")
-  }
 
 }
 

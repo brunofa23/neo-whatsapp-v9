@@ -15,6 +15,7 @@ class Monitoring {
                     .whereNull('response').first();
                 if (chat) {
                     if (chat.interaction_id == 1) {
+                        global.contSend--;
                         await (0, ConfirmSchedule_1.default)(client, message, chat);
                         return;
                     }
@@ -53,6 +54,9 @@ class Monitoring {
                             console.error('Erro ao encerrar a conversa:', error);
                         });
                         return;
+                    }
+                    else if (message.body === 'PinChat') {
+                        console.log("CLIENTE", message);
                     }
                     else {
                         client.sendMessage(message.from, "Olá, esta conversa já foi encerrada. O Neo Agradece! ");

@@ -3,10 +3,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const SendMessage_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/SendMessage"));
 const SendRepeatedMessage_1 = global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/SendRepeatedMessage");
-const ClientMethods_1 = __importDefault(require("../../Services/whatsapp-web/ChatMonitoring/ClientMethods"));
 const ChatMonitoring_1 = __importDefault(require("./ChatMonitoring/ChatMonitoring"));
-async function executeWhatsapp(logout = false) {
+const util_1 = require("./util");
+async function executeWhatsapp() {
     const { Client, LocalAuth } = require('whatsapp-web.js');
     const qrcode = require('qrcode-terminal');
     const client = new Client({
@@ -38,10 +39,15 @@ async function executeWhatsapp(logout = false) {
     });
     client.on('ready', async () => {
         console.log('Lendo na Inicialização!');
-        const EXECUTE_SEND_REPEATED_MESSAGE = process.env.EXECUTE_SEND_REPEATED_MESSAGE;
         setInterval(async () => {
-            const verify = await (0, SendRepeatedMessage_1.sendRepeatedMessage)(client);
-        }, EXECUTE_SEND_REPEATED_MESSAGE);
+            await (0, SendRepeatedMessage_1.sendRepeatedMessage)(client);
+        }, await (0, util_1.GenerateRandomTime)(25, 30));
+        setInterval(async () => {
+            console.log("Executando ENVIO DE MENSAGEM 787...");
+            if (!global.executingSendMessage) {
+                await (0, SendMessage_1.default)(client);
+            }
+        }, await (0, util_1.GenerateRandomTime)(18, 20));
     });
     client.on('disconnected', (reason) => {
         console.log("EXECUTANDO DISCONECT");
@@ -53,10 +59,6 @@ async function executeWhatsapp(logout = false) {
     console.log("Inicializado");
     const chatMonitoring = new ChatMonitoring_1.default;
     await chatMonitoring.monitoring(client);
-    if (logout) {
-        const execMethod = new ClientMethods_1.default;
-        await execMethod.executeMethod(client, "logout");
-    }
 }
 module.exports = { executeWhatsapp };
 //# sourceMappingURL=whatsapp.js.map

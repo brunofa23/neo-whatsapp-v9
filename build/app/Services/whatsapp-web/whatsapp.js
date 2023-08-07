@@ -50,7 +50,6 @@ async function executeWhatsapp() {
                 await (0, SendRepeatedMessage_1.sendRepeatedMessage)(client);
             }, await (0, util_1.GenerateRandomTime)(startTimeSendMessageRepeated, endtTimeSendMessageRepeated, '****Send Message Repeated'));
             setInterval(async () => {
-                console.log("Executando ENVIO DE MENSAGEM...");
                 if (!global.executingSendMessage) {
                     await (0, SendMessage_1.default)(client);
                 }

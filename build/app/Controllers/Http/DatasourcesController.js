@@ -12,7 +12,6 @@ class DatasourcesController {
         const interactionList = await Interaction_1.default.query().where('status', '=', 1);
         for (const interaction of interactionList) {
             if (interaction.id == 1) {
-                console.log("CONFIRMAÇÃO DE AGENDAS", interaction.name);
                 return await this.scheduledPatients();
             }
             else if (interaction.id == 2) {

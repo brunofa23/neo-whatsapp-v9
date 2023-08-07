@@ -1,7 +1,8 @@
-import { verifyNumber } from 'App/Services/whatsapp-web/VerifyNumber';
 import Chat from "App/Models/Chat"
 import Shippingcampaign from "App/Models/Shippingcampaign"
+import { verifyNumber } from 'App/Services/whatsapp-web/VerifyNumber';
 import { Client } from "whatsapp-web.js"
+
 import moment = require('moment');
 import { GenerateRandomTime, DateFormat } from './util'
 import { DateTime } from 'luxon';
@@ -38,7 +39,7 @@ export default async (client: Client) => {
     }
 
     for (const dataRow of shippingCampaignList) {
-      const time = await GenerateRandomTime(12, 20)
+      const time = await GenerateRandomTime(15, 30)
       //*************************** */
       global.executingSendMessage = true
       if (global.contSend < 3) {

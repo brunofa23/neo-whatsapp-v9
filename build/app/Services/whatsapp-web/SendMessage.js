@@ -11,6 +11,7 @@ const util_1 = require("./util");
 const luxon_1 = require("luxon");
 global.executingSendMessage = false;
 global.contSend = 0;
+let monitoringContSend;
 exports.default = async (client) => {
     async function sendMessages() {
         const yesterday = moment().subtract(1, 'day').format('YYYY-MM-DD');
@@ -32,18 +33,18 @@ exports.default = async (client) => {
         for (const dataRow of shippingCampaignList) {
             const time = await (0, util_1.GenerateRandomTime)(15, 30);
             global.executingSendMessage = true;
+            monitoringContSend++;
             if (global.contSend < 3) {
                 if (global.contSend < 0)
                     global.contSend = 0;
                 console.log("valor do contSend", global.contSend);
                 try {
                     const validationCellPhone = await (0, VerifyNumber_1.verifyNumber)(client, dataRow.cellphone);
-                    console.log("VALIDAÇÃO DE TELEFONE", validationCellPhone);
+                    console.log(`VALIDAÇÃO DE TELEFONE DO PACIENTE:${dataRow.name}:`, validationCellPhone);
                     global.contSend++;
                     if (validationCellPhone) {
                         await client.sendMessage(validationCellPhone, dataRow.message)
                             .then(async (response) => {
-                            console.log("Entrei no envio", validationCellPhone);
                             dataRow.messagesent = true;
                             dataRow.phonevalid = true;
                             dataRow.cellphoneserialized = validationCellPhone;
@@ -72,6 +73,7 @@ exports.default = async (client) => {
                 }
             }
         }
+        console.log("Aguardando resposta:", global.contSend, " Total de vezes:", monitoringContSend);
         global.executingSendMessage = false;
     }
     await sendMessages();

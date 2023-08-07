@@ -3,9 +3,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const VerifyNumber_1 = global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/VerifyNumber");
 const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
 const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Shippingcampaign"));
+const VerifyNumber_1 = global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/VerifyNumber");
 const moment = require("moment");
 const util_1 = require("./util");
 const luxon_1 = require("luxon");
@@ -30,7 +30,7 @@ exports.default = async (client) => {
             return;
         }
         for (const dataRow of shippingCampaignList) {
-            const time = await (0, util_1.GenerateRandomTime)(12, 20);
+            const time = await (0, util_1.GenerateRandomTime)(15, 30);
             global.executingSendMessage = true;
             if (global.contSend < 3) {
                 if (global.contSend < 0)

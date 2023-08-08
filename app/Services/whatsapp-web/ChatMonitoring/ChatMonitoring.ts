@@ -14,8 +14,6 @@ export default class Monitoring {
           .preload('shippingcampaign')
           .where('cellphoneserialized', '=', message.from)
           .whereNull('response').first()
-
-
         //console.log("MENSAGEM RECEBIDA APOS DISCONECTADO...", message.body, message.from)
 
         if (chat) {

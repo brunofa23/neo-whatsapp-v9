@@ -42,7 +42,11 @@ export default async (client: Client) => {
       const time = await GenerateRandomTime(20, 30)
       //*************************** */
       global.executingSendMessage = true
-      if (global.contSend < 3 && global.contSend >= 0) {
+      if (global.contSend < 3) {
+
+        if (global.contSend < 0) {
+          global.contSend = 0
+        }
 
         try {
           //verificar o numero
@@ -95,8 +99,6 @@ export default async (client: Client) => {
           resetContSendBool = false
           global.contSend = 0
         }
-      } else if (global.contSend < 0) {
-        global.resetContSend = 0
       }
       console.log("valor do contSend", global.contSend)
       //****************************** */

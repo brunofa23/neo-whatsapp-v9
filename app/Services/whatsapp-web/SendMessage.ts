@@ -38,9 +38,8 @@ export default async (client: Client) => {
       return
     }
 
-
     for (const dataRow of shippingCampaignList) {
-      const time = await GenerateRandomTime(15, 30)
+      const time = await GenerateRandomTime(20, 30)
       //*************************** */
       global.executingSendMessage = true
       if (global.contSend < 3 && global.contSend >= 0) {
@@ -100,10 +99,8 @@ export default async (client: Client) => {
         global.resetContSend = 0
       }
       console.log("valor do contSend", global.contSend)
-
       //****************************** */
     }
-    //console.log("Aguardando resposta:", global.contSend)
     global.executingSendMessage = false
   }
   await sendMessages()

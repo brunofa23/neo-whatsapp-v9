@@ -9,7 +9,7 @@ import { DateTime } from 'luxon';
 
 global.executingSendMessage = false
 global.contSend = 0
-let monitoringContSend = 0
+global.resetContSend = DateTime.local()
 
 
 export default async (client: Client) => {
@@ -21,7 +21,7 @@ export default async (client: Client) => {
       .andWhere('created_at', '>=', yesterday)
       .whereNull('messagesent')
       .orWhere('messagesent', '=', 0)
-      .whereNotNull('cellphone')
+    //.whereNotNull('cellphone')
 
     const dateStart = await DateFormat("yyyy-MM-dd 00:00:00", DateTime.local())
     const dateEnd = await DateFormat("yyyy-MM-dd 23:59:00", DateTime.local())
@@ -35,27 +35,28 @@ export default async (client: Client) => {
     // console.log("SHIPPONG CAMPAIGN LIST", shippingCampaignMap)
 
     if (maxLimitSendMessage.length >= parseInt(process.env.MAX_LIMIT_SEND_MESSAGE)) {
-      console.log("LIMITE ATINGIDO DE ENVIOS")
+      console.log(`LIMITE MÁXIMO DIÁRIO DE ENVIOS ATINGIDOS:${process.env.MAX_LIMIT_SEND_MESSAGE}`)
       return
     }
+
+
+
 
     for (const dataRow of shippingCampaignList) {
       const time = await GenerateRandomTime(15, 30)
       //*************************** */
       global.executingSendMessage = true
-      monitoringContSend++
+      if (global.contSend < 4) {
 
-      if (global.contSend < 3) {
-        console.log("valor do contSend", global.contSend)
         try {
           //verificar o numero
           const validationCellPhone = await verifyNumber(client, dataRow.cellphone)
           console.log(`VALIDAÇÃO DE TELEFONE DO PACIENTE:${dataRow.name}:`, validationCellPhone)
-          global.contSend++
 
           if (validationCellPhone) {
             await client.sendMessage(validationCellPhone, dataRow.message)
               .then(async (response) => {
+                global.contSend++
                 dataRow.messagesent = true
                 dataRow.phonevalid = true
                 dataRow.cellphoneserialized = validationCellPhone
@@ -89,12 +90,12 @@ export default async (client: Client) => {
         } catch (error) {
           console.log("ERRO:::", error)
         }
-
       }
+      console.log("valor do contSend", global.contSend)
 
       //****************************** */
     }
-    console.log("Aguardando resposta:", global.contSend, " Total de vezes:", monitoringContSend)
+    //console.log("Aguardando resposta:", global.contSend)
     global.executingSendMessage = false
   }
   await sendMessages()

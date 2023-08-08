@@ -1,8 +1,7 @@
+import ConfirmSchedule from './ConfirmSchedule'
 import Chat from 'App/Models/Chat';
 import { sendRepeatedMessage } from 'App/Services/whatsapp-web/SendRepeatedMessage';
 import { Client } from 'whatsapp-web.js';
-
-import ConfirmSchedule from './ConfirmSchedule'
 
 export default class Monitoring {
   async monitoring(client: Client) {
@@ -14,11 +13,17 @@ export default class Monitoring {
           .preload('shippingcampaign')
           .where('cellphoneserialized', '=', message.from)
           .whereNull('response').first()
-        //console.log("MENSAGEM RECEBIDA APOS DISCONECTADO...", message.body, message.from)
+
+        if (chat && chat.returned == false) {
+          //console.log("PASSEI PELO RESPOSTA")
+          chat.invalidresponse = message.body
+          chat.returned = true
+          await chat.save()
+        }
 
         if (chat) {
+          global.contSend--
           if (chat.interaction_id == 1) {
-            global.contSend--
             await ConfirmSchedule(client, message, chat)
             return
           }

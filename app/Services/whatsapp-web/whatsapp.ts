@@ -1,8 +1,9 @@
-import ChatMonitoring from './ChatMonitoring/ChatMonitoring'
-import { DateFormat, GenerateRandomTime } from './util'
 import SendMessage from 'App/Services/whatsapp-web/SendMessage'
 import { logout, sendRepeatedMessage } from 'App/Services/whatsapp-web/SendRepeatedMessage';
 import { DateTime } from 'luxon';
+
+import ChatMonitoring from './ChatMonitoring/ChatMonitoring'
+import { DateFormat, GenerateRandomTime } from './util'
 
 async function executeWhatsapp() {
 
@@ -64,6 +65,7 @@ async function executeWhatsapp() {
           await SendMessage(client)
         }
       }, await GenerateRandomTime(startTimeSendMessage, endTimeSendMessage, '----Time Send Message'))
+
 
 
     }

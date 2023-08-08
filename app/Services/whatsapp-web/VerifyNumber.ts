@@ -2,7 +2,7 @@ async function verifyNumber(client, cellphone) {
 
   if (!validatePhone(cellphone))
     return null
-  if (cellphone == null || cellphone == undefined)
+  if (cellphone == null || cellphone == undefined || !cellphone)
     return null
 
   try {

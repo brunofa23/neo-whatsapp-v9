@@ -1,3 +1,4 @@
+import { typeServerConfig } from '@ioc:Adonis/Core/Server';
 import Chat from "App/Models/Chat"
 import Shippingcampaign from "App/Models/Shippingcampaign"
 import { verifyNumber } from 'App/Services/whatsapp-web/VerifyNumber';
@@ -9,18 +10,17 @@ import { DateTime } from 'luxon';
 
 global.executingSendMessage = false
 global.contSend = 0
-let monitoringContSend = 0
+let resetContSend = DateTime.local()
+let resetContSendBool = false
 
 
 export default async (client: Client) => {
   async function sendMessages() {
 
     const yesterday = moment().subtract(1, 'day').format('YYYY-MM-DD');
-    const shippingCampaignList = await Shippingcampaign.query().whereNull('phonevalid')
+    const shippingCampaignList = await Shippingcampaign.query()
+      .whereNull('phonevalid')
       .andWhere('created_at', '>=', yesterday)
-      .whereNull('messagesent')
-      .orWhere('messagesent', '=', 0)
-      .whereNotNull('cellphone')
 
     const dateStart = await DateFormat("yyyy-MM-dd 00:00:00", DateTime.local())
     const dateEnd = await DateFormat("yyyy-MM-dd 23:59:00", DateTime.local())
@@ -33,35 +33,26 @@ export default async (client: Client) => {
     // });
     // console.log("SHIPPONG CAMPAIGN LIST", shippingCampaignMap)
 
-    console.log("TOTAL DE MSG ENVIADAS", maxLimitSendMessage.length)
     if (maxLimitSendMessage.length >= parseInt(process.env.MAX_LIMIT_SEND_MESSAGE)) {
-      console.log("LIMITE ATINGIDO DE ENVIOS")
+      console.log(`LIMITE MÁXIMO DIÁRIO DE ENVIOS ATINGIDOS:${process.env.MAX_LIMIT_SEND_MESSAGE}`)
       return
     }
 
     for (const dataRow of shippingCampaignList) {
-      const time = await GenerateRandomTime(15, 30)
+      const time = await GenerateRandomTime(20, 30)
       //*************************** */
       global.executingSendMessage = true
-      monitoringContSend++
-      if (monitoringContSend >= 20) {
-        global.contSent = 0
-      }
+      if (global.contSend < 3 && global.contSend >= 0) {
 
-      if (global.contSend < 3) {
-
-        if (global.contSend < 0)
-          global.contSend = 0
-        console.log("valor do contSend", global.contSend)
         try {
           //verificar o numero
           const validationCellPhone = await verifyNumber(client, dataRow.cellphone)
           console.log(`VALIDAÇÃO DE TELEFONE DO PACIENTE:${dataRow.name}:`, validationCellPhone)
-          global.contSend++
 
           if (validationCellPhone) {
             await client.sendMessage(validationCellPhone, dataRow.message)
               .then(async (response) => {
+                global.contSend++
                 dataRow.messagesent = true
                 dataRow.phonevalid = true
                 dataRow.cellphoneserialized = validationCellPhone
@@ -86,17 +77,30 @@ export default async (client: Client) => {
 
             await new Promise(resolve => setTimeout(resolve, time));
             console.log("Mensagem enviada:", dataRow.name, "cellphone", dataRow.cellphoneserialized, "phonevalid", dataRow.phonevalid)
+          } else {//número é inválido
+            dataRow.phonevalid = false
+            dataRow.save()
+
           }
 
         } catch (error) {
           console.log("ERRO:::", error)
         }
-
+      } else if (global.contSend >= 3) {
+        if (resetContSendBool == false) {
+          resetContSend = DateTime.local().plus({ minutes: 4 })
+          resetContSendBool = true
+        }
+        else if (resetContSend <= DateTime.local()) {
+          resetContSendBool = false
+          global.contSend = 0
+        }
+      } else if (global.contSend < 0) {
+        global.resetContSend = 0
       }
-
+      console.log("valor do contSend", global.contSend)
       //****************************** */
     }
-    console.log("Aguardando resposta:", global.contSend, " Total de vezes:", monitoringContSend)
     global.executingSendMessage = false
   }
   await sendMessages()

@@ -7,7 +7,6 @@ function isIterable(obj) {
 }
 
 
-
 export default async () => {
   const dataSource = new DatasourcesController
   //const dataSourceList = await dataSource.scheduledPatients()
@@ -30,7 +29,7 @@ export default async () => {
       shipping.idexternal = data.idexternal
       shipping.name = String(data.name).trim()
       shipping.cellphone = data.cellphone
-      shipping.phonevalid = false
+      //shipping.phonevalid = false
       shipping.messagesent = false
       shipping.message = String(data.message).replace(/@p[0-9]/g, '?')
       shipping.otherfields = data.otherfields
@@ -38,6 +37,7 @@ export default async () => {
       const verifyExist = await Shippingcampaign.query()
         .where('reg', '=', data.reg)
         .andWhere('created_at', '>=', yesterday)
+        .andWhere('interaction_id', '=', data.interaction_id)
         .first()
       //console.log("query", verifyExist)
       if (!verifyExist) {

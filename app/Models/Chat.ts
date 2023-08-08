@@ -37,6 +37,12 @@ export default class Chat extends BaseModel {
   @column()
   public response: string
 
+  @column()
+  public invalidresponse: string
+
+  @column()
+  public returned: boolean
+
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
 

@@ -9,7 +9,7 @@ const util_1 = require("../util");
 exports.default = async (client, message, chat) => {
     if (chat.interaction_seq == 1) {
         const chatOtherFields = JSON.parse(chat.shippingcampaign.otherfields);
-        if (message.body.toUpperCase() == 'SIM' || message.body == '1') {
+        if (message.body.toUpperCase() == 'SIM' || message.body == '1' || message.body.toUpperCase() == 'CONFIRMADO' || message.body.toUpperCase() == 'OK' || message.body.toUpperCase() == 'PODE') {
             await (0, util_1.stateTyping)(message);
             client.sendMessage(message.from, `Muito obrigada, seu agendamento foi confirmado, o endereço de sua consulta é ${chatOtherFields.address}. Esperamos por você. Ótimo dia. Lembrando que para qualquer dúvida, estamos disponíveis pelo whatsapp 3132350003.`);
             chat.response = message.body;
@@ -43,8 +43,10 @@ exports.default = async (client, message, chat) => {
             chat2.returned = true;
             Chat_1.default.create(chat2);
         }
-        else
-            (client.sendMessage(message.from, 'Oi, não consegui identificar uma resposta, por favor responda \n*1* para confirmar o agendamento. \n*2* para reagendamento.'));
+        else {
+            await (0, util_1.stateTyping)(message);
+            client.sendMessage(message.from, 'Oi, não consegui identificar uma resposta, por favor responda \n*1* para confirmar o agendamento. \n*2* para reagendamento.');
+        }
     }
 };
 //# sourceMappingURL=ConfirmSchedule.js.map

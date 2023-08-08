@@ -14,7 +14,7 @@ export default async (client: Client, message: Message, chat: Chat) => {
 
     const chatOtherFields = JSON.parse(chat.shippingcampaign.otherfields)
 
-    if (message.body.toUpperCase() == 'SIM' || message.body == '1')//presença confirmada
+    if (message.body.toUpperCase() == 'SIM' || message.body == '1' || message.body.toUpperCase() == 'CONFIRMADO' || message.body.toUpperCase() == 'OK' || message.body.toUpperCase() == 'PODE')//presença confirmada
     {
       await stateTyping(message)//status de digitando...
       client.sendMessage(message.from, `Muito obrigada, seu agendamento foi confirmado, o endereço de sua consulta é ${chatOtherFields.address}. Esperamos por você. Ótimo dia. Lembrando que para qualquer dúvida, estamos disponíveis pelo whatsapp 3132350003.`)

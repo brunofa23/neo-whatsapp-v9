@@ -65,9 +65,8 @@ async function executeWhatsapp() {
           await SendMessage(client)
         }
       }, await GenerateRandomTime(startTimeSendMessage, endTimeSendMessage, '----Time Send Message'))
-
-
-
+    } else if (parseInt(hourSend) < 7 && parseInt(hourSend) > 20) {
+      console.log("Estado de Hibernação...")
     }
 
   });

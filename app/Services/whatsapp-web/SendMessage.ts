@@ -16,7 +16,8 @@ export default async (client: Client) => {
   async function sendMessages() {
 
     const yesterday = moment().subtract(1, 'day').format('YYYY-MM-DD');
-    const shippingCampaignList = await Shippingcampaign.query().whereNull('phonevalid')
+    const shippingCampaignList = await Shippingcampaign.query()
+      .whereNull('phonevalid')
       .andWhere('created_at', '>=', yesterday)
       .whereNull('messagesent')
       .orWhere('messagesent', '=', 0)
@@ -33,7 +34,6 @@ export default async (client: Client) => {
     // });
     // console.log("SHIPPONG CAMPAIGN LIST", shippingCampaignMap)
 
-    console.log("TOTAL DE MSG ENVIADAS", maxLimitSendMessage.length)
     if (maxLimitSendMessage.length >= parseInt(process.env.MAX_LIMIT_SEND_MESSAGE)) {
       console.log("LIMITE ATINGIDO DE ENVIOS")
       return
@@ -46,9 +46,6 @@ export default async (client: Client) => {
       monitoringContSend++
 
       if (global.contSend < 3) {
-
-        if (global.contSend < 0)
-          global.contSend = 0
         console.log("valor do contSend", global.contSend)
         try {
           //verificar o numero
@@ -83,6 +80,10 @@ export default async (client: Client) => {
 
             await new Promise(resolve => setTimeout(resolve, time));
             console.log("Mensagem enviada:", dataRow.name, "cellphone", dataRow.cellphoneserialized, "phonevalid", dataRow.phonevalid)
+          } else {//número é inválido
+            dataRow.phonevalid = false
+            dataRow.save()
+
           }
 
         } catch (error) {

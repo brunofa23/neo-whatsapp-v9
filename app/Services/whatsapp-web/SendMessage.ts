@@ -1,3 +1,4 @@
+import { typeServerConfig } from '@ioc:Adonis/Core/Server';
 import Chat from "App/Models/Chat"
 import Shippingcampaign from "App/Models/Shippingcampaign"
 import { verifyNumber } from 'App/Services/whatsapp-web/VerifyNumber';
@@ -9,7 +10,8 @@ import { DateTime } from 'luxon';
 
 global.executingSendMessage = false
 global.contSend = 0
-global.resetContSend = DateTime.local()
+let resetContSend = DateTime.local()
+let resetContSendBool = false
 
 
 export default async (client: Client) => {
@@ -19,9 +21,6 @@ export default async (client: Client) => {
     const shippingCampaignList = await Shippingcampaign.query()
       .whereNull('phonevalid')
       .andWhere('created_at', '>=', yesterday)
-      .whereNull('messagesent')
-      .orWhere('messagesent', '=', 0)
-    //.whereNotNull('cellphone')
 
     const dateStart = await DateFormat("yyyy-MM-dd 00:00:00", DateTime.local())
     const dateEnd = await DateFormat("yyyy-MM-dd 23:59:00", DateTime.local())
@@ -40,13 +39,11 @@ export default async (client: Client) => {
     }
 
 
-
-
     for (const dataRow of shippingCampaignList) {
       const time = await GenerateRandomTime(15, 30)
       //*************************** */
       global.executingSendMessage = true
-      if (global.contSend < 4) {
+      if (global.contSend < 3 && global.contSend >= 0) {
 
         try {
           //verificar o numero
@@ -90,6 +87,17 @@ export default async (client: Client) => {
         } catch (error) {
           console.log("ERRO:::", error)
         }
+      } else if (global.contSend >= 3) {
+        if (resetContSendBool == false) {
+          resetContSend = DateTime.local().plus({ minutes: 4 })
+          resetContSendBool = true
+        }
+        else if (resetContSend <= DateTime.local()) {
+          resetContSendBool = false
+          global.contSend = 0
+        }
+      } else if (global.contSend < 0) {
+        global.resetContSend = 0
       }
       console.log("valor do contSend", global.contSend)
 

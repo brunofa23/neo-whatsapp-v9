@@ -31,7 +31,10 @@ exports.default = async (client) => {
         for (const dataRow of shippingCampaignList) {
             const time = await (0, util_1.GenerateRandomTime)(20, 30);
             global.executingSendMessage = true;
-            if (global.contSend < 3 && global.contSend >= 0) {
+            if (global.contSend < 3) {
+                if (global.contSend < 0) {
+                    global.contSend = 0;
+                }
                 try {
                     const validationCellPhone = await (0, VerifyNumber_1.verifyNumber)(client, dataRow.cellphone);
                     console.log(`VALIDAÇÃO DE TELEFONE DO PACIENTE:${dataRow.name}:`, validationCellPhone);
@@ -79,9 +82,6 @@ exports.default = async (client) => {
                     resetContSendBool = false;
                     global.contSend = 0;
                 }
-            }
-            else if (global.contSend < 0) {
-                global.resetContSend = 0;
             }
             console.log("valor do contSend", global.contSend);
         }

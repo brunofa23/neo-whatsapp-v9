@@ -13,6 +13,7 @@ exports.default = async (client, message, chat) => {
             await (0, util_1.stateTyping)(message);
             client.sendMessage(message.from, `Muito obrigada, seu agendamento foi confirmado, o endereço de sua consulta é ${chatOtherFields.address}. Esperamos por você. Ótimo dia. Lembrando que para qualquer dúvida, estamos disponíveis pelo whatsapp 3132350003.`);
             chat.response = message.body;
+            chat.returned = true;
             await chat.save();
             const datasourcesController = new DatasourcesController_1.default;
             await datasourcesController.confirmSchedule(chat.idexternal);
@@ -39,10 +40,11 @@ exports.default = async (client, message, chat) => {
             chat2.shippingcampaigns_id = chat.shippingcampaigns_id;
             chat2.message = message2;
             chat2.response = "Reagendada";
+            chat2.returned = true;
             Chat_1.default.create(chat2);
         }
         else
-            (client.sendMessage(message.from, 'Não consegui identificar uma resposta, por favor responda \n*1* para confirmar o agendamento. \n*2* para reagendamento.'));
+            (client.sendMessage(message.from, 'Oi, não consegui identificar uma resposta, por favor responda \n*1* para confirmar o agendamento. \n*2* para reagendamento.'));
     }
 };
 //# sourceMappingURL=ConfirmSchedule.js.map

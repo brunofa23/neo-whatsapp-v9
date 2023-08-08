@@ -14,7 +14,7 @@ export default async (client: Client, message: Message, chat: Chat) => {
 
     const chatOtherFields = JSON.parse(chat.shippingcampaign.otherfields)
 
-    if (message.body.toUpperCase() == 'SIM' || message.body == '1')//presença confirmada
+    if (message.body.toUpperCase() == 'SIM' || message.body == '1' || message.body.toUpperCase() == 'CONFIRMADO' || message.body.toUpperCase() == 'OK' || message.body.toUpperCase() == 'PODE')//presença confirmada
     {
       await stateTyping(message)//status de digitando...
       client.sendMessage(message.from, `Muito obrigada, seu agendamento foi confirmado, o endereço de sua consulta é ${chatOtherFields.address}. Esperamos por você. Ótimo dia. Lembrando que para qualquer dúvida, estamos disponíveis pelo whatsapp 3132350003.`)
@@ -54,7 +54,12 @@ export default async (client: Client, message: Message, chat: Chat) => {
         chat2.returned = true
         Chat.create(chat2)
 
-      } else (client.sendMessage(message.from, 'Oi, não consegui identificar uma resposta, por favor responda \n*1* para confirmar o agendamento. \n*2* para reagendamento.'))
+      } else {
+
+        await stateTyping(message)
+        client.sendMessage(message.from, 'Oi, não consegui identificar uma resposta, por favor responda \n*1* para confirmar o agendamento. \n*2* para reagendamento.')
+
+      }
 
   }
 

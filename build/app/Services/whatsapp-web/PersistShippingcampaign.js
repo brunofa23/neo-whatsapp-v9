@@ -26,13 +26,13 @@ exports.default = async () => {
             shipping.idexternal = data.idexternal;
             shipping.name = String(data.name).trim();
             shipping.cellphone = data.cellphone;
-            shipping.phonevalid = false;
             shipping.messagesent = false;
             shipping.message = String(data.message).replace(/@p[0-9]/g, '?');
             shipping.otherfields = data.otherfields;
             const verifyExist = await Shippingcampaign_1.default.query()
                 .where('reg', '=', data.reg)
                 .andWhere('created_at', '>=', yesterday)
+                .andWhere('interaction_id', '=', data.interaction_id)
                 .first();
             if (!verifyExist) {
                 await Shippingcampaign_1.default.create(shipping);

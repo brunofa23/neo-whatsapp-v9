@@ -3,8 +3,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
 const ConfirmSchedule_1 = __importDefault(require("./ConfirmSchedule"));
+const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
 class Monitoring {
     async monitoring(client) {
         try {
@@ -13,9 +13,14 @@ class Monitoring {
                     .preload('shippingcampaign')
                     .where('cellphoneserialized', '=', message.from)
                     .whereNull('response').first();
+                if (chat && chat.returned == false) {
+                    chat.invalidresponse = message.body;
+                    chat.returned = true;
+                    await chat.save();
+                }
                 if (chat) {
+                    global.contSend--;
                     if (chat.interaction_id == 1) {
-                        global.contSend--;
                         await (0, ConfirmSchedule_1.default)(client, message, chat);
                         return;
                     }

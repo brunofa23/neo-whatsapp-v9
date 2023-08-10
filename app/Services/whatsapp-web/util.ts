@@ -29,6 +29,13 @@ async function GenerateRandomTime(min: number, max: number, method: String = "")
 
 }
 
+async function TimeSchedule() {
+  const timeSchedule = (DateTime.local().hour > 7 && DateTime.local().hour < 19) ? true : false
+  const message = !timeSchedule ? `Fora do Horario de Envio 7 às 19:${DateTime.local()}` : undefined
+  if (message) console.log(message)
+  return timeSchedule
+}
 
 
-module.exports = { stateTyping, DateFormat, GenerateRandomTime }
+
+module.exports = { stateTyping, DateFormat, GenerateRandomTime, TimeSchedule }

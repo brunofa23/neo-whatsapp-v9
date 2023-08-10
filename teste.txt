@@ -1,0 +1,5 @@
+-- UPDATE agm SET agm_confirm_stat = 'A' WHERE agm_pac IN(26403)
+-- UPDATE agm SET agm_confirm_stat = 'A' WHERE agm_pac IN(117624)
+-- UPDATE agm SET agm_confirm_stat = 'A' WHERE agm_pac IN(8420)
+-- UPDATE agm SET agm_confirm_stat = 'A' WHERE agm_pac IN(199433)
+-- UPDATE agm SET agm_confirm_stat = 'A' WHERE agm_pac IN(198988)

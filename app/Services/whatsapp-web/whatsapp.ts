@@ -48,15 +48,9 @@ async function executeWhatsapp() {
   client.on('ready', async () => {
     console.log('Lendo na Inicialização!');
     //chamar função que fica rodando e disparando mensagens
-    //const startTimeSendMessageRepeated = parseInt(process.env.EXECUTE_SEND_REPEATED_MESSAGE)
-    //const endtTimeSendMessageRepeated = parseInt(process.env.EXECUTE_SEND_REPEATED_MESSAGE_END)
     const startTimeSendMessage = parseInt(process.env.EXECUTE_SEND_MESSAGE)
     const endTimeSendMessage = parseInt(process.env.EXECUTE_SEND_MESSAGE_END)
 
-
-    // setInterval(async () => {
-    //   await sendRepeatedMessage(client)
-    // }, await GenerateRandomTime(startTimeSendMessageRepeated, endtTimeSendMessageRepeated, '****Send Message Repeated'))
     setInterval(async () => {
       //console.log("Executando ENVIO DE MENSAGEM...")
       //Envia as mensagens e persiste na tabela chat

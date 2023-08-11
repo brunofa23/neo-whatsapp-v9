@@ -45,7 +45,7 @@ export default async (client: Client) => {
       const time = await GenerateRandomTime(20, 30)
       //*************************** */
       global.executingSendMessage = true
-      if (global.contSend < 3) {
+      if (global.contSend < 2) {
 
         if (global.contSend < 0) {
           global.contSend = 0

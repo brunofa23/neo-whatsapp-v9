@@ -14,13 +14,23 @@ exports.default = async (client, message, chat) => {
             client.sendMessage(message.from, `Muito obrigada, seu agendamento foi confirmado, o endereço de sua consulta é ${chatOtherFields.address}. Esperamos por você. Ótimo dia. Lembrando que para qualquer dúvida, estamos disponíveis pelo whatsapp 3132350003.`);
             chat.response = message.body;
             chat.returned = true;
-            await chat.save();
+            try {
+                await chat.save();
+            }
+            catch (error) {
+                console.log("Erro 454:", error);
+            }
             const datasourcesController = new DatasourcesController_1.default;
             await datasourcesController.confirmSchedule(chat.idexternal);
         }
         else if (message.body.toUpperCase() == "NÃO" || message.body.toUpperCase() == "NAO" || message.body.toUpperCase() == "2") {
             chat.response = message.body;
-            await chat.save();
+            try {
+                await chat.save();
+            }
+            catch (error) {
+                console.log("Erro 121:", error);
+            }
             await (0, util_1.stateTyping)(message);
             const message2 = `Entendi, sabemos que nosso dia está muito atarefado. Favor clicar no link que estou enviando para conversar com nossa atendente e podermos agendar novo horário para você.`;
             client.sendMessage(message.from, message2);
@@ -38,10 +48,15 @@ exports.default = async (client, message, chat) => {
             chat2.cellphone = chat.cellphone;
             chat2.cellphoneserialized = message.from;
             chat2.shippingcampaigns_id = chat.shippingcampaigns_id;
-            chat2.message = message2;
+            chat2.message = message2.slice(0, 350);
             chat2.response = "Reagendada";
             chat2.returned = true;
-            Chat_1.default.create(chat2);
+            try {
+                Chat_1.default.create(chat2);
+            }
+            catch (error) {
+                console.log("Erro:", error);
+            }
         }
         else {
             await (0, util_1.stateTyping)(message);

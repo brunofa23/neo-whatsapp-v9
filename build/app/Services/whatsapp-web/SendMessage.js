@@ -15,6 +15,8 @@ let resetContSend = luxon_1.DateTime.local();
 let resetContSendBool = false;
 exports.default = async (client) => {
     async function sendMessages() {
+        if (await !(0, util_1.TimeSchedule)())
+            return;
         const yesterday = moment().subtract(1, 'day').format('YYYY-MM-DD');
         const shippingCampaignList = await Shippingcampaign_1.default.query()
             .whereNull('phonevalid')
@@ -83,7 +85,6 @@ exports.default = async (client) => {
                     global.contSend = 0;
                 }
             }
-            console.log("valor do contSend", global.contSend);
         }
         global.executingSendMessage = false;
     }

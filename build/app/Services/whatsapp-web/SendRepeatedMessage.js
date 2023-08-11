@@ -8,9 +8,11 @@ const PersistShippingcampaign_1 = __importDefault(require("./PersistShippingcamp
 const util_1 = require("./util");
 async function sendRepeatedMessage(client) {
     const date = await (0, util_1.DateFormat)("dd/MM/yyyy HH:mm:ss", luxon_1.DateTime.local());
-    console.log(`Processo Inicializado ${date}`);
     if (!global.executingSendMessage) {
-        await (0, PersistShippingcampaign_1.default)();
+        if (await (0, util_1.TimeSchedule)()) {
+            console.log(`Buscando dados no Smart: ${date}`);
+            await (0, PersistShippingcampaign_1.default)();
+        }
     }
 }
 module.exports = { sendRepeatedMessage };

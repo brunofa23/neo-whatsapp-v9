@@ -5,7 +5,7 @@ import { verifyNumber } from 'App/Services/whatsapp-web/VerifyNumber';
 import { Client } from "whatsapp-web.js"
 
 import moment = require('moment');
-import { GenerateRandomTime, DateFormat } from './util'
+import { GenerateRandomTime, DateFormat, TimeSchedule } from './util'
 import { DateTime } from 'luxon';
 
 global.executingSendMessage = false
@@ -16,6 +16,9 @@ let resetContSendBool = false
 
 export default async (client: Client) => {
   async function sendMessages() {
+
+    if (await !TimeSchedule())
+      return
 
     const yesterday = moment().subtract(1, 'day').format('YYYY-MM-DD');
     const shippingCampaignList = await Shippingcampaign.query()
@@ -100,7 +103,7 @@ export default async (client: Client) => {
           global.contSend = 0
         }
       }
-      console.log("valor do contSend", global.contSend)
+      //console.log("valor do contSend", global.contSend)
       //****************************** */
     }
     global.executingSendMessage = false

@@ -12,15 +12,13 @@ global.executingSendMessage = false
 global.contSend = 0
 let resetContSend = DateTime.local()
 let resetContSendBool = false
-
+const yesterday = moment().subtract(1, 'day').format('YYYY-MM-DD');
 
 export default async (client: Client) => {
   async function sendMessages() {
-
     if (await !TimeSchedule())
       return
 
-    const yesterday = moment().subtract(1, 'day').format('YYYY-MM-DD');
     const shippingCampaignList = await Shippingcampaign.query()
       .whereNull('phonevalid')
       .andWhere('created_at', '>=', yesterday)

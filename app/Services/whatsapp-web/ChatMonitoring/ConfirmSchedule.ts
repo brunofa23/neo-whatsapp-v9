@@ -55,15 +55,8 @@ export default async (client: Client, message: Message, chat: Chat) => {
         Chat.create(chat2)
 
       } else {
-<<<<<<< HEAD
-
         await stateTyping(message)
         client.sendMessage(message.from, 'Oi, não consegui identificar uma resposta, por favor responda \n*1* para confirmar o agendamento. \n*2* para reagendamento.')
-
-=======
-        await stateTyping(message)
-        client.sendMessage(message.from, 'Oi, não consegui identificar uma resposta, por favor responda \n*1* para confirmar o agendamento. \n*2* para reagendamento.')
->>>>>>> development
       }
 
   }

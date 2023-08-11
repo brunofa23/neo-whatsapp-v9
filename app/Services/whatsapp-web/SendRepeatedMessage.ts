@@ -6,6 +6,7 @@ import { DateFormat, GenerateRandomTime, TimeSchedule } from './util'
 async function sendRepeatedMessage() {
   const startTimeSendMessageRepeated = parseInt(process.env.EXECUTE_SEND_REPEATED_MESSAGE)
   const endtTimeSendMessageRepeated = parseInt(process.env.EXECUTE_SEND_REPEATED_MESSAGE_END)
+
   setInterval(async () => {
     const date = await DateFormat("dd/MM/yyyy HH:mm:ss", DateTime.local())
     if (!global.executingSendMessage) {

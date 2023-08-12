@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon';
 import { Message } from 'whatsapp-web.js';
+import Config from 'App/Models/Config';
 
 async function stateTyping(message: Message) {
   //console.log("passei pelo STATETYPING...")
@@ -30,12 +31,19 @@ async function GenerateRandomTime(min: number, max: number, method: String = "")
 }
 
 async function TimeSchedule() {
-  const timeSchedule = (DateTime.local().hour > 7 && DateTime.local().hour < 23) ? true : false
+  return true
+  const timeSchedule = (DateTime.local().hour > 7 && DateTime.local().hour < 20) ? true : false
   const message = !timeSchedule ? `Fora do Horario de Envio 7 às 19:${DateTime.local()}` : undefined
   if (message) console.log(message)
   return timeSchedule
 }
 
+async function ExecutingSendMessage(value: boolean) {
+  const config = await Config.find('executingSendMessage')
+  config.valuebool = value
+  await config.save()
+}
 
 
-module.exports = { stateTyping, DateFormat, GenerateRandomTime, TimeSchedule }
+
+module.exports = { stateTyping, DateFormat, GenerateRandomTime, TimeSchedule, ExecutingSendMessage }

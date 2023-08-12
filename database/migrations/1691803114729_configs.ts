@@ -8,7 +8,7 @@ export default class extends BaseSchema {
       table.string('id').primary().notNullable()
       table.string('name')
       table.string('valuetext')
-      table.boolean('valuebool')
+      table.boolean('valuebool').defaultTo('false')
       table.integer('valueinteger')
     })
   }

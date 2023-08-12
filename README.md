@@ -1,7 +1,7 @@
 ## EXCLUIR BRANCH
 git checkout development
-git branch -d main
-git push origin --delete main
+git branch -d development-test
+git push origin --delete development-test
 
 --teste
 ## para atualizar e não está atualizando

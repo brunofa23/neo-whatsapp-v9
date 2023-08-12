@@ -6,7 +6,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const SendMessage_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/SendMessage"));
 const SendRepeatedMessage_1 = global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/SendRepeatedMessage");
 const ChatMonitoring_1 = __importDefault(require("./ChatMonitoring/ChatMonitoring"));
-const util_1 = require("./util");
 async function executeWhatsapp() {
     const { Client, LocalAuth } = require('whatsapp-web.js');
     const qrcode = require('qrcode-terminal');
@@ -37,20 +36,10 @@ async function executeWhatsapp() {
     client.on('auth_failure', msg => {
         console.error('AUTHENTICATION FAILURE', msg);
     });
+    await (0, SendRepeatedMessage_1.sendRepeatedMessage)();
     client.on('ready', async () => {
         console.log('Lendo na Inicialização!');
-        const startTimeSendMessageRepeated = parseInt(process.env.EXECUTE_SEND_REPEATED_MESSAGE);
-        const endtTimeSendMessageRepeated = parseInt(process.env.EXECUTE_SEND_REPEATED_MESSAGE_END);
-        const startTimeSendMessage = parseInt(process.env.EXECUTE_SEND_MESSAGE);
-        const endTimeSendMessage = parseInt(process.env.EXECUTE_SEND_MESSAGE_END);
-        setInterval(async () => {
-            await (0, SendRepeatedMessage_1.sendRepeatedMessage)(client);
-        }, await (0, util_1.GenerateRandomTime)(startTimeSendMessageRepeated, endtTimeSendMessageRepeated, '****Send Message Repeated'));
-        setInterval(async () => {
-            if (!global.executingSendMessage) {
-                await (0, SendMessage_1.default)(client);
-            }
-        }, await (0, util_1.GenerateRandomTime)(startTimeSendMessage, endTimeSendMessage, '----Time Send Message'));
+        await (0, SendMessage_1.default)(client);
     });
     client.on('disconnected', (reason) => {
         console.log("EXECUTANDO DISCONECT");

@@ -20,11 +20,11 @@ const endTimeSendMessage = parseInt(process.env.EXECUTE_SEND_MESSAGE_END)
 export default async (client: Client) => {
 
   async function sendMessages() {
-    const executingSendMessage = await Config.find('executingSendMessage')
-    if (executingSendMessage?.valuebool) {
-      console.log("EXECUTING SEND MESSAGE OCUPADA", executingSendMessage?.valuebool)
-      return
-    }
+    // const executingSendMessage = await Config.find('executingSendMessage')
+    // if (executingSendMessage?.valuebool) {
+    //   console.log("EXECUTING SEND MESSAGE OCUPADA", executingSendMessage?.valuebool)
+    //   return
+    // }
     if (await !TimeSchedule())
       return
 
@@ -127,6 +127,11 @@ export default async (client: Client) => {
       endTimeSendMessage, '----Time Send Message'))
   }
 
-
-  await sendMessages()
+  const executingSendMessage = await Config.find('executingSendMessage')
+  if (executingSendMessage?.valuebool) {
+    console.log("EXECUTING SEND MESSAGE OCUPADA", executingSendMessage?.valuebool)
+    return
+  } else {
+    await sendMessages()
+  }
 }

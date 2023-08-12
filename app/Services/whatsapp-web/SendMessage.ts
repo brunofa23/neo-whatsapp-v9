@@ -5,10 +5,10 @@ import { verifyNumber } from 'App/Services/whatsapp-web/VerifyNumber';
 import { Client } from "whatsapp-web.js"
 
 import moment = require('moment');
-import { GenerateRandomTime, DateFormat, TimeSchedule } from './util'
+import { GenerateRandomTime, DateFormat, TimeSchedule, ExecutingSendMessage } from './util'
 import { DateTime } from 'luxon';
+import Config from 'App/Models/Config';
 
-global.executingSendMessage = false
 global.contSend = 0
 let resetContSend = DateTime.local()
 let resetContSendBool = false
@@ -18,12 +18,16 @@ const endTimeSendMessage = parseInt(process.env.EXECUTE_SEND_MESSAGE_END)
 
 export default async (client: Client) => {
 
-
-
   async function sendMessages() {
+    const executingSendMessage = await Config.find('executingSendMessage')
+    if (executingSendMessage?.valuebool)
+      return
+
     setInterval(async () => {
       if (await !TimeSchedule())
         return
+
+      console.log("Entrei no SendMessages...")
 
       const shippingCampaignList = await Shippingcampaign.query()
         .whereNull('phonevalid')
@@ -34,6 +38,9 @@ export default async (client: Client) => {
       const maxLimitSendMessage = await Shippingcampaign.query()
         .where('messagesent', '=', '1')
         .andWhereBetween('created_at', [dateStart, dateEnd])
+
+      //const config = await Config.find('executingSendMessage')
+
       // const shippingCampaignMap = shippingCampaignList.map(campaign => {
       //   return { id: campaign.id, cellphone: campaign.cellphone, name: campaign.name, phonevalid: campaign.phonevalid };
       // });
@@ -47,7 +54,8 @@ export default async (client: Client) => {
       for (const dataRow of shippingCampaignList) {
         const time = await GenerateRandomTime(20, 30)
         //*************************** */
-        global.executingSendMessage = true
+        await ExecutingSendMessage(true)
+
         if (global.contSend < 2) {
 
           if (global.contSend < 0) {
@@ -77,7 +85,9 @@ export default async (client: Client) => {
                     cellphone: dataRow.cellphone,
                     cellphoneserialized: dataRow.cellphoneserialized,
                     message: dataRow.message,
-                    shippingcampaigns_id: dataRow.id
+                    shippingcampaigns_id: dataRow.id,
+                    chatname: process.env.CHAT_NAME
+
                   }
                   await Chat.create(bodyChat)
 
@@ -95,6 +105,7 @@ export default async (client: Client) => {
 
           } catch (error) {
             console.log("ERRO:::", error)
+            await ExecutingSendMessage(false)
           }
         } else if (global.contSend >= 3) {
           if (resetContSendBool == false) {
@@ -109,7 +120,8 @@ export default async (client: Client) => {
         //console.log("valor do contSend", global.contSend)
         //****************************** */
       }
-      global.executingSendMessage = false
+      //global.executingSendMessage = false
+      await ExecutingSendMessage(false)
 
     }, await GenerateRandomTime(startTimeSendMessage,
       endTimeSendMessage, '----Time Send Message'))

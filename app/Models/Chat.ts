@@ -43,11 +43,15 @@ export default class Chat extends BaseModel {
   @column()
   public returned: boolean
 
+  @column()
+  public chatname: string
+
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   public updatedAt: DateTime
+
 
   @hasOne(() => Shippingcampaign, {
     foreignKey: 'id',

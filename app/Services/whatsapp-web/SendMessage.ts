@@ -20,7 +20,8 @@ const endTimeSendMessage = parseInt(process.env.EXECUTE_SEND_MESSAGE_END)
 export default async (client: Client) => {
 
   async function sendMessages() {
-    // const executingSendMessage = await Config.find('executingSendMessage')
+    const executingSendMessage = await Config.find('executingSendMessage')
+
     // if (executingSendMessage?.valuebool) {
     //   console.log("EXECUTING SEND MESSAGE OCUPADA", executingSendMessage?.valuebool)
     //   return
@@ -29,7 +30,7 @@ export default async (client: Client) => {
       return
 
     setInterval(async () => {
-      await ExecutingSendMessage(true)
+      //await ExecutingSendMessage(true)
       const shippingCampaignList = await Shippingcampaign.query()
         .whereNull('phonevalid')
         .andWhere('created_at', '>=', yesterday)
@@ -55,8 +56,7 @@ export default async (client: Client) => {
         console.log("Entrei no SendMessages...")
         const time = await GenerateRandomTime(20, 30)
         //*************************** */
-
-        if (global.contSend < 3 && executingSendMessage2 == false) {
+        if (global.contSend < 3 && executingSendMessage2 == false && executingSendMessage?.valuebool == false) {
 
           if (global.contSend < 0) { global.contSend = 0 }
           try {
@@ -65,7 +65,10 @@ export default async (client: Client) => {
             console.log(`VALIDAÇÃO DE TELEFONE DO PACIENTE:${dataRow.name}:`, validationCellPhone)
 
             if (validationCellPhone) {
+
               executingSendMessage2 = true
+              await ExecutingSendMessage(true)
+
               await client.sendMessage(validationCellPhone, dataRow.message)
                 .then(async (response) => {
                   global.contSend++
@@ -90,10 +93,14 @@ export default async (client: Client) => {
                   await Chat.create(bodyChat)
                   await new Promise(resolve => setTimeout(resolve, time));
                   console.log("Mensagem enviada:", dataRow.name, "cellphone", dataRow.cellphoneserialized, "phonevalid", dataRow.phonevalid)
+
                   executingSendMessage2 = false
-                }).catch((error) => {
+                  await ExecutingSendMessage(false)
+
+                }).catch(async (error) => {
                   console.log("ERRRRO:::", error)
                   executingSendMessage2 = false
+                  await ExecutingSendMessage(false)
                 })
             } else {//número é inválido
               dataRow.phonevalid = false
@@ -121,17 +128,12 @@ export default async (client: Client) => {
         //console.log("valor do contSend", global.contSend)
         //****************************** */
       }
-      await ExecutingSendMessage(false)
+      //await ExecutingSendMessage(false)
 
     }, await GenerateRandomTime(startTimeSendMessage,
       endTimeSendMessage, '----Time Send Message'))
   }
 
-  const executingSendMessage = await Config.find('executingSendMessage')
-  if (executingSendMessage?.valuebool) {
-    console.log("EXECUTING SEND MESSAGE OCUPADA", executingSendMessage?.valuebool)
-    return
-  } else {
-    await sendMessages()
-  }
+  await sendMessages()
+
 }

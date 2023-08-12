@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const SendMessage_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/SendMessage"));
 const SendRepeatedMessage_1 = global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/SendRepeatedMessage");
 const ChatMonitoring_1 = __importDefault(require("./ChatMonitoring/ChatMonitoring"));
+const util_1 = require("./util");
 async function executeWhatsapp() {
     const { Client, LocalAuth } = require('whatsapp-web.js');
     const qrcode = require('qrcode-terminal');
@@ -37,6 +38,7 @@ async function executeWhatsapp() {
         console.error('AUTHENTICATION FAILURE', msg);
     });
     await (0, SendRepeatedMessage_1.sendRepeatedMessage)();
+    await (0, util_1.ExecutingSendMessage)(false);
     client.on('ready', async () => {
         console.log('Lendo na Inicialização!');
         await (0, SendMessage_1.default)(client);

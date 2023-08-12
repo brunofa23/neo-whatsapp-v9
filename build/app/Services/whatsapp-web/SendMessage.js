@@ -24,7 +24,6 @@ exports.default = async (client) => {
         setInterval(async () => {
             if (await !(0, util_1.TimeSchedule)())
                 return;
-            console.log("Entrei no SendMessages...");
             const shippingCampaignList = await Shippingcampaign_1.default.query()
                 .whereNull('phonevalid')
                 .andWhere('created_at', '>=', yesterday);
@@ -38,6 +37,7 @@ exports.default = async (client) => {
                 return;
             }
             for (const dataRow of shippingCampaignList) {
+                console.log("Entrei no SendMessages...");
                 const time = await (0, util_1.GenerateRandomTime)(20, 30);
                 await (0, util_1.ExecutingSendMessage)(true);
                 if (global.contSend < 2) {

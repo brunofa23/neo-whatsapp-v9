@@ -21,14 +21,15 @@ export default async (client: Client) => {
 
   async function sendMessages() {
     const executingSendMessage = await Config.find('executingSendMessage')
-    if (executingSendMessage?.valuebool)
+    if (executingSendMessage?.valuebool) {
+      console.log("EXECUTING SEND MESSAGE OCUPADA", executingSendMessage?.valuebool)
       return
-
+    }
     if (await !TimeSchedule())
       return
 
     setInterval(async () => {
-
+      await ExecutingSendMessage(true)
       const shippingCampaignList = await Shippingcampaign.query()
         .whereNull('phonevalid')
         .andWhere('created_at', '>=', yesterday)
@@ -48,7 +49,7 @@ export default async (client: Client) => {
       //   return { id: campaign.id, cellphone: campaign.cellphone, name: campaign.name, phonevalid: campaign.phonevalid };
       // });
       // console.log("SHIPPONG CAMPAIGN LIST", shippingCampaignMap)
-      await ExecutingSendMessage(true)
+
 
       for (const dataRow of shippingCampaignList) {
         console.log("Entrei no SendMessages...")
@@ -125,6 +126,7 @@ export default async (client: Client) => {
     }, await GenerateRandomTime(startTimeSendMessage,
       endTimeSendMessage, '----Time Send Message'))
   }
+
 
   await sendMessages()
 }

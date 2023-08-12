@@ -10,6 +10,7 @@ import { DateTime } from 'luxon';
 import Config from 'App/Models/Config';
 
 global.contSend = 0
+let executingSendMessage2 = false
 let resetContSend = DateTime.local()
 let resetContSendBool = false
 const yesterday = moment().subtract(1, 'day').format('YYYY-MM-DD');
@@ -23,13 +24,13 @@ export default async (client: Client) => {
     if (executingSendMessage?.valuebool)
       return
 
+    if (await !TimeSchedule())
+      return
+
     setInterval(async () => {
-      if (await !TimeSchedule())
-        return
 
       const shippingCampaignList = await Shippingcampaign.query()
         .whereNull('phonevalid')
-        .andWhere('messagesent', '=', '0')
         .andWhere('created_at', '>=', yesterday)
 
       const dateStart = await DateFormat("yyyy-MM-dd 00:00:00", DateTime.local())
@@ -38,41 +39,39 @@ export default async (client: Client) => {
         .where('messagesent', '=', '1')
         .andWhereBetween('created_at', [dateStart, dateEnd])
 
-      // const shippingCampaignMap = shippingCampaignList.map(campaign => {
-      //   return { id: campaign.id, cellphone: campaign.cellphone, name: campaign.name, phonevalid: campaign.phonevalid };
-      // });
-      // console.log("SHIPPONG CAMPAIGN LIST", shippingCampaignMap)
-
       if (maxLimitSendMessage.length >= parseInt(process.env.MAX_LIMIT_SEND_MESSAGE)) {
         console.log(`LIMITE MÁXIMO DIÁRIO DE ENVIOS ATINGIDOS:${process.env.MAX_LIMIT_SEND_MESSAGE}`)
         return
       }
 
+      // const shippingCampaignMap = shippingCampaignList.map(campaign => {
+      //   return { id: campaign.id, cellphone: campaign.cellphone, name: campaign.name, phonevalid: campaign.phonevalid };
+      // });
+      // console.log("SHIPPONG CAMPAIGN LIST", shippingCampaignMap)
+      await ExecutingSendMessage(true)
+
       for (const dataRow of shippingCampaignList) {
         console.log("Entrei no SendMessages...")
         const time = await GenerateRandomTime(20, 30)
         //*************************** */
-        await ExecutingSendMessage(true)
 
-        if (global.contSend < 2) {
+        if (global.contSend < 3 && executingSendMessage2 == false) {
 
-          if (global.contSend < 0) {
-            global.contSend = 0
-          }
-
+          if (global.contSend < 0) { global.contSend = 0 }
           try {
             //verificar o numero
             const validationCellPhone = await verifyNumber(client, dataRow.cellphone)
             console.log(`VALIDAÇÃO DE TELEFONE DO PACIENTE:${dataRow.name}:`, validationCellPhone)
 
             if (validationCellPhone) {
+              executingSendMessage2 = true
               await client.sendMessage(validationCellPhone, dataRow.message)
                 .then(async (response) => {
                   global.contSend++
                   dataRow.messagesent = true
                   dataRow.phonevalid = true
                   dataRow.cellphoneserialized = validationCellPhone
-                  dataRow.save()
+                  await dataRow.save()
 
                   const bodyChat = {
                     interaction_id: dataRow.interaction_id,
@@ -88,22 +87,25 @@ export default async (client: Client) => {
 
                   }
                   await Chat.create(bodyChat)
-
+                  await new Promise(resolve => setTimeout(resolve, time));
+                  console.log("Mensagem enviada:", dataRow.name, "cellphone", dataRow.cellphoneserialized, "phonevalid", dataRow.phonevalid)
+                  executingSendMessage2 = false
                 }).catch((error) => {
                   console.log("ERRRRO:::", error)
+                  executingSendMessage2 = false
                 })
-
-              await new Promise(resolve => setTimeout(resolve, time));
-              console.log("Mensagem enviada:", dataRow.name, "cellphone", dataRow.cellphoneserialized, "phonevalid", dataRow.phonevalid)
             } else {//número é inválido
               dataRow.phonevalid = false
-              dataRow.save()
-
+              await dataRow.save()
             }
 
-          } catch (error) {
+
+
+          }
+          catch (error) {
             console.log("ERRO:::", error)
             await ExecutingSendMessage(false)
+            executingSendMessage2 = false
           }
         } else if (global.contSend >= 3) {
           if (resetContSendBool == false) {
@@ -118,13 +120,11 @@ export default async (client: Client) => {
         //console.log("valor do contSend", global.contSend)
         //****************************** */
       }
-      //global.executingSendMessage = false
       await ExecutingSendMessage(false)
 
     }, await GenerateRandomTime(startTimeSendMessage,
       endTimeSendMessage, '----Time Send Message'))
   }
-
 
   await sendMessages()
 }

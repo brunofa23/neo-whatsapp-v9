@@ -132,12 +132,10 @@ export default async (client: Client) => {
                   console.log("Mensagem enviada:", dataRow.name, "cellphone", dataRow.cellphoneserialized, "phonevalid", dataRow.phonevalid)
 
                   executingSendMessage2 = false
-                  //await ExecutingSendMessage(false)
 
                 }).catch(async (error) => {
                   console.log("ERRRRO:::", error)
                   executingSendMessage2 = false
-                  //await ExecutingSendMessage(false)
                 })
             } else {//número é inválido
               dataRow.phonevalid = false
@@ -149,7 +147,6 @@ export default async (client: Client) => {
           }
           catch (error) {
             console.log("ERRO:::", error)
-            //await ExecutingSendMessage(false)
             executingSendMessage2 = false
           }
         } else if (global.contSend >= 3) {

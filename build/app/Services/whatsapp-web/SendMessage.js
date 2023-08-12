@@ -20,11 +20,14 @@ const endTimeSendMessage = parseInt(process.env.EXECUTE_SEND_MESSAGE_END);
 exports.default = async (client) => {
     async function sendMessages() {
         const executingSendMessage = await Config_1.default.find('executingSendMessage');
-        if (executingSendMessage?.valuebool)
+        if (executingSendMessage?.valuebool) {
+            console.log("EXECUTING SEND MESSAGE OCUPADA", executingSendMessage?.valuebool);
             return;
+        }
         if (await !(0, util_1.TimeSchedule)())
             return;
         setInterval(async () => {
+            await (0, util_1.ExecutingSendMessage)(true);
             const shippingCampaignList = await Shippingcampaign_1.default.query()
                 .whereNull('phonevalid')
                 .andWhere('created_at', '>=', yesterday);
@@ -37,7 +40,6 @@ exports.default = async (client) => {
                 console.log(`LIMITE MÁXIMO DIÁRIO DE ENVIOS ATINGIDOS:${process.env.MAX_LIMIT_SEND_MESSAGE}`);
                 return;
             }
-            await (0, util_1.ExecutingSendMessage)(true);
             for (const dataRow of shippingCampaignList) {
                 console.log("Entrei no SendMessages...");
                 const time = await (0, util_1.GenerateRandomTime)(20, 30);

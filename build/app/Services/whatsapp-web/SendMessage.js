@@ -11,6 +11,7 @@ const util_1 = require("./util");
 const luxon_1 = require("luxon");
 const Config_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Config"));
 global.contSend = 0;
+let executingSendMessage2 = false;
 let resetContSend = luxon_1.DateTime.local();
 let resetContSendBool = false;
 const yesterday = moment().subtract(1, 'day').format('YYYY-MM-DD');
@@ -21,12 +22,11 @@ exports.default = async (client) => {
         const executingSendMessage = await Config_1.default.find('executingSendMessage');
         if (executingSendMessage?.valuebool)
             return;
+        if (await !(0, util_1.TimeSchedule)())
+            return;
         setInterval(async () => {
-            if (await !(0, util_1.TimeSchedule)())
-                return;
             const shippingCampaignList = await Shippingcampaign_1.default.query()
                 .whereNull('phonevalid')
-                .andWhere('messagesent', '=', '0')
                 .andWhere('created_at', '>=', yesterday);
             const dateStart = await (0, util_1.DateFormat)("yyyy-MM-dd 00:00:00", luxon_1.DateTime.local());
             const dateEnd = await (0, util_1.DateFormat)("yyyy-MM-dd 23:59:00", luxon_1.DateTime.local());
@@ -37,11 +37,11 @@ exports.default = async (client) => {
                 console.log(`LIMITE MÁXIMO DIÁRIO DE ENVIOS ATINGIDOS:${process.env.MAX_LIMIT_SEND_MESSAGE}`);
                 return;
             }
+            await (0, util_1.ExecutingSendMessage)(true);
             for (const dataRow of shippingCampaignList) {
                 console.log("Entrei no SendMessages...");
                 const time = await (0, util_1.GenerateRandomTime)(20, 30);
-                await (0, util_1.ExecutingSendMessage)(true);
-                if (global.contSend < 2) {
+                if (global.contSend < 3 && executingSendMessage2 == false) {
                     if (global.contSend < 0) {
                         global.contSend = 0;
                     }
@@ -49,13 +49,14 @@ exports.default = async (client) => {
                         const validationCellPhone = await (0, VerifyNumber_1.verifyNumber)(client, dataRow.cellphone);
                         console.log(`VALIDAÇÃO DE TELEFONE DO PACIENTE:${dataRow.name}:`, validationCellPhone);
                         if (validationCellPhone) {
+                            executingSendMessage2 = true;
                             await client.sendMessage(validationCellPhone, dataRow.message)
                                 .then(async (response) => {
                                 global.contSend++;
                                 dataRow.messagesent = true;
                                 dataRow.phonevalid = true;
                                 dataRow.cellphoneserialized = validationCellPhone;
-                                dataRow.save();
+                                await dataRow.save();
                                 const bodyChat = {
                                     interaction_id: dataRow.interaction_id,
                                     interaction_seq: dataRow.interaction_seq,
@@ -69,20 +70,23 @@ exports.default = async (client) => {
                                     chatname: process.env.CHAT_NAME
                                 };
                                 await Chat_1.default.create(bodyChat);
+                                await new Promise(resolve => setTimeout(resolve, time));
+                                console.log("Mensagem enviada:", dataRow.name, "cellphone", dataRow.cellphoneserialized, "phonevalid", dataRow.phonevalid);
+                                executingSendMessage2 = false;
                             }).catch((error) => {
                                 console.log("ERRRRO:::", error);
+                                executingSendMessage2 = false;
                             });
-                            await new Promise(resolve => setTimeout(resolve, time));
-                            console.log("Mensagem enviada:", dataRow.name, "cellphone", dataRow.cellphoneserialized, "phonevalid", dataRow.phonevalid);
                         }
                         else {
                             dataRow.phonevalid = false;
-                            dataRow.save();
+                            await dataRow.save();
                         }
                     }
                     catch (error) {
                         console.log("ERRO:::", error);
                         await (0, util_1.ExecutingSendMessage)(false);
+                        executingSendMessage2 = false;
                     }
                 }
                 else if (global.contSend >= 3) {

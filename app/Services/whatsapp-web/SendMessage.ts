@@ -17,10 +17,11 @@ const startTimeSendMessage = parseInt(process.env.EXECUTE_SEND_MESSAGE)
 const endTimeSendMessage = parseInt(process.env.EXECUTE_SEND_MESSAGE_END)
 
 export default async (client: Client) => {
+
+
+
   async function sendMessages() {
-
     setInterval(async () => {
-
       if (await !TimeSchedule())
         return
 
@@ -33,7 +34,6 @@ export default async (client: Client) => {
       const maxLimitSendMessage = await Shippingcampaign.query()
         .where('messagesent', '=', '1')
         .andWhereBetween('created_at', [dateStart, dateEnd])
-
       // const shippingCampaignMap = shippingCampaignList.map(campaign => {
       //   return { id: campaign.id, cellphone: campaign.cellphone, name: campaign.name, phonevalid: campaign.phonevalid };
       // });

@@ -1,4 +1,5 @@
 import DatasourcesController from 'App/Controllers/Http/DatasourcesController'
+import { Shipping } from 'App/Controllers/Http/TestesController';
 import Shippingcampaign from 'App/Models/Shippingcampaign'
 
 import moment = require('moment');
@@ -39,7 +40,7 @@ export default async () => {
         .andWhere('created_at', '>=', yesterday)
         .andWhere('interaction_id', '=', data.interaction_id)
         .first()
-      //console.log("query", verifyExist)
+
       if (!verifyExist) {
         //console.log("Adicionado>>>", verifyExist)
         await Shippingcampaign.create(shipping)

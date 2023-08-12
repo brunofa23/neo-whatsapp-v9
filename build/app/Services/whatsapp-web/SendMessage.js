@@ -19,11 +19,6 @@ const startTimeSendMessage = parseInt(process.env.EXECUTE_SEND_MESSAGE);
 const endTimeSendMessage = parseInt(process.env.EXECUTE_SEND_MESSAGE_END);
 exports.default = async (client) => {
     async function sendMessages() {
-        const executingSendMessage = await Config_1.default.find('executingSendMessage');
-        if (executingSendMessage?.valuebool) {
-            console.log("EXECUTING SEND MESSAGE OCUPADA", executingSendMessage?.valuebool);
-            return;
-        }
         if (await !(0, util_1.TimeSchedule)())
             return;
         setInterval(async () => {
@@ -105,6 +100,13 @@ exports.default = async (client) => {
             await (0, util_1.ExecutingSendMessage)(false);
         }, await (0, util_1.GenerateRandomTime)(startTimeSendMessage, endTimeSendMessage, '----Time Send Message'));
     }
-    await sendMessages();
+    const executingSendMessage = await Config_1.default.find('executingSendMessage');
+    if (executingSendMessage?.valuebool) {
+        console.log("EXECUTING SEND MESSAGE OCUPADA", executingSendMessage?.valuebool);
+        return;
+    }
+    else {
+        await sendMessages();
+    }
 };
 //# sourceMappingURL=SendMessage.js.map

@@ -19,10 +19,10 @@ const startTimeSendMessage = parseInt(process.env.EXECUTE_SEND_MESSAGE);
 const endTimeSendMessage = parseInt(process.env.EXECUTE_SEND_MESSAGE_END);
 exports.default = async (client) => {
     async function sendMessages() {
+        const executingSendMessage = await Config_1.default.find('executingSendMessage');
         if (await !(0, util_1.TimeSchedule)())
             return;
         setInterval(async () => {
-            await (0, util_1.ExecutingSendMessage)(true);
             const shippingCampaignList = await Shippingcampaign_1.default.query()
                 .whereNull('phonevalid')
                 .andWhere('created_at', '>=', yesterday);
@@ -38,7 +38,7 @@ exports.default = async (client) => {
             for (const dataRow of shippingCampaignList) {
                 console.log("Entrei no SendMessages...");
                 const time = await (0, util_1.GenerateRandomTime)(20, 30);
-                if (global.contSend < 3 && executingSendMessage2 == false) {
+                if (global.contSend < 3 && executingSendMessage2 == false && executingSendMessage?.valuebool == false) {
                     if (global.contSend < 0) {
                         global.contSend = 0;
                     }
@@ -47,6 +47,7 @@ exports.default = async (client) => {
                         console.log(`VALIDAÇÃO DE TELEFONE DO PACIENTE:${dataRow.name}:`, validationCellPhone);
                         if (validationCellPhone) {
                             executingSendMessage2 = true;
+                            await (0, util_1.ExecutingSendMessage)(true);
                             await client.sendMessage(validationCellPhone, dataRow.message)
                                 .then(async (response) => {
                                 global.contSend++;
@@ -70,9 +71,11 @@ exports.default = async (client) => {
                                 await new Promise(resolve => setTimeout(resolve, time));
                                 console.log("Mensagem enviada:", dataRow.name, "cellphone", dataRow.cellphoneserialized, "phonevalid", dataRow.phonevalid);
                                 executingSendMessage2 = false;
-                            }).catch((error) => {
+                                await (0, util_1.ExecutingSendMessage)(false);
+                            }).catch(async (error) => {
                                 console.log("ERRRRO:::", error);
                                 executingSendMessage2 = false;
+                                await (0, util_1.ExecutingSendMessage)(false);
                             });
                         }
                         else {
@@ -97,16 +100,8 @@ exports.default = async (client) => {
                     }
                 }
             }
-            await (0, util_1.ExecutingSendMessage)(false);
         }, await (0, util_1.GenerateRandomTime)(startTimeSendMessage, endTimeSendMessage, '----Time Send Message'));
     }
-    const executingSendMessage = await Config_1.default.find('executingSendMessage');
-    if (executingSendMessage?.valuebool) {
-        console.log("EXECUTING SEND MESSAGE OCUPADA", executingSendMessage?.valuebool);
-        return;
-    }
-    else {
-        await sendMessages();
-    }
+    await sendMessages();
 };
 //# sourceMappingURL=SendMessage.js.map

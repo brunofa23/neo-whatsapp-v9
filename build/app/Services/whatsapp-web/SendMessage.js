@@ -26,6 +26,7 @@ exports.default = async (client) => {
                 return;
             const shippingCampaignList = await Shippingcampaign_1.default.query()
                 .whereNull('phonevalid')
+                .andWhere('messagesent', '=', '0')
                 .andWhere('created_at', '>=', yesterday);
             const dateStart = await (0, util_1.DateFormat)("yyyy-MM-dd 00:00:00", luxon_1.DateTime.local());
             const dateEnd = await (0, util_1.DateFormat)("yyyy-MM-dd 23:59:00", luxon_1.DateTime.local());

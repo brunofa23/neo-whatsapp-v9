@@ -32,6 +32,6 @@ Server_1.default.middleware.register([
     () => Promise.resolve().then(() => __importStar(global[Symbol.for('ioc.use')]("Adonis/Core/BodyParser"))),
 ]);
 Server_1.default.middleware.registerNamed({});
-console.log("***CHAT BOT V-23***");
+console.log("***CHAT BOT V-24***");
 (0, whatsapp_1.executeWhatsapp)();
 //# sourceMappingURL=kernel.js.map

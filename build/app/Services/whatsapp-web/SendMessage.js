@@ -9,7 +9,7 @@ const VerifyNumber_1 = global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/
 const moment = require("moment");
 const util_1 = require("./util");
 const luxon_1 = require("luxon");
-global.executingSendMessage = false;
+const Config_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Config"));
 global.contSend = 0;
 let resetContSend = luxon_1.DateTime.local();
 let resetContSendBool = false;
@@ -18,9 +18,13 @@ const startTimeSendMessage = parseInt(process.env.EXECUTE_SEND_MESSAGE);
 const endTimeSendMessage = parseInt(process.env.EXECUTE_SEND_MESSAGE_END);
 exports.default = async (client) => {
     async function sendMessages() {
+        const executingSendMessage = await Config_1.default.find('executingSendMessage');
+        if (executingSendMessage?.valuebool)
+            return;
         setInterval(async () => {
             if (await !(0, util_1.TimeSchedule)())
                 return;
+            console.log("Entrei no SendMessages...");
             const shippingCampaignList = await Shippingcampaign_1.default.query()
                 .whereNull('phonevalid')
                 .andWhere('created_at', '>=', yesterday);
@@ -35,7 +39,7 @@ exports.default = async (client) => {
             }
             for (const dataRow of shippingCampaignList) {
                 const time = await (0, util_1.GenerateRandomTime)(20, 30);
-                global.executingSendMessage = true;
+                await (0, util_1.ExecutingSendMessage)(true);
                 if (global.contSend < 2) {
                     if (global.contSend < 0) {
                         global.contSend = 0;
@@ -60,7 +64,8 @@ exports.default = async (client) => {
                                     cellphone: dataRow.cellphone,
                                     cellphoneserialized: dataRow.cellphoneserialized,
                                     message: dataRow.message,
-                                    shippingcampaigns_id: dataRow.id
+                                    shippingcampaigns_id: dataRow.id,
+                                    chatname: process.env.CHAT_NAME
                                 };
                                 await Chat_1.default.create(bodyChat);
                             }).catch((error) => {
@@ -76,6 +81,7 @@ exports.default = async (client) => {
                     }
                     catch (error) {
                         console.log("ERRO:::", error);
+                        await (0, util_1.ExecutingSendMessage)(false);
                     }
                 }
                 else if (global.contSend >= 3) {
@@ -89,7 +95,7 @@ exports.default = async (client) => {
                     }
                 }
             }
-            global.executingSendMessage = false;
+            await (0, util_1.ExecutingSendMessage)(false);
         }, await (0, util_1.GenerateRandomTime)(startTimeSendMessage, endTimeSendMessage, '----Time Send Message'));
     }
     await sendMessages();

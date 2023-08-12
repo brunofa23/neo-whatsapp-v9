@@ -70,6 +70,10 @@ __decorate([
     __metadata("design:type", Boolean)
 ], Chat.prototype, "returned", void 0);
 __decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", String)
+], Chat.prototype, "chatname", void 0);
+__decorate([
     Orm_1.column.dateTime({ autoCreate: true }),
     __metadata("design:type", luxon_1.DateTime)
 ], Chat.prototype, "createdAt", void 0);

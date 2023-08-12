@@ -1,3 +1,4 @@
+import { Shipping } from 'App/Controllers/Http/TestesController';
 import DatasourcesController from 'App/Controllers/Http/DatasourcesController'
 import Shippingcampaign from 'App/Models/Shippingcampaign'
 
@@ -33,6 +34,9 @@ export default async () => {
       shipping.messagesent = false
       shipping.message = String(data.message).replace(/@p[0-9]/g, '?')
       shipping.otherfields = data.otherfields
+      shipping.chatnameid = data.cellphone//'1'//String(process.env.CHAT_NAME)
+
+      console.log("shipping....", shipping)
 
       const verifyExist = await Shippingcampaign.query()
         .where('reg', '=', data.reg)

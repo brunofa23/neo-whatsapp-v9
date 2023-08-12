@@ -85,7 +85,9 @@ export default async (client: Client) => {
                     cellphone: dataRow.cellphone,
                     cellphoneserialized: dataRow.cellphoneserialized,
                     message: dataRow.message,
-                    shippingcampaigns_id: dataRow.id
+                    shippingcampaigns_id: dataRow.id,
+                    chatname: process.env.CHAT_NAME
+
                   }
                   await Chat.create(bodyChat)
 

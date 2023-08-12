@@ -3,7 +3,8 @@ import { logout, sendRepeatedMessage } from 'App/Services/whatsapp-web/SendRepea
 import { DateTime } from 'luxon';
 
 import ChatMonitoring from './ChatMonitoring/ChatMonitoring'
-import { DateFormat, GenerateRandomTime } from './util'
+import { DateFormat, GenerateRandomTime, ExecutingSendMessage } from './util'
+
 
 async function executeWhatsapp() {
 
@@ -44,7 +45,7 @@ async function executeWhatsapp() {
   });
 
   await sendRepeatedMessage()
-
+  await ExecutingSendMessage(false)
   client.on('ready', async () => {
     console.log('Lendo na Inicialização!');
     await SendMessage(client)

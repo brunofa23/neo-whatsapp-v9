@@ -29,6 +29,7 @@ export default async (client: Client) => {
 
       const shippingCampaignList = await Shippingcampaign.query()
         .whereNull('phonevalid')
+        .andWhere('messagesent', '=', '0')
         .andWhere('created_at', '>=', yesterday)
 
       const dateStart = await DateFormat("yyyy-MM-dd 00:00:00", DateTime.local())
@@ -36,8 +37,6 @@ export default async (client: Client) => {
       const maxLimitSendMessage = await Shippingcampaign.query()
         .where('messagesent', '=', '1')
         .andWhereBetween('created_at', [dateStart, dateEnd])
-
-      //const config = await Config.find('executingSendMessage')
 
       // const shippingCampaignMap = shippingCampaignList.map(campaign => {
       //   return { id: campaign.id, cellphone: campaign.cellphone, name: campaign.name, phonevalid: campaign.phonevalid };

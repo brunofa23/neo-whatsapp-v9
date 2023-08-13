@@ -1,10 +1,6 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const luxon_1 = require("luxon");
-const Config_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Config"));
 async function stateTyping(message) {
     const chatTyping = await message.getChat();
     chatTyping.sendStateTyping();
@@ -30,10 +26,5 @@ async function TimeSchedule() {
         console.log(message);
     return timeSchedule;
 }
-async function ExecutingSendMessage(value) {
-    const config = await Config_1.default.find('executingSendMessage');
-    config.valuebool = value;
-    await config.save();
-}
-module.exports = { stateTyping, DateFormat, GenerateRandomTime, TimeSchedule, ExecutingSendMessage };
+module.exports = { stateTyping, DateFormat, GenerateRandomTime, TimeSchedule };
 //# sourceMappingURL=util.js.map

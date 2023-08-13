@@ -1,6 +1,5 @@
 import { DateTime } from 'luxon';
 import { Message } from 'whatsapp-web.js';
-import Config from 'App/Models/Config';
 
 async function stateTyping(message: Message) {
   //console.log("passei pelo STATETYPING...")
@@ -38,12 +37,6 @@ async function TimeSchedule() {
   return timeSchedule
 }
 
-async function ExecutingSendMessage(value: boolean) {
-  const config = await Config.find('executingSendMessage')
-  config.valuebool = value
-  await config.save()
-}
 
 
-
-module.exports = { stateTyping, DateFormat, GenerateRandomTime, TimeSchedule, ExecutingSendMessage }
+module.exports = { stateTyping, DateFormat, GenerateRandomTime, TimeSchedule }

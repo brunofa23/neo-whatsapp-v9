@@ -1,10 +1,10 @@
+import Config from 'App/Models/Config';
 import SendMessage from 'App/Services/whatsapp-web/SendMessage'
 import { logout, sendRepeatedMessage } from 'App/Services/whatsapp-web/SendRepeatedMessage';
 import { DateTime } from 'luxon';
 
 import ChatMonitoring from './ChatMonitoring/ChatMonitoring'
-import { DateFormat, GenerateRandomTime, ExecutingSendMessage } from './util'
-
+import { DateFormat, ExecutingSendMessage, GenerateRandomTime } from './util'
 
 async function executeWhatsapp() {
 
@@ -45,10 +45,11 @@ async function executeWhatsapp() {
   });
 
   await sendRepeatedMessage()
-  await ExecutingSendMessage(false)
+  //await ExecutingSendMessage(false)
   client.on('ready', async () => {
     console.log('Lendo na Inicialização!');
     await SendMessage(client)
+
   });
 
   client.on('disconnected', (reason) => {

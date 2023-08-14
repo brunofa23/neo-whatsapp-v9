@@ -10,5 +10,5 @@ Server.middleware.register([
 Server.middleware.registerNamed({
 })
 
-console.log("***CHAT BOT V-25***")
+console.log("***CHAT BOT V-26***")
 executeWhatsapp()

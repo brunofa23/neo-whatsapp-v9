@@ -19,10 +19,23 @@ const endTimeSendMessage = parseInt(process.env.EXECUTE_SEND_MESSAGE_END)
 export default async (client: Client) => {
 
   async function _shippingCampaignList() {
-    console.log("2 - PASSANDO PELO SHIPPING CAMPAIN")
+    console.log("2 - PASSANDO PELO SHIPPING CAMPAIGN")
     return await Shippingcampaign.query()
       .whereNull('phonevalid')
       .andWhere('created_at', '>=', yesterday).first()
+  }
+
+  async function verifyContSend() {
+    if (global.contSend >= 3) {
+      if (resetContSendBool == false) {
+        resetContSend = DateTime.local().plus({ minutes: 4 })
+        resetContSendBool = true
+      }
+      else if (resetContSend <= DateTime.local()) {
+        resetContSendBool = false
+        global.contSend = 0
+      }
+    }
   }
 
   async function sendMessages() {
@@ -31,18 +44,7 @@ export default async (client: Client) => {
 
       if (await !TimeSchedule())
         return
-
-      if (global.contSend >= 3) {
-        if (resetContSendBool == false) {
-          resetContSend = DateTime.local().plus({ minutes: 4 })
-          resetContSendBool = true
-        }
-        else if (resetContSend <= DateTime.local()) {
-          resetContSendBool = false
-          global.contSend = 0
-        }
-      }
-
+      await verifyContSend()
       const shippingCampaign = await _shippingCampaignList()
 
       if (shippingCampaign) {
@@ -91,9 +93,7 @@ export default async (client: Client) => {
         }
 
       }
-
       console.log("4 - SAI DO SEND MESSAGES...")
-
     }, await GenerateRandomTime(startTimeSendMessage, endTimeSendMessage, '----Time Send Message'))
   }
 

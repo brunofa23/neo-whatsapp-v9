@@ -1,6 +1,5 @@
-import Route from '@ioc:Adonis/Core/Route'
-
 import { executeWhatsapp } from '../app/Services/whatsapp-web/whatsapp'
+import Route from '@ioc:Adonis/Core/Route'
 
 console.log("***CHAT BOT V-26***")
 executeWhatsapp()

@@ -1,5 +1,4 @@
 import DatasourcesController from 'App/Controllers/Http/DatasourcesController'
-import { Shipping } from 'App/Controllers/Http/TestesController';
 import Shippingcampaign from 'App/Models/Shippingcampaign'
 
 import moment = require('moment');

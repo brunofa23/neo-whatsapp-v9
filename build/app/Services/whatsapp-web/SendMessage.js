@@ -17,26 +17,29 @@ const startTimeSendMessage = parseInt(process.env.EXECUTE_SEND_MESSAGE);
 const endTimeSendMessage = parseInt(process.env.EXECUTE_SEND_MESSAGE_END);
 exports.default = async (client) => {
     async function _shippingCampaignList() {
-        console.log("2 - PASSANDO PELO SHIPPING CAMPAIN");
+        console.log("2 - PASSANDO PELO SHIPPING CAMPAIGN");
         return await Shippingcampaign_1.default.query()
             .whereNull('phonevalid')
             .andWhere('created_at', '>=', yesterday).first();
+    }
+    async function verifyContSend() {
+        if (global.contSend >= 3) {
+            if (resetContSendBool == false) {
+                resetContSend = luxon_1.DateTime.local().plus({ minutes: 4 });
+                resetContSendBool = true;
+            }
+            else if (resetContSend <= luxon_1.DateTime.local()) {
+                resetContSendBool = false;
+                global.contSend = 0;
+            }
+        }
     }
     async function sendMessages() {
         setInterval(async () => {
             console.log("1 - ENTREI NO SEND MESSAGES...");
             if (await !(0, util_1.TimeSchedule)())
                 return;
-            if (global.contSend >= 3) {
-                if (resetContSendBool == false) {
-                    resetContSend = luxon_1.DateTime.local().plus({ minutes: 4 });
-                    resetContSendBool = true;
-                }
-                else if (resetContSend <= luxon_1.DateTime.local()) {
-                    resetContSendBool = false;
-                    global.contSend = 0;
-                }
-            }
+            await verifyContSend();
             const shippingCampaign = await _shippingCampaignList();
             if (shippingCampaign) {
                 if (global.contSend < 3) {

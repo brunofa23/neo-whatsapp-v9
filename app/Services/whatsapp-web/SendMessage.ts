@@ -8,6 +8,7 @@ import moment = require('moment');
 import { GenerateRandomTime, DateFormat, TimeSchedule, ExecutingSendMessage } from './util'
 import { DateTime } from 'luxon';
 import Config from 'App/Models/Config';
+import ShippingcampaignsController from 'App/Controllers/Http/ShippingcampaignsController';
 
 global.contSend = 0
 const yesterday = moment().subtract(1, 'day').format('YYYY-MM-DD');
@@ -19,7 +20,7 @@ export default async (client: Client) => {
   let resetContSendBool = false
 
   async function _shippingCampaignList() {
-    console.log("2 - PASSANDO PELO SHIPPING CAMPAIGN")
+    //console.log("2 - PASSANDO PELO SHIPPING CAMPAIGN")
     return await Shippingcampaign.query()
       .whereNull('phonevalid')
       .andWhere('created_at', '>=', yesterday).first()
@@ -38,10 +39,24 @@ export default async (client: Client) => {
     }
   }
 
+  async function countLimitSendMessage() {
+    const shippingcampaignsController = new ShippingcampaignsController()
+    const value = await shippingcampaignsController.maxLimitSendMessage()
+    return value
+  }
+  const maxLimitSendMessage: number = parseInt(process.env.MAX_LIMIT_SEND_MESSAGE)
+
   async function sendMessages() {
     setInterval(async () => {
-      console.log("1 - ENTREI NO SEND MESSAGES...")
 
+      const totMessageSend = await countLimitSendMessage()
+      console.log("LIMITE MÁXIMOS::::::", totMessageSend, maxLimitSendMessage)
+      if (totMessageSend >= maxLimitSendMessage) {
+        console.log(`LIMITE DE ENVIO DIÁRIO ATINGIDO, Enviados:${totMessageSend} Limite Máximo:${maxLimitSendMessage}`)
+        return
+      }
+
+      //console.log("1 - ENTREI NO SEND MESSAGES...")
       if (await !TimeSchedule())
         return
       await verifyContSend()
@@ -54,7 +69,7 @@ export default async (client: Client) => {
           try {
             //verificar o numero
             const validationCellPhone = await verifyNumber(client, shippingCampaign?.cellphone)
-            console.log(`3 - VALIDAÇÃO DE TELEFONE DO PACIENTE:${shippingCampaign?.name}:`, validationCellPhone)
+            console.log(`VALIDAÇÃO DE TELEFONE DO PACIENTE:${shippingCampaign?.name}:`, validationCellPhone)
             if (validationCellPhone) {
               await client.sendMessage(validationCellPhone, shippingCampaign.message)
                 .then(async (response) => {
@@ -93,7 +108,7 @@ export default async (client: Client) => {
         }
 
       }
-      console.log("4 - SAI DO SEND MESSAGES...")
+      //console.log("4 - SAI DO SEND MESSAGES...")
     }, await GenerateRandomTime(startTimeSendMessage, endTimeSendMessage, '----Time Send Message'))
   }
 

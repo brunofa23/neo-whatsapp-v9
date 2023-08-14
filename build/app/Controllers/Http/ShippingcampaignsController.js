@@ -4,7 +4,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Shippingcampaign"));
+const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
 const Database_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Lucid/Database"));
+const util_ts_1 = require("../../Services/whatsapp-web/util.ts");
+const luxon_1 = require("luxon");
 class ShippingcampaignsController {
     static get connection() {
         return 'mssql2';
@@ -37,6 +40,17 @@ class ShippingcampaignsController {
         catch (error) {
             return error;
         }
+    }
+    async maxLimitSendMessage() {
+        const dateStart = await (0, util_ts_1.DateFormat)("2023-08-01 00:00:00", luxon_1.DateTime.local());
+        const dateEnd = await (0, util_ts_1.DateFormat)("yyyy-MM-dd 23:59:00", luxon_1.DateTime.local());
+        const countMessage = await Chat_1.default.query()
+            .countDistinct('shippingcampaigns_id as tot')
+            .where('chatname', '1')
+            .whereBetween('created_at', [dateStart, dateEnd]).first();
+        if (!countMessage || countMessage == undefined || countMessage == null)
+            return 0;
+        return parseInt(countMessage.$extras.tot);
     }
     async chat({ response, request }) {
         const id = 567508;

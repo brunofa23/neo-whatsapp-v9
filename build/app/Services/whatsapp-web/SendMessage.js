@@ -9,6 +9,7 @@ const VerifyNumber_1 = global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/
 const moment = require("moment");
 const util_1 = require("./util");
 const luxon_1 = require("luxon");
+const ShippingcampaignsController_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Controllers/Http/ShippingcampaignsController"));
 global.contSend = 0;
 const yesterday = moment().subtract(1, 'day').format('YYYY-MM-DD');
 const startTimeSendMessage = parseInt(process.env.EXECUTE_SEND_MESSAGE);
@@ -17,7 +18,6 @@ exports.default = async (client) => {
     let resetContSend = luxon_1.DateTime.local();
     let resetContSendBool = false;
     async function _shippingCampaignList() {
-        console.log("2 - PASSANDO PELO SHIPPING CAMPAIGN");
         return await Shippingcampaign_1.default.query()
             .whereNull('phonevalid')
             .andWhere('created_at', '>=', yesterday).first();
@@ -34,9 +34,20 @@ exports.default = async (client) => {
             }
         }
     }
+    async function countLimitSendMessage() {
+        const shippingcampaignsController = new ShippingcampaignsController_1.default();
+        const value = await shippingcampaignsController.maxLimitSendMessage();
+        return value;
+    }
+    const maxLimitSendMessage = parseInt(process.env.MAX_LIMIT_SEND_MESSAGE);
     async function sendMessages() {
         setInterval(async () => {
-            console.log("1 - ENTREI NO SEND MESSAGES...");
+            const totMessageSend = await countLimitSendMessage();
+            console.log("LIMITE MÁXIMOS::::::", totMessageSend, maxLimitSendMessage);
+            if (totMessageSend >= maxLimitSendMessage) {
+                console.log(`LIMITE DE ENVIO DIÁRIO ATINGIDO, Enviados:${totMessageSend} Limite Máximo:${maxLimitSendMessage}`);
+                return;
+            }
             if (await !(0, util_1.TimeSchedule)())
                 return;
             await verifyContSend();
@@ -47,7 +58,7 @@ exports.default = async (client) => {
                         global.contSend = 0;
                     try {
                         const validationCellPhone = await (0, VerifyNumber_1.verifyNumber)(client, shippingCampaign?.cellphone);
-                        console.log(`3 - VALIDAÇÃO DE TELEFONE DO PACIENTE:${shippingCampaign?.name}:`, validationCellPhone);
+                        console.log(`VALIDAÇÃO DE TELEFONE DO PACIENTE:${shippingCampaign?.name}:`, validationCellPhone);
                         if (validationCellPhone) {
                             await client.sendMessage(validationCellPhone, shippingCampaign.message)
                                 .then(async (response) => {
@@ -84,7 +95,6 @@ exports.default = async (client) => {
                     }
                 }
             }
-            console.log("4 - SAI DO SEND MESSAGES...");
         }, await (0, util_1.GenerateRandomTime)(startTimeSendMessage, endTimeSendMessage, '----Time Send Message'));
     }
     await sendMessages();

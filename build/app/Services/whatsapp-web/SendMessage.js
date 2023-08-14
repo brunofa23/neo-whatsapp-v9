@@ -10,12 +10,12 @@ const moment = require("moment");
 const util_1 = require("./util");
 const luxon_1 = require("luxon");
 global.contSend = 0;
-let resetContSend = luxon_1.DateTime.local();
-let resetContSendBool = false;
 const yesterday = moment().subtract(1, 'day').format('YYYY-MM-DD');
 const startTimeSendMessage = parseInt(process.env.EXECUTE_SEND_MESSAGE);
 const endTimeSendMessage = parseInt(process.env.EXECUTE_SEND_MESSAGE_END);
 exports.default = async (client) => {
+    let resetContSend = luxon_1.DateTime.local();
+    let resetContSendBool = false;
     async function _shippingCampaignList() {
         console.log("2 - PASSANDO PELO SHIPPING CAMPAIGN");
         return await Shippingcampaign_1.default.query()

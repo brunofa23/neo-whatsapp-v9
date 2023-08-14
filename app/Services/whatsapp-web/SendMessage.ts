@@ -39,15 +39,20 @@ export default async (client: Client) => {
     }
   }
 
-  const shippingcampaignsController = new ShippingcampaignsController()
-  const countLimitSendMessage = await shippingcampaignsController.maxLimitSendMessage()
+  async function countLimitSendMessage() {
+    const shippingcampaignsController = new ShippingcampaignsController()
+    const value = await shippingcampaignsController.maxLimitSendMessage()
+    return value
+  }
   const maxLimitSendMessage: number = parseInt(process.env.MAX_LIMIT_SEND_MESSAGE)
 
   async function sendMessages() {
     setInterval(async () => {
 
-      if (countLimitSendMessage >= maxLimitSendMessage) {
-        console.log(`LIMITE DE ENVIO DIÁRIO ATINGIDO, Enviados:${countLimitSendMessage} Limite Máximo:${maxLimitSendMessage}`)
+      const totMessageSend = await countLimitSendMessage()
+      console.log("LIMITE MÁXIMOS::::::", totMessageSend, maxLimitSendMessage)
+      if (totMessageSend >= maxLimitSendMessage) {
+        console.log(`LIMITE DE ENVIO DIÁRIO ATINGIDO, Enviados:${totMessageSend} Limite Máximo:${maxLimitSendMessage}`)
         return
       }
 

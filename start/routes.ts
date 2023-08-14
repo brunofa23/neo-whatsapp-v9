@@ -1,9 +1,9 @@
 import Route from '@ioc:Adonis/Core/Route'
-import Database from '@ioc:Adonis/Lucid/Database'
 
 import { executeWhatsapp } from '../app/Services/whatsapp-web/whatsapp'
 
-//import { sendRepeatedMessage } from '../app/Services/whatsapp-web/SendRepeatedMessage'
+console.log("***CHAT BOT V-26***")
+executeWhatsapp()
 
 Route.get('/', async () => {
   return { hello: 'world - v39' }
@@ -20,17 +20,8 @@ Route.group(() => {
   Route.get('/maxlimitsendmessage', 'ShippingcampaignsController.maxLimitSendMessage')
   Route.get('/datasources', 'DatasourcesController.DataSource')
 
-
 }).prefix('/api')
 
 
 
-
-
-
-
-Route.get('/mysql', async () => {
-  return Database.connection('mysql').from('emp').select('*')
-
-})
 

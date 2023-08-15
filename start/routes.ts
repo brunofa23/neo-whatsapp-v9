@@ -1,11 +1,11 @@
 import { executeWhatsapp } from '../app/Services/whatsapp-web/whatsapp'
 import Route from '@ioc:Adonis/Core/Route'
 
-console.log("***CHAT BOT V-27***")
+console.log("***CHAT BOT V-28***")
 executeWhatsapp()
 
 Route.get('/', async () => {
-  return { hello: 'world - v39' }
+  return { hello: 'world - v28' }
 })
 
 Route.group(() => {

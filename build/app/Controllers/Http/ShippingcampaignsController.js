@@ -42,11 +42,12 @@ class ShippingcampaignsController {
         }
     }
     async maxLimitSendMessage() {
-        const dateStart = await (0, util_1.DateFormat)("2023-08-01 00:00:00", luxon_1.DateTime.local());
+        const dateStart = await (0, util_1.DateFormat)("yyyy-MM-dd 00:00:00", luxon_1.DateTime.local());
         const dateEnd = await (0, util_1.DateFormat)("yyyy-MM-dd 23:59:00", luxon_1.DateTime.local());
+        const chatName = process.env.CHAT_NAME;
         const countMessage = await Chat_1.default.query()
             .countDistinct('shippingcampaigns_id as tot')
-            .where('chatname', '1')
+            .where('chatname', String(chatName))
             .whereBetween('created_at', [dateStart, dateEnd]).first();
         if (!countMessage || countMessage == undefined || countMessage == null)
             return 0;

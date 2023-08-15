@@ -44,7 +44,7 @@ exports.default = async (client) => {
         setInterval(async () => {
             const totMessageSend = await countLimitSendMessage();
             if (totMessageSend >= maxLimitSendMessage) {
-                console.log(`LIMITE DE ENVIO DIÁRIO ATINGIDO, Enviados:${totMessageSend} Limite Máximo:${maxLimitSendMessage}`);
+                console.log(`LIMITE DE ENVIO DIÁRIO ATINGIDO, Enviados:${totMessageSend} - Limite Máximo:${maxLimitSendMessage}`);
                 return;
             }
             if (await !(0, util_1.TimeSchedule)())

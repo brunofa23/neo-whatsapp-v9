@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Shippingcampaign"));
 const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
 const Database_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Lucid/Database"));
-const util_ts_1 = require("../../Services/whatsapp-web/util.ts");
+const util_1 = require("../../Services/whatsapp-web/util");
 const luxon_1 = require("luxon");
 class ShippingcampaignsController {
     static get connection() {
@@ -42,8 +42,8 @@ class ShippingcampaignsController {
         }
     }
     async maxLimitSendMessage() {
-        const dateStart = await (0, util_ts_1.DateFormat)("2023-08-01 00:00:00", luxon_1.DateTime.local());
-        const dateEnd = await (0, util_ts_1.DateFormat)("yyyy-MM-dd 23:59:00", luxon_1.DateTime.local());
+        const dateStart = await (0, util_1.DateFormat)("2023-08-01 00:00:00", luxon_1.DateTime.local());
+        const dateEnd = await (0, util_1.DateFormat)("yyyy-MM-dd 23:59:00", luxon_1.DateTime.local());
         const countMessage = await Chat_1.default.query()
             .countDistinct('shippingcampaigns_id as tot')
             .where('chatname', '1')

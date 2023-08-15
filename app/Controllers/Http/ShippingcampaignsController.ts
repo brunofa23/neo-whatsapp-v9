@@ -1,10 +1,10 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Shippingcampaign from 'App/Models/Shippingcampaign'
-import { executeWhatsapp } from '../../Services/whatsapp-web/whatsapp.ts'
+import { executeWhatsapp } from '../../Services/whatsapp-web/whatsapp'
 import Chat from 'App/Models/Chat'
 import Database from '@ioc:Adonis/Lucid/Database'
 
-import { DateFormat } from '../../Services/whatsapp-web/util.ts'
+import { DateFormat } from '../../Services/whatsapp-web/util'
 import { DateTime } from 'luxon'
 
 export default class ShippingcampaignsController {

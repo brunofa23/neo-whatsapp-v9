@@ -5,10 +5,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const whatsapp_1 = require("../app/Services/whatsapp-web/whatsapp");
 const Route_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Route"));
-console.log("***CHAT BOT V-26***");
+console.log("***CHAT BOT V-28***");
 (0, whatsapp_1.executeWhatsapp)();
 Route_1.default.get('/', async () => {
-    return { hello: 'world - v39' };
+    return { hello: 'world - v28' };
 });
 Route_1.default.group(() => {
     Route_1.default.get('/teste', async () => {

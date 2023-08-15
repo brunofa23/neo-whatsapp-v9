@@ -17,7 +17,7 @@ export default async (client: Client, message: Message, chat: Chat) => {
     if (message.body.toUpperCase() == 'SIM' || message.body == '1' || message.body.toUpperCase() == 'CONFIRMADO' || message.body.toUpperCase() == 'OK' || message.body.toUpperCase() == 'PODE')//presença confirmada
     {
       await stateTyping(message)//status de digitando...
-      client.sendMessage(message.from, `Muito obrigada, seu agendamento foi confirmado, o endereço de sua consulta é ${chatOtherFields.address}. Esperamos por você. Ótimo dia. Lembrando que para qualquer dúvida, estamos disponíveis pelo whatsapp 3132350003.`)
+      client.sendMessage(message.from, `Muito obrigada, seu agendamento foi confirmado, o endereço da sua consulta é ${chatOtherFields.address}. Esperamos por você. Ótimo dia. Lembrando que para qualquer dúvida, estamos disponíveis pelo whatsapp 3132350003.`)
       chat.response = message.body
       chat.returned = true
 
@@ -46,7 +46,7 @@ export default async (client: Client, message: Message, chat: Chat) => {
         const message2 = `Entendi, sabemos que nosso dia está muito atarefado. Favor clicar no link que estou enviando para conversar com nossa atendente e podermos agendar novo horário para você.`
         client.sendMessage(message.from, message2)
 
-        const messageLink = `Olá, sou ${chat.name} e gostaria de reagendar uma consulta com ${chatOtherFields.medic}`
+        const messageLink = `Olá, sou ${chat.name} e gostaria de reagendar uma consulta com ${chatOtherFields.medic}.`
         const phoneNumber = "553132350003"
         const encodedMessage = encodeURIComponent(messageLink);
         const linkRedirect = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodedMessage}`;
@@ -64,6 +64,7 @@ export default async (client: Client, message: Message, chat: Chat) => {
         chat2.message = message2.slice(0, 350)
         chat2.response = "Reagendada"
         chat2.returned = true
+
         try {
           Chat.create(chat2)
         } catch (error) {

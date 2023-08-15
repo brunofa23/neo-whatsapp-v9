@@ -11,7 +11,7 @@ exports.default = async (client, message, chat) => {
         const chatOtherFields = JSON.parse(chat.shippingcampaign.otherfields);
         if (message.body.toUpperCase() == 'SIM' || message.body == '1' || message.body.toUpperCase() == 'CONFIRMADO' || message.body.toUpperCase() == 'OK' || message.body.toUpperCase() == 'PODE') {
             await (0, util_1.stateTyping)(message);
-            client.sendMessage(message.from, `Muito obrigada, seu agendamento foi confirmado, o endereço de sua consulta é ${chatOtherFields.address}. Esperamos por você. Ótimo dia. Lembrando que para qualquer dúvida, estamos disponíveis pelo whatsapp 3132350003.`);
+            client.sendMessage(message.from, `Muito obrigada, seu agendamento foi confirmado, o endereço da sua consulta é ${chatOtherFields.address}. Esperamos por você. Ótimo dia. Lembrando que para qualquer dúvida, estamos disponíveis pelo whatsapp 3132350003.`);
             chat.response = message.body;
             chat.returned = true;
             try {
@@ -34,7 +34,7 @@ exports.default = async (client, message, chat) => {
             await (0, util_1.stateTyping)(message);
             const message2 = `Entendi, sabemos que nosso dia está muito atarefado. Favor clicar no link que estou enviando para conversar com nossa atendente e podermos agendar novo horário para você.`;
             client.sendMessage(message.from, message2);
-            const messageLink = `Olá, sou ${chat.name} e gostaria de reagendar uma consulta com ${chatOtherFields.medic}`;
+            const messageLink = `Olá, sou ${chat.name} e gostaria de reagendar uma consulta com ${chatOtherFields.medic}.`;
             const phoneNumber = "553132350003";
             const encodedMessage = encodeURIComponent(messageLink);
             const linkRedirect = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodedMessage}`;

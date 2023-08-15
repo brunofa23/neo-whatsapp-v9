@@ -52,7 +52,7 @@ export default async (client: Client) => {
       const totMessageSend = await countLimitSendMessage()
 
       if (totMessageSend >= maxLimitSendMessage) {
-        console.log(`LIMITE DE ENVIO DIÁRIO ATINGIDO, Enviados:${totMessageSend} Limite Máximo:${maxLimitSendMessage}`)
+        console.log(`LIMITE DE ENVIO DIÁRIO ATINGIDO, Enviados:${totMessageSend} - Limite Máximo:${maxLimitSendMessage}`)
         return
       }
 

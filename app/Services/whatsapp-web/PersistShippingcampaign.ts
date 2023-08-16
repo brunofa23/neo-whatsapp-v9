@@ -9,9 +9,7 @@ function isIterable(obj) {
 
 export default async () => {
   const dataSource = new DatasourcesController
-  //const dataSourceList = await dataSource.scheduledPatients()
   const dataSourceList = await dataSource.DataSource()
-  //console.log("DATA SOURCE>>>", dataSourceList)
 
   if (!isIterable(dataSourceList)) {
     console.log("Algum erro ocorrido, não é iterable", dataSourceList)

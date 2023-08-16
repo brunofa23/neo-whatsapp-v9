@@ -15,6 +15,7 @@ const databaseConfig = {
                 server: Env_1.default.get('MSSQL_SERVER'),
                 password: Env_1.default.get('MSSQL_PASSWORD', ''),
                 database: Env_1.default.get('MSSQL_DB_NAME'),
+                requestTimeout: 30000,
             },
             migrations: {
                 naturalSort: true,
@@ -30,6 +31,7 @@ const databaseConfig = {
                 server: Env_1.default.get('MSSQL_SERVER'),
                 password: Env_1.default.get('MSSQL_PASSWORD', ''),
                 database: Env_1.default.get('MSSQL_DB_NAME2'),
+                requestTimeout: 30000,
             },
             migrations: {
                 naturalSort: true,

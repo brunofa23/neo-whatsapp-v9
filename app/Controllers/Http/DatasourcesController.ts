@@ -49,7 +49,7 @@ export default class DatasourcesController {
     else pacQuery = pacQueryModel?.query
 
     try {
-      const result = await Database.connection('mssql').rawQuery(pacQuery).timeout(600000)
+      const result = await Database.connection('mssql').rawQuery(pacQuery)
       for (const data of result) {
         const message = await greeting(data.message)
         data.message = message

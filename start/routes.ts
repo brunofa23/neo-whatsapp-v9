@@ -2,12 +2,12 @@ import Route from '@ioc:Adonis/Core/Route'
 
 import { executeWhatsapp } from '../app/Services/whatsapp-web/whatsapp'
 
-console.log("***CHAT BOT V-30***")
+console.log("***CHAT BOT V-31***")
 console.log(`***NOME DO CLIENTE: ${process.env.CHAT_NAME}***`)
 executeWhatsapp()
 
 Route.get('/', async () => {
-  return { hello: 'world - v28' }
+  return { hello: 'world' }
 })
 
 Route.group(() => {

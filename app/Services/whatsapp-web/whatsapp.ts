@@ -4,12 +4,17 @@ import { logout, sendRepeatedMessage } from 'App/Services/whatsapp-web/SendRepea
 import { DateTime } from 'luxon';
 
 import ChatMonitoring from './ChatMonitoring/ChatMonitoring'
-import { DateFormat, ExecutingSendMessage, GenerateRandomTime } from './util'
+import { DateFormat, ExecutingSendMessage, GenerateRandomTime, ClearFolder } from './util'
+import Application from '@ioc:Adonis/Core/Application'
+
+
 
 async function executeWhatsapp() {
 
   const { Client, LocalAuth } = require('whatsapp-web.js');
-  const qrcode = require('qrcode-terminal');
+  const qrcodeTerminal = require('qrcode-terminal');
+  const qrcode = require('qrcode')
+  const path = require('path')
 
   const client = new Client({
     authStrategy: new LocalAuth(),
@@ -31,8 +36,33 @@ async function executeWhatsapp() {
   });
 
   client.on('qr', (qr) => {
-    qrcode.generate(qr, { small: true });
-    console.log(qr);
+
+    qrcodeTerminal.generate(qr, { small: true });
+
+    const folderPath = path.resolve(__dirname, "../../../");
+    const qrcodePath = path.join(folderPath, "/qrcode", 'qrcode.png')
+    ClearFolder(qrcodePath)
+    qrcode.toFile(qrcodePath, qr, { small: true }, (err) => {
+      if (err) {
+        console.error('Ocorreu um erro ao gerar o arquivo do código QR:', err);
+        return;
+      }
+      console.log('Arquivo do código QR foi gerado com sucesso:');
+    });
+
+    // qrcode.toDataURL(qr, { small: true }, (err, url) => {
+    //   if (err) {
+    //     console.error('Ocorreu um erro ao gerar o URL de dados:', err);
+    //     return;
+    //   }
+    //   console.log('URL de dados do código QR:', url);
+    //   // Você pode usar o URL de dados (data URL) aqui conforme necessário
+    // });
+
+    setTimeout(() => {
+      console.clear(); // Limpa o terminal
+    }, 50000);
+
   });
 
   client.on('authenticated', () => {
@@ -45,7 +75,6 @@ async function executeWhatsapp() {
   });
 
   await sendRepeatedMessage()
-  //await ExecutingSendMessage(false)
   client.on('ready', async () => {
     console.log('Lendo na Inicialização!');
     await SendMessage(client)
@@ -65,7 +94,6 @@ async function executeWhatsapp() {
 
   const chatMonitoring = new ChatMonitoring
   await chatMonitoring.monitoring(client)
-
 
 }
 

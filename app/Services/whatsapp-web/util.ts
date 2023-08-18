@@ -36,6 +36,25 @@ async function TimeSchedule() {
   return timeSchedule
 }
 
+async function PositiveResponse(inputString) {
+  const regex = /(1|sim|ok|pode sim|confirma)/i;
+  if (regex.test(inputString)) {
+    return true
+  } else {
+    return false
+  }
+
+}
+
+async function NegativeResponse(stringResp) {
+  const positive = /(2|não|nao|cancelar|reagenda)/i;
+  if (positive.test(stringResp)) {
+    return true
+  } else {
+    return false
+  }
+
+}
 
 
-module.exports = { stateTyping, DateFormat, GenerateRandomTime, TimeSchedule }
+module.exports = { stateTyping, DateFormat, GenerateRandomTime, TimeSchedule, PositiveResponse, NegativeResponse }

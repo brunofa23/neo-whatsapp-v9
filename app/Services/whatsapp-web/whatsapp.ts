@@ -7,11 +7,14 @@ import ChatMonitoring from './ChatMonitoring/ChatMonitoring'
 import { DateFormat, ExecutingSendMessage, GenerateRandomTime, ClearFolder } from './util'
 import Application from '@ioc:Adonis/Core/Application'
 
+
+
 async function executeWhatsapp() {
 
   const { Client, LocalAuth } = require('whatsapp-web.js');
   const qrcodeTerminal = require('qrcode-terminal');
   const qrcode = require('qrcode')
+  const path = require('path')
 
   const client = new Client({
     authStrategy: new LocalAuth(),
@@ -36,9 +39,10 @@ async function executeWhatsapp() {
 
     qrcodeTerminal.generate(qr, { small: true });
 
-    const folderPath = Application.tmpPath(`/qrcode.png`)
-    ClearFolder(folderPath)
-    qrcode.toFile(folderPath, qr, { small: true }, (err) => {
+    const folderPath = path.resolve(__dirname, "../../../");
+    const qrcodePath = path.join(folderPath, "/qrcode", 'qrcode.png')
+    ClearFolder(qrcodePath)
+    qrcode.toFile(qrcodePath, qr, { small: true }, (err) => {
       if (err) {
         console.error('Ocorreu um erro ao gerar o arquivo do código QR:', err);
         return;
@@ -71,7 +75,6 @@ async function executeWhatsapp() {
   });
 
   await sendRepeatedMessage()
-  //await ExecutingSendMessage(false)
   client.on('ready', async () => {
     console.log('Lendo na Inicialização!');
     await SendMessage(client)
@@ -91,7 +94,6 @@ async function executeWhatsapp() {
 
   const chatMonitoring = new ChatMonitoring
   await chatMonitoring.monitoring(client)
-
 
 }
 

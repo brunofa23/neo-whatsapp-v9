@@ -1,7 +1,10 @@
 import ConfirmSchedule from './ConfirmSchedule'
 import Chat from 'App/Models/Chat';
+import Shippingcampaign from 'App/Models/Shippingcampaign';
+import ShippingcampaignsController from 'App/Controllers/Http/ShippingcampaignsController';
 import { sendRepeatedMessage } from 'App/Services/whatsapp-web/SendRepeatedMessage';
 import { Client } from 'whatsapp-web.js';
+import { stateTyping } from '../util'
 
 export default class Monitoring {
   async monitoring(client: Client) {
@@ -61,8 +64,14 @@ export default class Monitoring {
             }
             return
           }
-          else if (message.body === "contsend") {
-            client.sendMessage(message.from, `Total de conversas aguardando resposta:${global.contSend}`)
+          else if (message.body.toUpperCase() === "#PD") {//posição diária
+            const pd = new ShippingcampaignsController()
+            const result = await pd.dayPosition()
+            const sendResponse = `*Total diário:* ${result.totalDiario}\n*Telefones válidos:* ${result.telefonesValidos}\n*Mensagens Enviadas:* ${result.mensagensEnviadas}\n*Mensagens Retornadas:* ${result.mensagensRetornadas}\n*Confirmações:* ${result.confirmacoes}`
+            await stateTyping(message)
+            client.sendMessage(message.from, `*Posição diária até o momento:*`)
+            client.sendMessage(message.from, sendResponse)
+
 
           }
           else if (message.body === "contsendreset") {

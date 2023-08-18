@@ -5,11 +5,13 @@ import { DateTime } from 'luxon';
 
 import ChatMonitoring from './ChatMonitoring/ChatMonitoring'
 import { DateFormat, ExecutingSendMessage, GenerateRandomTime } from './util'
+import { Application } from '@adonisjs/core/build/standalone';
 
 async function executeWhatsapp() {
 
   const { Client, LocalAuth } = require('whatsapp-web.js');
-  const qrcode = require('qrcode-terminal');
+  const qrcodeTerminal = require('qrcode-terminal');
+  const qrcode = require('qrcode')
 
   const client = new Client({
     authStrategy: new LocalAuth(),
@@ -31,8 +33,32 @@ async function executeWhatsapp() {
   });
 
   client.on('qr', (qr) => {
-    qrcode.generate(qr, { small: true });
-    console.log(qr);
+    qrcodeTerminal.generate(qr, { small: true });
+
+
+
+    // qrcode.toDataURL(qr, { small: true }, (err, url) => {
+    //   if (err) {
+    //     console.error('Ocorreu um erro ao gerar o URL de dados:', err);
+    //     return;
+    //   }
+    //   console.log('URL de dados do código QR:', url);
+    //   // Você pode usar o URL de dados (data URL) aqui conforme necessário
+    // });
+
+    qrcode.toFile('C:/Users/Notebook-Bruno/OneDrive/Desktop/projetosNode/neo-whatsapp-v9/temptest/qrcode.png', qr, { small: true }, (err) => {
+      if (err) {
+        console.error('Ocorreu um erro ao gerar o arquivo do código QR:', err);
+        return;
+      }
+      console.log('Arquivo do código QR foi gerado com sucesso:');
+    });
+
+
+    setTimeout(() => {
+      console.clear(); // Limpa o terminal
+    }, 50000);
+
   });
 
   client.on('authenticated', () => {

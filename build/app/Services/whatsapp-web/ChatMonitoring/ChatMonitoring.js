@@ -5,6 +5,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const ConfirmSchedule_1 = __importDefault(require("./ConfirmSchedule"));
 const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
+const ShippingcampaignsController_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Controllers/Http/ShippingcampaignsController"));
+const util_1 = require("../util");
 class Monitoring {
     async monitoring(client) {
         try {
@@ -53,8 +55,13 @@ class Monitoring {
                         }
                         return;
                     }
-                    else if (message.body === "contsend") {
-                        client.sendMessage(message.from, `Total de conversas aguardando resposta:${global.contSend}`);
+                    else if (message.body.toUpperCase() === "#PD") {
+                        const pd = new ShippingcampaignsController_1.default();
+                        const result = await pd.dayPosition();
+                        const sendResponse = `*Total diário:* ${result.totalDiario}\n*Telefones válidos:* ${result.telefonesValidos}\n*Mensagens Enviadas:* ${result.mensagensEnviadas}\n*Mensagens Retornadas:* ${result.mensagensRetornadas}\n*Confirmações:* ${result.confirmacoes}`;
+                        await (0, util_1.stateTyping)(message);
+                        client.sendMessage(message.from, `*Posição diária até o momento:*`);
+                        client.sendMessage(message.from, sendResponse);
                     }
                     else if (message.body === "contsendreset") {
                         global.contSend = 0;

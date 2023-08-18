@@ -1,10 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const luxon_1 = require("luxon");
-<<<<<<< HEAD
-=======
 const fs = require('fs');
->>>>>>> main
 async function stateTyping(message) {
     const chatTyping = await message.getChat();
     chatTyping.sendStateTyping();
@@ -29,9 +26,6 @@ async function TimeSchedule() {
         console.log(message);
     return timeSchedule;
 }
-<<<<<<< HEAD
-module.exports = { stateTyping, DateFormat, GenerateRandomTime, TimeSchedule };
-=======
 async function PositiveResponse(inputString) {
     const regex = /(1|sim|ok|pode sim|confirma)/i;
     if (regex.test(inputString)) {
@@ -69,5 +63,4 @@ async function ClearFolder(folderPath) {
     }
 }
 module.exports = { stateTyping, DateFormat, GenerateRandomTime, TimeSchedule, PositiveResponse, NegativeResponse, ClearFolder };
->>>>>>> main
 //# sourceMappingURL=util.js.map

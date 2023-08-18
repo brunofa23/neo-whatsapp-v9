@@ -94,13 +94,43 @@ export default class ShippingcampaignsController {
 
 
   public async dayPosition() {
-    const dateStart = await DateFormat("yyyy-MM-dd 00:00:00", DateTime.local())
-    const dateEnd = await DateFormat("yyyy-MM-dd 23:59:00", DateTime.local())
 
-    return "Day Positon"
+    const startDate = await DateFormat("yyyy-MM-dd 00:00:00", DateTime.local())
+    const endDate = await DateFormat("yyyy-MM-dd 23:59:00", DateTime.local())
+
+    const totalDiario = await Shippingcampaign.query()
+      .whereBetween('created_at', [startDate, endDate])
+      .count('* as totalDiario').first()
+
+    const telefonesValidos = await Shippingcampaign.query()
+      .where('phonevalid', 1)
+      .whereBetween('created_at', [startDate, endDate])
+      .count('* as telefonesValidos').first();
+
+    const mensagensEnviadas = await Shippingcampaign.query()
+      .where('messagesent', 1)
+      .whereBetween('created_at', [startDate, endDate])
+      .count('* as mensagensEnviadas').first()
+
+    const mensagensRetornadas = await Chat.query()
+      .where('returned', 1)
+      .whereBetween('created_at', [startDate, endDate])
+      .count('* as mensagensRetornadas').first()
+
+    const confirmacoes = await Chat.query()
+      .where('absoluteresp', 1)
+      .whereBetween('created_at', [startDate, endDate])
+      .count('* as confirmacoes').first()
+
+
+    const result = {
+      totalDiario: totalDiario.$extras.totalDiario,
+      telefonesValidos: telefonesValidos.$extras.telefonesValidos,
+      mensagensEnviadas: mensagensEnviadas.$extras.mensagensEnviadas,
+      mensagensRetornadas: mensagensRetornadas.$extras.mensagensRetornadas,
+      confirmacoes: confirmacoes.$extras.confirmacoes
+    }
+    return result
+
   }
-
-
-
 }
-

@@ -16,6 +16,7 @@ export default async (client: Client, message: Message, chat: Chat) => {
         client.sendMessage(message.from, `Muito obrigada, seu agendamento foi confirmado, o endereço da sua consulta é ${chatOtherFields.address}. Esperamos por você. Ótimo dia. Lembrando que para qualquer dúvida, estamos disponíveis pelo whatsapp 3132350003.`)
         chat.response = message.body.slice(0, 255)
         chat.returned = true
+        chat.absoluteresp = 1
         await chat.save()
       } catch (error) {
         console.log("Erro 454:", error)
@@ -27,6 +28,8 @@ export default async (client: Client, message: Message, chat: Chat) => {
       //Não vai confirmar a presença
       if (await NegativeResponse(message.body)) {
         chat.response = message.body
+        chat.absoluteresp = 2
+
         try {
           await chat.save()
         } catch (error) {
@@ -56,6 +59,7 @@ export default async (client: Client, message: Message, chat: Chat) => {
         chat2.message = message2.slice(0, 350)
         chat2.response = "Reagendada"
         chat2.returned = true
+
 
         try {
           Chat.create(chat2)

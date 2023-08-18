@@ -20,6 +20,7 @@ Route.group(() => {
   Route.post('/chat', 'ShippingcampaignsController.chat')
   Route.get('/maxlimitsendmessage', 'ShippingcampaignsController.maxLimitSendMessage')
   Route.get('/datasources', 'DatasourcesController.DataSource')
+  Route.get('/dayposition', 'ShippingcampaignsController.dayPosition')
 
 }).prefix('/api')
 

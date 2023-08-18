@@ -93,5 +93,14 @@ export default class ShippingcampaignsController {
   }
 
 
+  public async dayPosition() {
+    const dateStart = await DateFormat("yyyy-MM-dd 00:00:00", DateTime.local())
+    const dateEnd = await DateFormat("yyyy-MM-dd 23:59:00", DateTime.local())
+
+    return "Day Positon"
+  }
+
+
+
 }
 

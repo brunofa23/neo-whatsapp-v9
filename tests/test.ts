@@ -1,5 +1,9 @@
-const min = Math.ceil(25) * 1000;
-const max = Math.floor(30) * 1000;
-const result = Math.floor(Math.random() * (max - min) + min);
+const inputString = "Isso está";
 
-console.log("result", result)
+const regex = /(1|sim|ok|pode|confirmado)/i;
+
+if (regex.test(inputString)) {
+  console.log("A string contém uma das palavras.");
+} else {
+  console.log("A string não contém nenhuma das palavras.");
+}

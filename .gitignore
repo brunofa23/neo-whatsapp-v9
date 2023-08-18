@@ -8,5 +8,6 @@ tmp
 .wwebjs_auth
 .wwebjs_cache
 .env
+build
 
 

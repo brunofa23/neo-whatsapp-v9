@@ -9,21 +9,13 @@ const util_1 = require("../util");
 exports.default = async (client, message, chat) => {
     if (chat.interaction_seq == 1) {
         const chatOtherFields = JSON.parse(chat.shippingcampaign.otherfields);
-<<<<<<< HEAD
-        if (message.body.toUpperCase() == 'SIM' || message.body == '1' || message.body.toUpperCase() == 'CONFIRMADO' || message.body.toUpperCase() == 'OK' || message.body.toUpperCase() == 'PODE') {
-            await (0, util_1.stateTyping)(message);
-            client.sendMessage(message.from, `Muito obrigada, seu agendamento foi confirmado, o endereço da sua consulta é ${chatOtherFields.address}. Esperamos por você. Ótimo dia. Lembrando que para qualquer dúvida, estamos disponíveis pelo whatsapp 3132350003.`);
-            chat.response = message.body;
-            chat.returned = true;
-            try {
-=======
         if (await (0, util_1.PositiveResponse)(message.body)) {
             await (0, util_1.stateTyping)(message);
             try {
                 client.sendMessage(message.from, `Muito obrigada, seu agendamento foi confirmado, o endereço da sua consulta é ${chatOtherFields.address}. Esperamos por você. Ótimo dia. Lembrando que para qualquer dúvida, estamos disponíveis pelo whatsapp 3132350003.`);
                 chat.response = message.body.slice(0, 255);
                 chat.returned = true;
->>>>>>> main
+                chat.absoluteresp = 1;
                 await chat.save();
             }
             catch (error) {
@@ -32,12 +24,9 @@ exports.default = async (client, message, chat) => {
             const datasourcesController = new DatasourcesController_1.default;
             await datasourcesController.confirmSchedule(chat.idexternal);
         }
-<<<<<<< HEAD
-        else if (message.body.toUpperCase() == "NÃO" || message.body.toUpperCase() == "NAO" || message.body.toUpperCase() == "2") {
-=======
         else if (await (0, util_1.NegativeResponse)(message.body)) {
->>>>>>> main
             chat.response = message.body;
+            chat.absoluteresp = 2;
             try {
                 await chat.save();
             }

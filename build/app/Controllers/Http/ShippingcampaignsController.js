@@ -69,9 +69,35 @@ class ShippingcampaignsController {
         }
     }
     async dayPosition() {
-        const dateStart = await (0, util_1.DateFormat)("yyyy-MM-dd 00:00:00", luxon_1.DateTime.local());
-        const dateEnd = await (0, util_1.DateFormat)("yyyy-MM-dd 23:59:00", luxon_1.DateTime.local());
-        return "Day Positon";
+        const startDate = await (0, util_1.DateFormat)("yyyy-MM-dd 00:00:00", luxon_1.DateTime.local());
+        const endDate = await (0, util_1.DateFormat)("yyyy-MM-dd 23:59:00", luxon_1.DateTime.local());
+        const totalDiario = await Shippingcampaign_1.default.query()
+            .whereBetween('created_at', [startDate, endDate])
+            .count('* as totalDiario').first();
+        const telefonesValidos = await Shippingcampaign_1.default.query()
+            .where('phonevalid', 1)
+            .whereBetween('created_at', [startDate, endDate])
+            .count('* as telefonesValidos').first();
+        const mensagensEnviadas = await Shippingcampaign_1.default.query()
+            .where('messagesent', 1)
+            .whereBetween('created_at', [startDate, endDate])
+            .count('* as mensagensEnviadas').first();
+        const mensagensRetornadas = await Chat_1.default.query()
+            .where('returned', 1)
+            .whereBetween('created_at', [startDate, endDate])
+            .count('* as mensagensRetornadas').first();
+        const confirmacoes = await Chat_1.default.query()
+            .where('absoluteresp', 1)
+            .whereBetween('created_at', [startDate, endDate])
+            .count('* as confirmacoes').first();
+        const result = {
+            totalDiario: totalDiario.$extras.totalDiario,
+            telefonesValidos: telefonesValidos.$extras.telefonesValidos,
+            mensagensEnviadas: mensagensEnviadas.$extras.mensagensEnviadas,
+            mensagensRetornadas: mensagensRetornadas.$extras.mensagensRetornadas,
+            confirmacoes: confirmacoes.$extras.confirmacoes
+        };
+        return result;
     }
 }
 exports.default = ShippingcampaignsController;

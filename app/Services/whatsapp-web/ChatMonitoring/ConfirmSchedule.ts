@@ -1,39 +1,34 @@
 import DatasourcesController from 'App/Controllers/Http/DatasourcesController';
 import Chat from 'App/Models/Chat';
 import { Client, Message } from 'whatsapp-web.js';
-
-import { stateTyping } from '../util'
+import { stateTyping, PositiveResponse, NegativeResponse } from '../util'
 import { verifyNumber } from '../VerifyNumber'
 
 export default async (client: Client, message: Message, chat: Chat) => {
 
   //PERGUNTA 1 - GOSTARIA DE AGENDAR A CONSULTA
-  //console.log("TESTANDO...", chat, "mensagem>>", message.body)
-
   if (chat.interaction_seq == 1) {
 
     const chatOtherFields = JSON.parse(chat.shippingcampaign.otherfields)
-
-    if (message.body.toUpperCase() == 'SIM' || message.body == '1' || message.body.toUpperCase() == 'CONFIRMADO' || message.body.toUpperCase() == 'OK' || message.body.toUpperCase() == 'PODE')//presença confirmada
-    {
+    if (await PositiveResponse(message.body)) {//presença confirmada
       await stateTyping(message)//status de digitando...
-      client.sendMessage(message.from, `Muito obrigada, seu agendamento foi confirmado, o endereço da sua consulta é ${chatOtherFields.address}. Esperamos por você. Ótimo dia. Lembrando que para qualquer dúvida, estamos disponíveis pelo whatsapp 3132350003.`)
-      chat.response = message.body
-      chat.returned = true
-
       try {
+        client.sendMessage(message.from, `Muito obrigada, seu agendamento foi confirmado, o endereço da sua consulta é ${chatOtherFields.address}. Esperamos por você. Ótimo dia. Lembrando que para qualquer dúvida, estamos disponíveis pelo whatsapp 3132350003.`)
+        chat.response = message.body.slice(0, 255)
+        chat.returned = true
+        chat.absoluteresp = 1
         await chat.save()
       } catch (error) {
         console.log("Erro 454:", error)
       }
-
       const datasourcesController = new DatasourcesController
       //Salvar no Smart e marcar presença
       await datasourcesController.confirmSchedule(chat.idexternal)
     } else
       //Não vai confirmar a presença
-      if (message.body.toUpperCase() == "NÃO" || message.body.toUpperCase() == "NAO" || message.body.toUpperCase() == "2") {
+      if (await NegativeResponse(message.body)) {
         chat.response = message.body
+        chat.absoluteresp = 2
 
         try {
           await chat.save()
@@ -64,6 +59,7 @@ export default async (client: Client, message: Message, chat: Chat) => {
         chat2.message = message2.slice(0, 350)
         chat2.response = "Reagendada"
         chat2.returned = true
+
 
         try {
           Chat.create(chat2)

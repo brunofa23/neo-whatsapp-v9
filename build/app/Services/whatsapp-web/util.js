@@ -1,6 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const luxon_1 = require("luxon");
+<<<<<<< HEAD
+=======
+const fs = require('fs');
+>>>>>>> main
 async function stateTyping(message) {
     const chatTyping = await message.getChat();
     chatTyping.sendStateTyping();
@@ -25,5 +29,45 @@ async function TimeSchedule() {
         console.log(message);
     return timeSchedule;
 }
+<<<<<<< HEAD
 module.exports = { stateTyping, DateFormat, GenerateRandomTime, TimeSchedule };
+=======
+async function PositiveResponse(inputString) {
+    const regex = /(1|sim|ok|pode sim|confirma)/i;
+    if (regex.test(inputString)) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+async function NegativeResponse(stringResp) {
+    const positive = /(2|não|nao|cancelar|reagenda)/i;
+    if (positive.test(stringResp)) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+async function ClearFolder(folderPath) {
+    try {
+        if (!fs.existsSync(folderPath)) {
+            return;
+        }
+        else {
+            fs.unlink(`${folderPath}`, (err) => {
+                if (err) {
+                    throw "ERRO DELETE::" + err;
+                }
+                console.log("Delete File successfully.");
+                return true;
+            });
+        }
+    }
+    catch (error) {
+    }
+}
+module.exports = { stateTyping, DateFormat, GenerateRandomTime, TimeSchedule, PositiveResponse, NegativeResponse, ClearFolder };
+>>>>>>> main
 //# sourceMappingURL=util.js.map

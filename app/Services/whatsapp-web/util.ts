@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon';
 import { Message } from 'whatsapp-web.js';
+const fs = require('fs')
 
 async function stateTyping(message: Message) {
   //console.log("passei pelo STATETYPING...")
@@ -36,6 +37,47 @@ async function TimeSchedule() {
   return timeSchedule
 }
 
+async function PositiveResponse(inputString) {
+  const regex = /(1|sim|ok|pode sim|confirma)/i;
+  if (regex.test(inputString)) {
+    return true
+  } else {
+    return false
+  }
+
+}
+
+async function NegativeResponse(stringResp) {
+  const positive = /(2|não|nao|cancelar|reagenda)/i;
+  if (positive.test(stringResp)) {
+    return true
+  } else {
+    return false
+  }
+
+}
 
 
-module.exports = { stateTyping, DateFormat, GenerateRandomTime, TimeSchedule }
+async function ClearFolder(folderPath) {
+
+  try {
+    if (!fs.existsSync(folderPath)) {
+      return
+    }
+    else {
+      fs.unlink(`${folderPath}`, (err) => {
+        if (err) {
+          throw "ERRO DELETE::" + err;
+        }
+        console.log("Delete File successfully.");
+        return true
+      });
+    }
+  } catch (error) {
+
+  }
+
+}
+
+
+module.exports = { stateTyping, DateFormat, GenerateRandomTime, TimeSchedule, PositiveResponse, NegativeResponse, ClearFolder }

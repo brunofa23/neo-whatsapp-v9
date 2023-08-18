@@ -46,6 +46,9 @@ export default class Chat extends BaseModel {
   @column()
   public chatname: string
 
+  @column()
+  public absoluteresp: number
+
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
 

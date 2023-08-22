@@ -1,7 +1,8 @@
 import DatasourcesController from 'App/Controllers/Http/DatasourcesController';
 import Chat from 'App/Models/Chat';
 import { Client, Message } from 'whatsapp-web.js';
-import { stateTyping, PositiveResponse, NegativeResponse } from '../util'
+
+import { NegativeResponse, PositiveResponse, stateTyping } from '../util'
 import { verifyNumber } from '../VerifyNumber'
 
 export default async (client: Client, message: Message, chat: Chat) => {
@@ -56,7 +57,7 @@ export default async (client: Client, message: Message, chat: Chat) => {
         chat2.cellphone = chat.cellphone
         chat2.cellphoneserialized = message.from
         chat2.shippingcampaigns_id = chat.shippingcampaigns_id
-        chat2.message = message2.slice(0, 350)
+        chat2.message = message2.slice(0, 348)
         chat2.response = "Reagendada"
         chat2.returned = true
 

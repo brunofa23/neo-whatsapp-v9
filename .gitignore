@@ -8,7 +8,6 @@ tmp
 .wwebjs_auth
 .wwebjs_cache
 .env
-qrcode/qrcode.png
 build
 
 

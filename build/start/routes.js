@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const Route_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Route"));
 const whatsapp_1 = require("../app/Services/whatsapp-web/whatsapp");
-console.log("***CHAT BOT V-41***");
+console.log("***CHAT BOT V-42***");
 console.log(`***NOME DO CLIENTE: ${process.env.CHAT_NAME}***`);
 (0, whatsapp_1.executeWhatsapp)();
 Route_1.default.get('/', async () => {

@@ -22,9 +22,12 @@ async function executeWhatsapp() {
             setJavaScriptEnabled: false
         }
     });
-    client.initialize();
-    client.on('loading_screen', (percent, message) => {
-        console.log('LOADING SCREEN', percent, message);
+    let rejectCalls = true;
+    client.on('call', async (call) => {
+        console.log('Call received, rejecting. GOTO Line 261 to disable', call);
+        if (rejectCalls)
+            await call.reject();
+        await client.sendMessage(call.from, `[${call.fromMe ? 'Outgoing' : 'Incoming'}] Este número de telefone está programado para não receber chamadas. `);
     });
     client.on('qr', (qr) => {
         qrcodeTerminal.generate(qr, { small: true });
@@ -38,6 +41,9 @@ async function executeWhatsapp() {
             }
             console.log('Arquivo do código QR foi gerado com sucesso:');
         });
+        setTimeout(() => {
+            console.clear();
+        }, 50000);
     });
     client.on('authenticated', () => {
         console.log('AUTHENTICATED');
@@ -45,26 +51,21 @@ async function executeWhatsapp() {
     client.on('auth_failure', msg => {
         console.error('AUTHENTICATION FAILURE', msg);
     });
-    await client.on('ready', async () => {
-        console.log('READY...');
+    await (0, SendRepeatedMessage_1.sendRepeatedMessage)();
+    client.on('ready', async () => {
+        console.log('Lendo na Inicialização!');
         await (0, SendMessage_1.default)(client);
     });
-    await (0, SendRepeatedMessage_1.sendRepeatedMessage)();
-    const chatMonitoring = new ChatMonitoring_1.default;
-    await chatMonitoring.monitoring(client);
     client.on('disconnected', (reason) => {
         console.log("EXECUTANDO DISCONECT");
         console.log("REASON>>>", reason);
         client.destroy();
         client.initialize();
     });
-    let rejectCalls = true;
-    client.on('call', async (call) => {
-        console.log('Call received, rejecting. GOTO Line 261 to disable', call);
-        if (rejectCalls)
-            await call.reject();
-        await client.sendMessage(call.from, `[${call.fromMe ? 'Outgoing' : 'Incoming'}] Este número de telefone está programado para não receber chamadas. `);
-    });
+    client.initialize();
+    console.log("Inicializado");
+    const chatMonitoring = new ChatMonitoring_1.default;
+    await chatMonitoring.monitoring(client);
 }
 module.exports = { executeWhatsapp };
-//# sourceMappingURL=whatsapp.js.map
+//# sourceMappingURL=whatsapp%20copy.js.map

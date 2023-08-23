@@ -25,11 +25,12 @@ async function executeWhatsapp() {
     }
   });
 
-  client.initialize();
-
-
-  client.on('loading_screen', (percent, message) => {
-    console.log('LOADING SCREEN', percent, message);
+  // Change to false if you don't want to reject incoming calls
+  let rejectCalls = true;
+  client.on('call', async (call) => {
+    console.log('Call received, rejecting. GOTO Line 261 to disable', call);
+    if (rejectCalls) await call.reject();
+    await client.sendMessage(call.from, `[${call.fromMe ? 'Outgoing' : 'Incoming'}] Este número de telefone está programado para não receber chamadas. `);
   });
 
   client.on('qr', (qr) => {
@@ -56,9 +57,9 @@ async function executeWhatsapp() {
     //   // Você pode usar o URL de dados (data URL) aqui conforme necessário
     // });
 
-    // setTimeout(() => {
-    //   console.clear(); // Limpa o terminal
-    // }, 50000);
+    setTimeout(() => {
+      console.clear(); // Limpa o terminal
+    }, 50000);
 
   });
 
@@ -71,16 +72,12 @@ async function executeWhatsapp() {
     console.error('AUTHENTICATION FAILURE', msg);
   });
 
-  await client.on('ready', async () => {
-    console.log('READY...');
-    await SendMessage(client)
-  });
-
   await sendRepeatedMessage()
-  const chatMonitoring = new ChatMonitoring
-  await chatMonitoring.monitoring(client)
+  client.on('ready', async () => {
+    console.log('Lendo na Inicialização!');
+    await SendMessage(client)
 
-  //************************************************ */
+  });
 
   client.on('disconnected', (reason) => {
     console.log("EXECUTANDO DISCONECT")
@@ -90,15 +87,11 @@ async function executeWhatsapp() {
     client.initialize();
   });
 
+  client.initialize();
+  console.log("Inicializado")
 
-  let rejectCalls = true;
-  client.on('call', async (call) => {
-    console.log('Call received, rejecting. GOTO Line 261 to disable', call);
-    if (rejectCalls) await call.reject();
-    await client.sendMessage(call.from, `[${call.fromMe ? 'Outgoing' : 'Incoming'}] Este número de telefone está programado para não receber chamadas. `);
-  });
-
-
+  const chatMonitoring = new ChatMonitoring
+  await chatMonitoring.monitoring(client)
 
 }
 

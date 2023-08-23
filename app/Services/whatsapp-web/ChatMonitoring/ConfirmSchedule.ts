@@ -71,7 +71,7 @@ export default async (client: Client, message: Message, chat: Chat) => {
 
       } else {
         await stateTyping(message)
-        client.sendMessage(message.from, 'Oi, não consegui identificar uma resposta, por favor responda \n*1* para confirmar o agendamento. \n*2* para reagendamento.')
+        client.sendMessage(message.from, 'Oi, desculpe mas não consegui identificar uma resposta, por favor responda \n*1* para confirmar o agendamento. \n*2* para reagendamento.')
       }
 
   }

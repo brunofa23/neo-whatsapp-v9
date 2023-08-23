@@ -68,7 +68,7 @@ export default class Monitoring {
           else if (message.body.toUpperCase() === "#PD") {//posição diária
             const pd = new ShippingcampaignsController()
             const result = await pd.dayPosition()
-            const sendResponse = `*Total diário:* ${result.totalDiario}\n*Telefones válidos:* ${result.telefonesValidos}\n*Mensagens Enviadas:* ${result.mensagensEnviadas}\n*Mensagens Retornadas:* ${result.mensagensRetornadas}\n*Confirmações:* ${result.confirmacoes}`
+            const sendResponse = `*Total diário:* ${result.totalDiario}\n*Telefones válidos:* ${result.telefonesValidos}\n*Mensagens Enviadas:* ${result.mensagensEnviadas}\n*Mensagens Retornadas:* ${result.mensagensRetornadas}\n*Confirmações:* ${result.confirmacoes}\n*Reagendamentos:* ${result.reagendamentos}`
             await stateTyping(message)
             client.sendMessage(message.from, `*Posição diária até o momento:*`)
             client.sendMessage(message.from, sendResponse)

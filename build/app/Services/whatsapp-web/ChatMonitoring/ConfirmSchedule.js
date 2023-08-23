@@ -50,7 +50,7 @@ exports.default = async (client, message, chat) => {
             chat2.cellphone = chat.cellphone;
             chat2.cellphoneserialized = message.from;
             chat2.shippingcampaigns_id = chat.shippingcampaigns_id;
-            chat2.message = message2.slice(0, 350);
+            chat2.message = message2.slice(0, 348);
             chat2.response = "Reagendada";
             chat2.returned = true;
             try {
@@ -62,7 +62,7 @@ exports.default = async (client, message, chat) => {
         }
         else {
             await (0, util_1.stateTyping)(message);
-            client.sendMessage(message.from, 'Oi, não consegui identificar uma resposta, por favor responda \n*1* para confirmar o agendamento. \n*2* para reagendamento.');
+            client.sendMessage(message.from, 'Oi, desculpe mas não consegui identificar uma resposta, por favor responda \n*1* para confirmar o agendamento. \n*2* para reagendamento.');
         }
     }
 };

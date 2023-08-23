@@ -3,10 +3,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const ConfirmSchedule_1 = __importDefault(require("./ConfirmSchedule"));
-const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
 const ShippingcampaignsController_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Controllers/Http/ShippingcampaignsController"));
+const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
 const util_1 = require("../util");
+const ConfirmSchedule_1 = __importDefault(require("./ConfirmSchedule"));
 class Monitoring {
     async monitoring(client) {
         try {
@@ -16,7 +16,7 @@ class Monitoring {
                     .where('cellphoneserialized', '=', message.from)
                     .whereNull('response').first();
                 if (chat && chat.returned == false) {
-                    chat.invalidresponse = message.body;
+                    chat.invalidresponse = message.body.slice(0, 348);
                     chat.returned = true;
                     await chat.save();
                 }
@@ -30,7 +30,7 @@ class Monitoring {
                 else {
                     if (message.body.toUpperCase() === 'OI' || message.body.toUpperCase() === 'OLÁ') {
                         console.log("ENTREI NO OI...");
-                        client.sendMessage(message.from, "Olá, sou a atendente virtual.");
+                        client.sendMessage(message.from, "Olá, sou a Iris, atendente virtual do Neo.");
                         return;
                     }
                     else if (message.body.startsWith("#testar")) {
@@ -58,7 +58,7 @@ class Monitoring {
                     else if (message.body.toUpperCase() === "#PD") {
                         const pd = new ShippingcampaignsController_1.default();
                         const result = await pd.dayPosition();
-                        const sendResponse = `*Total diário:* ${result.totalDiario}\n*Telefones válidos:* ${result.telefonesValidos}\n*Mensagens Enviadas:* ${result.mensagensEnviadas}\n*Mensagens Retornadas:* ${result.mensagensRetornadas}\n*Confirmações:* ${result.confirmacoes}`;
+                        const sendResponse = `*Total diário:* ${result.totalDiario}\n*Telefones válidos:* ${result.telefonesValidos}\n*Mensagens Enviadas:* ${result.mensagensEnviadas}\n*Mensagens Retornadas:* ${result.mensagensRetornadas}\n*Confirmações:* ${result.confirmacoes}\n*Reagendamentos:* ${result.reagendamentos}`;
                         await (0, util_1.stateTyping)(message);
                         client.sendMessage(message.from, `*Posição diária até o momento:*`);
                         client.sendMessage(message.from, sendResponse);
@@ -81,7 +81,7 @@ class Monitoring {
                         console.log("CLIENTE", message);
                     }
                     else {
-                        client.sendMessage(message.from, "Olá, esta conversa já foi encerrada. O Neo Agradece! ");
+                        client.sendMessage(message.from, "Olá, desculpe mas esta conversa já foi encerrada. O Neo Agradece! ");
                     }
                 }
             });

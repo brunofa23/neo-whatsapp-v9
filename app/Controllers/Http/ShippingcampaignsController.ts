@@ -122,13 +122,19 @@ export default class ShippingcampaignsController {
       .whereBetween('created_at', [startDate, endDate])
       .count('* as confirmacoes').first()
 
+    const reagendamentos = await Chat.query()
+      .where('absoluteresp', 2)
+      .whereBetween('created_at', [startDate, endDate])
+      .count('* as reagendamentos').first()
+
 
     const result = {
       totalDiario: totalDiario.$extras.totalDiario,
       telefonesValidos: telefonesValidos.$extras.telefonesValidos,
       mensagensEnviadas: mensagensEnviadas.$extras.mensagensEnviadas,
       mensagensRetornadas: mensagensRetornadas.$extras.mensagensRetornadas,
-      confirmacoes: confirmacoes.$extras.confirmacoes
+      confirmacoes: confirmacoes.$extras.confirmacoes,
+      reagendamentos: reagendamentos.$extras.reagendamentos
     }
     return result
 

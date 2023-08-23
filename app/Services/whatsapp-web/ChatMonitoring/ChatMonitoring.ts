@@ -1,10 +1,11 @@
-import ConfirmSchedule from './ConfirmSchedule'
+import ShippingcampaignsController from 'App/Controllers/Http/ShippingcampaignsController';
 import Chat from 'App/Models/Chat';
 import Shippingcampaign from 'App/Models/Shippingcampaign';
-import ShippingcampaignsController from 'App/Controllers/Http/ShippingcampaignsController';
 import { sendRepeatedMessage } from 'App/Services/whatsapp-web/SendRepeatedMessage';
 import { Client } from 'whatsapp-web.js';
+
 import { stateTyping } from '../util'
+import ConfirmSchedule from './ConfirmSchedule'
 
 export default class Monitoring {
   async monitoring(client: Client) {
@@ -19,7 +20,7 @@ export default class Monitoring {
 
         if (chat && chat.returned == false) {
           //console.log("PASSEI PELO RESPOSTA")
-          chat.invalidresponse = message.body
+          chat.invalidresponse = message.body.slice(0, 348)
           chat.returned = true
           await chat.save()
         }
@@ -34,7 +35,7 @@ export default class Monitoring {
         } else {
           if (message.body.toUpperCase() === 'OI' || message.body.toUpperCase() === 'OLÁ') {
             console.log("ENTREI NO OI...")
-            client.sendMessage(message.from, "Olá, sou a atendente virtual.")
+            client.sendMessage(message.from, "Olá, sou a Iris, atendente virtual do Neo.")
             return
           }
 
@@ -67,7 +68,7 @@ export default class Monitoring {
           else if (message.body.toUpperCase() === "#PD") {//posição diária
             const pd = new ShippingcampaignsController()
             const result = await pd.dayPosition()
-            const sendResponse = `*Total diário:* ${result.totalDiario}\n*Telefones válidos:* ${result.telefonesValidos}\n*Mensagens Enviadas:* ${result.mensagensEnviadas}\n*Mensagens Retornadas:* ${result.mensagensRetornadas}\n*Confirmações:* ${result.confirmacoes}`
+            const sendResponse = `*Total diário:* ${result.totalDiario}\n*Telefones válidos:* ${result.telefonesValidos}\n*Mensagens Enviadas:* ${result.mensagensEnviadas}\n*Mensagens Retornadas:* ${result.mensagensRetornadas}\n*Confirmações:* ${result.confirmacoes}\n*Reagendamentos:* ${result.reagendamentos}`
             await stateTyping(message)
             client.sendMessage(message.from, `*Posição diária até o momento:*`)
             client.sendMessage(message.from, sendResponse)
@@ -98,7 +99,7 @@ export default class Monitoring {
           }
 
           else {
-            client.sendMessage(message.from, "Olá, esta conversa já foi encerrada. O Neo Agradece! ")
+            client.sendMessage(message.from, "Olá, desculpe mas esta conversa já foi encerrada. O Neo Agradece! ")
 
           }
 

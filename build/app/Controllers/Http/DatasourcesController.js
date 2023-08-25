@@ -12,6 +12,7 @@ class DatasourcesController {
         const interactionList = await Interaction_1.default.query().where('status', '=', 1);
         for (const interaction of interactionList) {
             if (interaction.id == 1) {
+                await Database_1.default.manager.close('mssql');
                 return await this.scheduledPatients();
             }
             else if (interaction.id == 2) {
@@ -41,6 +42,7 @@ class DatasourcesController {
                 const message = await greeting(data.message);
                 data.message = message;
             }
+            await Database_1.default.manager.close('mssql');
             return result;
         }
         catch (error) {
@@ -55,6 +57,7 @@ class DatasourcesController {
                    where agm_id = ${id}`;
         try {
             const result = await Database_1.default.connection('mssql').rawQuery(query);
+            await Database_1.default.manager.close('mssql');
         }
         catch (error) {
             return error;

@@ -17,6 +17,7 @@ export default class DatasourcesController {
     for (const interaction of interactionList) {
       if (interaction.id == 1) {
         //console.log("CONFIRMAÇÃO DE AGENDAS", interaction.name)
+        await Database.manager.close('mssql')
         return await this.scheduledPatients()
       } else
         if (interaction.id == 2) {
@@ -55,6 +56,8 @@ export default class DatasourcesController {
         data.message = message
       }
       //console.log("RESULTADO", result)
+      await Database.manager.close('mssql')
+
       return result
     } catch (error) {
       return { "ERRO": "ERRO 154212", error }
@@ -73,9 +76,15 @@ export default class DatasourcesController {
     try {
       //console.log("EXECUTANDO UPDATE NO SMART...", query)
       const result = await Database.connection('mssql').rawQuery(query)
+
+      await Database.manager.close('mssql')
+
     } catch (error) {
       return error
     }
+
+
+
 
   }
 

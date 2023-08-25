@@ -35,18 +35,17 @@ export default class Monitoring {
         } else {
           if (message.body.toUpperCase() === 'OI' || message.body.toUpperCase() === 'OLÁ') {
             console.log("ENTREI NO OI...")
+            await stateTyping(message)
             client.sendMessage(message.from, "Olá, sou a Iris, atendente virtual do Neo.")
             return
           }
 
-          else if (message.body.startsWith("#testar")) {
-            //1 - buscar um contato
-            //await sendRepeatedMessage(client, '3185228619')
-          }
+
 
           else if (message.body.startsWith("verificar")) {
             const string = message.body;
             const numbers = string.match(/\d/g).join("");
+            await stateTyping(message)
             console.log("Resultado do telefone:", numbers)
 
             try {
@@ -75,12 +74,6 @@ export default class Monitoring {
 
 
           }
-          else if (message.body === "contsendreset") {
-            global.contSend = 0
-            client.sendMessage(message.from, `Conversas reinicializadas com sucesso!!!`)
-
-          }
-
           else if (message.body === "destroy") {
             //client.destroy()
             client.logout()
@@ -99,7 +92,8 @@ export default class Monitoring {
           }
 
           else {
-            client.sendMessage(message.from, "Olá, desculpe mas esta conversa já foi encerrada. O Neo Agradece! ")
+            await stateTyping(message)
+            client.sendMessage(message.from, "Olá, sou apenas uma atendente virtual, desculpe mas esta conversa já foi encerrada. O Neo Agradece! ")
 
           }
 

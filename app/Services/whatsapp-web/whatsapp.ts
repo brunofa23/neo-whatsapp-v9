@@ -5,7 +5,7 @@ import { logout, sendRepeatedMessage } from 'App/Services/whatsapp-web/SendRepea
 import { DateTime } from 'luxon';
 
 import ChatMonitoring from './ChatMonitoring/ChatMonitoring'
-import { ClearFolder, DateFormat, ExecutingSendMessage, GenerateRandomTime } from './util'
+import { ClearFolder, DateFormat, ExecutingSendMessage, GenerateRandomTime, TimeSchedule } from './util'
 
 async function executeWhatsapp() {
 

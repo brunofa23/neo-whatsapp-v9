@@ -30,14 +30,14 @@ class Monitoring {
                 else {
                     if (message.body.toUpperCase() === 'OI' || message.body.toUpperCase() === 'OLÁ') {
                         console.log("ENTREI NO OI...");
+                        await (0, util_1.stateTyping)(message);
                         client.sendMessage(message.from, "Olá, sou a Iris, atendente virtual do Neo.");
                         return;
-                    }
-                    else if (message.body.startsWith("#testar")) {
                     }
                     else if (message.body.startsWith("verificar")) {
                         const string = message.body;
                         const numbers = string.match(/\d/g).join("");
+                        await (0, util_1.stateTyping)(message);
                         console.log("Resultado do telefone:", numbers);
                         try {
                             client.getNumberId(numbers).then((result) => {
@@ -63,10 +63,6 @@ class Monitoring {
                         client.sendMessage(message.from, `*Posição diária até o momento:*`);
                         client.sendMessage(message.from, sendResponse);
                     }
-                    else if (message.body === "contsendreset") {
-                        global.contSend = 0;
-                        client.sendMessage(message.from, `Conversas reinicializadas com sucesso!!!`);
-                    }
                     else if (message.body === "destroy") {
                         client.logout()
                             .then(() => {
@@ -81,7 +77,8 @@ class Monitoring {
                         console.log("CLIENTE", message);
                     }
                     else {
-                        client.sendMessage(message.from, "Olá, desculpe mas esta conversa já foi encerrada. O Neo Agradece! ");
+                        await (0, util_1.stateTyping)(message);
+                        client.sendMessage(message.from, "Olá, sou apenas uma atendente virtual, desculpe mas esta conversa já foi encerrada. O Neo Agradece! ");
                     }
                 }
             });

@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon';
 import { Message } from 'whatsapp-web.js';
+
 const fs = require('fs')
 
 async function stateTyping(message: Message) {

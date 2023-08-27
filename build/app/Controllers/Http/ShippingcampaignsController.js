@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Shippingcampaign"));
+const whatsapp_1 = require("../../Services/whatsapp-web/whatsapp");
 const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
 const Database_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Lucid/Database"));
 const util_1 = require("../../Services/whatsapp-web/util");
@@ -52,6 +53,9 @@ class ShippingcampaignsController {
         if (!countMessage || countMessage == undefined || countMessage == null)
             return 0;
         return parseInt(countMessage.$extras.tot);
+    }
+    async resetWhatsapp() {
+        await whatsapp_1.executeWhatsapp;
     }
     async chat({ response, request }) {
         const id = 567508;

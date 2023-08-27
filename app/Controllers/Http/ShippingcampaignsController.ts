@@ -64,7 +64,9 @@ export default class ShippingcampaignsController {
 
   }
 
-
+  public async resetWhatsapp() {
+    await executeWhatsapp
+  }
 
 
   public async chat({ response, request }) {

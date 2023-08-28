@@ -1,8 +1,12 @@
+import { types } from '@ioc:Adonis/Core/Helpers'
+
+import { ValidatePhone } from '../whatsapp-web/util'
+
 async function verifyNumber(client, cellphone) {
 
-  if (!validatePhone(cellphone))
+  if (await !ValidatePhone(cellphone))
     return null
-  if (cellphone == null || cellphone == undefined || !cellphone)
+  if (types.isNull(cellphone) || cellphone == undefined || !cellphone)
     return null
 
   try {
@@ -18,12 +22,6 @@ async function verifyNumber(client, cellphone) {
   } catch (error) {
     return null
   }
-}
-
-function validatePhone(cellphone) {
-  // Expressão regular para validar o formato de um número de celular no Brasil
-  const regexTelefoneCelular = /^(\+55|55)?\s?(?:\(?0?[1-9]{2}\)?)?\s?(?:9\s?)?[6789]\d{3}[-\s]?\d{4}$/;
-  return regexTelefoneCelular.test(cellphone);
 }
 
 module.exports = { verifyNumber }

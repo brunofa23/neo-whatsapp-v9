@@ -5,7 +5,7 @@ import { logout, sendRepeatedMessage } from 'App/Services/whatsapp-web/SendRepea
 import { DateTime } from 'luxon';
 
 import ChatMonitoring from './ChatMonitoring/ChatMonitoring'
-import { ClearFolder, DateFormat, ExecutingSendMessage, GenerateRandomTime, TimeSchedule } from './util'
+import { ClearFolder, DateFormat, ExecutingSendMessage, GenerateRandomTime, TimeSchedule, ValidatePhone } from './util'
 
 async function executeWhatsapp() {
 
@@ -25,11 +25,12 @@ async function executeWhatsapp() {
     }
   });
 
-  client.initialize();
 
+  client.initialize();
 
   client.on('loading_screen', (percent, message) => {
     console.log('LOADING SCREEN', percent, message);
+
   });
 
   client.on('qr', (qr) => {
@@ -73,6 +74,8 @@ async function executeWhatsapp() {
 
   await client.on('ready', async () => {
     console.log('READY...');
+    const state = await client.getState()
+    console.log("State:", state)
     await SendMessage(client)
   });
 

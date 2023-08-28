@@ -25,7 +25,7 @@ exports.default = async (client) => {
     async function verifyContSend() {
         if (global.contSend >= 3) {
             if (resetContSendBool == false) {
-                resetContSend = luxon_1.DateTime.local().plus({ minutes: 7 });
+                resetContSend = luxon_1.DateTime.local().plus({ minutes: 5 });
                 resetContSendBool = true;
             }
             else if (resetContSend <= luxon_1.DateTime.local()) {

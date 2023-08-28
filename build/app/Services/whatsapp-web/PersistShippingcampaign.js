@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const DatasourcesController_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Controllers/Http/DatasourcesController"));
 const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Shippingcampaign"));
+const util_1 = require("../whatsapp-web/util");
 const moment = require("moment");
 function isIterable(obj) {
     return obj !== null && typeof obj[Symbol.iterator] === 'function';
@@ -26,6 +27,8 @@ exports.default = async () => {
             shipping.idexternal = data.idexternal;
             shipping.name = String(data.name).trim();
             shipping.cellphone = data.cellphone;
+            if (!await (0, util_1.ValidatePhone)(data.cellphone))
+                shipping.phonevalid = false;
             shipping.messagesent = false;
             shipping.message = String(data.message).replace(/@p[0-9]/g, '?');
             shipping.otherfields = data.otherfields;

@@ -47,6 +47,8 @@ async function executeWhatsapp() {
     });
     await client.on('ready', async () => {
         console.log('READY...');
+        const state = await client.getState();
+        console.log("State:", state);
         await (0, SendMessage_1.default)(client);
     });
     await (0, SendRepeatedMessage_1.sendRepeatedMessage)();

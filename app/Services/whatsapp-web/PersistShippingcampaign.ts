@@ -1,5 +1,8 @@
+import { types } from '@ioc:Adonis/Core/Helpers'
 import DatasourcesController from 'App/Controllers/Http/DatasourcesController'
 import Shippingcampaign from 'App/Models/Shippingcampaign'
+
+import { ValidatePhone } from '../whatsapp-web/util'
 
 import moment = require('moment');
 function isIterable(obj) {
@@ -27,7 +30,10 @@ export default async () => {
       shipping.idexternal = data.idexternal
       shipping.name = String(data.name).trim()
       shipping.cellphone = data.cellphone
-      //shipping.phonevalid = false
+
+      if (!await ValidatePhone(data.cellphone))
+        shipping.phonevalid = false
+
       shipping.messagesent = false
       shipping.message = String(data.message).replace(/@p[0-9]/g, '?')
       shipping.otherfields = data.otherfields

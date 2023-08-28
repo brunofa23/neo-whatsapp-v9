@@ -1,7 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const Helpers_1 = global[Symbol.for('ioc.use')]("Adonis/Core/Helpers");
+const util_1 = require("../whatsapp-web/util");
 async function verifyNumber(client, cellphone) {
-    if (!validatePhone(cellphone))
+    if (await !(0, util_1.ValidatePhone)(cellphone))
         return null;
-    if (cellphone == null || cellphone == undefined || !cellphone)
+    if (Helpers_1.types.isNull(cellphone) || cellphone == undefined || !cellphone)
         return null;
     try {
         const verifiedPhone = await client.getNumberId(cellphone);
@@ -15,10 +19,6 @@ async function verifyNumber(client, cellphone) {
     catch (error) {
         return null;
     }
-}
-function validatePhone(cellphone) {
-    const regexTelefoneCelular = /^(\+55|55)?\s?(?:\(?0?[1-9]{2}\)?)?\s?(?:9\s?)?[6789]\d{3}[-\s]?\d{4}$/;
-    return regexTelefoneCelular.test(cellphone);
 }
 module.exports = { verifyNumber };
 //# sourceMappingURL=VerifyNumber.js.map

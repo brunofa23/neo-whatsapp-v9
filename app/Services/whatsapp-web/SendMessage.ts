@@ -48,17 +48,16 @@ export default async (client: Client) => {
 
   async function sendMessages() {
     setInterval(async () => {
-
       const totMessageSend = await countLimitSendMessage()
-
       if (totMessageSend >= maxLimitSendMessage) {
         console.log(`LIMITE DE ENVIO DIÁRIO ATINGIDO, Enviados:${totMessageSend} - Limite Máximo:${maxLimitSendMessage}`)
         return
       }
 
       //console.log("1 - ENTREI NO SEND MESSAGES...")
-      if (await !TimeSchedule())
+      if (await TimeSchedule() == false) {
         return
+      }
       await verifyContSend()
       const shippingCampaign = await _shippingCampaignList()
 

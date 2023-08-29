@@ -47,8 +47,9 @@ exports.default = async (client) => {
                 console.log(`LIMITE DE ENVIO DIÁRIO ATINGIDO, Enviados:${totMessageSend} - Limite Máximo:${maxLimitSendMessage}`);
                 return;
             }
-            if (await !(0, util_1.TimeSchedule)())
+            if (await (0, util_1.TimeSchedule)() == false) {
                 return;
+            }
             await verifyContSend();
             const shippingCampaign = await _shippingCampaignList();
             if (shippingCampaign) {

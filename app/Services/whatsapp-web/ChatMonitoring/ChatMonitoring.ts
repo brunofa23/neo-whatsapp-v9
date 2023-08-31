@@ -7,11 +7,31 @@ import { Client } from 'whatsapp-web.js';
 import { stateTyping } from '../util'
 import ConfirmSchedule from './ConfirmSchedule'
 
+
+async function verifyNumberInternal(phoneVerify: String) {
+  const list_phone_talking = process.env.LIST_PHONES_TALK
+  const list_phones = list_phone_talking?.split(",")
+
+  for (const phone of list_phones) {
+    console.log("passei no verify internals")
+    if (phoneVerify === phone)
+      return true
+  }
+
+}
+
+
 export default class Monitoring {
   async monitoring(client: Client) {
 
     try {
       client.on('message', async message => {
+
+        if (await verifyNumberInternal(message.from)) {
+          console.log("NUMERO INTERNO", message.from)
+          return
+        }
+
 
         const chat = await Chat.query()
           .preload('shippingcampaign')
@@ -39,9 +59,6 @@ export default class Monitoring {
             client.sendMessage(message.from, "Olá, sou a Iris, atendente virtual do Neo.")
             return
           }
-
-
-
           else if (message.body.startsWith("verificar")) {
             const string = message.body;
             const numbers = string.match(/\d/g).join("");
@@ -74,17 +91,17 @@ export default class Monitoring {
 
 
           }
-          else if (message.body === "destroy") {
-            //client.destroy()
-            client.logout()
-              .then(() => {
-                console.log('Conversa encerrada com sucesso.');
-              })
-              .catch((error) => {
-                console.error('Erro ao encerrar a conversa:', error);
-              });
-            return
-          }
+          // else if (message.body === "destroy") {
+          //   //client.destroy()
+          //   client.logout()
+          //     .then(() => {
+          //       console.log('Conversa encerrada com sucesso.');
+          //     })
+          //     .catch((error) => {
+          //       console.error('Erro ao encerrar a conversa:', error);
+          //     });
+          //   return
+          // }
 
           else if (message.body === 'PinChat') {
 

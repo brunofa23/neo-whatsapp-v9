@@ -22,8 +22,8 @@ export default async (client: Client, message: Message, chat: Chat) => {
       } catch (error) {
         console.log("Erro 454:", error)
       }
-      const datasourcesController = new DatasourcesController
       //Salvar no Smart e marcar presença
+      const datasourcesController = new DatasourcesController
       await datasourcesController.confirmSchedule(chat.idexternal)
     } else
       //Não vai confirmar a presença
@@ -36,10 +36,12 @@ export default async (client: Client, message: Message, chat: Chat) => {
         } catch (error) {
           console.log("Erro 121:", error)
         }
+        //Salvar no Smart e marcar presença
+        const datasourcesController = new DatasourcesController
+        await datasourcesController.cancelSchedule(chat.idexternal)
 
         await stateTyping(message)
-
-        const message2 = `Entendi, sabemos que nosso dia está muito atarefado. Favor clicar no link que estou enviando para conversar com nossa atendente e podermos agendar novo horário para você.`
+        const message2 = `Entendi, sabemos que nosso dia está muito atarefado! Sua consulta foi cancelada, se deseja reagendar, clique no link que estou enviando para conversar com uma de nossas atendentes e podermos agendar novo horário para você.`
         client.sendMessage(message.from, message2)
 
         const messageLink = `Olá, sou ${chat.name} e gostaria de reagendar uma consulta com ${chatOtherFields.medic}.`

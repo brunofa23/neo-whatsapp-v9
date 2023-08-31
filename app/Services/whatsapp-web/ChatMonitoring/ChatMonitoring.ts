@@ -5,7 +5,9 @@ import { sendRepeatedMessage } from 'App/Services/whatsapp-web/SendRepeatedMessa
 import { Client } from 'whatsapp-web.js';
 
 import { stateTyping } from '../util'
+import ListInternalPhrases from '../ListInternalPhrases';
 import ConfirmSchedule from './ConfirmSchedule'
+
 
 
 async function verifyNumberInternal(phoneVerify: String) {
@@ -27,10 +29,13 @@ export default class Monitoring {
     try {
       client.on('message', async message => {
 
-        if (await verifyNumberInternal(message.from)) {
-          console.log("NUMERO INTERNO", message.from)
-          return
-        }
+        // if (await verifyNumberInternal(message.from)) {
+        //   console.log("NUMERO INTERNO", message.from)
+        //   const phrase = await ListInternalPhrases()
+        //   await stateTyping(message)
+        //   client.sendMessage(message.from, phrase)
+        //   return
+        // }
 
 
         const chat = await Chat.query()

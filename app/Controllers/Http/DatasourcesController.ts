@@ -82,11 +82,35 @@ export default class DatasourcesController {
     } catch (error) {
       return error
     }
-
-
-
-
   }
+
+
+  async cancelSchedule(id: number) {
+    const date = await DateFormat("dd/MM/yyyy HH:mm:ss", DateTime.local())
+
+    const query = `update agm set
+    agm_stat = 'C',
+    agm_ext = 1,
+    agm_confirm_obs = 'Desmarcado por NEOCONFIRM',
+    agm_canc_usr_login = 'NEOCONFIRM',
+    agm_canc_dthr = '2023-08-31 23:59',
+    agm_canc_mot_cod='CMT',
+    agm_grade_canc = '²²²ÛÝÛÞÛÛÛÛÛÛÛÛÛÝÛÛÝÛÞÛÛÞÝÛÞÝÛÞÝÛÞÝÛÞÝÛÞÝÛ²ÞÝÛÞÛÛÞÝÛÞÝÛÞÝÛÞÛÛÞ²²²²²²²²²²²²²²²²²²²²²²²²'
+    WHERE AGM_PAC = 23202 AND agm_hini >'2023-09-01'`
+
+    try {
+      //console.log("EXECUTANDO UPDATE NO SMART...", query)
+      const result = await Database.connection('mssql').rawQuery(query)
+      await Database.manager.close('mssql')
+
+    } catch (error) {
+      return error
+    }
+  }
+
+
+
+
 
 
 }

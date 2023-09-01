@@ -33,22 +33,22 @@ export default class Monitoring {
     try {
       client.on('message', async message => {
 
-        console.log("Time Initial:::>>", dateSendMessageInternal)
-        console.log("Time:::>>", dateSendMessageInternalUpdate)
-        if (await verifyNumberInternal(message.from)) {
-          if (dateSendMessageInternalUpdate <= dateSendMessageInternal) {
-            dateSendMessageInternal = await DateFormat("yyyy-MM-dd HH:mm", DateTime.local())
-            dateSendMessageInternalUpdate = await DateTime.local().plus({ minutes: 1 })
-            console.log("REAJUSTANDO.....")
-            console.log("Time Initial:::>>", dateSendMessageInternal)
-            console.log("Time:::>>", dateSendMessageInternalUpdate)
-            const phrase = await ListInternalPhrases()
-            await stateTyping(message)
-            client.sendMessage(message.from, phrase)
-          }
+        // console.log("Time Initial:::>>", dateSendMessageInternal)
+        // console.log("Time:::>>", dateSendMessageInternalUpdate)
+        // if (await verifyNumberInternal(message.from)) {
+        //   if (dateSendMessageInternalUpdate <= dateSendMessageInternal) {
+        //     dateSendMessageInternal = await DateFormat("yyyy-MM-dd HH:mm", DateTime.local())
+        //     dateSendMessageInternalUpdate = await DateTime.local().plus({ minutes: 1 })
+        //     console.log("REAJUSTANDO.....")
+        //     console.log("Time Initial:::>>", dateSendMessageInternal)
+        //     console.log("Time:::>>", dateSendMessageInternalUpdate)
+        //     const phrase = await ListInternalPhrases()
+        //     await stateTyping(message)
+        //     client.sendMessage(message.from, phrase)
+        //   }
 
-          return
-        }
+        //   return
+        // }
 
 
         const chat = await Chat.query()

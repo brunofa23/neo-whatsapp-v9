@@ -22,25 +22,25 @@ async function PhoneInternal() {
 export default async (client: Client) => {
 
   async function sendMessages() {
-    setInterval(async () => {
-      if (await TimeSchedule() == false) {
-        return
-      }
-      const phrase = await ListInternalPhrases()
-      const phone = await PhoneInternal()
-      const validationCellPhone = await verifyNumber(client, phone)
-      try {
-        await client.sendMessage(validationCellPhone, phrase)
-          .then(async (response) => {
-            console.log("Mensagem enviada com sucesso!!")
-          }).catch(async (error) => {
-            console.log("ERRRRO:::", error)
-          })
-      }
-      catch (error) {
-        console.log("ERRO:::", error)
-      }
-    }, await GenerateRandomTime(startTimeSendMessage, endTimeSendMessage, '----Time Send Message'))
+    //setInterval(async () => {
+    if (await TimeSchedule() == false) {
+      return
+    }
+    const phrase = await ListInternalPhrases()
+    const phone = await PhoneInternal()
+    const validationCellPhone = await verifyNumber(client, phone)
+    try {
+      await client.sendMessage(validationCellPhone, phrase)
+        .then(async (response) => {
+          //console.log("Mensagem enviada com sucesso!!")
+        }).catch(async (error) => {
+          //console.log("ERRRRO:::", error)
+        })
+    }
+    catch (error) {
+      console.log("ERRO:::", error)
+    }
+    //}, await GenerateRandomTime(startTimeSendMessage, endTimeSendMessage, '----Time Send Message'))
   }
   await sendMessages()
 

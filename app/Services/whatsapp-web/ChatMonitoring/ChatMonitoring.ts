@@ -4,9 +4,10 @@ import Shippingcampaign from 'App/Models/Shippingcampaign';
 import { sendRepeatedMessage } from 'App/Services/whatsapp-web/SendRepeatedMessage';
 import { Client } from 'whatsapp-web.js';
 
-import { stateTyping } from '../util'
+import { stateTyping, DateFormat } from '../util'
 import ListInternalPhrases from '../ListInternalPhrases';
 import ConfirmSchedule from './ConfirmSchedule'
+import { DateTime } from 'luxon';
 
 
 
@@ -22,6 +23,9 @@ async function verifyNumberInternal(phoneVerify: String) {
 
 }
 
+let dateSendMessageInternal = DateFormat("yyyy-MM-dd HH:mm", DateTime.local())
+let dateSendMessageInternalUpdate = DateFormat("yyyy-MM-dd HH:mm", DateTime.local())
+
 
 export default class Monitoring {
   async monitoring(client: Client) {
@@ -29,13 +33,22 @@ export default class Monitoring {
     try {
       client.on('message', async message => {
 
-        // if (await verifyNumberInternal(message.from)) {
-        //   console.log("NUMERO INTERNO", message.from)
-        //   const phrase = await ListInternalPhrases()
-        //   await stateTyping(message)
-        //   client.sendMessage(message.from, phrase)
-        //   return
-        // }
+        console.log("Time Initial:::>>", dateSendMessageInternal)
+        console.log("Time:::>>", dateSendMessageInternalUpdate)
+        if (await verifyNumberInternal(message.from)) {
+          if (dateSendMessageInternalUpdate <= dateSendMessageInternal) {
+            dateSendMessageInternal = await DateFormat("yyyy-MM-dd HH:mm", DateTime.local())
+            dateSendMessageInternalUpdate = await DateTime.local().plus({ minutes: 1 })
+            console.log("REAJUSTANDO.....")
+            console.log("Time Initial:::>>", dateSendMessageInternal)
+            console.log("Time:::>>", dateSendMessageInternalUpdate)
+            const phrase = await ListInternalPhrases()
+            await stateTyping(message)
+            client.sendMessage(message.from, phrase)
+          }
+
+          return
+        }
 
 
         const chat = await Chat.query()

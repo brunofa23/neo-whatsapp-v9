@@ -81,7 +81,9 @@ async function executeWhatsapp() {
     console.log("State:", state)
     await SendMessage(client)
     //await SendMessageInternal(client)
+
   });
+
 
   await sendRepeatedMessage()
   const chatMonitoring = new ChatMonitoring

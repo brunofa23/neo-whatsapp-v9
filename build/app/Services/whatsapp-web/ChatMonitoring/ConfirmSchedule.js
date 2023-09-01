@@ -36,7 +36,7 @@ exports.default = async (client, message, chat) => {
             const datasourcesController = new DatasourcesController_1.default;
             await datasourcesController.cancelSchedule(chat, chatOtherFields);
             await (0, util_1.stateTyping)(message);
-            const message2 = `Entendi, sabemos que nosso dia está muito atarefado! Sua consulta foi cancelada, se deseja reagendar, clique no link que estou enviando para conversar com uma de nossas atendentes e podermos agendar novo horário para você.`;
+            const message2 = `Entendi, sabemos que nosso dia está muito atarefado! Sua consulta foi desmarcada, se deseja reagendar, clique no link que estou enviando para conversar com uma de nossas atendentes e podermos agendar novo horário mais conveniente para você.`;
             client.sendMessage(message.from, message2);
             const messageLink = `Olá, sou ${chat.name} e gostaria de reagendar uma consulta com ${chatOtherFields.medic}.`;
             const phoneNumber = "553132350003";

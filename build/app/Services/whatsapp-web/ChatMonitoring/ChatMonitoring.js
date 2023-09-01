@@ -7,6 +7,15 @@ const ShippingcampaignsController_1 = __importDefault(global[Symbol.for('ioc.use
 const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
 const util_1 = require("../util");
 const ConfirmSchedule_1 = __importDefault(require("./ConfirmSchedule"));
+async function verifyNumberInternal(phoneVerify) {
+    const list_phone_talking = process.env.LIST_PHONES_TALK;
+    const list_phones = list_phone_talking?.split(",");
+    for (const phone of list_phones) {
+        console.log("passei no verify internals");
+        if (phoneVerify === phone)
+            return true;
+    }
+}
 class Monitoring {
     async monitoring(client) {
         try {
@@ -62,16 +71,6 @@ class Monitoring {
                         await (0, util_1.stateTyping)(message);
                         client.sendMessage(message.from, `*Posição diária até o momento:*`);
                         client.sendMessage(message.from, sendResponse);
-                    }
-                    else if (message.body === "destroy") {
-                        client.logout()
-                            .then(() => {
-                            console.log('Conversa encerrada com sucesso.');
-                        })
-                            .catch((error) => {
-                            console.error('Erro ao encerrar a conversa:', error);
-                        });
-                        return;
                     }
                     else if (message.body === 'PinChat') {
                         console.log("CLIENTE", message);

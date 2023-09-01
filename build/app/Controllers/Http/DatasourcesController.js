@@ -49,15 +49,52 @@ class DatasourcesController {
             return { "ERRO": "ERRO 154212", error };
         }
     }
-    async confirmSchedule(id) {
-        const date = await (0, util_1.DateFormat)("dd/MM/yyyy HH:mm:ss", luxon_1.DateTime.local());
-        const query = `update agm set AGM_CONFIRM_STAT = 'C',
-                   AGM_CONFIRM_OBS='NEO CONFIRMA by CONFIRMA ou CANCELA - WhatsApp em ${date}',
-                   AGM_CONFIRM_USR = 'NEOCONFIRM'
-                   where agm_id = ${id}`;
+    async confirmSchedule(chat, chatOtherFields = "") {
+        const dateNow = await (0, util_1.DateFormat)("dd/MM/yyyy HH:mm:ss", luxon_1.DateTime.local());
+        const dateSchedule = luxon_1.DateTime.fromFormat(chatOtherFields['schedule'], 'yyyy-MM-dd HH:mm');
+        const startOfDay = await (0, util_1.DateFormat)("yyyy-MM-dd 00:00", dateSchedule);
+        const endOfDay = await (0, util_1.DateFormat)("yyyy-MM-dd 23:59", dateSchedule);
         try {
-            const result = await Database_1.default.connection('mssql').rawQuery(query);
+            const query = await Database_1.default.connection('mssql')
+                .from('agm')
+                .where('agm_pac', chat.reg)
+                .whereBetween('agm_hini', [startOfDay, endOfDay])
+                .whereNotIn('agm_stat', ['C', 'B'])
+                .whereNotIn('agm_confirm_stat', ['C'])
+                .update({
+                AGM_CONFIRM_STAT: 'C',
+                AGM_CONFIRM_OBS: `NEO CONFIRMA by CONFIRMA ou CANCELA - WhatsApp em ${dateNow}`,
+                AGM_CONFIRM_USR: 'NEOCONFIRM'
+            });
             await Database_1.default.manager.close('mssql');
+            console.log("QUERY CONFIRMAÇÃO", query);
+            return query;
+        }
+        catch (error) {
+            return error;
+        }
+    }
+    async cancelSchedule(chat, chatOtherFields = "") {
+        const dateNow = await (0, util_1.DateFormat)("dd/MM/yyyy HH:mm:ss", luxon_1.DateTime.local());
+        const dateSchedule = luxon_1.DateTime.fromFormat(chatOtherFields['schedule'], 'yyyy-MM-dd HH:mm');
+        const startOfDay = await (0, util_1.DateFormat)("yyyy-MM-dd 00:00", dateSchedule);
+        const endOfDay = await (0, util_1.DateFormat)("yyyy-MM-dd 23:59", dateSchedule);
+        try {
+            const query = await Database_1.default.connection('mssql')
+                .from('agm')
+                .where('agm_pac', chat.reg)
+                .whereBetween('agm_hini', [startOfDay, endOfDay])
+                .whereNotIn('agm_stat', ['C', 'B'])
+                .whereNotIn('agm_confirm_stat', ['C'])
+                .update({
+                AGM_STAT: 'C',
+                AGM_EXT: 1,
+                AGM_CONFIRM_OBS: `Desmarcado por NEO CONFIRMA by CONFIRMA ou CANCELA - WhatsApp em ${dateNow}`,
+                AGM_CANC_USR_LOGIN: 'NEOCONFIRM'
+            });
+            await Database_1.default.manager.close('mssql');
+            console.log("QUERY cancelamento", query);
+            return query;
         }
         catch (error) {
             return error;

@@ -41,7 +41,7 @@ export default async (client: Client, message: Message, chat: Chat) => {
         await datasourcesController.cancelSchedule(chat, chatOtherFields)
 
         await stateTyping(message)
-        const message2 = `Entendi, sabemos que nosso dia está muito atarefado! Sua consulta foi cancelada, se deseja reagendar, clique no link que estou enviando para conversar com uma de nossas atendentes e podermos agendar novo horário para você.`
+        const message2 = `Entendi, sabemos que nosso dia está muito atarefado! Sua consulta foi desmarcada, se deseja reagendar, clique no link que estou enviando para conversar com uma de nossas atendentes e podermos agendar novo horário mais conveniente para você.`
         client.sendMessage(message.from, message2)
 
         const messageLink = `Olá, sou ${chat.name} e gostaria de reagendar uma consulta com ${chatOtherFields.medic}.`

@@ -80,7 +80,7 @@ async function executeWhatsapp() {
     const state = await client.getState()
     console.log("State:", state)
     await SendMessage(client)
-    await SendMessageInternal(client)
+    //await SendMessageInternal(client)
   });
 
   await sendRepeatedMessage()

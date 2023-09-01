@@ -7,7 +7,6 @@ const ShippingcampaignsController_1 = __importDefault(global[Symbol.for('ioc.use
 const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
 const util_1 = require("../util");
 const ConfirmSchedule_1 = __importDefault(require("./ConfirmSchedule"));
-const luxon_1 = require("luxon");
 async function verifyNumberInternal(phoneVerify) {
     const list_phone_talking = process.env.LIST_PHONES_TALK;
     const list_phones = list_phone_talking?.split(",");
@@ -17,12 +16,13 @@ async function verifyNumberInternal(phoneVerify) {
             return true;
     }
 }
-let dateSendMessageInternal = (0, util_1.DateFormat)("yyyy-MM-dd HH:mm", luxon_1.DateTime.local());
-let dateSendMessageInternalUpdate = (0, util_1.DateFormat)("yyyy-MM-dd HH:mm", luxon_1.DateTime.local());
 class Monitoring {
     async monitoring(client) {
         try {
             client.on('message', async (message) => {
+                if (await verifyNumberInternal(message.from)) {
+                    return;
+                }
                 const chat = await Chat_1.default.query()
                     .preload('shippingcampaign')
                     .where('cellphoneserialized', '=', message.from)

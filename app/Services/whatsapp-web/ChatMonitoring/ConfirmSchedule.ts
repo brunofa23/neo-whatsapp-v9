@@ -24,7 +24,7 @@ export default async (client: Client, message: Message, chat: Chat) => {
       }
       //Salvar no Smart e marcar presença
       const datasourcesController = new DatasourcesController
-      await datasourcesController.confirmSchedule(chat.idexternal)
+      await datasourcesController.confirmSchedule(chat, chatOtherFields)
     } else
       //Não vai confirmar a presença
       if (await NegativeResponse(message.body)) {

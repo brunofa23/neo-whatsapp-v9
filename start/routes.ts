@@ -22,6 +22,8 @@ Route.group(() => {
   Route.get('/datasources', 'DatasourcesController.DataSource')
   Route.get('/dayposition', 'ShippingcampaignsController.dayPosition')
 
+  Route.get('/confirmschedule', 'DatasourcesController.confirmSchedule')
+
 }).prefix('/api')
 
 

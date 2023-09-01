@@ -80,8 +80,8 @@ async function executeWhatsapp() {
     console.log('READY...');
     const state = await client.getState()
     console.log("State:", state)
-    //await SendMessage(client)
-    await SendMessageInternal(client)
+    await SendMessage(client)
+    //await SendMessageInternal(client)
 
   });
 
@@ -90,13 +90,8 @@ async function executeWhatsapp() {
   const chatMonitoring = new ChatMonitoring
   await chatMonitoring.monitoring(client)
 
-  const chatMonitoringInternal = new ChatMonitoringInternal
-  await chatMonitoringInternal.monitoring(client)
-
-
-
-
-
+  // const chatMonitoringInternal = new ChatMonitoringInternal
+  // await chatMonitoringInternal.monitoring(client)
   //************************************************ */
 
   client.on('disconnected', (reason) => {

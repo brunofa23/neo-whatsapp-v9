@@ -6,8 +6,11 @@ import { DateTime } from 'luxon';
 
 import ChatMonitoring from './ChatMonitoring/ChatMonitoring'
 import { ClearFolder, DateFormat, ExecutingSendMessage, GenerateRandomTime, TimeSchedule, ValidatePhone } from './util'
+import SendMessageInternal from './SendMessageInternal';
+
 
 async function executeWhatsapp() {
+
 
   const { Client, LocalAuth } = require('whatsapp-web.js');
   const qrcodeTerminal = require('qrcode-terminal');
@@ -77,6 +80,7 @@ async function executeWhatsapp() {
     const state = await client.getState()
     console.log("State:", state)
     await SendMessage(client)
+    //await SendMessageInternal(client)
   });
 
   await sendRepeatedMessage()

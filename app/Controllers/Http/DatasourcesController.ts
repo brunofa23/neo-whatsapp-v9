@@ -1,6 +1,7 @@
 import { Env } from '@ioc:Adonis/Core/Env';
 // import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Database from '@ioc:Adonis/Lucid/Database'
+import Chat from 'App/Models/Chat';
 import Interaction from 'App/Models/Interaction';
 import { DateTime } from 'luxon';
 
@@ -66,27 +67,92 @@ export default class DatasourcesController {
 
 
 
-  async confirmSchedule(id: number) {
-    const date = await DateFormat("dd/MM/yyyy HH:mm:ss", DateTime.local())
+  async confirmSchedule(chat: Chat, chatOtherFields: String = "") {
 
-    const query = `update agm set AGM_CONFIRM_STAT = 'C',
-                   AGM_CONFIRM_OBS='NEO CONFIRMA by CONFIRMA ou CANCELA - WhatsApp em ${date}',
-                   AGM_CONFIRM_USR = 'NEOCONFIRM'
-                   where agm_id = ${id}`
+    const dateNow = await DateFormat("dd/MM/yyyy HH:mm:ss", DateTime.local())
+    const dateSchedule = DateTime.fromFormat(chatOtherFields['schedule'], 'yyyy-MM-dd HH:mm')//converte string para data
+    const startOfDay = await DateFormat("yyyy-MM-dd 00:00", dateSchedule)
+    const endOfDay = await DateFormat("yyyy-MM-dd 23:59", dateSchedule)
+
+    // const query = `update agm set AGM_CONFIRM_STAT = 'C',
+    //                AGM_CONFIRM_OBS='NEO CONFIRMA by CONFIRMA ou CANCELA - WhatsApp em ${date}',
+    //                AGM_CONFIRM_USR = 'NEOCONFIRM'
+    //                where agm_id = ${id}`
     try {
-      //console.log("EXECUTANDO UPDATE NO SMART...", query)
-      const result = await Database.connection('mssql').rawQuery(query)
-
+      //const result = await Database.connection('mssql').rawQuery(query)
+      const query = await Database.connection('mssql')
+        .from('agm')
+        .where('agm_pac', chat.reg)
+        .whereBetween('agm_hini', [startOfDay, endOfDay])
+        .whereNotIn('agm_stat', ['C', 'B'])
+        .whereNotIn('agm_confirm_stat', ['C'])
+        .update({
+          AGM_CONFIRM_STAT: 'C',
+          AGM_CONFIRM_OBS: `NEO CONFIRMA by CONFIRMA ou CANCELA - WhatsApp em ${dateNow}`,
+          AGM_CONFIRM_USR: 'NEOCONFIRM'
+        })
       await Database.manager.close('mssql')
+      console.log("QUERY CONFIRMAÇÃO", query)
+      return query
 
     } catch (error) {
       return error
     }
-
-
-
-
   }
+
+
+
+
+  async cancelSchedule(chat: Chat, chatOtherFields: String = "") {
+    const dateNow = await DateFormat("dd/MM/yyyy HH:mm:ss", DateTime.local())
+    const dateSchedule = DateTime.fromFormat(chatOtherFields['schedule'], 'yyyy-MM-dd HH:mm')//converte string para data
+    const startOfDay = await DateFormat("yyyy-MM-dd 00:00", dateSchedule)
+    const endOfDay = await DateFormat("yyyy-MM-dd 23:59", dateSchedule)
+
+    try {
+      const query = await Database.connection('mssql')
+        .from('agm')
+        .where('agm_pac', chat.reg)
+        .whereBetween('agm_hini', [startOfDay, endOfDay])
+        .whereNotIn('agm_stat', ['C', 'B'])
+        .whereNotIn('agm_confirm_stat', ['C'])
+        .update({
+          AGM_STAT: 'C',
+          AGM_EXT: 1,
+          AGM_CONFIRM_OBS: `Desmarcado por NEO CONFIRMA by CONFIRMA ou CANCELA - WhatsApp em ${dateNow}`,
+          AGM_CANC_USR_LOGIN: 'NEOCONFIRM'
+        })
+      await Database.manager.close('mssql')
+      console.log("QUERY cancelamento", query)
+      return query
+
+    } catch (error) {
+      return error
+    }
+  }
+
+
+
+  // async cancelSchedule(id: number) {
+  //   const date = await DateFormat("dd/MM/yyyy HH:mm:ss", DateTime.local())
+
+  //   const query = `update agm set agm_stat = 'C', agm_ext = 1, agm_confirm_obs = 'Desmarcado por NEOCONFIRM', agm_canc_usr_login = 'NEOCONFIRM',
+  //   agm_canc_dthr = '${date}', agm_canc_mot_cod='IRI',
+  //   WHERE AGM_PAC = 23202 AND agm_hini >'2023-09-01'`
+
+  //   try {
+  //     //console.log("EXECUTANDO UPDATE NO SMART...", query)
+  //     const result = await Database.connection('mssql').rawQuery(query)
+  //     await Database.manager.close('mssql')
+
+  //   } catch (error) {
+  //     return error
+  //   }
+  // }
+
+
+
+
 
 
 }

@@ -2,7 +2,7 @@ import Route from '@ioc:Adonis/Core/Route'
 
 import { executeWhatsapp } from '../app/Services/whatsapp-web/whatsapp'
 
-console.log("***CHAT BOT V-57***")
+console.log("***CHAT BOT V-58***")
 console.log(`***NOME DO CLIENTE: ${process.env.CHAT_NAME}***`)
 executeWhatsapp()
 

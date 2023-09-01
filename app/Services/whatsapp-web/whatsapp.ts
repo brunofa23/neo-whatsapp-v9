@@ -8,6 +8,7 @@ import ChatMonitoring from './ChatMonitoring/ChatMonitoring'
 import { ClearFolder, DateFormat, ExecutingSendMessage, GenerateRandomTime, TimeSchedule, ValidatePhone } from './util'
 import SendMessageInternal from './SendMessageInternal';
 
+import ChatMonitoringInternal from './ChatMonitoring/ChatMonitoringInternal'
 
 async function executeWhatsapp() {
 
@@ -79,8 +80,8 @@ async function executeWhatsapp() {
     console.log('READY...');
     const state = await client.getState()
     console.log("State:", state)
-    await SendMessage(client)
-    //await SendMessageInternal(client)
+    //await SendMessage(client)
+    await SendMessageInternal(client)
 
   });
 
@@ -88,6 +89,13 @@ async function executeWhatsapp() {
   await sendRepeatedMessage()
   const chatMonitoring = new ChatMonitoring
   await chatMonitoring.monitoring(client)
+
+  const chatMonitoringInternal = new ChatMonitoringInternal
+  await chatMonitoringInternal.monitoring(client)
+
+
+
+
 
   //************************************************ */
 

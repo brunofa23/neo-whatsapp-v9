@@ -6,7 +6,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const ShippingcampaignsController_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Controllers/Http/ShippingcampaignsController"));
 const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
 const util_1 = require("../util");
+const ListInternalPhrases_1 = __importDefault(require("../ListInternalPhrases"));
 const ConfirmSchedule_1 = __importDefault(require("./ConfirmSchedule"));
+const luxon_1 = require("luxon");
 async function verifyNumberInternal(phoneVerify) {
     const list_phone_talking = process.env.LIST_PHONES_TALK;
     const list_phones = list_phone_talking?.split(",");
@@ -16,10 +18,27 @@ async function verifyNumberInternal(phoneVerify) {
             return true;
     }
 }
+let dateSendMessageInternal = (0, util_1.DateFormat)("yyyy-MM-dd HH:mm", luxon_1.DateTime.local());
+let dateSendMessageInternalUpdate = (0, util_1.DateFormat)("yyyy-MM-dd HH:mm", luxon_1.DateTime.local());
 class Monitoring {
     async monitoring(client) {
         try {
             client.on('message', async (message) => {
+                console.log("Time Initial:::>>", dateSendMessageInternal);
+                console.log("Time:::>>", dateSendMessageInternalUpdate);
+                if (await verifyNumberInternal(message.from)) {
+                    if (dateSendMessageInternalUpdate <= dateSendMessageInternal) {
+                        dateSendMessageInternal = await (0, util_1.DateFormat)("yyyy-MM-dd HH:mm", luxon_1.DateTime.local());
+                        dateSendMessageInternalUpdate = await luxon_1.DateTime.local().plus({ minutes: 1 });
+                        console.log("REAJUSTANDO.....");
+                        console.log("Time Initial:::>>", dateSendMessageInternal);
+                        console.log("Time:::>>", dateSendMessageInternalUpdate);
+                        const phrase = await (0, ListInternalPhrases_1.default)();
+                        await (0, util_1.stateTyping)(message);
+                        client.sendMessage(message.from, phrase);
+                    }
+                    return;
+                }
                 const chat = await Chat_1.default.query()
                     .preload('shippingcampaign')
                     .where('cellphoneserialized', '=', message.from)

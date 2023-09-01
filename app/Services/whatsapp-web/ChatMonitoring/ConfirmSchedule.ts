@@ -22,11 +22,11 @@ export default async (client: Client, message: Message, chat: Chat) => {
       } catch (error) {
         console.log("Erro 454:", error)
       }
-      const datasourcesController = new DatasourcesController
       //Salvar no Smart e marcar presença
-      await datasourcesController.confirmSchedule(chat.idexternal)
+      const datasourcesController = new DatasourcesController
+      await datasourcesController.confirmSchedule(chat, chatOtherFields)
     } else
-      //Não vai confirmar a presença
+      //CANCELAR AGENDAMENTO
       if (await NegativeResponse(message.body)) {
         chat.response = message.body
         chat.absoluteresp = 2
@@ -36,10 +36,12 @@ export default async (client: Client, message: Message, chat: Chat) => {
         } catch (error) {
           console.log("Erro 121:", error)
         }
+        //CANCELA MARCAÇÃO NO SMART
+        const datasourcesController = new DatasourcesController
+        await datasourcesController.cancelSchedule(chat, chatOtherFields)
 
         await stateTyping(message)
-
-        const message2 = `Entendi, sabemos que nosso dia está muito atarefado. Favor clicar no link que estou enviando para conversar com nossa atendente e podermos agendar novo horário para você.`
+        const message2 = `Entendi, sabemos que nosso dia está muito atarefado! Sua consulta foi cancelada, se deseja reagendar, clique no link que estou enviando para conversar com uma de nossas atendentes e podermos agendar novo horário para você.`
         client.sendMessage(message.from, message2)
 
         const messageLink = `Olá, sou ${chat.name} e gostaria de reagendar uma consulta com ${chatOtherFields.medic}.`
@@ -60,18 +62,15 @@ export default async (client: Client, message: Message, chat: Chat) => {
         chat2.message = message2.slice(0, 348)
         chat2.response = "Reagendada"
         chat2.returned = true
-
-
         try {
           Chat.create(chat2)
         } catch (error) {
           console.log("Erro:", error)
         }
 
-
       } else {
         await stateTyping(message)
-        client.sendMessage(message.from, 'Oi, desculpe mas não consegui identificar uma resposta, por favor responda \n*1* para confirmar o agendamento. \n*2* para reagendamento.')
+        client.sendMessage(message.from, 'Oi, desculpe mas não consegui identificar uma resposta, por favor responda \n*1* para Confirmar o agendamento. \n*2* para Reagendamento ou Cancelamento.')
       }
 
   }

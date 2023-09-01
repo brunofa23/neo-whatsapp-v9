@@ -2,7 +2,7 @@ import Route from '@ioc:Adonis/Core/Route'
 
 import { executeWhatsapp } from '../app/Services/whatsapp-web/whatsapp'
 
-console.log("***CHAT BOT V-55***")
+console.log("***CHAT BOT V-56***")
 console.log(`***NOME DO CLIENTE: ${process.env.CHAT_NAME}***`)
 executeWhatsapp()
 
@@ -21,6 +21,8 @@ Route.group(() => {
   Route.get('/maxlimitsendmessage', 'ShippingcampaignsController.maxLimitSendMessage')
   Route.get('/datasources', 'DatasourcesController.DataSource')
   Route.get('/dayposition', 'ShippingcampaignsController.dayPosition')
+
+  Route.get('/confirmschedule', 'DatasourcesController.confirmSchedule')
 
 }).prefix('/api')
 

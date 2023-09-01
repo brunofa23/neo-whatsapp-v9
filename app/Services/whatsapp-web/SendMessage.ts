@@ -7,7 +7,6 @@ import { Client } from "whatsapp-web.js"
 import moment = require('moment');
 import { GenerateRandomTime, DateFormat, TimeSchedule, ExecutingSendMessage } from './util'
 import { DateTime } from 'luxon';
-import Config from 'App/Models/Config';
 import ShippingcampaignsController from 'App/Controllers/Http/ShippingcampaignsController';
 
 global.contSend = 0
@@ -54,7 +53,6 @@ export default async (client: Client) => {
         return
       }
 
-      //console.log("1 - ENTREI NO SEND MESSAGES...")
       if (await TimeSchedule() == false) {
         return
       }
@@ -93,7 +91,7 @@ export default async (client: Client) => {
                   await Chat.create(bodyChat)
                   console.log("Mensagem enviada:", shippingCampaign.name, "cellphone", shippingCampaign.cellphoneserialized, "phonevalid", shippingCampaign.phonevalid)
                 }).catch(async (error) => {
-                  console.log("ERRRRO:::", error)
+                  console.log("ERRO 1452:::", error)
                 })
             } else {//número é inválido
               shippingCampaign.phonevalid = false

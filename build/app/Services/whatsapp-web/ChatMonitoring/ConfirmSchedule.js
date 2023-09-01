@@ -22,7 +22,7 @@ exports.default = async (client, message, chat) => {
                 console.log("Erro 454:", error);
             }
             const datasourcesController = new DatasourcesController_1.default;
-            await datasourcesController.confirmSchedule(chat.idexternal);
+            await datasourcesController.confirmSchedule(chat, chatOtherFields);
         }
         else if (await (0, util_1.NegativeResponse)(message.body)) {
             chat.response = message.body;
@@ -33,8 +33,10 @@ exports.default = async (client, message, chat) => {
             catch (error) {
                 console.log("Erro 121:", error);
             }
+            const datasourcesController = new DatasourcesController_1.default;
+            await datasourcesController.cancelSchedule(chat, chatOtherFields);
             await (0, util_1.stateTyping)(message);
-            const message2 = `Entendi, sabemos que nosso dia está muito atarefado. Favor clicar no link que estou enviando para conversar com nossa atendente e podermos agendar novo horário para você.`;
+            const message2 = `Entendi, sabemos que nosso dia está muito atarefado! Sua consulta foi cancelada, se deseja reagendar, clique no link que estou enviando para conversar com uma de nossas atendentes e podermos agendar novo horário para você.`;
             client.sendMessage(message.from, message2);
             const messageLink = `Olá, sou ${chat.name} e gostaria de reagendar uma consulta com ${chatOtherFields.medic}.`;
             const phoneNumber = "553132350003";
@@ -62,7 +64,7 @@ exports.default = async (client, message, chat) => {
         }
         else {
             await (0, util_1.stateTyping)(message);
-            client.sendMessage(message.from, 'Oi, desculpe mas não consegui identificar uma resposta, por favor responda \n*1* para confirmar o agendamento. \n*2* para reagendamento.');
+            client.sendMessage(message.from, 'Oi, desculpe mas não consegui identificar uma resposta, por favor responda \n*1* para Confirmar o agendamento. \n*2* para Reagendamento ou Cancelamento.');
         }
     }
 };

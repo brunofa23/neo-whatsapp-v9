@@ -22,7 +22,9 @@ async function verifyNumberInternal(phoneVerify: String) {
 let dateSendMessageInternalUpdate = DateTime.local()
 
 function timeRandom(min: number, max: number): number {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+  const time = Math.floor(Math.random() * (max - min + 1)) + min;
+  console.log("time", time)
+  return time
 }
 
 export default class Monitoring {
@@ -34,10 +36,10 @@ export default class Monitoring {
         if (await verifyNumberInternal(message.from)) {
           // console.log("INTERNAL")
           // console.log("DATA ATUAL:::::>>>>", await DateTime.now().toString())
-          // console.log("DATA ATUALIZADA:::::>>>>", await dateSendMessageInternalUpdate.toString())
+          console.log("HORA DA PRÓXIMA RESPOSTA:::::>>>>", await dateSendMessageInternalUpdate.toString())
 
           if (dateSendMessageInternalUpdate <= DateTime.now()) {
-            const time = await timeRandom(25000, 30000)
+            const time = await timeRandom(120, 240)
             //console.log("TIME", time)
             dateSendMessageInternalUpdate = await DateTime.local().plus({ seconds: time })
             const phrase = await ListInternalPhrases()

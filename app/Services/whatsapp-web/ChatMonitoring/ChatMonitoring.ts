@@ -1,9 +1,9 @@
+import { DateFormat, RandomResponse, stateTyping } from '../util'
+import ConfirmSchedule from './ConfirmSchedule'
 import ShippingcampaignsController from 'App/Controllers/Http/ShippingcampaignsController';
 import Chat from 'App/Models/Chat';
-import { Client } from 'whatsapp-web.js';
-
-import { DateFormat, stateTyping } from '../util'
-import ConfirmSchedule from './ConfirmSchedule'
+import { SendMessage } from 'App/Services/whatsapp-web/SendMessage';
+import { Client, MessageMedia } from 'whatsapp-web.js';
 
 async function verifyNumberInternal(phoneVerify: String) {
   const list_phone_talking = process.env.LIST_PHONES_TALK
@@ -114,8 +114,19 @@ export default class Monitoring {
           }
 
           else {
+
+            // const responseArray = [
+            //   "Desculpe, mas esta conversa já foi encerrada. O Neo Agradece por sua compreensão, maiores esclarecimentos ligue para 31-32350003.",
+            //   "Infelizmente, esta conversa já foi encerrada. O Neo Agradece por sua interação!",
+            //   "Olá, sou apenas uma atendente virtual, para maiores esclarecimentos ligue para 31-32350003.",
+            //   "Desculpe, mas não consigo ajudar com essa solicitação. Esta conversa já foi encerrada. O Neo Agradece por entrar em contato!",
+            //   "Olá, sou apenas uma atendente virtual, desculpe mas esta conversa já foi encerrada. O Neo Agradece! "
+            // ]
+            // const messageRandom = RandomResponse(responseArray)
+
+            // console.log("SEM RESPOSTA>>>>>>", messageRandom)
             await stateTyping(message)
-            client.sendMessage(message.from, "Olá, sou apenas uma atendente virtual, desculpe mas esta conversa já foi encerrada. O Neo Agradece! ")
+            client.sendMessage(message.from, messageRandom)
 
           }
 

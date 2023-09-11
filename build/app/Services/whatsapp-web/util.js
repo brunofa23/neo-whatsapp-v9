@@ -44,6 +44,10 @@ async function NegativeResponse(stringResp) {
         return false;
     }
 }
+async function RandomResponse(arrayResponse) {
+    const index = Math.floor(Math.random() * arrayResponse.length);
+    return arrayResponse[index];
+}
 async function ClearFolder(folderPath) {
     try {
         if (!fs.existsSync(folderPath)) {
@@ -66,5 +70,5 @@ async function ValidatePhone(cellphone) {
     const regexTelefoneCelular = /^(\+55|55)?\s?(?:\(?0?[1-9]{2}\)?)?\s?(?:9\s?)?[6789]\d{3}[-\s]?\d{4}$/;
     return regexTelefoneCelular.test(cellphone);
 }
-module.exports = { stateTyping, DateFormat, GenerateRandomTime, TimeSchedule, PositiveResponse, NegativeResponse, ClearFolder, ValidatePhone };
+module.exports = { stateTyping, DateFormat, GenerateRandomTime, TimeSchedule, PositiveResponse, NegativeResponse, ClearFolder, ValidatePhone, RandomResponse };
 //# sourceMappingURL=util.js.map

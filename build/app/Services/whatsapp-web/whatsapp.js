@@ -15,7 +15,7 @@ async function executeWhatsapp() {
     const qrcode = require('qrcode');
     const path = require('path');
     const client = new Client({
-        authStrategy: new LocalAuth(),
+        authStrategy: new LocalAuth({ clientId: 'Digi3' }),
         puppeteer: {
             args: ['--no-sandbox',
                 '--max-memory=512MB',

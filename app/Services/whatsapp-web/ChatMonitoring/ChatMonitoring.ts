@@ -1,9 +1,10 @@
-import { DateFormat, RandomResponse, stateTyping } from '../util'
-import ConfirmSchedule from './ConfirmSchedule'
 import ShippingcampaignsController from 'App/Controllers/Http/ShippingcampaignsController';
 import Chat from 'App/Models/Chat';
 import { SendMessage } from 'App/Services/whatsapp-web/SendMessage';
 import { Client, MessageMedia } from 'whatsapp-web.js';
+
+import { DateFormat, RandomResponse, stateTyping } from '../util'
+import ConfirmSchedule from './ConfirmSchedule'
 
 async function verifyNumberInternal(phoneVerify: String) {
   const list_phone_talking = process.env.LIST_PHONES_TALK
@@ -115,16 +116,13 @@ export default class Monitoring {
 
           else {
 
-            // const responseArray = [
-            //   "Desculpe, mas esta conversa já foi encerrada. O Neo Agradece por sua compreensão, maiores esclarecimentos ligue para 31-32350003.",
-            //   "Infelizmente, esta conversa já foi encerrada. O Neo Agradece por sua interação!",
-            //   "Olá, sou apenas uma atendente virtual, para maiores esclarecimentos ligue para 31-32350003.",
-            //   "Desculpe, mas não consigo ajudar com essa solicitação. Esta conversa já foi encerrada. O Neo Agradece por entrar em contato!",
-            //   "Olá, sou apenas uma atendente virtual, desculpe mas esta conversa já foi encerrada. O Neo Agradece! "
-            // ]
-            // const messageRandom = RandomResponse(responseArray)
-
-            // console.log("SEM RESPOSTA>>>>>>", messageRandom)
+            const responseArray = [
+              "Desculpe, mas esta conversa já foi encerrada. O Neo Agradece por sua compreensão, maiores esclarecimentos ligue para 31-32350003.",
+              "Infelizmente esta conversa já foi encerrada. O Neo Agradece por sua interação! Maiores esclarecimentos ligue para 31-32350003.",
+              "Olá, sou apenas uma atendente virtual, para maiores esclarecimentos ligue para 31-32350003.",
+              "Olá, sou apenas uma atendente virtual, desculpe mas esta conversa já foi encerrada. Para maiores esclarecimentos ligue para 31-32350003. O Neo Agradece!"
+            ]
+            const messageRandom = await RandomResponse(responseArray)
             await stateTyping(message)
             client.sendMessage(message.from, messageRandom)
 

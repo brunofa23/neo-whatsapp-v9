@@ -39,7 +39,7 @@ export default class Monitoring {
           console.log("HORA DA PRÓXIMA RESPOSTA:::::>>>>", await dateSendMessageInternalUpdate.toString())
 
           if (dateSendMessageInternalUpdate <= DateTime.now()) {
-            const time = await timeRandom(120, 240)
+            const time = await timeRandom(120, 440)
             //console.log("TIME", time)
             dateSendMessageInternalUpdate = await DateTime.local().plus({ seconds: time })
             const phrase = await ListInternalPhrases()

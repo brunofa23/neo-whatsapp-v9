@@ -6,12 +6,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
 const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Shippingcampaign"));
 const VerifyNumber_1 = global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/VerifyNumber");
-const moment = require("moment");
 const util_1 = require("./util");
 const luxon_1 = require("luxon");
 const ShippingcampaignsController_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Controllers/Http/ShippingcampaignsController"));
 global.contSend = 0;
-const yesterday = moment().subtract(1, 'day').format('YYYY-MM-DD');
+const yesterday = luxon_1.DateTime.local().toFormat('yyyy-MM-dd 00:00');
 const startTimeSendMessage = parseInt(process.env.EXECUTE_SEND_MESSAGE);
 const endTimeSendMessage = parseInt(process.env.EXECUTE_SEND_MESSAGE_END);
 exports.default = async (client) => {
@@ -20,7 +19,7 @@ exports.default = async (client) => {
     async function _shippingCampaignList() {
         return await Shippingcampaign_1.default.query()
             .whereNull('phonevalid')
-            .andWhere('created_at', '>=', yesterday).first();
+            .andWhere('created_at', '>', yesterday).first();
     }
     async function verifyContSend() {
         if (global.contSend >= 3) {

@@ -1,19 +1,16 @@
 import { typeServerConfig } from '@ioc:Adonis/Core/Server';
-import { Client } from "whatsapp-web.js"
 import { verifyNumber } from 'App/Services/whatsapp-web/VerifyNumber';
-import { GenerateRandomTime, DateFormat, TimeSchedule, ExecutingSendMessage, stateTyping } from './util'
+import { Client } from "whatsapp-web.js"
 
 import ListInternalPhrases from './ListInternalPhrases';
-
-const startTimeSendMessage = parseInt(process.env.EXECUTE_SEND_MESSAGE)
-const endTimeSendMessage = parseInt(process.env.EXECUTE_SEND_MESSAGE_END)
+import { DateFormat, ExecutingSendMessage, GenerateRandomTime, stateTyping, TimeSchedule } from './util'
 
 async function PhoneInternal() {
   const list_phone_talking = process.env.LIST_PHONES_TALK
   const list_phones = list_phone_talking?.split(",")
   if (list_phones?.length >= 0) {
     const phone = list_phones[Math.floor(Math.random() * list_phones?.length)]
-    console.log("List phones:", phone)
+    //console.log("List phones:", phone)
     return phone
   }
 }
@@ -26,13 +23,18 @@ export default async (client: Client) => {
     if (await TimeSchedule() == false) {
       return
     }
+
+
+    //const groupChat = client.getChatById('120363170786645695');
+    //groupChat.sendMessage("teste......");
     const phrase = await ListInternalPhrases()
     const phone = await PhoneInternal()
     const validationCellPhone = await verifyNumber(client, phone)
     try {
-      await client.sendMessage(validationCellPhone, phrase)
+
+      await client.sendMessage('120363170786645695@g.us', phrase)
         .then(async (response) => {
-          //console.log("Mensagem enviada com sucesso!!")
+          //console.log("Mensagem enviada com sucesso!!", response)
         }).catch(async (error) => {
           //console.log("ERRRRO:::", error)
         })

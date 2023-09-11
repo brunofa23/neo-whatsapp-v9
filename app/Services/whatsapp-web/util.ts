@@ -60,9 +60,8 @@ async function NegativeResponse(stringResp) {
 
 
 async function RandomResponse(arrayResponse: String[]) {
-
-  return Math.floor(Math.random() * arrayResponse.length)
-
+  const index = Math.floor(Math.random() * arrayResponse.length)
+  return arrayResponse[index]
 }
 
 async function ClearFolder(folderPath) {

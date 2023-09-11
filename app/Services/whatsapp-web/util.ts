@@ -59,6 +59,11 @@ async function NegativeResponse(stringResp) {
 }
 
 
+async function RandomResponse(arrayResponse: String[]) {
+  const index = Math.floor(Math.random() * arrayResponse.length)
+  return arrayResponse[index]
+}
+
 async function ClearFolder(folderPath) {
 
   try {
@@ -88,4 +93,4 @@ async function ValidatePhone(cellphone) {
 }
 
 
-module.exports = { stateTyping, DateFormat, GenerateRandomTime, TimeSchedule, PositiveResponse, NegativeResponse, ClearFolder, ValidatePhone }
+module.exports = { stateTyping, DateFormat, GenerateRandomTime, TimeSchedule, PositiveResponse, NegativeResponse, ClearFolder, ValidatePhone, RandomResponse }

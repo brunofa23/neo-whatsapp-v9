@@ -5,12 +5,24 @@ import { logout, sendRepeatedMessage } from 'App/Services/whatsapp-web/SendRepea
 import { DateTime } from 'luxon';
 
 import ChatMonitoring from './ChatMonitoring/ChatMonitoring'
-import { ClearFolder, DateFormat, ExecutingSendMessage, GenerateRandomTime, TimeSchedule, ValidatePhone } from './util'
-import SendMessageInternal from './SendMessageInternal';
-
 import ChatMonitoringInternal from './ChatMonitoring/ChatMonitoringInternal'
+import SendMessageInternal from './SendMessageInternal';
+import { ClearFolder, DateFormat, ExecutingSendMessage, GenerateRandomTime, RandomResponse, TimeSchedule, ValidatePhone } from './util'
 
 async function executeWhatsapp() {
+
+
+  // const responseArray = [
+  //   "Desculpe, mas esta conversa já foi encerrada. O Neo Agradece por sua compreensão, maiores esclarecimentos ligue para 31-32350003.",
+  //   "Infelizmente, esta conversa já foi encerrada. O Neo Agradece por sua interação!",
+  //   "Olá, sou apenas uma atendente virtual, para maiores esclarecimentos ligue para 31-32350003.",
+  //   "Desculpe, mas não consigo ajudar com essa solicitação. Esta conversa já foi encerrada. O Neo Agradece por entrar em contato!",
+  //   "Olá, sou apenas uma atendente virtual, desculpe mas esta conversa já foi encerrada. O Neo Agradece! "
+  // ]
+  // const messageRandom = RandomResponse(responseArray)
+  // console.log("SEM RESPOSTA>>>>>>", messageRandom)
+
+
 
 
   const { Client, LocalAuth } = require('whatsapp-web.js');
@@ -21,7 +33,15 @@ async function executeWhatsapp() {
   const client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: {
-      args: ['--no-sandbox', '--max-memory=512MB'],
+      args: ['--no-sandbox',
+        '--max-memory=512MB',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--no-zygote',
+        '--disable-gpu'
+      ],
       headless: true,
       setRequestInterception: true,
       setBypassCSP: true,
@@ -80,8 +100,12 @@ async function executeWhatsapp() {
     console.log('READY...');
     const state = await client.getState()
     console.log("State:", state)
-    //await SendMessage(client)
-    await SendMessageInternal(client)
+    await SendMessage(client)
+
+    if (process.env.SELF_CONVERSATION?.toLocaleLowerCase() === "true") {
+      console.log("self_conversation", process.env.SELF_CONVERSATION)
+      await SendMessageInternal(client)
+    }
 
   });
 
@@ -90,12 +114,10 @@ async function executeWhatsapp() {
   const chatMonitoring = new ChatMonitoring
   await chatMonitoring.monitoring(client)
 
-  const chatMonitoringInternal = new ChatMonitoringInternal
-  await chatMonitoringInternal.monitoring(client)
-
-
-
-
+  if (process.env.SELF_CONVERSATION?.toLowerCase() === "true") {
+    const chatMonitoringInternal = new ChatMonitoringInternal
+    await chatMonitoringInternal.monitoring(client)
+  }
 
   //************************************************ */
 

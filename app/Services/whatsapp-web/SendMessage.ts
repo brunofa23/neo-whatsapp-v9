@@ -10,7 +10,7 @@ import { DateTime } from 'luxon';
 import ShippingcampaignsController from 'App/Controllers/Http/ShippingcampaignsController';
 
 global.contSend = 0
-const yesterday = moment().subtract(1, 'day').format('YYYY-MM-DD');
+const yesterday = DateTime.local().toFormat('yyyy-MM-dd 00:00')
 const startTimeSendMessage = parseInt(process.env.EXECUTE_SEND_MESSAGE)
 const endTimeSendMessage = parseInt(process.env.EXECUTE_SEND_MESSAGE_END)
 
@@ -19,10 +19,14 @@ export default async (client: Client) => {
   let resetContSendBool = false
 
   async function _shippingCampaignList() {
-    //console.log("2 - PASSANDO PELO SHIPPING CAMPAIGN")
+    // console.log("2 - PASSANDO PELO SHIPPING CAMPAIGN")
+    // console.log("QUERY DO SENDMESSAGE::>>", await Shippingcampaign.query()
+    //   .whereNull('phonevalid')
+    //   .andWhere('created_at', '>', yesterday).toQuery())
+
     return await Shippingcampaign.query()
       .whereNull('phonevalid')
-      .andWhere('created_at', '>=', yesterday).first()
+      .andWhere('created_at', '>', yesterday).first()
   }
 
   async function verifyContSend() {

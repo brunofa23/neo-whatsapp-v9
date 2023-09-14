@@ -12,26 +12,26 @@ export default class DatasourcesController {
 
   //retornar todos as querys de campaign
   async DataSource() {
-
     const interactionList = await Interaction.query().where('status', '=', 1)
-    //console.log("queryList:::", interactionList)
+    let schedulePatientsArray: any[] = []
+    let serviceEvaluationArray: any[] = []
+
     for (const interaction of interactionList) {
       if (interaction.id == 1) {
         await Database.manager.close('mssql')
-        return await this.scheduledPatients()
+        //return await this.scheduledPatients()
+        schedulePatientsArray = await this.scheduledPatients()
       } else
         if (interaction.id == 2) {
-          console.log("AVALIAÇÃO DOS PACIENTES", interaction.name)
+          await Database.manager.close('mssql')
+          serviceEvaluationArray = await this.serviceEvaluation()
         }
       if (interaction.id == 3) {
         console.log("Teste de envio amadurecimento do chip", interaction.name)
-
       }
-
     }
-
-
-
+    const data = [...schedulePatientsArray, ...serviceEvaluationArray]
+    return data
   }
 
   async scheduledPatients() {
@@ -118,9 +118,6 @@ export default class DatasourcesController {
 
 
   async serviceEvaluation() {
-
-    console.log("AVALIAÇÃO DE PACIENTES...")
-
     async function greeting(message: String) {
       const greeting = ['Olá!', 'Oi tudo bem?', 'Saudações!', 'Oi como vai?']
       const presentation = ['Eu me chamo Iris', 'Eu sou a Iris', 'Aqui é a Iris']

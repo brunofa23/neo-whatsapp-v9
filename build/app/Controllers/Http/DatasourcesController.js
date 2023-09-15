@@ -10,22 +10,27 @@ const util_1 = require("../../Services/whatsapp-web/util");
 class DatasourcesController {
     async DataSource() {
         const interactionList = await Interaction_1.default.query().where('status', '=', 1);
+        let schedulePatientsArray = [];
+        let serviceEvaluationArray = [];
         for (const interaction of interactionList) {
             if (interaction.id == 1) {
                 await Database_1.default.manager.close('mssql');
-                return await this.scheduledPatients();
+                schedulePatientsArray = await this.scheduledPatients();
             }
             else if (interaction.id == 2) {
-                console.log("Teste de envio amadurecimento do chip", interaction.name);
+                await Database_1.default.manager.close('mssql');
+                serviceEvaluationArray = await this.serviceEvaluation();
             }
             if (interaction.id == 3) {
-                console.log("AVALIAÇÃO DOS PACIENTES", interaction.name);
+                console.log("Teste de envio amadurecimento do chip", interaction.name);
             }
         }
+        const data = [...schedulePatientsArray, ...serviceEvaluationArray];
+        return data;
     }
     async scheduledPatients() {
         async function greeting(message) {
-            const greeting = ['Olá!', 'Oi tudo bem?', 'Saudações!', 'Oi como vai?'];
+            const greeting = ['Olá!😀', 'Oi tudo bem?😀', 'Saudações!😀', 'Oi como vai?😀'];
             const presentation = ['Eu me chamo Iris', 'Eu sou a Iris', 'Aqui é a Iris'];
             return message.replace('{greeting}', greeting[Math.floor(Math.random() * greeting.length)]).replace('{presentation}', presentation[Math.floor(Math.random() * presentation.length)]);
         }
@@ -98,6 +103,36 @@ class DatasourcesController {
         }
         catch (error) {
             return error;
+        }
+    }
+    async serviceEvaluation() {
+        async function greeting(message) {
+            const greeting = ['Olá!😀', 'Oi tudo bem?😀', 'Saudações!😀', 'Oi como vai?😀'];
+            const question = ['Gostaríamos de avaliar a sua experiência recente em nosso hospital Neo. Em uma escala de *0 a 10*, o quanto você indicaria o nosso Núcleo de Excelência em Oftalmologia a um amigo ou parente?',
+                'Queremos saber mais sobre a sua visita mais recente ao nosso hospital Neo. Em uma escala de *0 a 10*, o quanto você recomendaria o Núcleo de Excelência em Oftalmologia para um amigo ou membro da família?',
+                'Estamos interessados em ouvir sua opinião sobre sua experiência mais recente em nosso hospital Neo. Em uma escala de *0 a 10*, o quanto você indicaria o Núcleo de Excelência em Oftalmologia a alguém que você conhece?',
+                'Queremos entender melhor sua experiência recente em nosso hospital Neo. Em uma escala de *0 a 10*, o quanto você recomendaria o Núcleo de Excelência em Oftalmologia para um amigo ou familiar?',
+            ];
+            return message.replace('{greeting}', greeting[Math.floor(Math.random() * greeting.length)]).replace('{question}', question[Math.floor(Math.random() * question.length)]);
+        }
+        const pacQueryModel = await Interaction_1.default.find(2);
+        const env = process.env.NODE_ENV;
+        let pacQuery;
+        if (env === 'development')
+            pacQuery = pacQueryModel?.querydev;
+        else
+            pacQuery = pacQueryModel?.query;
+        try {
+            const result = await Database_1.default.connection('mssql').rawQuery(pacQuery);
+            for (const data of result) {
+                const message = await greeting(data.message);
+                data.message = message;
+            }
+            await Database_1.default.manager.close('mssql');
+            return result;
+        }
+        catch (error) {
+            return { "ERRO": "ERRO 21221", error };
         }
     }
 }

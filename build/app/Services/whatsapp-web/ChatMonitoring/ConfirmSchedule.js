@@ -13,7 +13,7 @@ exports.default = async (client, message, chat) => {
             await (0, util_1.stateTyping)(message);
             try {
                 client.sendMessage(message.from, `Muito obrigada, seu agendamento foi confirmado, o endereço da sua consulta é ${chatOtherFields.address}. Esperamos por você. Ótimo dia. Lembrando que para qualquer dúvida, estamos disponíveis pelo whatsapp 3132350003.`);
-                chat.response = message.body.slice(0, 255);
+                chat.response = message.body.slice(0, 500);
                 chat.returned = true;
                 chat.absoluteresp = 1;
                 await chat.save();

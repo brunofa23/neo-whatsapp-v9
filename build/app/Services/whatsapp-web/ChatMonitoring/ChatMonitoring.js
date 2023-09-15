@@ -7,6 +7,7 @@ const ShippingcampaignsController_1 = __importDefault(global[Symbol.for('ioc.use
 const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
 const util_1 = require("../util");
 const ConfirmSchedule_1 = __importDefault(require("./ConfirmSchedule"));
+const ServiceEvaluation_1 = __importDefault(require("./ServiceEvaluation"));
 async function verifyNumberInternal(phoneVerify) {
     const list_phone_talking = process.env.LIST_PHONES_TALK;
     const list_phones = list_phone_talking?.split(",");
@@ -47,6 +48,10 @@ class Monitoring {
                     global.contSend--;
                     if (chat.interaction_id == 1) {
                         await (0, ConfirmSchedule_1.default)(client, message, chat);
+                        return;
+                    }
+                    else if (chat.interaction_id == 2) {
+                        await (0, ServiceEvaluation_1.default)(client, message, chat);
                         return;
                     }
                 }

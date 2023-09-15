@@ -5,6 +5,7 @@ import { Client, MessageMedia } from 'whatsapp-web.js';
 
 import { DateFormat, RandomResponse, stateTyping } from '../util'
 import ConfirmSchedule from './ConfirmSchedule'
+import ServiceEvaluation from './ServiceEvaluation';
 
 async function verifyNumberInternal(phoneVerify: String) {
   const list_phone_talking = process.env.LIST_PHONES_TALK
@@ -46,7 +47,7 @@ export default class Monitoring {
           .whereNull('response').first()
 
         if (chat && chat.returned == false) {
-          //console.log("PASSEI PELO RESPOSTA")
+          console.log("PASSEI PELO RESPOSTA INVÁLIDA 15412")
           chat.invalidresponse = message.body.slice(0, 348)
           chat.returned = true
           await chat.save()
@@ -57,6 +58,12 @@ export default class Monitoring {
             await ConfirmSchedule(client, message, chat)
             return
           }
+          else
+            if (chat.interaction_id == 2) {
+              console.log("passei pelo chat2.....14587")
+              await ServiceEvaluation(client, message, chat)
+              return
+            }
 
         } else {
           if (message.body.toUpperCase() === 'OI' || message.body.toUpperCase() === 'OLÁ') {

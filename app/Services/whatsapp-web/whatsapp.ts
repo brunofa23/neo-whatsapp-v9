@@ -11,9 +11,8 @@ import { ClearFolder, DateFormat, ExecutingSendMessage, GenerateRandomTime, Rand
 
 async function executeWhatsapp() {
 
-  await sendRepeatedMessage()
-  return
-
+  //await sendRepeatedMessage()
+  //return
 
   const { Client, LocalAuth } = require('whatsapp-web.js');
   const qrcodeTerminal = require('qrcode-terminal');

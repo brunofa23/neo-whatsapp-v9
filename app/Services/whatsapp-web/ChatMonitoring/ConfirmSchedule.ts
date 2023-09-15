@@ -1,9 +1,8 @@
 import DatasourcesController from 'App/Controllers/Http/DatasourcesController';
 import Chat from 'App/Models/Chat';
 import { Client, Message } from 'whatsapp-web.js';
-
 import { NegativeResponse, PositiveResponse, stateTyping } from '../util'
-import { verifyNumber } from '../VerifyNumber'
+
 
 export default async (client: Client, message: Message, chat: Chat) => {
 
@@ -15,7 +14,7 @@ export default async (client: Client, message: Message, chat: Chat) => {
       await stateTyping(message)//status de digitando...
       try {
         client.sendMessage(message.from, `Muito obrigada, seu agendamento foi confirmado, o endereço da sua consulta é ${chatOtherFields.address}. Esperamos por você. Ótimo dia. Lembrando que para qualquer dúvida, estamos disponíveis pelo whatsapp 3132350003.`)
-        chat.response = message.body.slice(0, 255)
+        chat.response = message.body.slice(0, 500)
         chat.returned = true
         chat.absoluteresp = 1
         await chat.save()

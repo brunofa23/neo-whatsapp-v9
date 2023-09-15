@@ -20,7 +20,6 @@ export default async () => {
   }
   //console.log("DADOS:::", dataSourceList)
   for (const data of dataSourceList) {
-
     try {
       const yesterday = moment().subtract(1, 'day').format('YYYY-MM-DD');
       const shipping = new Shippingcampaign()

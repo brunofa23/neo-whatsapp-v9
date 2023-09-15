@@ -1,8 +1,7 @@
-import { DateTime } from 'luxon';
-
 import PersistShippingcampaign from './PersistShippingcampaign';
 import { DateFormat, GenerateRandomTime, TimeSchedule } from './util'
 import Config from 'App/Models/Config';
+import { DateTime } from 'luxon';
 
 async function sendRepeatedMessage() {
   const startTimeSendMessageRepeated = parseInt(process.env.EXECUTE_SEND_REPEATED_MESSAGE)

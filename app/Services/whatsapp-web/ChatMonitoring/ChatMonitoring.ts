@@ -47,7 +47,6 @@ export default class Monitoring {
           .whereNull('response').first()
 
         if (chat && chat.returned == false) {
-          console.log("PASSEI PELO RESPOSTA INVÁLIDA 15412")
           chat.invalidresponse = message.body.slice(0, 348)
           chat.returned = true
           await chat.save()
@@ -60,7 +59,6 @@ export default class Monitoring {
           }
           else
             if (chat.interaction_id == 2) {
-              console.log("passei pelo chat2.....14587")
               await ServiceEvaluation(client, message, chat)
               return
             }

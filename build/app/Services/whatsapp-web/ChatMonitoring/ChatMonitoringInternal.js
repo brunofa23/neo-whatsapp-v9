@@ -3,9 +3,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const luxon_1 = require("luxon");
 const ListInternalPhrases_1 = __importDefault(require("../ListInternalPhrases"));
 const util_1 = require("../util");
+const luxon_1 = require("luxon");
 async function verifyNumberInternal(phoneVerify) {
     const list_phone_talking = process.env.LIST_PHONES_TALK;
     const list_phones = list_phone_talking?.split(",");

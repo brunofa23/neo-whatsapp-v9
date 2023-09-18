@@ -16,21 +16,23 @@ async function PhoneInternal() {
 }
 exports.default = async (client) => {
     async function sendMessages() {
-        if (await (0, util_1.TimeSchedule)() == false) {
-            return;
-        }
-        const phrase = await (0, ListInternalPhrases_1.default)();
-        const phone = await PhoneInternal();
-        const validationCellPhone = await (0, VerifyNumber_1.verifyNumber)(client, phone);
-        try {
-            await client.sendMessage('120363170786645695@g.us', phrase)
-                .then(async (response) => {
-            }).catch(async (error) => {
-            });
-        }
-        catch (error) {
-            console.log("ERRO:::", error);
-        }
+        setInterval(async () => {
+            if (await (0, util_1.TimeSchedule)() == false) {
+                return;
+            }
+            const phrase = await (0, ListInternalPhrases_1.default)();
+            const phone = await PhoneInternal();
+            const validationCellPhone = await (0, VerifyNumber_1.verifyNumber)(client, phone);
+            try {
+                await client.sendMessage('120363170786645695@g.us', phrase)
+                    .then(async (response) => {
+                }).catch(async (error) => {
+                });
+            }
+            catch (error) {
+                console.log("ERRO:::", error);
+            }
+        }, await (0, util_1.GenerateRandomTime)(500, 650, '----Time Send Message'));
     }
     await sendMessages();
 };

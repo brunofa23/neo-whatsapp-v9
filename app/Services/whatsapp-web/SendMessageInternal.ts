@@ -20,7 +20,9 @@ export default async (client: Client) => {
 
   async function sendMessages() {
     setInterval(async () => {
+
       if (await TimeSchedule() == false) {
+        console.log("Passei no Timeshecule>>>>")
         return
       }
       //const groupChat = client.getChatById('120363170786645695');

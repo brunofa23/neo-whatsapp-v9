@@ -1,10 +1,9 @@
+import ListInternalPhrases from '../ListInternalPhrases';
+import { DateFormat, stateTyping } from '../util'
 import ShippingcampaignsController from 'App/Controllers/Http/ShippingcampaignsController';
 import Chat from 'App/Models/Chat';
 import { DateTime } from 'luxon';
 import { Client } from 'whatsapp-web.js';
-
-import ListInternalPhrases from '../ListInternalPhrases';
-import { DateFormat, stateTyping } from '../util'
 
 async function verifyNumberInternal(phoneVerify: String) {
   const list_phone_talking = process.env.LIST_PHONES_TALK

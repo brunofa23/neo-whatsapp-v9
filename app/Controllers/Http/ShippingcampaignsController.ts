@@ -97,6 +97,7 @@ export default class ShippingcampaignsController {
 
   public async dayPosition() {
 
+    console.log("ENTREI NO DAYPOSITION..")
     const startDate = await DateFormat("yyyy-MM-dd 00:00:00", DateTime.local())
     const endDate = await DateFormat("yyyy-MM-dd 23:59:00", DateTime.local())
 

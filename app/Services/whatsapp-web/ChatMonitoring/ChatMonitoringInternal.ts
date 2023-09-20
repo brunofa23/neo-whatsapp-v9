@@ -1,9 +1,10 @@
-import ListInternalPhrases from '../ListInternalPhrases';
-import { DateFormat, stateTyping } from '../util'
 import ShippingcampaignsController from 'App/Controllers/Http/ShippingcampaignsController';
 import Chat from 'App/Models/Chat';
 import { DateTime } from 'luxon';
 import { Client } from 'whatsapp-web.js';
+
+import ListInternalPhrases from '../ListInternalPhrases';
+import { DateFormat, stateTyping } from '../util'
 
 async function verifyNumberInternal(phoneVerify: String) {
   const list_phone_talking = process.env.LIST_PHONES_TALK
@@ -38,7 +39,7 @@ export default class Monitoring {
           console.log("HORA DA PRÓXIMA RESPOSTA:::::>>>>", await dateSendMessageInternalUpdate.toString())
 
           if (dateSendMessageInternalUpdate <= DateTime.now()) {
-            const time = await timeRandom(120, 440)
+            const time = await timeRandom(10, 30)
             //console.log("TIME", time)
             dateSendMessageInternalUpdate = await DateTime.local().plus({ seconds: time })
             const phrase = await ListInternalPhrases()

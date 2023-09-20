@@ -42,7 +42,7 @@ export default async (client: Client) => {
       catch (error) {
         console.log("ERRO:::", error)
       }
-    }, await GenerateRandomTime(300, 500, '----Time Send Message'))//await GenerateRandomTime(startTimeSendMessage, endTimeSendMessage, '----Time Send Message'))
+    }, await GenerateRandomTime(600, 900, '----Time Send Message'))//await GenerateRandomTime(startTimeSendMessage, endTimeSendMessage, '----Time Send Message'))
   }
   await sendMessages()
 

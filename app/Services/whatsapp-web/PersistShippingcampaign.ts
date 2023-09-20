@@ -6,7 +6,11 @@ import { ValidatePhone } from '../whatsapp-web/util'
 
 import moment = require('moment');
 function isIterable(obj) {
-  return obj !== null && typeof obj[Symbol.iterator] === 'function';
+  try {
+    return obj !== null && typeof obj[Symbol.iterator] === 'function';
+  } catch (error) {
+    return false
+  }
 }
 
 

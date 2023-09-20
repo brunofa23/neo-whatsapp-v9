@@ -16,22 +16,27 @@ export default class DatasourcesController {
     let schedulePatientsArray: any[] = []
     let serviceEvaluationArray: any[] = []
 
-    for (const interaction of interactionList) {
-      if (interaction.id == 1) {
-        await Database.manager.close('mssql')
-        //return await this.scheduledPatients()
-        schedulePatientsArray = await this.scheduledPatients()
-      } else
-        if (interaction.id == 2) {
+    try {
+      for (const interaction of interactionList) {
+        if (interaction.id == 1) {
           await Database.manager.close('mssql')
-          serviceEvaluationArray = await this.serviceEvaluation()
+          //return await this.scheduledPatients()
+          schedulePatientsArray = await this.scheduledPatients()
+        } else
+          if (interaction.id == 2) {
+            await Database.manager.close('mssql')
+            serviceEvaluationArray = await this.serviceEvaluation()
+          }
+        if (interaction.id == 3) {
+          console.log("Teste de envio amadurecimento do chip", interaction.name)
         }
-      if (interaction.id == 3) {
-        console.log("Teste de envio amadurecimento do chip", interaction.name)
       }
+      const data = [...schedulePatientsArray, ...serviceEvaluationArray]
+      return data
     }
-    const data = [...schedulePatientsArray, ...serviceEvaluationArray]
-    return data
+    catch (error) {
+      return
+    }
   }
 
   async scheduledPatients() {

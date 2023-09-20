@@ -18,6 +18,7 @@ exports.default = async (client) => {
     async function sendMessages() {
         setInterval(async () => {
             if (await (0, util_1.TimeSchedule)() == false) {
+                console.log("Passei no Timeshecule>>>>");
                 return;
             }
             const phrase = await (0, ListInternalPhrases_1.default)();
@@ -32,7 +33,7 @@ exports.default = async (client) => {
             catch (error) {
                 console.log("ERRO:::", error);
             }
-        }, await (0, util_1.GenerateRandomTime)(500, 650, '----Time Send Message'));
+        }, await (0, util_1.GenerateRandomTime)(300, 500, '----Time Send Message'));
     }
     await sendMessages();
 };

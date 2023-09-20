@@ -103,7 +103,9 @@ class Monitoring {
                         ];
                         const messageRandom = await (0, util_1.RandomResponse)(responseArray);
                         await (0, util_1.stateTyping)(message);
+                        await (0, util_1.stateTyping)(message);
                         client.sendMessage(message.from, messageRandom);
+                        return;
                     }
                 }
             });

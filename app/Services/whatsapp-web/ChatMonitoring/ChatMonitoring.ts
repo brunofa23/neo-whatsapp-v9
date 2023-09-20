@@ -1,5 +1,6 @@
 import ShippingcampaignsController from 'App/Controllers/Http/ShippingcampaignsController';
 import Chat from 'App/Models/Chat';
+import Shippingcampaign from 'App/Models/Shippingcampaign';
 import { SendMessage } from 'App/Services/whatsapp-web/SendMessage';
 import { Client, MessageMedia } from 'whatsapp-web.js';
 
@@ -16,6 +17,7 @@ async function verifyNumberInternal(phoneVerify: String) {
     if (phoneVerify === phone)
       return true
   }
+
 
 }
 
@@ -115,7 +117,6 @@ export default class Monitoring {
           // }
 
           else if (message.body === 'PinChat') {
-
             console.log("CLIENTE", message)
           }
 
@@ -129,7 +130,9 @@ export default class Monitoring {
             ]
             const messageRandom = await RandomResponse(responseArray)
             await stateTyping(message)
+            await stateTyping(message)
             client.sendMessage(message.from, messageRandom)
+            return
 
           }
 

@@ -20,7 +20,9 @@ export default async (client: Client) => {
 
   async function sendMessages() {
     setInterval(async () => {
+
       if (await TimeSchedule() == false) {
+        console.log("Passei no Timeshecule>>>>")
         return
       }
       //const groupChat = client.getChatById('120363170786645695');
@@ -40,7 +42,7 @@ export default async (client: Client) => {
       catch (error) {
         console.log("ERRO:::", error)
       }
-    }, await GenerateRandomTime(500, 650, '----Time Send Message'))//await GenerateRandomTime(startTimeSendMessage, endTimeSendMessage, '----Time Send Message'))
+    }, await GenerateRandomTime(300, 500, '----Time Send Message'))//await GenerateRandomTime(startTimeSendMessage, endTimeSendMessage, '----Time Send Message'))
   }
   await sendMessages()
 

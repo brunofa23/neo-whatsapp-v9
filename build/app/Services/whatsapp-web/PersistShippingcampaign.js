@@ -8,7 +8,12 @@ const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Mo
 const util_1 = require("../whatsapp-web/util");
 const moment = require("moment");
 function isIterable(obj) {
-    return obj !== null && typeof obj[Symbol.iterator] === 'function';
+    try {
+        return obj !== null && typeof obj[Symbol.iterator] === 'function';
+    }
+    catch (error) {
+        return false;
+    }
 }
 exports.default = async () => {
     const dataSource = new DatasourcesController_1.default;

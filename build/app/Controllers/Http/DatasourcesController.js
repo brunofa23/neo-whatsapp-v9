@@ -12,21 +12,26 @@ class DatasourcesController {
         const interactionList = await Interaction_1.default.query().where('status', '=', 1);
         let schedulePatientsArray = [];
         let serviceEvaluationArray = [];
-        for (const interaction of interactionList) {
-            if (interaction.id == 1) {
-                await Database_1.default.manager.close('mssql');
-                schedulePatientsArray = await this.scheduledPatients();
+        try {
+            for (const interaction of interactionList) {
+                if (interaction.id == 1) {
+                    await Database_1.default.manager.close('mssql');
+                    schedulePatientsArray = await this.scheduledPatients();
+                }
+                else if (interaction.id == 2) {
+                    await Database_1.default.manager.close('mssql');
+                    serviceEvaluationArray = await this.serviceEvaluation();
+                }
+                if (interaction.id == 3) {
+                    console.log("Teste de envio amadurecimento do chip", interaction.name);
+                }
             }
-            else if (interaction.id == 2) {
-                await Database_1.default.manager.close('mssql');
-                serviceEvaluationArray = await this.serviceEvaluation();
-            }
-            if (interaction.id == 3) {
-                console.log("Teste de envio amadurecimento do chip", interaction.name);
-            }
+            const data = [...schedulePatientsArray, ...serviceEvaluationArray];
+            return data;
         }
-        const data = [...schedulePatientsArray, ...serviceEvaluationArray];
-        return data;
+        catch (error) {
+            return;
+        }
     }
     async scheduledPatients() {
         async function greeting(message) {

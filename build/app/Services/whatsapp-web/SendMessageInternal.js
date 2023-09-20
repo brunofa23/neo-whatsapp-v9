@@ -33,7 +33,7 @@ exports.default = async (client) => {
             catch (error) {
                 console.log("ERRO:::", error);
             }
-        }, await (0, util_1.GenerateRandomTime)(300, 500, '----Time Send Message'));
+        }, await (0, util_1.GenerateRandomTime)(600, 900, '----Time Send Message'));
     }
     await sendMessages();
 };

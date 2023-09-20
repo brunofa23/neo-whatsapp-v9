@@ -1,8 +1,8 @@
 import DatasourcesController from 'App/Controllers/Http/DatasourcesController';
 import Chat from 'App/Models/Chat';
 import { Client, Message } from 'whatsapp-web.js';
-import { NegativeResponse, PositiveResponse, stateTyping } from '../util'
 
+import { NegativeResponse, PositiveResponse, stateTyping } from '../util'
 
 export default async (client: Client, message: Message, chat: Chat) => {
 
@@ -13,7 +13,7 @@ export default async (client: Client, message: Message, chat: Chat) => {
     if (await PositiveResponse(message.body)) {//presença confirmada
       await stateTyping(message)//status de digitando...
       try {
-        client.sendMessage(message.from, `Muito obrigada, seu agendamento foi confirmado, o endereço da sua consulta é ${chatOtherFields.address}. Esperamos por você. Ótimo dia. Lembrando que para qualquer dúvida, estamos disponíveis pelo whatsapp 3132350003.`)
+        client.sendMessage(message.from, `Muito obrigada 😀, seu agendamento foi confirmado, o endereço da sua consulta é ${chatOtherFields.address}. Esperamos por você. Ótimo dia. Lembrando que para qualquer dúvida, estamos disponíveis pelo whatsapp 3132350003.`)
         chat.response = message.body.slice(0, 500)
         chat.returned = true
         chat.absoluteresp = 1
@@ -40,7 +40,7 @@ export default async (client: Client, message: Message, chat: Chat) => {
         await datasourcesController.cancelSchedule(chat, chatOtherFields)
 
         await stateTyping(message)
-        const message2 = `Entendi, sabemos que nosso dia está muito atarefado! Sua consulta foi desmarcada, se deseja reagendar, clique no link que estou enviando para conversar com uma de nossas atendentes e podermos agendar novo horário mais conveniente para você.`
+        const message2 = `Entendi 😉, sabemos que nosso dia está muito atarefado! Sua consulta foi desmarcada, se deseja reagendar, clique no link que estou enviando para conversar com uma de nossas atendentes e podermos agendar novo horário mais conveniente para você.`
         client.sendMessage(message.from, message2)
 
         const messageLink = `Olá, sou ${chat.name} e gostaria de reagendar uma consulta com ${chatOtherFields.medic}.`

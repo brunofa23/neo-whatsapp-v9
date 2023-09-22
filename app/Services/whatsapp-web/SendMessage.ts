@@ -74,6 +74,7 @@ export default async (client: Client) => {
             if (validationCellPhone) {
               await client.sendMessage(validationCellPhone, shippingCampaign.message)
                 .then(async (response) => {
+                  //console.log("RESPONSE 552>>>>>>>>>>", response)
                   global.contSend++
                   shippingCampaign.messagesent = true
                   shippingCampaign.phonevalid = true

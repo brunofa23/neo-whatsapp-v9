@@ -40,7 +40,6 @@ export default class ShippingcampaignsController {
       const maxLimitSendMessage =
         await Shippingcampaign.query()
           .where('messagesent', '=', '1')
-
       return maxLimitSendMessage
     } catch (error) {
       return error
@@ -57,11 +56,9 @@ export default class ShippingcampaignsController {
       .countDistinct('shippingcampaigns_id as tot')
       .where('chatname', String(chatName))
       .whereBetween('created_at', [dateStart, dateEnd]).first()
-
     if (!countMessage || countMessage == undefined || countMessage == null)
       return 0
     return parseInt(countMessage.$extras.tot)
-
   }
 
   public async resetWhatsapp() {
@@ -95,7 +92,8 @@ export default class ShippingcampaignsController {
   }
 
 
-  public async dayPosition() {
+  public async dayPosition(period: String = "") {
+
 
     console.log("ENTREI NO DAYPOSITION..")
     const startDate = await DateFormat("yyyy-MM-dd 00:00:00", DateTime.local())

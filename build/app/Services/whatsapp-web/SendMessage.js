@@ -3,13 +3,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const ShippingcampaignsController_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Controllers/Http/ShippingcampaignsController"));
+const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
 const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
 const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Shippingcampaign"));
 const VerifyNumber_1 = global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/VerifyNumber");
-const util_1 = require("./util");
 const luxon_1 = require("luxon");
-const ShippingcampaignsController_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Controllers/Http/ShippingcampaignsController"));
-const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
+const util_1 = require("./util");
 global.contSend = 0;
 const yesterday = luxon_1.DateTime.local().toFormat('yyyy-MM-dd 00:00');
 let startTimeSendMessage = parseInt(process.env.EXECUTE_SEND_MESSAGE);
@@ -53,6 +53,7 @@ exports.default = async (client) => {
         setInterval(async () => {
             const agent = await getAgent(process.env.CHAT_NAME);
             const totMessageSend = await countLimitSendMessage();
+            console.log("Max limit message:", agent.max_limit_message, "startTimeSendMessage:", startTimeSendMessage, "endTimeSendMessage:", endTimeSendMessage);
             if (totMessageSend >= agent.max_limit_message) {
                 console.log(`LIMITE DE ENVIO DIÁRIO ATINGIDO, Enviados:${totMessageSend} - Limite Máximo:${agent.max_limit_message}`);
                 return;

@@ -53,7 +53,7 @@ async function executeWhatsapp() {
   client.on('qr', async (qr) => {
 
     agent.status = "Qrcode require"
-    agent.save()
+    await agent.save()
 
     setTimeout(() => {
 
@@ -113,7 +113,7 @@ async function executeWhatsapp() {
     }
 
     agent.status = state
-    agent.save()
+    await agent.save()
 
   });
 
@@ -129,12 +129,12 @@ async function executeWhatsapp() {
 
   //************************************************ */
 
-  client.on('disconnected', (reason) => {
+  client.on('disconnected', async (reason) => {
     console.log("EXECUTANDO DISCONECT")
     console.log("REASON>>>", reason)
 
     agent.status = 'Disconnected - banned'
-    agent.save()
+    await agent.save()
     // Destroy and reinitialize the client when disconnected
     client.destroy();
     client.initialize();

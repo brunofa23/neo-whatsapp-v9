@@ -1,14 +1,13 @@
 import { typeServerConfig } from '@ioc:Adonis/Core/Server';
+import ShippingcampaignsController from 'App/Controllers/Http/ShippingcampaignsController';
+import Agent from 'App/Models/Agent';
 import Chat from "App/Models/Chat"
 import Shippingcampaign from "App/Models/Shippingcampaign"
 import { verifyNumber } from 'App/Services/whatsapp-web/VerifyNumber';
+import { DateTime } from 'luxon';
 import { Client } from "whatsapp-web.js"
 
-import { GenerateRandomTime, DateFormat, TimeSchedule, ExecutingSendMessage } from './util'
-import { DateTime } from 'luxon';
-import ShippingcampaignsController from 'App/Controllers/Http/ShippingcampaignsController';
-import Agent from 'App/Models/Agent';
-
+import { DateFormat, ExecutingSendMessage, GenerateRandomTime, TimeSchedule } from './util'
 
 global.contSend = 0
 const yesterday = DateTime.local().toFormat('yyyy-MM-dd 00:00')
@@ -58,6 +57,8 @@ export default async (client: Client) => {
     setInterval(async () => {
       const agent: Agent = await getAgent(process.env.CHAT_NAME)
       const totMessageSend = await countLimitSendMessage()
+
+      console.log("Max limit message:", agent.max_limit_message, "startTimeSendMessage:", startTimeSendMessage, "endTimeSendMessage:", endTimeSendMessage)
       if (totMessageSend >= agent.max_limit_message) {
         console.log(`LIMITE DE ENVIO DIÁRIO ATINGIDO, Enviados:${totMessageSend} - Limite Máximo:${agent.max_limit_message}`)
         return

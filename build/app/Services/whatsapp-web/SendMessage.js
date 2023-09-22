@@ -9,13 +9,24 @@ const VerifyNumber_1 = global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/
 const util_1 = require("./util");
 const luxon_1 = require("luxon");
 const ShippingcampaignsController_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Controllers/Http/ShippingcampaignsController"));
+const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
 global.contSend = 0;
 const yesterday = luxon_1.DateTime.local().toFormat('yyyy-MM-dd 00:00');
-const startTimeSendMessage = parseInt(process.env.EXECUTE_SEND_MESSAGE);
-const endTimeSendMessage = parseInt(process.env.EXECUTE_SEND_MESSAGE_END);
+let startTimeSendMessage = parseInt(process.env.EXECUTE_SEND_MESSAGE);
+let endTimeSendMessage = parseInt(process.env.EXECUTE_SEND_MESSAGE_END);
 exports.default = async (client) => {
     let resetContSend = luxon_1.DateTime.local();
     let resetContSendBool = false;
+    async function getAgent(chatName) {
+        const agent = await Agent_1.default.findBy('name', chatName);
+        if (!agent || agent == undefined) {
+            console.log("Erro: Verifique o chatnumer");
+            return;
+        }
+        startTimeSendMessage = agent.interval_init_message;
+        endTimeSendMessage = agent.interval_final_message;
+        return agent;
+    }
     async function _shippingCampaignList() {
         return await Shippingcampaign_1.default.query()
             .whereNull('phonevalid')
@@ -38,12 +49,12 @@ exports.default = async (client) => {
         const value = await shippingcampaignsController.maxLimitSendMessage();
         return value;
     }
-    const maxLimitSendMessage = parseInt(process.env.MAX_LIMIT_SEND_MESSAGE);
     async function sendMessages() {
         setInterval(async () => {
+            const agent = await getAgent(process.env.CHAT_NAME);
             const totMessageSend = await countLimitSendMessage();
-            if (totMessageSend >= maxLimitSendMessage) {
-                console.log(`LIMITE DE ENVIO DIÁRIO ATINGIDO, Enviados:${totMessageSend} - Limite Máximo:${maxLimitSendMessage}`);
+            if (totMessageSend >= agent.max_limit_message) {
+                console.log(`LIMITE DE ENVIO DIÁRIO ATINGIDO, Enviados:${totMessageSend} - Limite Máximo:${agent.max_limit_message}`);
                 return;
             }
             if (await (0, util_1.TimeSchedule)() == false) {

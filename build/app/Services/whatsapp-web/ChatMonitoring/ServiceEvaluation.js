@@ -7,7 +7,7 @@ exports.default = async (client, message, chat) => {
         const notes = message.body.match(/\d+/g);
         if (notes === null || notes.length == 0 || notes == undefined) {
             await (0, util_1.stateTyping)(message);
-            client.sendMessage(message.from, `Desculpe, não consegui identificar sua nota. Por favor poderia responder uma nota entre 0 a 10?`);
+            client.sendMessage(message.from, `Desculpe,😔 não consegui identificar sua nota. Por favor poderia responder uma nota entre 0 a 10?`);
             return;
         }
         if (Helpers_1.types.isInteger(parseInt(notes[0]))) {
@@ -17,7 +17,7 @@ exports.default = async (client, message, chat) => {
             chat.interaction_seq = 2;
             await chat.save();
             await (0, util_1.stateTyping)(message);
-            client.sendMessage(message.from, `Consegue nos dizer o que motivou a sua nota ${notes[0]}? Caso não queira responder digite 9 para finalizar essa etapa.`);
+            client.sendMessage(message.from, `Consegue nos dizer o que motivou a sua nota ${notes[0]}? Tudo bem se não quiser responder, digite 9 para finalizar essa etapa.`);
             console.log(message.body);
             return;
         }

@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
 const SendMessage_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/SendMessage"));
 const SendRepeatedMessage_1 = global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/SendRepeatedMessage");
 const ChatMonitoring_1 = __importDefault(require("./ChatMonitoring/ChatMonitoring"));
@@ -10,6 +11,11 @@ const ChatMonitoringInternal_1 = __importDefault(require("./ChatMonitoring/ChatM
 const SendMessageInternal_1 = __importDefault(require("./SendMessageInternal"));
 const util_1 = require("./util");
 async function executeWhatsapp() {
+    const agent = await Agent_1.default.findBy('name', process.env.CHAT_NAME);
+    if (!agent || agent == undefined) {
+        console.log("CHATNAME INVÁLIDO - Verifique o .env Chatname está igual ao name tabela Agents");
+        return;
+    }
     const { Client, LocalAuth } = require('whatsapp-web.js');
     const qrcodeTerminal = require('qrcode-terminal');
     const qrcode = require('qrcode');
@@ -36,24 +42,32 @@ async function executeWhatsapp() {
     client.on('loading_screen', (percent, message) => {
         console.log('LOADING SCREEN', percent, message);
     });
-    client.on('qr', (qr) => {
-        qrcodeTerminal.generate(qr, { small: true });
-        const folderPath = path.resolve(__dirname, "../../../");
-        const qrcodePath = path.join(folderPath, "/qrcode", 'qrcode.png');
-        (0, util_1.ClearFolder)(qrcodePath);
-        qrcode.toFile(qrcodePath, qr, { small: true }, (err) => {
-            if (err) {
-                console.error('Ocorreu um erro ao gerar o arquivo do código QR:', err);
-                return;
-            }
-            console.log('Arquivo do código QR foi gerado com sucesso:');
-        });
+    client.on('qr', async (qr) => {
+        agent.status = "Qrcode require";
+        agent.save();
+        setTimeout(() => {
+            qrcodeTerminal.generate(qr, { small: true });
+            const folderPath = path.resolve(__dirname, "../../../");
+            const qrcodePath = path.join(folderPath, "/qrcode", 'qrcode.png');
+            (0, util_1.ClearFolder)(qrcodePath);
+            qrcode.toFile(qrcodePath, qr, { small: true }, (err) => {
+                if (err) {
+                    console.error('Ocorreu um erro ao gerar o arquivo do código QR:', err);
+                    return;
+                }
+                console.log('Arquivo do código QR foi gerado com sucesso:');
+            });
+        }, 5000);
     });
     client.on('authenticated', () => {
         console.log('AUTHENTICATED');
+        agent.status = 'Authenticated';
+        agent.save();
     });
     client.on('auth_failure', msg => {
         console.error('AUTHENTICATION FAILURE', msg);
+        agent.status = 'Authentication Failure';
+        agent.save();
     });
     await client.on('ready', async () => {
         console.log('READY...');
@@ -64,6 +78,8 @@ async function executeWhatsapp() {
             console.log("self_conversation", process.env.SELF_CONVERSATION);
             await (0, SendMessageInternal_1.default)(client);
         }
+        agent.status = state;
+        agent.save();
     });
     await (0, SendRepeatedMessage_1.sendRepeatedMessage)();
     const chatMonitoring = new ChatMonitoring_1.default;
@@ -75,6 +91,8 @@ async function executeWhatsapp() {
     client.on('disconnected', (reason) => {
         console.log("EXECUTANDO DISCONECT");
         console.log("REASON>>>", reason);
+        agent.status = 'Disconnected - banned';
+        agent.save();
         client.destroy();
         client.initialize();
     });

@@ -1,4 +1,5 @@
 import Application from '@ioc:Adonis/Core/Application'
+import Agent from 'App/Models/Agent';
 import Config from 'App/Models/Config';
 import SendMessage from 'App/Services/whatsapp-web/SendMessage'
 import { logout, sendRepeatedMessage } from 'App/Services/whatsapp-web/SendRepeatedMessage';
@@ -40,9 +41,9 @@ async function executeWhatsapp() {
 
 
   client.initialize();
-
   client.on('loading_screen', (percent, message) => {
     console.log('LOADING SCREEN', percent, message);
+
 
   });
 

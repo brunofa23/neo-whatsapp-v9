@@ -86,7 +86,7 @@ export default class DatasourcesController {
           AGM_CONFIRM_USR: 'NEOCONFIRM'
         })
       await Database.manager.close('mssql')
-      console.log("QUERY CONFIRMAÇÃO", query)
+      //console.log("QUERY CONFIRMAÇÃO", query)
       return query
 
     } catch (error) {
@@ -113,7 +113,7 @@ export default class DatasourcesController {
           AGM_CANC_USR_LOGIN: 'NEOCONFIRM'
         })
       await Database.manager.close('mssql')
-      console.log("QUERY cancelamento", query)
+      //console.log("QUERY cancelamento", query)
       return query
 
     } catch (error) {

@@ -1,4 +1,5 @@
 import Application from '@ioc:Adonis/Core/Application'
+import Agent from 'App/Models/Agent';
 import Config from 'App/Models/Config';
 import SendMessage from 'App/Services/whatsapp-web/SendMessage'
 import { logout, sendRepeatedMessage } from 'App/Services/whatsapp-web/SendRepeatedMessage';
@@ -13,6 +14,11 @@ async function executeWhatsapp() {
 
   //await sendRepeatedMessage()
   //return
+  const agent = await Agent.findBy('name', process.env.CHAT_NAME)
+  if (!agent || agent == undefined) {
+    console.log("CHATNAME INVÁLIDO - Verifique o .env Chatname está igual ao name tabela Agents")
+    return
+  }
 
   const { Client, LocalAuth } = require('whatsapp-web.js');
   const qrcodeTerminal = require('qrcode-terminal');
@@ -40,26 +46,32 @@ async function executeWhatsapp() {
 
 
   client.initialize();
-
   client.on('loading_screen', (percent, message) => {
     console.log('LOADING SCREEN', percent, message);
-
   });
 
-  client.on('qr', (qr) => {
+  client.on('qr', async (qr) => {
 
-    qrcodeTerminal.generate(qr, { small: true });
+    agent.status = "Qrcode require"
+    agent.save()
 
-    const folderPath = path.resolve(__dirname, "../../../");
-    const qrcodePath = path.join(folderPath, "/qrcode", 'qrcode.png')
-    ClearFolder(qrcodePath)
-    qrcode.toFile(qrcodePath, qr, { small: true }, (err) => {
-      if (err) {
-        console.error('Ocorreu um erro ao gerar o arquivo do código QR:', err);
-        return;
-      }
-      console.log('Arquivo do código QR foi gerado com sucesso:');
-    });
+    setTimeout(() => {
+
+      qrcodeTerminal.generate(qr, { small: true });
+      const folderPath = path.resolve(__dirname, "../../../");
+      const qrcodePath = path.join(folderPath, "/qrcode", 'qrcode.png')
+      ClearFolder(qrcodePath)
+      qrcode.toFile(qrcodePath, qr, { small: true }, (err) => {
+        if (err) {
+          console.error('Ocorreu um erro ao gerar o arquivo do código QR:', err);
+          return;
+        }
+        console.log('Arquivo do código QR foi gerado com sucesso:');
+      });
+
+    }, 5000);
+
+
 
     // qrcode.toDataURL(qr, { small: true }, (err, url) => {
     //   if (err) {
@@ -78,11 +90,15 @@ async function executeWhatsapp() {
 
   client.on('authenticated', () => {
     console.log('AUTHENTICATED');
+    agent.status = 'Authenticated'
+    agent.save()
   });
 
   client.on('auth_failure', msg => {
     // Fired if session restore was unsuccessful
     console.error('AUTHENTICATION FAILURE', msg);
+    agent.status = 'Authentication Failure'
+    agent.save()
   });
 
   await client.on('ready', async () => {
@@ -95,6 +111,9 @@ async function executeWhatsapp() {
       console.log("self_conversation", process.env.SELF_CONVERSATION)
       await SendMessageInternal(client)
     }
+
+    agent.status = state
+    agent.save()
 
   });
 
@@ -113,6 +132,9 @@ async function executeWhatsapp() {
   client.on('disconnected', (reason) => {
     console.log("EXECUTANDO DISCONECT")
     console.log("REASON>>>", reason)
+
+    agent.status = 'Disconnected - banned'
+    agent.save()
     // Destroy and reinitialize the client when disconnected
     client.destroy();
     client.initialize();

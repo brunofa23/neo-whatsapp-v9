@@ -23,7 +23,6 @@ async function verifyNumberInternal(phoneVerify: String) {
 
 export default class Monitoring {
   async monitoring(client: Client) {
-
     try {
       client.on('message', async message => {
 

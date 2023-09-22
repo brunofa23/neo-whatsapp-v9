@@ -58,7 +58,7 @@ export default async (client: Client) => {
       const agent: Agent = await getAgent(process.env.CHAT_NAME)
       const totMessageSend = await countLimitSendMessage()
 
-      console.log("Max limit message:", agent.max_limit_message, "startTimeSendMessage:", startTimeSendMessage, "endTimeSendMessage:", endTimeSendMessage)
+      //console.log("Max limit message:", agent.max_limit_message, "startTimeSendMessage:", startTimeSendMessage, "endTimeSendMessage:", endTimeSendMessage)
       if (totMessageSend >= agent.max_limit_message) {
         console.log(`LIMITE DE ENVIO DIÁRIO ATINGIDO, Enviados:${totMessageSend} - Limite Máximo:${agent.max_limit_message}`)
         return

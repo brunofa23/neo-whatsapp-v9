@@ -72,7 +72,7 @@ class ShippingcampaignsController {
             return error;
         }
     }
-    async dayPosition() {
+    async dayPosition(period = "") {
         console.log("ENTREI NO DAYPOSITION..");
         const startDate = await (0, util_1.DateFormat)("yyyy-MM-dd 00:00:00", luxon_1.DateTime.local());
         const endDate = await (0, util_1.DateFormat)("yyyy-MM-dd 23:59:00", luxon_1.DateTime.local());

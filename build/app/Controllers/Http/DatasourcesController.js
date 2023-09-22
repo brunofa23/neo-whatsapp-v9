@@ -77,7 +77,6 @@ class DatasourcesController {
                 AGM_CONFIRM_USR: 'NEOCONFIRM'
             });
             await Database_1.default.manager.close('mssql');
-            console.log("QUERY CONFIRMAÇÃO", query);
             return query;
         }
         catch (error) {
@@ -103,7 +102,6 @@ class DatasourcesController {
                 AGM_CANC_USR_LOGIN: 'NEOCONFIRM'
             });
             await Database_1.default.manager.close('mssql');
-            console.log("QUERY cancelamento", query);
             return query;
         }
         catch (error) {
@@ -114,7 +112,7 @@ class DatasourcesController {
         async function greeting(message) {
             const greeting = ['Olá!😀', 'Oi tudo bem?😀', 'Saudações!😀', 'Oi como vai?😀'];
             const question = ['Gostaríamos de avaliar a sua experiência recente em nosso hospital Neo. Em uma escala de *0 a 10*, o quanto você indicaria o nosso Núcleo de Excelência em Oftalmologia a um amigo ou parente?',
-                'Queremos saber mais sobre a sua visita mais recente ao nosso hospital Neo. Em uma escala de *0 a 10*, o quanto você recomendaria o Núcleo de Excelência em Oftalmologia para um amigo ou membro da família?',
+                'Queremos saber mais sobre a sua consulta mais recente ao nosso hospital Neo. Em uma escala de *0 a 10*, o quanto você recomendaria o Núcleo de Excelência em Oftalmologia para um amigo ou membro da família?',
                 'Estamos interessados em ouvir sua opinião sobre sua experiência mais recente em nosso hospital Neo. Em uma escala de *0 a 10*, o quanto você indicaria o Núcleo de Excelência em Oftalmologia a alguém que você conhece?',
                 'Queremos entender melhor sua experiência recente em nosso hospital Neo. Em uma escala de *0 a 10*, o quanto você recomendaria o Núcleo de Excelência em Oftalmologia para um amigo ou familiar?',
             ];

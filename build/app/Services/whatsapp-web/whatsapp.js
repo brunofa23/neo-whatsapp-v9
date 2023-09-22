@@ -44,7 +44,7 @@ async function executeWhatsapp() {
     });
     client.on('qr', async (qr) => {
         agent.status = "Qrcode require";
-        agent.save();
+        await agent.save();
         setTimeout(() => {
             qrcodeTerminal.generate(qr, { small: true });
             const folderPath = path.resolve(__dirname, "../../../");
@@ -79,7 +79,7 @@ async function executeWhatsapp() {
             await (0, SendMessageInternal_1.default)(client);
         }
         agent.status = state;
-        agent.save();
+        await agent.save();
     });
     await (0, SendRepeatedMessage_1.sendRepeatedMessage)();
     const chatMonitoring = new ChatMonitoring_1.default;
@@ -88,11 +88,11 @@ async function executeWhatsapp() {
         const chatMonitoringInternal = new ChatMonitoringInternal_1.default;
         await chatMonitoringInternal.monitoring(client);
     }
-    client.on('disconnected', (reason) => {
+    client.on('disconnected', async (reason) => {
         console.log("EXECUTANDO DISCONECT");
         console.log("REASON>>>", reason);
         agent.status = 'Disconnected - banned';
-        agent.save();
+        await agent.save();
         client.destroy();
         client.initialize();
     });

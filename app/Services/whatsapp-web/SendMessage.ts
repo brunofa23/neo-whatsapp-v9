@@ -4,26 +4,33 @@ import Shippingcampaign from "App/Models/Shippingcampaign"
 import { verifyNumber } from 'App/Services/whatsapp-web/VerifyNumber';
 import { Client } from "whatsapp-web.js"
 
-import moment = require('moment');
 import { GenerateRandomTime, DateFormat, TimeSchedule, ExecutingSendMessage } from './util'
 import { DateTime } from 'luxon';
 import ShippingcampaignsController from 'App/Controllers/Http/ShippingcampaignsController';
+import Agent from 'App/Models/Agent';
+
 
 global.contSend = 0
 const yesterday = DateTime.local().toFormat('yyyy-MM-dd 00:00')
-const startTimeSendMessage = parseInt(process.env.EXECUTE_SEND_MESSAGE)
-const endTimeSendMessage = parseInt(process.env.EXECUTE_SEND_MESSAGE_END)
+let startTimeSendMessage = parseInt(process.env.EXECUTE_SEND_MESSAGE)
+let endTimeSendMessage = parseInt(process.env.EXECUTE_SEND_MESSAGE_END)
 
 export default async (client: Client) => {
   let resetContSend = DateTime.local()
   let resetContSendBool = false
 
-  async function _shippingCampaignList() {
-    // console.log("2 - PASSANDO PELO SHIPPING CAMPAIGN")
-    // console.log("QUERY DO SENDMESSAGE::>>", await Shippingcampaign.query()
-    //   .whereNull('phonevalid')
-    //   .andWhere('created_at', '>', yesterday).toQuery())
+  async function getAgent(chatName: string) {
+    const agent = await Agent.findBy('name', chatName)
+    if (!agent || agent == undefined) {
+      console.log("Erro: Verifique o chatnumer")
+      return
+    }
+    startTimeSendMessage = agent.interval_init_message
+    endTimeSendMessage = agent.interval_final_message
+    return agent
+  }
 
+  async function _shippingCampaignList() {
     return await Shippingcampaign.query()
       .whereNull('phonevalid')
       .andWhere('created_at', '>', yesterday).first()
@@ -47,16 +54,14 @@ export default async (client: Client) => {
     const value = await shippingcampaignsController.maxLimitSendMessage()
     return value
   }
-  const maxLimitSendMessage: number = parseInt(process.env.MAX_LIMIT_SEND_MESSAGE)
-
   async function sendMessages() {
     setInterval(async () => {
+      const agent: Agent = await getAgent(process.env.CHAT_NAME)
       const totMessageSend = await countLimitSendMessage()
-      if (totMessageSend >= maxLimitSendMessage) {
-        console.log(`LIMITE DE ENVIO DIÁRIO ATINGIDO, Enviados:${totMessageSend} - Limite Máximo:${maxLimitSendMessage}`)
+      if (totMessageSend >= agent.max_limit_message) {
+        console.log(`LIMITE DE ENVIO DIÁRIO ATINGIDO, Enviados:${totMessageSend} - Limite Máximo:${agent.max_limit_message}`)
         return
       }
-
       if (await TimeSchedule() == false) {
         return
       }
@@ -74,7 +79,6 @@ export default async (client: Client) => {
             if (validationCellPhone) {
               await client.sendMessage(validationCellPhone, shippingCampaign.message)
                 .then(async (response) => {
-                  //console.log("RESPONSE 552>>>>>>>>>>", response)
                   global.contSend++
                   shippingCampaign.messagesent = true
                   shippingCampaign.phonevalid = true
@@ -106,11 +110,8 @@ export default async (client: Client) => {
           catch (error) {
             console.log("ERRO:::", error)
           }
-
         }
-
       }
-      //console.log("4 - SAI DO SEND MESSAGES...")
     }, await GenerateRandomTime(startTimeSendMessage, endTimeSendMessage, '----Time Send Message'))
   }
 

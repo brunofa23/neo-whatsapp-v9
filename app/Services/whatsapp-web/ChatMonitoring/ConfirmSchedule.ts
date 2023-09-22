@@ -1,8 +1,7 @@
+import { NegativeResponse, PositiveResponse, stateTyping } from '../util'
 import DatasourcesController from 'App/Controllers/Http/DatasourcesController';
 import Chat from 'App/Models/Chat';
 import { Client, Message } from 'whatsapp-web.js';
-
-import { NegativeResponse, PositiveResponse, stateTyping } from '../util'
 
 export default async (client: Client, message: Message, chat: Chat) => {
 

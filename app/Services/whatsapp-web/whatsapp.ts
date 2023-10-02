@@ -14,6 +14,7 @@ async function executeWhatsapp() {
 
   //await sendRepeatedMessage()
   //return
+  return
   const agent = await Agent.findBy('name', process.env.CHAT_NAME)
   if (!agent || agent == undefined) {
     console.log("CHATNAME INVÁLIDO - Verifique o .env Chatname está igual ao name tabela Agents")

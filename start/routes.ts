@@ -21,6 +21,8 @@ Route.group(() => {
   Route.get('/maxlimitsendmessage', 'ShippingcampaignsController.maxLimitSendMessage')
   Route.get('/datasources', 'DatasourcesController.DataSource')
   Route.get('/dayposition', 'ShippingcampaignsController.dayPosition')
+  Route.get('/dateposition', 'ShippingcampaignsController.datePosition')
+
   Route.get('/confirmschedule', 'DatasourcesController.confirmSchedule')
   Route.get('/serviceevaluation', 'DatasourcesController.serviceEvaluation')
 

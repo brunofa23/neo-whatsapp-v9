@@ -11,6 +11,15 @@ async function stateTyping(message: Message) {
 }
 
 async function DateFormat(format, date = DateTime.local()) {
+
+  // if (DateTime.fromISO(date).isValid) {
+  //   console.log("DATA É VALIDAAAAAAAAAAAA", date, format)
+  //   console.log(date.toFormat(format))
+  //   //return date.toFormat(format);
+  // }
+  // else
+  //   throw new Error('A data fornecida não é válida. Certifique-se de passar um objeto DateTime.');
+
   // Verificar se a data é válida
   //const formattedDate = dateFormat("dd/MM/yyyy HH:mm:ss");
 

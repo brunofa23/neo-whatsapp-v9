@@ -147,21 +147,30 @@ export default class ShippingcampaignsController {
 
     const { initialdate, finaldate } = request.only(['initialdate', 'finaldate'])
 
-    const result = await Database.connection('mssql2').query()
-      .select(Database.raw('CONVERT(date, shippingcampaigns.created_at) as dataPeriodo'))
-      .select(Database.raw('COUNT(*) as totalDiario'))
-      .select(Database.raw('SUM(CASE WHEN phonevalid = 1 THEN 1 ELSE 0 END) as telefonesValidos'))
-      .select(Database.raw('SUM(CASE WHEN messagesent = 1 THEN 1 ELSE 0 END) as telefonesEnviados'))
-      .select(Database.raw('SUM(CASE WHEN returned = 1 THEN 1 ELSE 0 END) AS mensagensRetornadas'))
-      .select(Database.raw('SUM(CASE WHEN absoluteresp = 1 THEN 1 ELSE 0 END) AS confirmacoes'))
-      .select(Database.raw('SUM(CASE WHEN absoluteresp = 2 THEN 1 ELSE 0 END) AS reagendamentos'))
-      .from('shippingcampaigns')
-      .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
-      .whereBetween('shippingcampaigns.created_at', ['2023-09-01', '2023-09-30 23:59'])
-      .groupByRaw('CONVERT(date, shippingcampaigns.created_at)')
-      .orderByRaw(Database.raw('CONVERT(date, shippingcampaigns.created_at)'))
+    if (!DateTime.fromISO(initialdate).isValid || !DateTime.fromISO(finaldate).isValid) {
+      throw new Error("Datas inválidas.")
+    }
 
-    return response.status(201).send(result)
+    try {
+      const result = await Database.connection('mssql2').query()
+        .select(Database.raw('CONVERT(date, shippingcampaigns.created_at) as dataPeriodo'))
+        .select(Database.raw('COUNT(*) as totalDiario'))
+        .select(Database.raw('SUM(CASE WHEN phonevalid = 1 THEN 1 ELSE 0 END) as telefonesValidos'))
+        .select(Database.raw('SUM(CASE WHEN messagesent = 1 THEN 1 ELSE 0 END) as telefonesEnviados'))
+        .select(Database.raw('SUM(CASE WHEN returned = 1 THEN 1 ELSE 0 END) AS mensagensRetornadas'))
+        .select(Database.raw('SUM(CASE WHEN absoluteresp = 1 THEN 1 ELSE 0 END) AS confirmacoes'))
+        .select(Database.raw('SUM(CASE WHEN absoluteresp = 2 THEN 1 ELSE 0 END) AS reagendamentos'))
+        .from('shippingcampaigns')
+        .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
+        .whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
+        .groupByRaw('CONVERT(date, shippingcampaigns.created_at)')
+        .orderByRaw(Database.raw('CONVERT(date, shippingcampaigns.created_at)'))
+
+      return response.status(201).send(result)
+    } catch (error) {
+      throw new Error(error)
+    }
+
 
   }
 

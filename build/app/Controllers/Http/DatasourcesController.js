@@ -88,6 +88,10 @@ class DatasourcesController {
         const dateSchedule = luxon_1.DateTime.fromFormat(chatOtherFields['schedule'], 'yyyy-MM-dd HH:mm');
         const startOfDay = await (0, util_1.DateFormat)("yyyy-MM-dd 00:00", dateSchedule);
         const endOfDay = await (0, util_1.DateFormat)("yyyy-MM-dd 23:59", dateSchedule);
+        let _invalidResponse = "";
+        if (await (0, util_1.InvalidResponse)(chat.invalidresponse) == false) {
+            _invalidResponse = chat.invalidresponse;
+        }
         try {
             const query = await Database_1.default.connection('mssql')
                 .from('agm')
@@ -96,10 +100,11 @@ class DatasourcesController {
                 .whereNotIn('agm_stat', ['C', 'B'])
                 .whereNotIn('agm_confirm_stat', ['C'])
                 .update({
-                AGM_STAT: 'C',
-                AGM_EXT: 1,
-                AGM_CONFIRM_OBS: `Desmarcado por NEO CONFIRMA by CONFIRMA ou CANCELA - WhatsApp em ${dateNow}`,
-                AGM_CANC_USR_LOGIN: 'NEOCONFIRM'
+                AGM_CONFIRM_STAT: 'N',
+                AGM_CONFIRM_USR: 'NEOCONFIRM',
+                AGM_CONFIRM_OBS: _invalidResponse + ` (Desmarcado por NEO CONFIRMA by CONFIRMA ou CANCELA - WhatsApp em ${dateNow})`,
+                AGM_CONFIRM_DTHR: dateNow,
+                AGM_CONFIRM_MOC: 'IRI'
             });
             await Database_1.default.manager.close('mssql');
             return query;

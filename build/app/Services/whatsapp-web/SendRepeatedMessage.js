@@ -3,11 +3,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const PersistShippingcampaign_1 = __importDefault(require("./PersistShippingcampaign"));
-const util_1 = require("./util");
+const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
 const Config_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Config"));
 const luxon_1 = require("luxon");
-const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
+const PersistShippingcampaign_1 = __importDefault(require("./PersistShippingcampaign"));
+const util_1 = require("./util");
 async function sendRepeatedMessage() {
     let startTimeSendMessageRepeated = parseInt(process.env.EXECUTE_SEND_REPEATED_MESSAGE);
     let endtTimeSendMessageRepeated = parseInt(process.env.EXECUTE_SEND_REPEATED_MESSAGE_END);

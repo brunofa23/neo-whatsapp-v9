@@ -12,21 +12,9 @@ async function stateTyping(message: Message) {
 
 async function DateFormat(format, date = DateTime.local()) {
 
-  // if (DateTime.fromISO(date).isValid) {
-  //   console.log("DATA É VALIDAAAAAAAAAAAA", date, format)
-  //   console.log(date.toFormat(format))
-  //   //return date.toFormat(format);
-  // }
-  // else
-  //   throw new Error('A data fornecida não é válida. Certifique-se de passar um objeto DateTime.');
-
-  // Verificar se a data é válida
-  //const formattedDate = dateFormat("dd/MM/yyyy HH:mm:ss");
-
   if (!(date instanceof DateTime)) {
     throw new Error('A data fornecida não é válida. Certifique-se de passar um objeto DateTime.');
   }
-
   // Formatando a data no formato especificado
   return date.toFormat(format);
 }
@@ -60,10 +48,24 @@ async function PositiveResponse(inputString) {
 }
 
 async function NegativeResponse(stringResp) {
-  const positive = /(2|não|nao|cancelar|reagenda)/i;
+  const positive = /(2|não|nao|cancelar|reagenda|desmarcar)/i;
   if (positive.test(stringResp)) {
     return true
   } else {
+    return false
+  }
+
+}
+
+async function InvalidResponse(stringResp) {
+
+  //console.log("DENTRO DO INVALID RESPONSE>>", stringResp)
+  const positive = /sim|não|1|2|pode confirmar|confirmada/ig;
+  if (positive.test(stringResp)) {
+    //console.log("RETORNOU TRUE")
+    return true
+  } else {
+    //console.log("RETORNOU FALSE")
     return false
   }
 
@@ -104,4 +106,4 @@ async function ValidatePhone(cellphone) {
 }
 
 
-module.exports = { stateTyping, DateFormat, GenerateRandomTime, TimeSchedule, PositiveResponse, NegativeResponse, ClearFolder, ValidatePhone, RandomResponse }
+module.exports = { stateTyping, DateFormat, GenerateRandomTime, TimeSchedule, PositiveResponse, NegativeResponse, ClearFolder, ValidatePhone, RandomResponse, InvalidResponse }

@@ -48,7 +48,7 @@ export default async () => {
         .first()
 
       if (!verifyExist) {
-        //console.log("Adicionado>>>", verifyExist)
+        //console.log("Adicionado>>>", shipping)
         await Shippingcampaign.create(shipping)
       }
 

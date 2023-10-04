@@ -36,7 +36,16 @@ async function PositiveResponse(inputString) {
     }
 }
 async function NegativeResponse(stringResp) {
-    const positive = /(2|não|nao|cancelar|reagenda)/i;
+    const positive = /(2|não|nao|cancelar|reagenda|desmarcar)/i;
+    if (positive.test(stringResp)) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+async function InvalidResponse(stringResp) {
+    const positive = /sim|não|1|2|pode confirmar|confirmada/ig;
     if (positive.test(stringResp)) {
         return true;
     }
@@ -70,5 +79,5 @@ async function ValidatePhone(cellphone) {
     const regexTelefoneCelular = /^(\+55|55)?\s?(?:\(?0?[1-9]{2}\)?)?\s?(?:9\s?)?[6789]\d{3}[-\s]?\d{4}$/;
     return regexTelefoneCelular.test(cellphone);
 }
-module.exports = { stateTyping, DateFormat, GenerateRandomTime, TimeSchedule, PositiveResponse, NegativeResponse, ClearFolder, ValidatePhone, RandomResponse };
+module.exports = { stateTyping, DateFormat, GenerateRandomTime, TimeSchedule, PositiveResponse, NegativeResponse, ClearFolder, ValidatePhone, RandomResponse, InvalidResponse };
 //# sourceMappingURL=util.js.map

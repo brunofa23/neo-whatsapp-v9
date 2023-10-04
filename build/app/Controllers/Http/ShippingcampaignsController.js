@@ -109,6 +109,31 @@ class ShippingcampaignsController {
         };
         return result;
     }
+    async datePosition({ request, response }) {
+        const { initialdate, finaldate } = request.only(['initialdate', 'finaldate']);
+        if (!luxon_1.DateTime.fromISO(initialdate).isValid || !luxon_1.DateTime.fromISO(finaldate).isValid) {
+            throw new Error("Datas inválidas.");
+        }
+        try {
+            const result = await Database_1.default.connection('mssql2').query()
+                .select(Database_1.default.raw('CONVERT(date, shippingcampaigns.created_at) as dataPeriodo'))
+                .select(Database_1.default.raw('COUNT(*) as totalDiario'))
+                .select(Database_1.default.raw('SUM(CASE WHEN phonevalid = 1 THEN 1 ELSE 0 END) as telefonesValidos'))
+                .select(Database_1.default.raw('SUM(CASE WHEN messagesent = 1 THEN 1 ELSE 0 END) as mensagensEnviadas'))
+                .select(Database_1.default.raw('SUM(CASE WHEN returned = 1 THEN 1 ELSE 0 END) AS mensagensRetornadas'))
+                .select(Database_1.default.raw('SUM(CASE WHEN absoluteresp = 1 THEN 1 ELSE 0 END) AS confirmacoes'))
+                .select(Database_1.default.raw('SUM(CASE WHEN absoluteresp = 2 THEN 1 ELSE 0 END) AS reagendamentos'))
+                .from('shippingcampaigns')
+                .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
+                .whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
+                .groupByRaw('CONVERT(date, shippingcampaigns.created_at)')
+                .orderByRaw(Database_1.default.raw('CONVERT(date, shippingcampaigns.created_at)'));
+            return response.status(201).send(result);
+        }
+        catch (error) {
+            throw new Error(error);
+        }
+    }
 }
 exports.default = ShippingcampaignsController;
 //# sourceMappingURL=ShippingcampaignsController.js.map

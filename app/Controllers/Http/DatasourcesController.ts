@@ -5,7 +5,7 @@ import Chat from 'App/Models/Chat';
 import Interaction from 'App/Models/Interaction';
 import { DateTime } from 'luxon';
 
-import { DateFormat } from '../../Services/whatsapp-web/util'
+import { DateFormat, InvalidResponse } from '../../Services/whatsapp-web/util'
 
 export default class DatasourcesController {
 
@@ -99,6 +99,11 @@ export default class DatasourcesController {
     const startOfDay = await DateFormat("yyyy-MM-dd 00:00", dateSchedule)
     const endOfDay = await DateFormat("yyyy-MM-dd 23:59", dateSchedule)
 
+    let _invalidResponse = ""
+    if (await InvalidResponse(chat.invalidresponse) == false) {
+      _invalidResponse = chat.invalidresponse
+    }
+
     try {
       const query = await Database.connection('mssql')
         .from('agm')
@@ -107,10 +112,15 @@ export default class DatasourcesController {
         .whereNotIn('agm_stat', ['C', 'B'])
         .whereNotIn('agm_confirm_stat', ['C'])
         .update({
-          AGM_STAT: 'C',
-          AGM_EXT: 1,
-          AGM_CONFIRM_OBS: `Desmarcado por NEO CONFIRMA by CONFIRMA ou CANCELA - WhatsApp em ${dateNow}`,
-          AGM_CANC_USR_LOGIN: 'NEOCONFIRM'
+          AGM_CONFIRM_STAT: 'N',
+          AGM_CONFIRM_USR: 'NEOCONFIRM',
+          //AGM_STAT: 'A',
+          //AGM_EXT: 1,
+          //AGM_CONFIRM_OBS: `Desmarcado por NEO CONFIRMA by CONFIRMA ou CANCELA - WhatsApp em ${dateNow}`,
+          AGM_CONFIRM_OBS: _invalidResponse + ` (Desmarcado por NEO CONFIRMA by CONFIRMA ou CANCELA - WhatsApp em ${dateNow})`,
+          AGM_CONFIRM_DTHR: dateNow,
+          AGM_CONFIRM_MOC: 'IRI'
+          //AGM_CANC_USR_LOGIN: 'NEOCONFIRM'
         })
       await Database.manager.close('mssql')
       //console.log("QUERY cancelamento", query)

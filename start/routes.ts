@@ -22,6 +22,7 @@ Route.group(() => {
   Route.get('/datasources', 'DatasourcesController.DataSource')
   Route.get('/dayposition', 'ShippingcampaignsController.dayPosition')
   Route.get('/dateposition', 'ShippingcampaignsController.datePosition')
+  Route.get('/datepositionsynthetic', 'ShippingcampaignsController.datePositionSynthetic')
 
   Route.get('/confirmschedule', 'DatasourcesController.confirmSchedule')
   Route.get('/serviceevaluation', 'DatasourcesController.serviceEvaluation')

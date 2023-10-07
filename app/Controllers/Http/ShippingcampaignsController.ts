@@ -203,6 +203,31 @@ export default class ShippingcampaignsController {
   }
 
 
+  public async listShippingCampaigns({ request, response }: HttpContextContract) {
+
+    const { initialdate, finaldate } = request.only(['initialdate', 'finaldate'])
+    if (!DateTime.fromISO(initialdate).isValid || !DateTime.fromISO(finaldate).isValid) {
+      throw new Error("Datas inválidas.")
+    }
+    try {
+      const result = await Database.connection('mssql2').query()
+
+      //     SELECT shippingcampaigns.interaction_id, shippingcampaigns.reg, shippingcampaigns.name, shippingcampaigns.cellphone, otherfields, phonevalid, messagesent, shippingcampaigns.created_at,
+      //       response, returned, invalidresponse, chatname, absoluteresp FROM shippingcampaigns LEFT OUTER JOIN chats ON(shippingcampaigns.id = chats.shippingcampaigns_id)
+      // WHERE shippingcampaigns.created_at >= '2023-10-05'
+      // AND shippingcampaigns.interaction_id = 2
+
+
+
+      return response.status(201).send(result)
+    } catch (error) {
+      throw new Error(error)
+    }
+
+
+  }
+
+
 
 
 

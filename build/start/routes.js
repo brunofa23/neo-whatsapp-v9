@@ -22,6 +22,7 @@ Route_1.default.group(() => {
     Route_1.default.get('/datasources', 'DatasourcesController.DataSource');
     Route_1.default.get('/dayposition', 'ShippingcampaignsController.dayPosition');
     Route_1.default.get('/dateposition', 'ShippingcampaignsController.datePosition');
+    Route_1.default.get('/datepositionsynthetic', 'ShippingcampaignsController.datePositionSynthetic');
     Route_1.default.get('/confirmschedule', 'DatasourcesController.confirmSchedule');
     Route_1.default.get('/serviceevaluation', 'DatasourcesController.serviceEvaluation');
 }).prefix('/api');

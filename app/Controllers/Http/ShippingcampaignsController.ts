@@ -211,12 +211,25 @@ export default class ShippingcampaignsController {
     }
     try {
       const result = await Database.connection('mssql2').query()
-
-      //     SELECT shippingcampaigns.interaction_id, shippingcampaigns.reg, shippingcampaigns.name, shippingcampaigns.cellphone, otherfields, phonevalid, messagesent, shippingcampaigns.created_at,
-      //       response, returned, invalidresponse, chatname, absoluteresp FROM shippingcampaigns LEFT OUTER JOIN chats ON(shippingcampaigns.id = chats.shippingcampaigns_id)
-      // WHERE shippingcampaigns.created_at >= '2023-10-05'
-      // AND shippingcampaigns.interaction_id = 2
-
+        .from('shippingcampaigns')
+        .select(
+          'shippingcampaigns.interaction_id',
+          'shippingcampaigns.reg',
+          'shippingcampaigns.name',
+          'shippingcampaigns.cellphone',
+          'otherfields',
+          'phonevalid',
+          'messagesent',
+          'shippingcampaigns.created_at',
+          'response',
+          'returned',
+          'invalidresponse',
+          'chatname',
+          'absoluteresp'
+        )
+        .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
+        .whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
+        .where('shippingcampaigns.interaction_id', 1)
 
 
       return response.status(201).send(result)

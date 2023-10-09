@@ -156,6 +156,24 @@ class ShippingcampaignsController {
             throw new Error(error);
         }
     }
+    async listShippingCampaigns({ request, response }) {
+        const { initialdate, finaldate } = request.only(['initialdate', 'finaldate']);
+        if (!luxon_1.DateTime.fromISO(initialdate).isValid || !luxon_1.DateTime.fromISO(finaldate).isValid) {
+            throw new Error("Datas inválidas.");
+        }
+        try {
+            const result = await Database_1.default.connection('mssql2').query()
+                .from('shippingcampaigns')
+                .select('shippingcampaigns.interaction_id', 'shippingcampaigns.reg', 'shippingcampaigns.name', 'shippingcampaigns.cellphone', 'otherfields', 'phonevalid', 'messagesent', 'chats.created_at', 'response', 'returned', 'invalidresponse', 'chatname', 'absoluteresp')
+                .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
+                .whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
+                .where('shippingcampaigns.interaction_id', 1);
+            return response.status(201).send(result);
+        }
+        catch (error) {
+            throw new Error(error);
+        }
+    }
 }
 exports.default = ShippingcampaignsController;
 //# sourceMappingURL=ShippingcampaignsController.js.map

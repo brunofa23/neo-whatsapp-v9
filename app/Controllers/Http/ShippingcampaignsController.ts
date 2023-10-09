@@ -220,7 +220,7 @@ export default class ShippingcampaignsController {
           'otherfields',
           'phonevalid',
           'messagesent',
-          'shippingcampaigns.created_at',
+          'chats.created_at',
           'response',
           'returned',
           'invalidresponse',

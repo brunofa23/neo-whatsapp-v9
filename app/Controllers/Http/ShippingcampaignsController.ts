@@ -214,13 +214,13 @@ export default class ShippingcampaignsController {
     console.log("phonevalid", phonevalid)
 
     let query = ""
-    if (phonevalid && phonevalid !== undefined)
-      query += ` phonevalid=${phonevalid}`
-
+    if (phonevalid && phonevalid !== undefined) {
+      const _phonevalid = phonevalid == 'true' ? 1 : 0
+      query += ` phonevalid=${_phonevalid}`
+    }
     if (invalidresponse) {
       query += ` invalidresponse not in ('1', '2', 'Sim', 'Não')`
     }
-
     if (absoluteresp) {
       query += ` absoluteresp in (1,2) `
     }

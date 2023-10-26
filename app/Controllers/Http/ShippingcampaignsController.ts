@@ -4,7 +4,7 @@ import { executeWhatsapp } from '../../Services/whatsapp-web/whatsapp'
 import Chat from 'App/Models/Chat'
 import Database from '@ioc:Adonis/Lucid/Database'
 
-import { DateFormat } from '../../Services/whatsapp-web/util'
+import { DateFormat, InvalidResponse } from '../../Services/whatsapp-web/util'
 import { DateTime } from 'luxon'
 
 export default class ShippingcampaignsController {
@@ -145,6 +145,8 @@ export default class ShippingcampaignsController {
 
   public async datePosition({ request, response }: HttpContextContract) {
 
+    console.log("PASSEI DATEPOSITION")
+
     const { initialdate, finaldate } = request.only(['initialdate', 'finaldate'])
 
     if (!DateTime.fromISO(initialdate).isValid || !DateTime.fromISO(finaldate).isValid) {
@@ -177,6 +179,8 @@ export default class ShippingcampaignsController {
 
   public async datePositionSynthetic({ request, response }: HttpContextContract) {
 
+    console.log("PASSEI DATEPOSITION")
+
     const { initialdate, finaldate } = request.only(['initialdate', 'finaldate'])
     if (!DateTime.fromISO(initialdate).isValid || !DateTime.fromISO(finaldate).isValid) {
       throw new Error("Datas inválidas.")
@@ -205,7 +209,23 @@ export default class ShippingcampaignsController {
 
   public async listShippingCampaigns({ request, response }: HttpContextContract) {
 
-    const { initialdate, finaldate } = request.only(['initialdate', 'finaldate'])
+    const { initialdate, finaldate, phonevalid, invalidresponse, absoluteresp } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp'])
+
+    console.log("phonevalid", phonevalid)
+
+    let query = "1=1"
+    if (phonevalid && phonevalid !== undefined) {
+
+      query += ` and phonevalid=${phonevalid == 1 ? 1 : 0}`
+    }
+    if (invalidresponse) {
+      query += ` and invalidresponse not in ('1', '2', 'Sim', 'Não')`
+    }
+    if (absoluteresp) {
+      query += ` and absoluteresp=${absoluteresp} `
+    }
+
+
     if (!DateTime.fromISO(initialdate).isValid || !DateTime.fromISO(finaldate).isValid) {
       throw new Error("Datas inválidas.")
     }
@@ -230,8 +250,9 @@ export default class ShippingcampaignsController {
         .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
         .whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
         .where('shippingcampaigns.interaction_id', 1)
+        .whereRaw(query)
 
-
+      //console.log("query", result)
       return response.status(201).send(result)
     } catch (error) {
       throw new Error(error)

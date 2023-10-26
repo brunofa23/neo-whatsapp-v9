@@ -213,16 +213,16 @@ export default class ShippingcampaignsController {
 
     console.log("phonevalid", phonevalid)
 
-    let query = ""
+    let query = "1=1"
     if (phonevalid && phonevalid !== undefined) {
-      const _phonevalid = phonevalid == 'true' ? 1 : 0
-      query += ` phonevalid=${_phonevalid}`
+
+      query += ` and phonevalid=${phonevalid == 1 ? 1 : 0}`
     }
     if (invalidresponse) {
-      query += ` invalidresponse not in ('1', '2', 'Sim', 'Não')`
+      query += ` and invalidresponse not in ('1', '2', 'Sim', 'Não')`
     }
     if (absoluteresp) {
-      query += ` absoluteresp=${absoluteresp} `
+      query += ` and absoluteresp=${absoluteresp} `
     }
 
 
@@ -250,7 +250,9 @@ export default class ShippingcampaignsController {
         .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
         .whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
         .where('shippingcampaigns.interaction_id', 1)
-        .whereRaw(query)
+        .whereRaw(query).toQuery()
+
+      console.log("query", result)
 
 
       return response.status(201).send(result)

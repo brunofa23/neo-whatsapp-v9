@@ -110,6 +110,7 @@ class ShippingcampaignsController {
         return result;
     }
     async datePosition({ request, response }) {
+        console.log("PASSEI DATEPOSITION");
         const { initialdate, finaldate } = request.only(['initialdate', 'finaldate']);
         if (!luxon_1.DateTime.fromISO(initialdate).isValid || !luxon_1.DateTime.fromISO(finaldate).isValid) {
             throw new Error("Datas inválidas.");
@@ -135,6 +136,7 @@ class ShippingcampaignsController {
         }
     }
     async datePositionSynthetic({ request, response }) {
+        console.log("PASSEI DATEPOSITION");
         const { initialdate, finaldate } = request.only(['initialdate', 'finaldate']);
         if (!luxon_1.DateTime.fromISO(initialdate).isValid || !luxon_1.DateTime.fromISO(finaldate).isValid) {
             throw new Error("Datas inválidas.");
@@ -157,7 +159,18 @@ class ShippingcampaignsController {
         }
     }
     async listShippingCampaigns({ request, response }) {
-        const { initialdate, finaldate } = request.only(['initialdate', 'finaldate']);
+        const { initialdate, finaldate, phonevalid, invalidresponse, absoluteresp } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp']);
+        console.log("phonevalid", phonevalid);
+        let query = "1=1";
+        if (phonevalid && phonevalid !== undefined) {
+            query += ` and phonevalid=${phonevalid == 1 ? 1 : 0}`;
+        }
+        if (invalidresponse) {
+            query += ` and invalidresponse not in ('1', '2', 'Sim', 'Não')`;
+        }
+        if (absoluteresp) {
+            query += ` and absoluteresp=${absoluteresp} `;
+        }
         if (!luxon_1.DateTime.fromISO(initialdate).isValid || !luxon_1.DateTime.fromISO(finaldate).isValid) {
             throw new Error("Datas inválidas.");
         }
@@ -167,7 +180,8 @@ class ShippingcampaignsController {
                 .select('shippingcampaigns.interaction_id', 'shippingcampaigns.reg', 'shippingcampaigns.name', 'shippingcampaigns.cellphone', 'otherfields', 'phonevalid', 'messagesent', 'chats.created_at', 'response', 'returned', 'invalidresponse', 'chatname', 'absoluteresp')
                 .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
                 .whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
-                .where('shippingcampaigns.interaction_id', 1);
+                .where('shippingcampaigns.interaction_id', 1)
+                .whereRaw(query);
             return response.status(201).send(result);
         }
         catch (error) {

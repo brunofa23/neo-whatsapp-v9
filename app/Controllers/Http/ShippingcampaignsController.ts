@@ -250,11 +250,9 @@ export default class ShippingcampaignsController {
         .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
         .whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
         .where('shippingcampaigns.interaction_id', 1)
-        .whereRaw(query).toQuery()
+        .whereRaw(query)
 
-      console.log("query", result)
-
-
+      //console.log("query", result)
       return response.status(201).send(result)
     } catch (error) {
       throw new Error(error)

@@ -222,7 +222,7 @@ export default class ShippingcampaignsController {
       query += ` invalidresponse not in ('1', '2', 'Sim', 'Não')`
     }
     if (absoluteresp) {
-      query += ` absoluteresp in (1,2) `
+      query += ` absoluteresp=${absoluteresp} `
     }
 
 

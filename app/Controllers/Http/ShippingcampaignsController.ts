@@ -209,13 +209,11 @@ export default class ShippingcampaignsController {
 
   public async listShippingCampaigns({ request, response }: HttpContextContract) {
 
+
     const { initialdate, finaldate, phonevalid, invalidresponse, absoluteresp } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp'])
-
     console.log("phonevalid", phonevalid)
-
     let query = "1=1"
     if (phonevalid && phonevalid !== undefined) {
-
       query += ` and phonevalid=${phonevalid == 1 ? 1 : 0}`
     }
     if (invalidresponse) {
@@ -224,7 +222,6 @@ export default class ShippingcampaignsController {
     if (absoluteresp) {
       query += ` and absoluteresp=${absoluteresp} `
     }
-
 
     if (!DateTime.fromISO(initialdate).isValid || !DateTime.fromISO(finaldate).isValid) {
       throw new Error("Datas inválidas.")
@@ -258,6 +255,57 @@ export default class ShippingcampaignsController {
       throw new Error(error)
     }
 
+  }
+
+
+
+  public async serviceEvaluationDashboard({ request, response }: HttpContextContract) {
+
+    console.log("SERVICE EVALUATION_______________")
+    const { initialdate, finaldate, phonevalid, invalidresponse, absoluteresp } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp'])
+    console.log("phonevalid", phonevalid)
+    let query = "1=1"
+    if (phonevalid && phonevalid !== undefined) {
+      query += ` and phonevalid=${phonevalid == 1 ? 1 : 0}`
+    }
+    // if (invalidresponse) {
+    //   query += ` and invalidresponse not in ('1', '2', 'Sim', 'Não')`
+    // }
+    if (absoluteresp) {
+      query += ` and absoluteresp=${absoluteresp} `
+    }
+
+    if (!DateTime.fromISO(initialdate).isValid || !DateTime.fromISO(finaldate).isValid) {
+      throw new Error("Datas inválidas.")
+    }
+    try {
+      const result = await Database.connection('mssql2').query()
+        .from('shippingcampaigns')
+        .select(
+          'shippingcampaigns.interaction_id',
+          'shippingcampaigns.reg',
+          'shippingcampaigns.name',
+          'shippingcampaigns.cellphone',
+          'otherfields',
+          'phonevalid',
+          'messagesent',
+          'chats.created_at',
+          'response',
+          'returned',
+          'invalidresponse',
+          'chatname',
+          'absoluteresp'
+        )
+        .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
+        .whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
+        .where('shippingcampaigns.interaction_id', 2)
+        .whereRaw(query)
+
+
+      return response.status(201).send(result)
+    } catch (error) {
+      throw new Error(error)
+    }
 
   }
 

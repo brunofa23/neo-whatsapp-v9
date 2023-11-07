@@ -188,6 +188,36 @@ class ShippingcampaignsController {
             throw new Error(error);
         }
     }
+    async serviceEvaluationDashboard({ request, response }) {
+        const { initialdate, finaldate, phonevalid, invalidresponse, absoluteresp } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp']);
+        console.log("phonevalid", phonevalid);
+        let query = "1=1";
+        if (phonevalid && phonevalid !== undefined) {
+            query += ` and phonevalid=${phonevalid == 1 ? 1 : 0}`;
+        }
+        if (absoluteresp == 1)
+            query += ` and absoluteresp < 7 `;
+        else if (absoluteresp == 2)
+            query += ` and absoluteresp >= 7 and absoluteresp <9 `;
+        else if (absoluteresp == 3)
+            query += ` and absoluteresp >= 9 `;
+        if (!luxon_1.DateTime.fromISO(initialdate).isValid || !luxon_1.DateTime.fromISO(finaldate).isValid) {
+            throw new Error("Datas inválidas.");
+        }
+        try {
+            const result = await Database_1.default.connection('mssql2').query()
+                .from('shippingcampaigns')
+                .select('shippingcampaigns.interaction_id', 'shippingcampaigns.reg', 'shippingcampaigns.name', 'shippingcampaigns.cellphone', 'otherfields', 'phonevalid', 'messagesent', 'chats.created_at', 'response', 'returned', 'invalidresponse', 'chatname', 'absoluteresp')
+                .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
+                .whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
+                .where('shippingcampaigns.interaction_id', 2)
+                .whereRaw(query);
+            return response.status(201).send(result);
+        }
+        catch (error) {
+            throw new Error(error);
+        }
+    }
 }
 exports.default = ShippingcampaignsController;
 //# sourceMappingURL=ShippingcampaignsController.js.map

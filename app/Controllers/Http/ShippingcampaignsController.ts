@@ -261,7 +261,6 @@ export default class ShippingcampaignsController {
 
   public async serviceEvaluationDashboard({ request, response }: HttpContextContract) {
 
-    console.log("SERVICE EVALUATION_______________")
     const { initialdate, finaldate, phonevalid, invalidresponse, absoluteresp } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp'])
     console.log("phonevalid", phonevalid)
     let query = "1=1"

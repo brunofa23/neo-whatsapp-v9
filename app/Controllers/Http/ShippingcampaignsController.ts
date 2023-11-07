@@ -271,9 +271,13 @@ export default class ShippingcampaignsController {
     // if (invalidresponse) {
     //   query += ` and invalidresponse not in ('1', '2', 'Sim', 'Não')`
     // }
-    if (absoluteresp) {
-      query += ` and absoluteresp=${absoluteresp} `
-    }
+    if (absoluteresp == 1)
+      query += ` and absoluteresp < 7 `
+    else if (absoluteresp == 2)
+      query += ` and absoluteresp >= 7 and absoluteresp <9 `
+    else if (absoluteresp == 3)
+      query += ` and absoluteresp >= 9 `
+
 
     if (!DateTime.fromISO(initialdate).isValid || !DateTime.fromISO(finaldate).isValid) {
       throw new Error("Datas inválidas.")

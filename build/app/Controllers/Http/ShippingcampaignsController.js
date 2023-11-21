@@ -189,12 +189,13 @@ class ShippingcampaignsController {
         }
     }
     async serviceEvaluationDashboard({ request, response }) {
-        const { initialdate, finaldate, phonevalid, invalidresponse, absoluteresp } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp']);
-        console.log("phonevalid", phonevalid);
+        const { initialdate, finaldate, phonevalid, absoluteresp, interactions } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp', 'interactions']);
         let query = "1=1";
         if (phonevalid && phonevalid !== undefined) {
             query += ` and phonevalid=${phonevalid == 1 ? 1 : 0}`;
         }
+        if (interactions)
+            query += ` and response is not null `;
         if (absoluteresp == 1)
             query += ` and absoluteresp < 7 `;
         else if (absoluteresp == 2)
@@ -212,7 +213,20 @@ class ShippingcampaignsController {
                 .whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
                 .where('shippingcampaigns.interaction_id', 2)
                 .whereRaw(query);
-            return response.status(201).send(result);
+            const resultAcumulated = await Chat_1.default.query()
+                .sumDistinct('absoluteresp as note')
+                .count('* as total')
+                .where('interaction_id', 2)
+                .andWhereBetween('absoluteresp', [0, 10])
+                .whereBetween('created_at', [initialdate, finaldate])
+                .groupBy('absoluteresp');
+            let resultAcumulatedList = [];
+            let cont = 0;
+            for (const result of resultAcumulated) {
+                resultAcumulatedList.push(result.$extras);
+            }
+            console.log("RESULT", resultAcumulatedList);
+            return response.status(201).send({ result, resultAcumulatedList });
         }
         catch (error) {
             throw new Error(error);

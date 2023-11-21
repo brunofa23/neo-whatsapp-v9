@@ -6,6 +6,7 @@ import Database from '@ioc:Adonis/Lucid/Database'
 
 import { DateFormat, InvalidResponse } from '../../Services/whatsapp-web/util'
 import { DateTime } from 'luxon'
+import { Response } from '@adonisjs/core/build/standalone'
 
 export default class ShippingcampaignsController {
 
@@ -141,8 +142,6 @@ export default class ShippingcampaignsController {
 
   }
 
-
-
   public async datePosition({ request, response }: HttpContextContract) {
 
     console.log("PASSEI DATEPOSITION")
@@ -257,26 +256,23 @@ export default class ShippingcampaignsController {
 
   }
 
-
-
   public async serviceEvaluationDashboard({ request, response }: HttpContextContract) {
 
-    const { initialdate, finaldate, phonevalid, invalidresponse, absoluteresp } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp'])
-    console.log("phonevalid", phonevalid)
+    const { initialdate, finaldate, phonevalid, absoluteresp, interactions } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp', 'interactions'])
+
     let query = "1=1"
     if (phonevalid && phonevalid !== undefined) {
       query += ` and phonevalid=${phonevalid == 1 ? 1 : 0}`
     }
-    // if (invalidresponse) {
-    //   query += ` and invalidresponse not in ('1', '2', 'Sim', 'Não')`
-    // }
+    if (interactions)
+      query += ` and response is not null `
+
     if (absoluteresp == 1)
       query += ` and absoluteresp < 7 `
     else if (absoluteresp == 2)
       query += ` and absoluteresp >= 7 and absoluteresp <9 `
     else if (absoluteresp == 3)
       query += ` and absoluteresp >= 9 `
-
 
     if (!DateTime.fromISO(initialdate).isValid || !DateTime.fromISO(finaldate).isValid) {
       throw new Error("Datas inválidas.")
@@ -303,14 +299,31 @@ export default class ShippingcampaignsController {
         .whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
         .where('shippingcampaigns.interaction_id', 2)
         .whereRaw(query)
+      //console.log("result", result)
 
+      const resultAcumulated = await Chat.query()
+        .sumDistinct('absoluteresp as note')
+        .count('* as total')
+        .where('interaction_id', 2)
+        .andWhereBetween('absoluteresp', [0, 10])
+        .whereBetween('created_at', [initialdate, finaldate])
+        .groupBy('absoluteresp')
 
-      return response.status(201).send(result)
+      let resultAcumulatedList = []
+      let cont: number = 0
+      for (const result of resultAcumulated) {
+        resultAcumulatedList.push(result.$extras)
+      }
+      console.log("RESULT", resultAcumulatedList)
+
+      return response.status(201).send({ result, resultAcumulatedList })
     } catch (error) {
       throw new Error(error)
     }
 
   }
+
+
 
 
 

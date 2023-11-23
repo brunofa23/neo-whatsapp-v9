@@ -310,13 +310,94 @@ export default class ShippingcampaignsController {
         .groupBy('absoluteresp')
 
       let resultAcumulatedList = []
-      let cont: number = 0
       for (const result of resultAcumulated) {
         resultAcumulatedList.push(result.$extras)
       }
-      console.log("RESULT", resultAcumulatedList)
 
-      return response.status(201).send({ result, resultAcumulatedList })
+      // const otherfields = result.map(item => JSON.parse(item.otherfields))
+      // const station = otherfields.map(item => item.station)
+      // const medic = otherfields.map(item => item.medic)
+
+      const resultFinal = result.map(item => {
+        const otherfieldsObj = JSON.parse(item.otherfields);
+        return {
+          ...item,
+          station: otherfieldsObj.station,
+          medic: otherfieldsObj.medic,
+          attendant: otherfieldsObj.attendant
+        };
+      });
+
+      // Função para classificar a pontuação
+      function getClassification(score) {
+        if (score <= 7) {
+          return 'detrator';
+        } else if (score > 7 && score <= 8) {
+          return 'passivo';
+        } else if (score > 8 && score <= 10) {
+          return 'promotor';
+        }
+      }
+
+      // Objeto para armazenar as contagens por estação e classificação
+      const countsByStation = {};
+      const countsByMedic = {}
+      const countsByAttendant = {}
+      // Calcular as contagens
+      resultFinal.forEach(item => {
+        const { attendant, station, absoluteresp, medic } = item;
+        const classification = getClassification(absoluteresp);
+
+        // recepcao
+        if (!countsByStation[station]) {
+          countsByStation[station] = {
+            detrator: 0,
+            passivo: 0,
+            promotor: 0
+          };
+        }
+        countsByStation[station][classification]++;
+
+        //MEDIC********* */
+        if (!countsByMedic[medic]) {
+          countsByMedic[medic] = {
+            detrator: 0,
+            passivo: 0,
+            promotor: 0
+          };
+        }
+        countsByMedic[medic][classification]++;
+
+        //RECEP********* */
+        if (!countsByAttendant[attendant]) {
+          countsByAttendant[attendant] = {
+            detrator: 0,
+            passivo: 0,
+            promotor: 0
+          };
+        }
+        countsByAttendant[attendant][classification]++;
+      });
+
+      const resultByStation = Object.entries(countsByStation).map(([station, counts]) => ({
+        station,
+        ...counts
+      }));
+
+      const resultByMedic = Object.entries(countsByMedic).map(([medic, counts]) => ({
+        medic,
+        ...counts
+      }));
+
+      const resultByAttendant = Object.entries(countsByAttendant).map(([attendant, counts]) => ({
+        attendant,
+        ...counts
+      }));
+
+      //console.log(resultByStation, resultByMedic);
+      //console.log(resultFinal)
+
+      return response.status(201).send({ result, resultAcumulatedList, resultByStation, resultByMedic, resultByAttendant })
     } catch (error) {
       throw new Error(error)
     }

@@ -309,6 +309,8 @@ export default class ShippingcampaignsController {
         .whereBetween('created_at', [initialdate, finaldate])
         .groupBy('absoluteresp')
 
+
+
       let resultAcumulatedList = []
       for (const result of resultAcumulated) {
         resultAcumulatedList.push(result.$extras)
@@ -328,6 +330,8 @@ export default class ShippingcampaignsController {
         };
       });
 
+      //console.log("resultFinal", resultFinal)
+
       // Função para classificar a pontuação
       function getClassification(score) {
         if (score <= 7) {
@@ -343,46 +347,57 @@ export default class ShippingcampaignsController {
       const countsByStation = {};
       const countsByMedic = {}
       const countsByAttendant = {}
+
       // Calcular as contagens
       resultFinal.forEach(item => {
         const { attendant, station, absoluteresp, medic } = item;
         const classification = getClassification(absoluteresp);
-
         // recepcao
-        if (!countsByStation[station]) {
-          countsByStation[station] = {
-            detrator: 0,
-            passivo: 0,
-            promotor: 0
-          };
+        if (item.messagesent) {
+          if (!countsByStation[station]) {
+            countsByStation[station] = {
+              detrator: 0,
+              passivo: 0,
+              promotor: 0
+            };
+          }
+          countsByStation[station][classification]++;
         }
-        countsByStation[station][classification]++;
 
         //MEDIC********* */
-        if (!countsByMedic[medic]) {
-          countsByMedic[medic] = {
-            detrator: 0,
-            passivo: 0,
-            promotor: 0
-          };
+        if (item.messagesent) {
+          if (!countsByMedic[medic]) {
+            countsByMedic[medic] = {
+              detrator: 0,
+              passivo: 0,
+              promotor: 0
+            };
+          }
+          countsByMedic[medic][classification]++;
+
         }
-        countsByMedic[medic][classification]++;
 
         //RECEP********* */
-        if (!countsByAttendant[attendant]) {
-          countsByAttendant[attendant] = {
-            detrator: 0,
-            passivo: 0,
-            promotor: 0
-          };
+        if (item.messagesent) {
+          if (!countsByAttendant[attendant]) {
+            countsByAttendant[attendant] = {
+              detrator: 0,
+              passivo: 0,
+              promotor: 0
+            };
+          }
+          countsByAttendant[attendant][classification]++;
         }
-        countsByAttendant[attendant][classification]++;
+
       });
 
       const resultByStation = Object.entries(countsByStation).map(([station, counts]) => ({
         station,
         ...counts
       }));
+
+      //console.log("RECEPÇÃO", resultByStation)
+
 
       const resultByMedic = Object.entries(countsByMedic).map(([medic, counts]) => ({
         medic,

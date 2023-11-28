@@ -221,12 +221,79 @@ class ShippingcampaignsController {
                 .whereBetween('created_at', [initialdate, finaldate])
                 .groupBy('absoluteresp');
             let resultAcumulatedList = [];
-            let cont = 0;
             for (const result of resultAcumulated) {
                 resultAcumulatedList.push(result.$extras);
             }
-            console.log("RESULT", resultAcumulatedList);
-            return response.status(201).send({ result, resultAcumulatedList });
+            const resultFinal = result.map(item => {
+                const otherfieldsObj = JSON.parse(item.otherfields);
+                return {
+                    ...item,
+                    station: otherfieldsObj.station,
+                    medic: otherfieldsObj.medic,
+                    attendant: otherfieldsObj.attendant
+                };
+            });
+            function getClassification(score) {
+                if (score <= 7) {
+                    return 'detrator';
+                }
+                else if (score > 7 && score <= 8) {
+                    return 'passivo';
+                }
+                else if (score > 8 && score <= 10) {
+                    return 'promotor';
+                }
+            }
+            const countsByStation = {};
+            const countsByMedic = {};
+            const countsByAttendant = {};
+            resultFinal.forEach(item => {
+                const { attendant, station, absoluteresp, medic } = item;
+                const classification = getClassification(absoluteresp);
+                if (item.messagesent) {
+                    if (!countsByStation[station]) {
+                        countsByStation[station] = {
+                            detrator: 0,
+                            passivo: 0,
+                            promotor: 0
+                        };
+                    }
+                    countsByStation[station][classification]++;
+                }
+                if (item.messagesent) {
+                    if (!countsByMedic[medic]) {
+                        countsByMedic[medic] = {
+                            detrator: 0,
+                            passivo: 0,
+                            promotor: 0
+                        };
+                    }
+                    countsByMedic[medic][classification]++;
+                }
+                if (item.messagesent) {
+                    if (!countsByAttendant[attendant]) {
+                        countsByAttendant[attendant] = {
+                            detrator: 0,
+                            passivo: 0,
+                            promotor: 0
+                        };
+                    }
+                    countsByAttendant[attendant][classification]++;
+                }
+            });
+            const resultByStation = Object.entries(countsByStation).map(([station, counts]) => ({
+                station,
+                ...counts
+            }));
+            const resultByMedic = Object.entries(countsByMedic).map(([medic, counts]) => ({
+                medic,
+                ...counts
+            }));
+            const resultByAttendant = Object.entries(countsByAttendant).map(([attendant, counts]) => ({
+                attendant,
+                ...counts
+            }));
+            return response.status(201).send({ result, resultAcumulatedList, resultByStation, resultByMedic, resultByAttendant });
         }
         catch (error) {
             throw new Error(error);

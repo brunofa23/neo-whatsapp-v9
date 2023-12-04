@@ -2,11 +2,14 @@ import { BaseModel, column, hasOne, HasOne } from '@ioc:Adonis/Lucid/Orm'
 import { DateTime } from 'luxon'
 
 import Chat from './Chat';
+import Env from '@ioc:Adonis/Core/Env'
+
 
 export default class Shippingcampaign extends BaseModel {
 
   static get connection() {
-    return 'mysql';
+    //return 'mysql';
+    return Env.get('DB_CONNECTION_MAIN')
   }
 
   @column({ isPrimary: true })

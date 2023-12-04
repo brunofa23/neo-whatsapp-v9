@@ -12,6 +12,7 @@ import { ClearFolder, DateFormat, ExecutingSendMessage, GenerateRandomTime, Rand
 
 async function executeWhatsapp() {
 
+
   const agent = await Agent.findBy('name', process.env.CHAT_NAME)
   if (!agent || agent == undefined) {
     console.log("CHATNAME INVÁLIDO - Verifique o .env Chatname está igual ao name tabela Agents")
@@ -41,6 +42,7 @@ async function executeWhatsapp() {
       setJavaScriptEnabled: false
     }
   });
+
 
 
   client.initialize();
@@ -86,6 +88,7 @@ async function executeWhatsapp() {
 
   });
 
+
   client.on('authenticated', () => {
     console.log('AUTHENTICATED');
     agent.status = 'Authenticated'
@@ -100,6 +103,9 @@ async function executeWhatsapp() {
   });
 
   await client.on('ready', async () => {
+
+    console.log("RASTREAMENTO 1001>>>>>>>>>>>>>>>>>")
+
     console.log('READY...');
     const state = await client.getState()
     console.log("State:", state)

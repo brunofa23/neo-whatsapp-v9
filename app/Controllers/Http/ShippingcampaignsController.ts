@@ -11,7 +11,7 @@ import { Response } from '@adonisjs/core/build/standalone'
 export default class ShippingcampaignsController {
 
   static get connection() {
-    return 'mssql2';
+    return 'mysql';
   }
   public async index({ response, request }) {
     try {

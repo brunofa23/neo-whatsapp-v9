@@ -6,7 +6,7 @@ import Chat from './Chat';
 export default class Shippingcampaign extends BaseModel {
 
   static get connection() {
-    return 'mssql2';
+    return 'mysql';
   }
 
   @column({ isPrimary: true })

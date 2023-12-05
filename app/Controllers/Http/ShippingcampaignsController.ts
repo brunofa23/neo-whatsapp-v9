@@ -165,7 +165,12 @@ export default class ShippingcampaignsController {
         .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
         .whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
         .groupByRaw('CONVERT(date, shippingcampaigns.created_at)')
-        .orderByRaw(Database.raw('CONVERT(date, shippingcampaigns.created_at)'))
+        .orderByRaw(Database.raw('CONVERT(date, shippingcampaigns.created_at)')).toQuery()
+
+      console.log(">>>>>>>>>>", result)
+
+
+
 
       return response.status(201).send(result)
     } catch (error) {

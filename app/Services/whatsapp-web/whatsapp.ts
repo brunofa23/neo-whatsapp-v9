@@ -73,18 +73,18 @@ async function executeWhatsapp() {
 
 
 
-    // qrcode.toDataURL(qr, { small: true }, (err, url) => {
-    //   if (err) {
-    //     console.error('Ocorreu um erro ao gerar o URL de dados:', err);
-    //     return;
-    //   }
-    //   console.log('URL de dados do código QR:', url);
-    //   // Você pode usar o URL de dados (data URL) aqui conforme necessário
-    // });
+    qrcode.toDataURL(qr, { small: true }, (err, url) => {
+      if (err) {
+        console.error('Ocorreu um erro ao gerar o URL de dados:', err);
+        return;
+      }
+      //console.log('URL de dados do código QR:', url);
+      // Você pode usar o URL de dados (data URL) aqui conforme necessário
+    });
 
-    // setTimeout(() => {
-    //   console.clear(); // Limpa o terminal
-    // }, 50000);
+    setTimeout(() => {
+      console.clear(); // Limpa o terminal
+    }, 50000);
 
   });
 

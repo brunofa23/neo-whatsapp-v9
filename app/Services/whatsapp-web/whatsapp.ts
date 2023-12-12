@@ -111,15 +111,16 @@ async function executeWhatsapp() {
     console.log("State:", state)
     await SendMessage(client)
 
-    if (process.env.SELF_CONVERSATION?.toLocaleLowerCase() === "true") {
+    if (process.env.SELF_CONVERSATION?.toLowerCase() === "true") {
       console.log("self_conversation", process.env.SELF_CONVERSATION)
-      await SendMessageInternal(client)
+      SendMessageInternal(client)
     }
 
     agent.status = state
     await agent.save()
 
   });
+
 
 
   await sendRepeatedMessage()

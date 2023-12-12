@@ -39,6 +39,17 @@ export default class DatasourcesController {
     }
   }
 
+
+  public async index() {
+    try {
+      const result = await Database.connection('mssql').from('paciente').select('*')
+      return result
+    } catch (error) {
+      return error
+    }
+  }
+
+
   async scheduledPatients() {
 
 
@@ -57,7 +68,8 @@ export default class DatasourcesController {
 
     try {
       //const result = await Database.connection('mssql').rawQuery(pacQuery)
-      const result = await Database.connection('mssql').rawQuery("select * from paciente")
+      const result = await Database.connection('mssql').from('teste').select('*')
+      //.rawQuery("select * from paciente")
       console.log("SCHEDULE PATIENTS...", result)
       return
 

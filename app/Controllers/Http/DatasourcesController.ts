@@ -40,6 +40,8 @@ export default class DatasourcesController {
   }
 
   async scheduledPatients() {
+
+
     async function greeting(message: String) {
       const greeting = ['Olá!😀', 'Oi tudo bem?😀', 'Saudações!😀', 'Oi como vai?😀']
       const presentation = ['Eu me chamo Iris', 'Eu sou a Iris', 'Aqui é a Iris']
@@ -54,7 +56,13 @@ export default class DatasourcesController {
     else pacQuery = pacQueryModel?.query
 
     try {
-      const result = await Database.connection('mssql').rawQuery(pacQuery)
+      //const result = await Database.connection('mssql').rawQuery(pacQuery)
+      const result = await Database.connection('mssql').rawQuery("select * from paciente")
+      console.log("SCHEDULE PATIENTS...", result)
+      return
+
+      console.log("passei no scheduledPatients")
+
       for (const data of result) {
         const message = await greeting(data.message)
         data.message = message

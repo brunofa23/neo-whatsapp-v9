@@ -1,6 +1,7 @@
 import Route from '@ioc:Adonis/Core/Route'
 
 import { executeWhatsapp } from '../app/Services/whatsapp-web/whatsapp'
+import DatasourcesController from 'App/Controllers/Http/DatasourcesController'
 
 console.log("***CHAT BOT V-85***")
 console.log(`***NOME DO CLIENTE: ${process.env.CHAT_NAME}***`)
@@ -14,6 +15,10 @@ Route.group(() => {
   Route.get('/teste', async () => {
     await executeWhatsapp()
   })
+
+  Route.get("/smart", "DatasourcesController.scheduledPatients")
+
+
   Route.post('/restart', 'ShippingcampaignsController.resetWhatsapp')
   Route.post('/logout', 'ShippingcampaignsController.logout')
 

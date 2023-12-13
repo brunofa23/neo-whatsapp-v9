@@ -5,64 +5,32 @@ import { DateTime } from 'luxon';
 import PersistShippingcampaign from './PersistShippingcampaign';
 import { DateFormat, GenerateRandomTime, TimeSchedule } from './util'
 
-
 async function sendRepeatedMessage() {
-  //let startTimeSendMessageRepeated: Number //= parseInt(process.env.EXECUTE_SEND_REPEATED_MESSAGE)
-  //let endtTimeSendMessageRepeated: Number //= parseInt(process.env.EXECUTE_SEND_REPEATED_MESSAGE_END)
-  console.log("ENTREI NO SEDREPEATEDMESSAGE")
-  let agent
+  let startTimeSendMessageRepeated = parseInt(process.env.EXECUTE_SEND_REPEATED_MESSAGE)
+  let endtTimeSendMessageRepeated = parseInt(process.env.EXECUTE_SEND_REPEATED_MESSAGE_END)
+  const executingSendMessage = await Config.find('executingSendMessage')
 
   async function getAgent(chatName: string) {
-    console.log("GET AGENT...")
-    agent = await Agent.findBy('name', chatName)
+    const agent = await Agent.findBy('name', chatName)
     if (!agent || agent == undefined) {
       console.log("Erro: Verifique o chatnumer")
       return
     }
-    return agent
+    startTimeSendMessageRepeated = agent.interval_init_query
+    endtTimeSendMessageRepeated = agent.interval_final_query
   }
 
-  async function executePersistShippingcampaign(interval: number) {
-    setInterval(async () => {
-      const date = await DateFormat("dd/MM/yyyy HH:mm:ss", DateTime.local())
-      agent = await getAgent(process.env.CHAT_NAME)
-      //console.log("AGENTE>>>", agent)
-      if (!executingSendMessage?.valuebool) {
-        if (await TimeSchedule()) {
-          console.log(`Buscando dados no Smart: ${date}`)
-          await PersistShippingcampaign()
-          console.log("INTERVAL")
-        }
+
+  setInterval(async () => {
+    const date = await DateFormat("dd/MM/yyyy HH:mm:ss", DateTime.local())
+    await getAgent(process.env.CHAT_NAME)
+    if (!executingSendMessage?.valuebool) {
+      if (await TimeSchedule()) {
+        console.log(`Buscando dados no Smart: ${date}`)
+        await PersistShippingcampaign()
       }
-
-    }, await GenerateRandomTime(agent.interval_init_query, agent.interval_final_query, '****Send Message Repeated'))
-
-  }
-
-  let interval: number = 0
-  await getAgent(process.env.CHAT_NAME)
-  const executingSendMessage = await Config.find('executingSendMessage')
-  await executePersistShippingcampaign(interval)
-
-  // setInterval(async () => {
-  //   const date = await DateFormat("dd/MM/yyyy HH:mm:ss", DateTime.local())
-  //   await getAgent(process.env.CHAT_NAME)
-  //   if (!executingSendMessage?.valuebool) {
-  //     if (await TimeSchedule()) {
-  //       console.log(`Buscando dados no Smart: ${date}`)
-  //       await PersistShippingcampaign()
-  //       console.log("INTERVAL", interval)
-  //     }
-  //   }
-
-  // }, interval)
-
-
-
+    }
+  }, await GenerateRandomTime(startTimeSendMessageRepeated, endtTimeSendMessageRepeated, '****Send Message Repeated'))
 
 }
 module.exports = { sendRepeatedMessage }
-
-
-
-

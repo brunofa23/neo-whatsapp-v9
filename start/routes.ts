@@ -9,7 +9,7 @@ console.log("***CHAT BOT V-85***")
 console.log(`***NOME DO CLIENTE: ${process.env.CHAT_NAME}***`)
 
 executeWhatsapp()
-sendRepeatedMessage()
+//sendRepeatedMessage()
 
 
 Route.get('/', async () => {
@@ -18,6 +18,7 @@ Route.get('/', async () => {
 
 Route.group(() => {
   Route.get('/teste', async () => {
+    console.log("entrei no whatsapp router")
     await executeWhatsapp()
   })
 

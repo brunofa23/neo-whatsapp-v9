@@ -44,6 +44,9 @@ async function executeWhatsapp() {
   });
 
   client.initialize();
+
+  console.log("Entrei no class whatsapp")
+
   client.on('loading_screen', (percent, message) => {
     console.log('LOADING SCREEN', percent, message);
   });

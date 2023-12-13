@@ -35,6 +35,6 @@
     "reflect-metadata": "^0.1.13",
     "source-map-support": "^0.5.21",
     "tedious": "^16.1.0",
-    "whatsapp-web.js": "^1.23.0"
+    "whatsapp-web.js": "https://github.com/Julzk/whatsapp-web.js/tarball/jkr_hotfix_8"
   }
 }

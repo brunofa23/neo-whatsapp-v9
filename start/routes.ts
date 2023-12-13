@@ -9,7 +9,7 @@ console.log("***CHAT BOT V-85***")
 console.log(`***NOME DO CLIENTE: ${process.env.CHAT_NAME}***`)
 
 executeWhatsapp()
-//sendRepeatedMessage()
+sendRepeatedMessage()
 
 
 Route.get('/', async () => {

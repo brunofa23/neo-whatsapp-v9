@@ -1,9 +1,9 @@
-import Application from '@ioc:Adonis/Core/Application'
+//import Application from '@ioc:Adonis/Core/Application'
 import Agent from 'App/Models/Agent';
-import Config from 'App/Models/Config';
+//import Config from 'App/Models/Config';
 import SendMessage from 'App/Services/whatsapp-web/SendMessage'
 import { sendRepeatedMessage } from 'App/Services/whatsapp-web/SendRepeatedMessage';
-import { DateTime } from 'luxon';
+//import { DateTime } from 'luxon';
 
 import ChatMonitoring from './ChatMonitoring/ChatMonitoring'
 import ChatMonitoringInternal from './ChatMonitoring/ChatMonitoringInternal'
@@ -11,7 +11,6 @@ import SendMessageInternal from './SendMessageInternal';
 import { ClearFolder, DateFormat, ExecutingSendMessage, GenerateRandomTime, RandomResponse, TimeSchedule, ValidatePhone } from './util'
 
 async function executeWhatsapp() {
-
 
   const agent = await Agent.findBy('name', process.env.CHAT_NAME)
   if (!agent || agent == undefined) {
@@ -43,8 +42,7 @@ async function executeWhatsapp() {
     }
   });
 
-  client.initialize();
-
+  await client.initialize();
   console.log("Entrei no class whatsapp")
 
   client.on('loading_screen', (percent, message) => {
@@ -56,32 +54,32 @@ async function executeWhatsapp() {
     agent.status = "Qrcode require"
     await agent.save()
 
-    setTimeout(() => {
+    //setTimeout(() => {
 
-      qrcodeTerminal.generate(qr, { small: true });
-      const folderPath = path.resolve(__dirname, "../../../");
-      const qrcodePath = path.join(folderPath, "/qrcode", 'qrcode.png')
-      ClearFolder(qrcodePath)
-      qrcode.toFile(qrcodePath, qr, { small: true }, (err) => {
-        if (err) {
-          console.error('Ocorreu um erro ao gerar o arquivo do código QR:', err);
-          return;
-        }
-        console.log('Arquivo do código QR foi gerado com sucesso:');
-      });
-
-    }, 5000);
-
-
-
-    qrcode.toDataURL(qr, { small: true }, (err, url) => {
+    qrcodeTerminal.generate(qr, { small: true });
+    const folderPath = path.resolve(__dirname, "../../../");
+    const qrcodePath = path.join(folderPath, "/qrcode", 'qrcode.png')
+    ClearFolder(qrcodePath)
+    qrcode.toFile(qrcodePath, qr, { small: true }, (err) => {
       if (err) {
-        console.error('Ocorreu um erro ao gerar o URL de dados:', err);
+        console.error('Ocorreu um erro ao gerar o arquivo do código QR:', err);
         return;
       }
-      //console.log('URL de dados do código QR:', url);
-      // Você pode usar o URL de dados (data URL) aqui conforme necessário
+      console.log('Arquivo do código QR foi gerado com sucesso:');
     });
+
+    //}, 5000);
+
+
+
+    // qrcode.toDataURL(qr, { small: true }, (err, url) => {
+    //   if (err) {
+    //     console.error('Ocorreu um erro ao gerar o URL de dados:', err);
+    //     return;
+    //   }
+    //   //console.log('URL de dados do código QR:', url);
+    //   // Você pode usar o URL de dados (data URL) aqui conforme necessário
+    // });
 
     // setTimeout(() => {
     //   console.clear(); // Limpa o terminal
@@ -124,7 +122,7 @@ async function executeWhatsapp() {
 
 
 
-  await sendRepeatedMessage()
+  sendRepeatedMessage()
   const chatMonitoring = new ChatMonitoring
   await chatMonitoring.monitoring(client)
 

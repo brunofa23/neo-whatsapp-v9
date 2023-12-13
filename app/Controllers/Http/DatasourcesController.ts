@@ -67,13 +67,7 @@ export default class DatasourcesController {
     else pacQuery = pacQueryModel?.query
 
     try {
-      //const result = await Database.connection('mssql').rawQuery(pacQuery)
-      const result = await Database.connection('mssql').from('teste').select('*')
-      //.rawQuery("select * from paciente")
-      console.log("SCHEDULE PATIENTS...", result)
-      return
-
-      console.log("passei no scheduledPatients")
+      const result = await Database.connection('mssql').rawQuery(pacQuery)
 
       for (const data of result) {
         const message = await greeting(data.message)

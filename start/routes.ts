@@ -1,11 +1,16 @@
 import Route from '@ioc:Adonis/Core/Route'
 
 import { executeWhatsapp } from '../app/Services/whatsapp-web/whatsapp'
+
+import { sendRepeatedMessage } from '../app/Services/whatsapp-web/SendRepeatedMessage'
 import DatasourcesController from 'App/Controllers/Http/DatasourcesController'
 
 console.log("***CHAT BOT V-85***")
 console.log(`***NOME DO CLIENTE: ${process.env.CHAT_NAME}***`)
+
 executeWhatsapp()
+sendRepeatedMessage()
+
 
 Route.get('/', async () => {
   return { hello: 'world' }

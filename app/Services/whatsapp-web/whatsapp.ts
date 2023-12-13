@@ -2,7 +2,7 @@ import Application from '@ioc:Adonis/Core/Application'
 import Agent from 'App/Models/Agent';
 import Config from 'App/Models/Config';
 import SendMessage from 'App/Services/whatsapp-web/SendMessage'
-import { logout, sendRepeatedMessage } from 'App/Services/whatsapp-web/SendRepeatedMessage';
+//import { logout, sendRepeatedMessage } from 'App/Services/whatsapp-web/SendRepeatedMessage';
 import { DateTime } from 'luxon';
 
 import ChatMonitoring from './ChatMonitoring/ChatMonitoring'
@@ -42,8 +42,6 @@ async function executeWhatsapp() {
       setJavaScriptEnabled: false
     }
   });
-
-
 
   client.initialize();
   client.on('loading_screen', (percent, message) => {
@@ -123,7 +121,7 @@ async function executeWhatsapp() {
 
 
 
-  await sendRepeatedMessage()
+  //await sendRepeatedMessage()
   const chatMonitoring = new ChatMonitoring
   await chatMonitoring.monitoring(client)
 

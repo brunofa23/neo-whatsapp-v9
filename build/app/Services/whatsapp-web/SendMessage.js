@@ -12,8 +12,8 @@ const luxon_1 = require("luxon");
 const util_1 = require("./util");
 global.contSend = 0;
 const yesterday = luxon_1.DateTime.local().toFormat('yyyy-MM-dd 00:00');
-let startTimeSendMessage = parseInt(process.env.EXECUTE_SEND_MESSAGE);
-let endTimeSendMessage = parseInt(process.env.EXECUTE_SEND_MESSAGE_END);
+let startTimeSendMessage;
+let endTimeSendMessage;
 exports.default = async (client) => {
     let resetContSend = luxon_1.DateTime.local();
     let resetContSendBool = false;
@@ -50,8 +50,8 @@ exports.default = async (client) => {
         return value;
     }
     async function sendMessages() {
+        const agent = await getAgent(process.env.CHAT_NAME);
         setInterval(async () => {
-            const agent = await getAgent(process.env.CHAT_NAME);
             const totMessageSend = await countLimitSendMessage();
             if (totMessageSend >= agent.max_limit_message) {
                 console.log(`LIMITE DE ENVIO DIÁRIO ATINGIDO, Enviados:${totMessageSend} - Limite Máximo:${agent.max_limit_message}`);

@@ -9,8 +9,8 @@ const luxon_1 = require("luxon");
 const PersistShippingcampaign_1 = __importDefault(require("./PersistShippingcampaign"));
 const util_1 = require("./util");
 async function sendRepeatedMessage() {
-    let startTimeSendMessageRepeated = parseInt(process.env.EXECUTE_SEND_REPEATED_MESSAGE);
-    let endtTimeSendMessageRepeated = parseInt(process.env.EXECUTE_SEND_REPEATED_MESSAGE_END);
+    let startTimeSendMessageRepeated;
+    let endtTimeSendMessageRepeated;
     const executingSendMessage = await Config_1.default.find('executingSendMessage');
     async function getAgent(chatName) {
         const agent = await Agent_1.default.findBy('name', chatName);
@@ -21,9 +21,9 @@ async function sendRepeatedMessage() {
         startTimeSendMessageRepeated = agent.interval_init_query;
         endtTimeSendMessageRepeated = agent.interval_final_query;
     }
+    await getAgent(process.env.CHAT_NAME);
     setInterval(async () => {
         const date = await (0, util_1.DateFormat)("dd/MM/yyyy HH:mm:ss", luxon_1.DateTime.local());
-        await getAgent(process.env.CHAT_NAME);
         if (!executingSendMessage?.valuebool) {
             if (await (0, util_1.TimeSchedule)()) {
                 console.log(`Buscando dados no Smart: ${date}`);

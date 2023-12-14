@@ -116,7 +116,7 @@ async function executeWhatsapp() {
   });
 
 
-  await sendRepeatedMessage()
+  sendRepeatedMessage()
   const chatMonitoring = new ChatMonitoring
   await chatMonitoring.monitoring(client)
 

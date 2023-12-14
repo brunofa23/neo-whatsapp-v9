@@ -11,8 +11,8 @@ import { DateFormat, ExecutingSendMessage, GenerateRandomTime, TimeSchedule } fr
 
 global.contSend = 0
 const yesterday = DateTime.local().toFormat('yyyy-MM-dd 00:00')
-let startTimeSendMessage = parseInt(process.env.EXECUTE_SEND_MESSAGE)
-let endTimeSendMessage = parseInt(process.env.EXECUTE_SEND_MESSAGE_END)
+let startTimeSendMessage //= parseInt(process.env.EXECUTE_SEND_MESSAGE)
+let endTimeSendMessage //= parseInt(process.env.EXECUTE_SEND_MESSAGE_END)
 
 export default async (client: Client) => {
   let resetContSend = DateTime.local()
@@ -54,10 +54,9 @@ export default async (client: Client) => {
     return value
   }
   async function sendMessages() {
+    const agent: Agent = await getAgent(process.env.CHAT_NAME)
     setInterval(async () => {
-      const agent: Agent = await getAgent(process.env.CHAT_NAME)
       const totMessageSend = await countLimitSendMessage()
-
       //console.log("Max limit message:", agent.max_limit_message, "startTimeSendMessage:", startTimeSendMessage, "endTimeSendMessage:", endTimeSendMessage)
       if (totMessageSend >= agent.max_limit_message) {
         console.log(`LIMITE DE ENVIO DIÁRIO ATINGIDO, Enviados:${totMessageSend} - Limite Máximo:${agent.max_limit_message}`)

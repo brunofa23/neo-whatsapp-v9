@@ -6,8 +6,8 @@ import PersistShippingcampaign from './PersistShippingcampaign';
 import { DateFormat, GenerateRandomTime, TimeSchedule } from './util'
 
 async function sendRepeatedMessage() {
-  let startTimeSendMessageRepeated = parseInt(process.env.EXECUTE_SEND_REPEATED_MESSAGE)
-  let endtTimeSendMessageRepeated = parseInt(process.env.EXECUTE_SEND_REPEATED_MESSAGE_END)
+  let startTimeSendMessageRepeated //= parseInt(process.env.EXECUTE_SEND_REPEATED_MESSAGE)
+  let endtTimeSendMessageRepeated //= parseInt(process.env.EXECUTE_SEND_REPEATED_MESSAGE_END)
   const executingSendMessage = await Config.find('executingSendMessage')
 
   async function getAgent(chatName: string) {
@@ -20,10 +20,10 @@ async function sendRepeatedMessage() {
     endtTimeSendMessageRepeated = agent.interval_final_query
   }
 
-
+  await getAgent(process.env.CHAT_NAME)
   setInterval(async () => {
     const date = await DateFormat("dd/MM/yyyy HH:mm:ss", DateTime.local())
-    await getAgent(process.env.CHAT_NAME)
+    //await getAgent(process.env.CHAT_NAME)
     if (!executingSendMessage?.valuebool) {
       if (await TimeSchedule()) {
         console.log(`Buscando dados no Smart: ${date}`)

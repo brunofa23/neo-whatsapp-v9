@@ -53,6 +53,8 @@ export default async (client: Client) => {
     const value = await shippingcampaignsController.maxLimitSendMessage()
     return value
   }
+
+
   async function sendMessages() {
     const agent: Agent = await getAgent(process.env.CHAT_NAME)
     setInterval(async () => {

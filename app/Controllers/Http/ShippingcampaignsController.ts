@@ -316,23 +316,23 @@ export default class ShippingcampaignsController {
         resultAcumulatedList.push(result.$extras)
       }
 
-      // let totAcumulated: number = 0
-      // let totDetrator: number = 0
-      // let totPromoter: number = 0
-      // const totAcumulatedList = resultAcumulatedList.map(item => {
-      //   totAcumulated = totAcumulated + item.total
-      //   if (item.total <= 6)
-      //     totDetrator = totDetrator + item.total
-      //   console.log("item", item, totDetrator)
-      //   return {
-      //     totAcumulated, totDetrator
-      //   }
-      // })
+      let totAcumulated: number = 0
+      let totDetrator: number = 0
+      let totPromoter: number = 0
+      const totAcumulatedList = resultAcumulatedList.map(item => {
+        totAcumulated = totAcumulated + item.total
+        if (item.total <= 6)
+          totDetrator = totDetrator + item.total
+        console.log("item", item, totDetrator)
+        return {
+          totAcumulated, totDetrator
+        }
+      })
 
 
-      // const otherfields = result.map(item => JSON.parse(item.otherfields))
-      // const station = otherfields.map(item => item.station)
-      // const medic = otherfields.map(item => item.medic)
+      const otherfields = result.map(item => JSON.parse(item.otherfields))
+      const station = otherfields.map(item => item.station)
+      const medic = otherfields.map(item => item.medic)
 
       const resultFinal = result.map(item => {
         const otherfieldsObj = JSON.parse(item.otherfields);

@@ -296,7 +296,7 @@ export default class ShippingcampaignsController {
           'absoluteresp'
         )
         .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
-        .whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
+        .whereBetween('chats.created_at', [initialdate, finaldate])
         .where('shippingcampaigns.interaction_id', 2)
         .whereRaw(query)
       //console.log("result", result)

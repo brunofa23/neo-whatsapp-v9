@@ -299,8 +299,8 @@ export default class ShippingcampaignsController {
         .whereBetween('chats.created_at', [initialdate, finaldate])
         .where('shippingcampaigns.interaction_id', 2)
         .whereRaw(query)
-      //console.log("result", result)
 
+      //console.log("result", result)
       const resultAcumulated = await Chat.query()
         .sumDistinct('absoluteresp as note')
         .count('* as total')
@@ -309,25 +309,12 @@ export default class ShippingcampaignsController {
         .whereBetween('created_at', [initialdate, finaldate])
         .groupBy('absoluteresp')
 
-
-
       let resultAcumulatedList = []
       for (const result of resultAcumulated) {
         resultAcumulatedList.push(result.$extras)
       }
 
-      let totAcumulated: number = 0
-      let totDetrator: number = 0
-      let totPromoter: number = 0
-      const totAcumulatedList = resultAcumulatedList.map(item => {
-        totAcumulated = totAcumulated + item.total
-        if (item.total <= 6)
-          totDetrator = totDetrator + item.total
-        console.log("item", item, totDetrator)
-        return {
-          totAcumulated, totDetrator
-        }
-      })
+      console.log(resultAcumulatedList)
 
 
       const otherfields = result.map(item => JSON.parse(item.otherfields))

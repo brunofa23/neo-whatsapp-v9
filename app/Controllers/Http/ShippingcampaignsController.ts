@@ -3,6 +3,7 @@ import Shippingcampaign from 'App/Models/Shippingcampaign'
 import { executeWhatsapp } from '../../Services/whatsapp-web/whatsapp'
 import Chat from 'App/Models/Chat'
 import Database from '@ioc:Adonis/Lucid/Database'
+import Env from '@ioc:Adonis/Core/Env'
 
 import { DateFormat, InvalidResponse } from '../../Services/whatsapp-web/util'
 import { DateTime } from 'luxon'
@@ -282,8 +283,11 @@ export default class ShippingcampaignsController {
     if (!DateTime.fromISO(initialdate).isValid || !DateTime.fromISO(finaldate).isValid) {
       throw new Error("Datas inválidas.")
     }
+
+    //return { query, initialdate, finaldate }
+
     try {
-      const result = await Database.connection('mssql2').query()
+      const result = await Database.connection(Env.get('DB_CONNECTION_MAIN')).query()
         .from('shippingcampaigns')
         .select(
           'shippingcampaigns.interaction_id',

@@ -16,6 +16,7 @@ Route.group(() => {
   Route.get('/teste', async () => {
     console.log("entrei no whatsapp router")
     await executeWhatsapp()
+    return "Executei a chamada da api do whatsapp"
   })
 
   Route.get("/smart", "DatasourcesController.scheduledPatients")

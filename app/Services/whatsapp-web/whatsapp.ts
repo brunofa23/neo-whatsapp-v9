@@ -1,9 +1,9 @@
-//import Application from '@ioc:Adonis/Core/Application'
+import Application from '@ioc:Adonis/Core/Application'
 import Agent from 'App/Models/Agent';
-//import Config from 'App/Models/Config';
+import Config from 'App/Models/Config';
 import SendMessage from 'App/Services/whatsapp-web/SendMessage'
-import { sendRepeatedMessage } from 'App/Services/whatsapp-web/SendRepeatedMessage';
-//import { DateTime } from 'luxon';
+import { logout, sendRepeatedMessage } from 'App/Services/whatsapp-web/SendRepeatedMessage';
+import { DateTime } from 'luxon';
 
 import ChatMonitoring from './ChatMonitoring/ChatMonitoring'
 import ChatMonitoringInternal from './ChatMonitoring/ChatMonitoringInternal'
@@ -42,9 +42,8 @@ async function executeWhatsapp() {
     }
   });
 
-  await client.initialize();
-  console.log("Entrei no class whatsapp")
 
+  client.initialize();
   client.on('loading_screen', (percent, message) => {
     console.log('LOADING SCREEN', percent, message);
   });
@@ -54,21 +53,21 @@ async function executeWhatsapp() {
     agent.status = "Qrcode require"
     await agent.save()
 
-    //setTimeout(() => {
+    setTimeout(() => {
 
-    qrcodeTerminal.generate(qr, { small: true });
-    const folderPath = path.resolve(__dirname, "../../../");
-    const qrcodePath = path.join(folderPath, "/qrcode", 'qrcode.png')
-    ClearFolder(qrcodePath)
-    qrcode.toFile(qrcodePath, qr, { small: true }, (err) => {
-      if (err) {
-        console.error('Ocorreu um erro ao gerar o arquivo do código QR:', err);
-        return;
-      }
-      console.log('Arquivo do código QR foi gerado com sucesso:');
-    });
+      qrcodeTerminal.generate(qr, { small: true });
+      const folderPath = path.resolve(__dirname, "../../../");
+      const qrcodePath = path.join(folderPath, "/qrcode", 'qrcode.png')
+      ClearFolder(qrcodePath)
+      qrcode.toFile(qrcodePath, qr, { small: true }, (err) => {
+        if (err) {
+          console.error('Ocorreu um erro ao gerar o arquivo do código QR:', err);
+          return;
+        }
+        console.log('Arquivo do código QR foi gerado com sucesso:');
+      });
 
-    //}, 5000);
+    }, 5000);
 
 
 
@@ -77,7 +76,7 @@ async function executeWhatsapp() {
     //     console.error('Ocorreu um erro ao gerar o URL de dados:', err);
     //     return;
     //   }
-    //   //console.log('URL de dados do código QR:', url);
+    //   console.log('URL de dados do código QR:', url);
     //   // Você pode usar o URL de dados (data URL) aqui conforme necessário
     // });
 
@@ -86,7 +85,6 @@ async function executeWhatsapp() {
     // }, 50000);
 
   });
-
 
   client.on('authenticated', () => {
     console.log('AUTHENTICATED');
@@ -102,23 +100,21 @@ async function executeWhatsapp() {
   });
 
   await client.on('ready', async () => {
-
-    console.log("RASTREAMENTO 1001>>>>>>>>>>>>>>>>>")
-
     console.log('READY...');
     const state = await client.getState()
     console.log("State:", state)
     await SendMessage(client)
 
-    if (process.env.SELF_CONVERSATION?.toLowerCase() === "true") {
+    if (process.env.SELF_CONVERSATION?.toLocaleLowerCase() === "true") {
       console.log("self_conversation", process.env.SELF_CONVERSATION)
-      SendMessageInternal(client)
+      await SendMessageInternal(client)
     }
 
     agent.status = state
     await agent.save()
 
   });
+
 
   sendRepeatedMessage()
   const chatMonitoring = new ChatMonitoring

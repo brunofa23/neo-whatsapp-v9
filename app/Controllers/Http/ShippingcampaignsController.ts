@@ -154,7 +154,7 @@ export default class ShippingcampaignsController {
     }
 
     try {
-      const result = await Database.connection('mssql2').query()
+      const result = await Database.connection(Env.get('DB_CONNECTION_MAIN')).query()
         .select(Database.raw('CONVERT(date, shippingcampaigns.created_at) as dataPeriodo'))
         .select(Database.raw('COUNT(*) as totalDiario'))
         .select(Database.raw('SUM(CASE WHEN phonevalid = 1 THEN 1 ELSE 0 END) as telefonesValidos'))
@@ -318,6 +318,8 @@ export default class ShippingcampaignsController {
         .whereBetween('created_at', [initialdate, finaldate])
         .groupBy('absoluteresp')
 
+
+
       let resultAcumulatedList = []
       let totalEvaluations = 0
       let totalDetractors = 0
@@ -332,6 +334,8 @@ export default class ShippingcampaignsController {
         if (result.$extras.note >= 9 && result.$extras.note <= 10)
           totalPromoters = totalPromoters + result.$extras.total
       }
+
+      //console.log("RESUUUULT", resultAcumulatedList)
       //calcula o percentual do NPS
       const npsResult = ((totalPromoters * 100) / totalEvaluations) - ((totalDetractors * 100) / totalEvaluations)
 

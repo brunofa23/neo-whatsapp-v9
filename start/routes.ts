@@ -3,7 +3,7 @@ import { executeWhatsapp } from '../app/Services/whatsapp-web/whatsapp'
 //import { sendRepeatedMessage } from '../app/Services/whatsapp-web/SendRepeatedMessage'
 import DatasourcesController from 'App/Controllers/Http/DatasourcesController'
 
-console.log("***CHAT BOT V-85***")
+console.log("***CHAT BOT V-88***21/12/2023")
 console.log(`***NOME DO CLIENTE: ${process.env.CHAT_NAME}***`)
 executeWhatsapp()
 //sendRepeatedMessage()

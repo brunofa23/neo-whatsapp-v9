@@ -301,11 +301,11 @@ export default class ShippingcampaignsController {
           'absoluteresp'
         )
         .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
-        .whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
+        .whereBetween('chats.created_at', [initialdate, finaldate])
         .where('shippingcampaigns.interaction_id', 2)
         .whereRaw(query)
-      //console.log("result", result)
 
+      //console.log("result", result)
       const resultAcumulated = await Chat.query()
         .sumDistinct('absoluteresp as note')
         .count('* as total')
@@ -314,16 +314,34 @@ export default class ShippingcampaignsController {
         .whereBetween('created_at', [initialdate, finaldate])
         .groupBy('absoluteresp')
 
-
-
       let resultAcumulatedList = []
+      let totalEvaluations = 0
+      let totalDetractors = 0
+      let totalPromoters = 0
+
+      //Total de detratores, promotores e Array de notas (acumulado)
       for (const result of resultAcumulated) {
         resultAcumulatedList.push(result.$extras)
+        totalEvaluations = totalEvaluations + result.$extras.total
+        if (result.$extras.note <= 6)
+          totalDetractors = totalDetractors + result.$extras.total
+        if (result.$extras.note >= 9 && result.$extras.note <= 10)
+          totalPromoters = totalPromoters + result.$extras.total
       }
+      //calcula o percentual do NPS
+      const npsResult = ((totalPromoters * 100) / totalEvaluations) - ((totalDetractors * 100) / totalEvaluations)
 
-      // const otherfields = result.map(item => JSON.parse(item.otherfields))
-      // const station = otherfields.map(item => item.station)
-      // const medic = otherfields.map(item => item.medic)
+      // console.log("% detratores", percentDetractors)
+      // console.log("% promoters", percentPromoters)
+      // console.log("NPS", npsResult)
+      // console.log("total geral", totalEvaluations)
+      // console.log("total detratores", totalDetractors)
+      // console.log("total promoters", totalPromoters)
+
+
+      const otherfields = result.map(item => JSON.parse(item.otherfields))
+      const station = otherfields.map(item => item.station)
+      const medic = otherfields.map(item => item.medic)
 
       const resultFinal = result.map(item => {
         const otherfieldsObj = JSON.parse(item.otherfields);
@@ -334,8 +352,6 @@ export default class ShippingcampaignsController {
           attendant: otherfieldsObj.attendant
         };
       });
-
-      //console.log("resultFinal", resultFinal)
 
       // Função para classificar a pontuação
       function getClassification(score) {
@@ -417,7 +433,7 @@ export default class ShippingcampaignsController {
       //console.log(resultByStation, resultByMedic);
       //console.log(resultFinal)
 
-      return response.status(201).send({ result, resultAcumulatedList, resultByStation, resultByMedic, resultByAttendant })
+      return response.status(201).send({ result, resultAcumulatedList, resultByStation, resultByMedic, resultByAttendant, npsResult })
     } catch (error) {
       throw new Error(error)
     }

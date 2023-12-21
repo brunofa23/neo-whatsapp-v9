@@ -15,7 +15,7 @@ Route.get('/', async () => {
 Route.group(() => {
   Route.get('/teste', async () => {
     console.log("entrei no whatsapp router")
-    await executeWhatsapp()
+    //await executeWhatsapp()
     return "Executei a chamada da api do whatsapp"
   })
 

@@ -15,9 +15,6 @@ let startTimeSendMessage //= parseInt(process.env.EXECUTE_SEND_MESSAGE)
 let endTimeSendMessage //= parseInt(process.env.EXECUTE_SEND_MESSAGE_END)
 
 export default async (client: Client) => {
-
-  console.log("TESTE 5001 PASSANDO...")
-
   let resetContSend = DateTime.local()
   let resetContSendBool = false
 
@@ -56,14 +53,6 @@ export default async (client: Client) => {
     const value = await shippingcampaignsController.maxLimitSendMessage()
     return value
   }
-<<<<<<< HEAD
-  async function sendMessages() {
-
-    setInterval(async () => {
-      const agent: Agent = await getAgent(process.env.CHAT_NAME)
-      const totMessageSend = await countLimitSendMessage()
-=======
->>>>>>> development
 
 
   async function sendMessages() {
@@ -131,6 +120,3 @@ export default async (client: Client) => {
   await sendMessages()
 
 }
-
-
-

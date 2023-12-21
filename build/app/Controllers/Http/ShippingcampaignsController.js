@@ -210,7 +210,7 @@ class ShippingcampaignsController {
                 .from('shippingcampaigns')
                 .select('shippingcampaigns.interaction_id', 'shippingcampaigns.reg', 'shippingcampaigns.name', 'shippingcampaigns.cellphone', 'otherfields', 'phonevalid', 'messagesent', 'chats.created_at', 'response', 'returned', 'invalidresponse', 'chatname', 'absoluteresp')
                 .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
-                .whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
+                .whereBetween('chats.created_at', [initialdate, finaldate])
                 .where('shippingcampaigns.interaction_id', 2)
                 .whereRaw(query);
             const resultAcumulated = await Chat_1.default.query()
@@ -221,9 +221,21 @@ class ShippingcampaignsController {
                 .whereBetween('created_at', [initialdate, finaldate])
                 .groupBy('absoluteresp');
             let resultAcumulatedList = [];
+            let totalEvaluations = 0;
+            let totalDetractors = 0;
+            let totalPromoters = 0;
             for (const result of resultAcumulated) {
                 resultAcumulatedList.push(result.$extras);
+                totalEvaluations = totalEvaluations + result.$extras.total;
+                if (result.$extras.note <= 6)
+                    totalDetractors = totalDetractors + result.$extras.total;
+                if (result.$extras.note >= 9 && result.$extras.note <= 10)
+                    totalPromoters = totalPromoters + result.$extras.total;
             }
+            const npsResult = ((totalPromoters * 100) / totalEvaluations) - ((totalDetractors * 100) / totalEvaluations);
+            const otherfields = result.map(item => JSON.parse(item.otherfields));
+            const station = otherfields.map(item => item.station);
+            const medic = otherfields.map(item => item.medic);
             const resultFinal = result.map(item => {
                 const otherfieldsObj = JSON.parse(item.otherfields);
                 return {
@@ -293,7 +305,7 @@ class ShippingcampaignsController {
                 attendant,
                 ...counts
             }));
-            return response.status(201).send({ result, resultAcumulatedList, resultByStation, resultByMedic, resultByAttendant });
+            return response.status(201).send({ result, resultAcumulatedList, resultByStation, resultByMedic, resultByAttendant, npsResult });
         }
         catch (error) {
             throw new Error(error);

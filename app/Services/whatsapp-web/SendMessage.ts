@@ -120,6 +120,3 @@ export default async (client: Client) => {
   await sendMessages()
 
 }
-
-
-

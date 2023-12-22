@@ -3,6 +3,7 @@ import Shippingcampaign from 'App/Models/Shippingcampaign'
 import { executeWhatsapp } from '../../Services/whatsapp-web/whatsapp'
 import Chat from 'App/Models/Chat'
 import Database from '@ioc:Adonis/Lucid/Database'
+import Env from '@ioc:Adonis/Core/Env'
 
 import { DateFormat, InvalidResponse } from '../../Services/whatsapp-web/util'
 import { DateTime } from 'luxon'
@@ -11,7 +12,7 @@ import { Response } from '@adonisjs/core/build/standalone'
 export default class ShippingcampaignsController {
 
   static get connection() {
-    return 'mssql2';
+    return 'mysql';
   }
   public async index({ response, request }) {
     try {
@@ -153,7 +154,7 @@ export default class ShippingcampaignsController {
     }
 
     try {
-      const result = await Database.connection('mssql2').query()
+      const result = await Database.connection(Env.get('DB_CONNECTION_MAIN')).query()
         .select(Database.raw('CONVERT(date, shippingcampaigns.created_at) as dataPeriodo'))
         .select(Database.raw('COUNT(*) as totalDiario'))
         .select(Database.raw('SUM(CASE WHEN phonevalid = 1 THEN 1 ELSE 0 END) as telefonesValidos'))
@@ -165,7 +166,12 @@ export default class ShippingcampaignsController {
         .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
         .whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
         .groupByRaw('CONVERT(date, shippingcampaigns.created_at)')
-        .orderByRaw(Database.raw('CONVERT(date, shippingcampaigns.created_at)'))
+        .orderByRaw(Database.raw('CONVERT(date, shippingcampaigns.created_at)')).toQuery()
+
+      console.log(">>>>>>>>>>", result)
+
+
+
 
       return response.status(201).send(result)
     } catch (error) {
@@ -277,8 +283,11 @@ export default class ShippingcampaignsController {
     if (!DateTime.fromISO(initialdate).isValid || !DateTime.fromISO(finaldate).isValid) {
       throw new Error("Datas inválidas.")
     }
+
+    //return { query, initialdate, finaldate }
+
     try {
-      const result = await Database.connection('mssql2').query()
+      const result = await Database.connection(Env.get('DB_CONNECTION_MAIN')).query()
         .from('shippingcampaigns')
         .select(
           'shippingcampaigns.interaction_id',
@@ -309,6 +318,8 @@ export default class ShippingcampaignsController {
         .whereBetween('created_at', [initialdate, finaldate])
         .groupBy('absoluteresp')
 
+
+
       let resultAcumulatedList = []
       let totalEvaluations = 0
       let totalDetractors = 0
@@ -323,6 +334,8 @@ export default class ShippingcampaignsController {
         if (result.$extras.note >= 9 && result.$extras.note <= 10)
           totalPromoters = totalPromoters + result.$extras.total
       }
+
+      //console.log("RESUUUULT", resultAcumulatedList)
       //calcula o percentual do NPS
       const npsResult = ((totalPromoters * 100) / totalEvaluations) - ((totalDetractors * 100) / totalEvaluations)
 

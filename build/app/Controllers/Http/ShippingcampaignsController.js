@@ -7,11 +7,12 @@ const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Mo
 const whatsapp_1 = require("../../Services/whatsapp-web/whatsapp");
 const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
 const Database_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Lucid/Database"));
+const Env_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Env"));
 const util_1 = require("../../Services/whatsapp-web/util");
 const luxon_1 = require("luxon");
 class ShippingcampaignsController {
     static get connection() {
-        return 'mssql2';
+        return 'mysql';
     }
     async index({ response, request }) {
         try {
@@ -116,7 +117,7 @@ class ShippingcampaignsController {
             throw new Error("Datas inválidas.");
         }
         try {
-            const result = await Database_1.default.connection('mssql2').query()
+            const result = await Database_1.default.connection(Env_1.default.get('DB_CONNECTION_MAIN')).query()
                 .select(Database_1.default.raw('CONVERT(date, shippingcampaigns.created_at) as dataPeriodo'))
                 .select(Database_1.default.raw('COUNT(*) as totalDiario'))
                 .select(Database_1.default.raw('SUM(CASE WHEN phonevalid = 1 THEN 1 ELSE 0 END) as telefonesValidos'))
@@ -128,7 +129,8 @@ class ShippingcampaignsController {
                 .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
                 .whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
                 .groupByRaw('CONVERT(date, shippingcampaigns.created_at)')
-                .orderByRaw(Database_1.default.raw('CONVERT(date, shippingcampaigns.created_at)'));
+                .orderByRaw(Database_1.default.raw('CONVERT(date, shippingcampaigns.created_at)')).toQuery();
+            console.log(">>>>>>>>>>", result);
             return response.status(201).send(result);
         }
         catch (error) {
@@ -206,7 +208,7 @@ class ShippingcampaignsController {
             throw new Error("Datas inválidas.");
         }
         try {
-            const result = await Database_1.default.connection('mssql2').query()
+            const result = await Database_1.default.connection(Env_1.default.get('DB_CONNECTION_MAIN')).query()
                 .from('shippingcampaigns')
                 .select('shippingcampaigns.interaction_id', 'shippingcampaigns.reg', 'shippingcampaigns.name', 'shippingcampaigns.cellphone', 'otherfields', 'phonevalid', 'messagesent', 'chats.created_at', 'response', 'returned', 'invalidresponse', 'chatname', 'absoluteresp')
                 .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')

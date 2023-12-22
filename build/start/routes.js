@@ -13,8 +13,10 @@ Route_1.default.get('/', async () => {
 });
 Route_1.default.group(() => {
     Route_1.default.get('/teste', async () => {
-        await (0, whatsapp_1.executeWhatsapp)();
+        console.log("entrei no whatsapp router");
+        return "Executei a chamada da api do whatsapp";
     });
+    Route_1.default.get("/smart", "DatasourcesController.scheduledPatients");
     Route_1.default.post('/restart', 'ShippingcampaignsController.resetWhatsapp');
     Route_1.default.post('/logout', 'ShippingcampaignsController.logout');
     Route_1.default.post('/chat', 'ShippingcampaignsController.chat');

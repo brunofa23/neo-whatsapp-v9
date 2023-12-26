@@ -1,3 +1,4 @@
+import { typeInferListFromConfig } from '@adonisjs/core/build/config';
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Shippingcampaign from 'App/Models/Shippingcampaign'
 import { executeWhatsapp } from '../../Services/whatsapp-web/whatsapp'
@@ -264,6 +265,8 @@ export default class ShippingcampaignsController {
 
   public async serviceEvaluationDashboard({ request, response }: HttpContextContract) {
 
+
+
     const { initialdate, finaldate, phonevalid, absoluteresp, interactions } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp', 'interactions'])
 
     let query = "1=1"
@@ -309,6 +312,8 @@ export default class ShippingcampaignsController {
         .where('shippingcampaigns.interaction_id', 2)
         .whereRaw(query)
 
+
+
       //console.log("result", result)
       const resultAcumulated = await Chat.query()
         .sumDistinct('absoluteresp as note')
@@ -334,7 +339,6 @@ export default class ShippingcampaignsController {
         if (result.$extras.note >= 9 && result.$extras.note <= 10)
           totalPromoters = totalPromoters + result.$extras.total
       }
-
       //console.log("RESUUUULT", resultAcumulatedList)
       //calcula o percentual do NPS
       const npsResult = ((totalPromoters * 100) / totalEvaluations) - ((totalDetractors * 100) / totalEvaluations)
@@ -351,15 +355,31 @@ export default class ShippingcampaignsController {
       const station = otherfields.map(item => item.station)
       const medic = otherfields.map(item => item.medic)
 
+      let itemFilter
       const resultFinal = result.map(item => {
         const otherfieldsObj = JSON.parse(item.otherfields);
+
+        // if (item.absoluteresp !== null) {
+        //   itemFilter = item
+        // }
+        // return {
+        //   itemFilter,
+        //   station: otherfieldsObj.station,
+        //   medic: otherfieldsObj.medic,
+        //   attendant: otherfieldsObj.attendant
+        // }
+
         return {
           ...item,
           station: otherfieldsObj.station,
           medic: otherfieldsObj.medic,
           attendant: otherfieldsObj.attendant
         };
+
+
       });
+
+      //console.log("ITEM>>>>>", resultFinal)
 
       // Função para classificar a pontuação
       function getClassification(score) {
@@ -382,7 +402,7 @@ export default class ShippingcampaignsController {
         const { attendant, station, absoluteresp, medic } = item;
         const classification = getClassification(absoluteresp);
         // recepcao
-        if (item.messagesent) {
+        if (item.messagesent && item.absoluteresp !== null) {
           if (!countsByStation[station]) {
             countsByStation[station] = {
               detrator: 0,
@@ -390,11 +410,12 @@ export default class ShippingcampaignsController {
               promotor: 0
             };
           }
+          //console.log("STATION======>", countsByStation[station])
           countsByStation[station][classification]++;
         }
 
         //MEDIC********* */
-        if (item.messagesent) {
+        if (item.messagesent && item.absoluteresp !== null) {
           if (!countsByMedic[medic]) {
             countsByMedic[medic] = {
               detrator: 0,
@@ -407,7 +428,7 @@ export default class ShippingcampaignsController {
         }
 
         //RECEP********* */
-        if (item.messagesent) {
+        if (item.messagesent && item.absoluteresp !== null) {
           if (!countsByAttendant[attendant]) {
             countsByAttendant[attendant] = {
               detrator: 0,
@@ -425,9 +446,6 @@ export default class ShippingcampaignsController {
         ...counts
       }));
 
-      //console.log("RECEPÇÃO", resultByStation)
-
-
       const resultByMedic = Object.entries(countsByMedic).map(([medic, counts]) => ({
         medic,
         ...counts
@@ -438,20 +456,12 @@ export default class ShippingcampaignsController {
         ...counts
       }));
 
-      //console.log(resultByStation, resultByMedic);
-      //console.log(resultFinal)
-
       return response.status(201).send({ result, resultAcumulatedList, resultByStation, resultByMedic, resultByAttendant, npsResult })
     } catch (error) {
       throw new Error(error)
     }
 
   }
-
-
-
-
-
 
 
 }

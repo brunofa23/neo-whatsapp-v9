@@ -238,6 +238,7 @@ class ShippingcampaignsController {
             const otherfields = result.map(item => JSON.parse(item.otherfields));
             const station = otherfields.map(item => item.station);
             const medic = otherfields.map(item => item.medic);
+            let itemFilter;
             const resultFinal = result.map(item => {
                 const otherfieldsObj = JSON.parse(item.otherfields);
                 return {
@@ -264,7 +265,7 @@ class ShippingcampaignsController {
             resultFinal.forEach(item => {
                 const { attendant, station, absoluteresp, medic } = item;
                 const classification = getClassification(absoluteresp);
-                if (item.messagesent) {
+                if (item.messagesent && item.absoluteresp !== null) {
                     if (!countsByStation[station]) {
                         countsByStation[station] = {
                             detrator: 0,
@@ -274,7 +275,7 @@ class ShippingcampaignsController {
                     }
                     countsByStation[station][classification]++;
                 }
-                if (item.messagesent) {
+                if (item.messagesent && item.absoluteresp !== null) {
                     if (!countsByMedic[medic]) {
                         countsByMedic[medic] = {
                             detrator: 0,
@@ -284,7 +285,7 @@ class ShippingcampaignsController {
                     }
                     countsByMedic[medic][classification]++;
                 }
-                if (item.messagesent) {
+                if (item.messagesent && item.absoluteresp !== null) {
                     if (!countsByAttendant[attendant]) {
                         countsByAttendant[attendant] = {
                             detrator: 0,

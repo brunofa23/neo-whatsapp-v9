@@ -264,6 +264,8 @@ export default class ShippingcampaignsController {
 
   public async serviceEvaluationDashboard({ request, response }: HttpContextContract) {
 
+
+
     const { initialdate, finaldate, phonevalid, absoluteresp, interactions } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp', 'interactions'])
 
     let query = "1=1"
@@ -309,6 +311,8 @@ export default class ShippingcampaignsController {
         .where('shippingcampaigns.interaction_id', 2)
         .whereRaw(query)
 
+
+
       //console.log("result", result)
       const resultAcumulated = await Chat.query()
         .sumDistinct('absoluteresp as note')
@@ -334,7 +338,6 @@ export default class ShippingcampaignsController {
         if (result.$extras.note >= 9 && result.$extras.note <= 10)
           totalPromoters = totalPromoters + result.$extras.total
       }
-
       //console.log("RESUUUULT", resultAcumulatedList)
       //calcula o percentual do NPS
       const npsResult = ((totalPromoters * 100) / totalEvaluations) - ((totalDetractors * 100) / totalEvaluations)
@@ -424,6 +427,8 @@ export default class ShippingcampaignsController {
         station,
         ...counts
       }));
+
+      console.log("STATION>>>>", resultByStation)
 
       //console.log("RECEPÇÃO", resultByStation)
 

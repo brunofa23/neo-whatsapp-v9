@@ -20,11 +20,13 @@ Route.group(() => {
   //   return "Executei a chamada da api do whatsapp"
   // })
 
-  Route.get('/connection/:id', async ({ params }) => {
-    console.log("entrei no whatsapp router", params)
-    await startAgent(params.id)
-    return "Executei a chamada da api do whatsapp"
-  })
+  // Route.get('/connection/:id', async ({ params, request }) => {
+  //   console.log("entrei no whatsapp router", params)
+  //   console.log("REQUEST>>", request.body())
+
+  //   await startAgent(params.id)
+  //   return "Executei a chamada da api do whatsapp"
+  // })
 
   // Route.get('/status/:id', async ({ params }) => {
   //   console.log("entrei no whatsapp router", params)

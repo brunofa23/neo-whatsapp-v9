@@ -1,6 +1,7 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Agent from 'App/Models/Agent'
 import { startAgent } from "../../Services/whatsapp-web/whatsappConnection"
+import { ConsoleMessage } from 'puppeteer'
 
 export default class AgentsController {
 
@@ -11,7 +12,7 @@ export default class AgentsController {
 
     try {
       const data = await Agent.all()
-      return response.status(201).send(data)
+      return response.status(200).send(data)
     } catch (error) {
       return error
     }
@@ -54,7 +55,7 @@ export default class AgentsController {
       const agent = await Agent.query().where('id', params.id).first()
       //console.log("AGENTE", agent)
       await startAgent(agent)
-      //return response.status(201).send()
+      return response.status(201).abort('Connected')
     } catch (error) {
       error
     }

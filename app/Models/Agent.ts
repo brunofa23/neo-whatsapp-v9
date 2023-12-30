@@ -24,6 +24,7 @@ export default class Agent extends BaseModel {
       'max_limit_message',
       'status',
       'active',
+      'qrcode',
       'createdAt',
       'updatedAt',
     ]
@@ -60,6 +61,9 @@ export default class Agent extends BaseModel {
 
   @column()
   public active: boolean
+
+  @column()
+  public qrcode: Blob
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime

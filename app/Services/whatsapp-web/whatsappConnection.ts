@@ -18,18 +18,16 @@ const folderPath = path.resolve(__dirname, "../../../");
 let qrcodePath
 
 
-async function startAgent(agent: Agent) {
+async function startAgent(_agent: Agent) {
+  const agent = await Agent.findOrFail(_agent.id)
 
-
-  if (!agent) {
+  if (!_agent) {
     console.log("CHATNAME INVÁLIDO - Verifique o .env Chatname está igual ao name tabela Agents")
     return
   }
 
-
-
   const client = new Client({
-    authStrategy: new LocalAuth({ clientId: agent.name }),
+    authStrategy: new LocalAuth({ clientId: _agent.name }),
     puppeteer: {
       args: ['--no-sandbox',
         '--max-memory=512MB',
@@ -63,8 +61,12 @@ async function startAgent(agent: Agent) {
         console.error('Ocorreu um erro ao gerar o URL de dados:', err);
         return;
       }
-      console.log('URL de dados do código QR:', url);
+      //console.log('URL de dados do código QR:', url);
+      agent.qrcode = url
+      agent.save()
+      console.log("qr code modificado")
       // Você pode usar o URL de dados (data URL) aqui conforme necessário
+      //console.log(">>>>>", agent.qrcode)
     });
 
     qrcodeTerminal.generate(qr, { small: true });
@@ -78,6 +80,8 @@ async function startAgent(agent: Agent) {
       }
       console.log('Arquivo do código QR foi gerado com sucesso:');
     });
+
+
   });
 
   client.on('authenticated', () => {

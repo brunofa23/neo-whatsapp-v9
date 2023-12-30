@@ -1,23 +1,42 @@
 import Route from '@ioc:Adonis/Core/Route'
-import { executeWhatsapp } from '../app/Services/whatsapp-web/whatsapp'
 //import { sendRepeatedMessage } from '../app/Services/whatsapp-web/SendRepeatedMessage'
 import DatasourcesController from 'App/Controllers/Http/DatasourcesController'
 
+import { startAgent } from '../app/Services/whatsapp-web/whatsappConnection'
+
 console.log("***CHAT BOT V-88***21/12/2023")
 console.log(`***NOME DO CLIENTE: ${process.env.CHAT_NAME}***`)
-executeWhatsapp()
-//sendRepeatedMessage()
 
 Route.get('/', async () => {
   return { hello: 'world' }
 })
 
 Route.group(() => {
-  Route.get('/teste', async () => {
-    console.log("entrei no whatsapp router")
-    //await executeWhatsapp()
+  // Route.get('/teste', async () => {
+  //   console.log("entrei no whatsapp router")
+  //   //await executeWhatsapp()
+  //   const state = await stateAgent()
+  //   console.log("esse é o estado do cliente>>>", state)
+  //   return "Executei a chamada da api do whatsapp"
+  // })
+
+  Route.get('/connection/:id', async ({ params }) => {
+    console.log("entrei no whatsapp router", params)
+    await startAgent(params.id)
     return "Executei a chamada da api do whatsapp"
   })
+
+  // Route.get('/status/:id', async ({ params }) => {
+  //   console.log("entrei no whatsapp router", params)
+  //   await statusAgent(params.id)
+  //   return "Executei a chamada da api do whatsapp"
+  // })
+
+  Route.get("/agents", "AgentsController.index")
+  Route.post("/agents", "AgentsController.store")
+  Route.post("/agents/connection/:id", "AgentsController.connection")
+  Route.patch("/agents/:id", "AgentsController.update")
+
 
   Route.get("/smart", "DatasourcesController.scheduledPatients")
 

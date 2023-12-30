@@ -12,6 +12,25 @@ export default class Agent extends BaseModel {
   }
 
 
+  public static get fillable() {
+    return [
+      'id',
+      'name',
+      'number_phone',
+      'interval_init_query',
+      'interval_final_query',
+      'interval_init_message',
+      'interval_final_message',
+      'max_limit_message',
+      'status',
+      'active',
+      'createdAt',
+      'updatedAt',
+    ]
+  }
+
+
+
   @column({ isPrimary: true })
   public id: number
 

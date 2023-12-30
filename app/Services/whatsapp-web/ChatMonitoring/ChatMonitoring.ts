@@ -1,5 +1,6 @@
 import ShippingcampaignsController from 'App/Controllers/Http/ShippingcampaignsController';
 import Chat from 'App/Models/Chat';
+import Agent from 'App/Models/Agent';
 import Shippingcampaign from 'App/Models/Shippingcampaign';
 import { SendMessage } from 'App/Services/whatsapp-web/SendMessage';
 import { Client, MessageMedia } from 'whatsapp-web.js';
@@ -103,17 +104,31 @@ export default class Monitoring {
 
 
           }
-          // else if (message.body === "destroy") {
-          //   //client.destroy()
-          //   client.logout()
-          //     .then(() => {
-          //       console.log('Conversa encerrada com sucesso.');
-          //     })
-          //     .catch((error) => {
-          //       console.error('Erro ao encerrar a conversa:', error);
-          //     });
-          //   return
-          // }
+
+          else if (message.body === "destroy") {
+
+            console.log("EXECUTANDO DISCONECT")
+            console.log("mandei destruir...")
+            // agent.status = 'Disconnected'
+            // await agent.save()
+            // Destroy and reinitialize the client when disconnected
+            await client.destroy();
+            console.log("DESTRUIDO...")
+
+            //client.destroy()
+            // client.logout()
+            //   .then(() => {
+            //     console.log('Conversa encerrada com sucesso.');
+            //   })
+            //   .catch((error) => {
+            //     console.error('Erro ao encerrar a conversa:', error);
+            //   });
+            // return
+
+
+
+
+          }
 
           else if (message.body === 'PinChat') {
             console.log("CLIENTE", message)

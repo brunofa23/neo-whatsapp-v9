@@ -20,10 +20,12 @@ let qrcodePath
 
 async function startAgent(agent: Agent) {
 
+
   if (!agent) {
     console.log("CHATNAME INVÁLIDO - Verifique o .env Chatname está igual ao name tabela Agents")
     return
   }
+
 
 
   const client = new Client({
@@ -56,6 +58,15 @@ async function startAgent(agent: Agent) {
     agent.status = "Qrcode require"
     await agent.save()
 
+    qrcode.toDataURL(qr, { small: true }, (err, url) => {
+      if (err) {
+        console.error('Ocorreu um erro ao gerar o URL de dados:', err);
+        return;
+      }
+      console.log('URL de dados do código QR:', url);
+      // Você pode usar o URL de dados (data URL) aqui conforme necessário
+    });
+
     qrcodeTerminal.generate(qr, { small: true });
     const folderPath = path.resolve(__dirname, "../../../");
     qrcodePath = path.join(folderPath, "/qrcode", `qrcode${agent.name}.png`)
@@ -76,23 +87,23 @@ async function startAgent(agent: Agent) {
 
   });
 
-  await client.on('ready', async () => {
-    console.log('READY...');
-    const state = await client.getState()
-    console.log("State:", state)
-    const myNumber = client.info;
-    agent.number_phone = myNumber.wid.user
-    agent.save()
+  // await client.on('ready', async () => {
+  //   console.log('READY...');
+  //   const state = await client.getState()
+  //   console.log("State:", state)
+  //   const myNumber = client.info;
+  //   agent.number_phone = myNumber.wid.user
+  //   agent.save()
 
-    await SendMessage(client)
+  //   await SendMessage(client)
 
-    if (process.env.SELF_CONVERSATION?.toLocaleLowerCase() === "true") {
-      console.log("self_conversation", process.env.SELF_CONVERSATION)
-      await SendMessageInternal(client)
-    }
-    agent.status = state
-    await agent.save()
-  });
+  //   if (process.env.SELF_CONVERSATION?.toLocaleLowerCase() === "true") {
+  //     console.log("self_conversation", process.env.SELF_CONVERSATION)
+  //     await SendMessageInternal(client)
+  //   }
+  //   agent.status = state
+  //   await agent.save()
+  // });
 
 
   client.on('auth_failure', msg => {
@@ -101,14 +112,12 @@ async function startAgent(agent: Agent) {
   });
 
   await client.on('ready', async () => {
-    console.log("QRCODE PATH", qrcodePath)
+
     ClearFolder(qrcodePath)
     console.log(`READY...${agent.name}`);
     const state = await client.getState()
     console.log("State:", state)
     //console.log("LABELS:", await client.info())
-
-
 
     await SendMessage(client)
 
@@ -116,6 +125,9 @@ async function startAgent(agent: Agent) {
       console.log("self_conversation", process.env.SELF_CONVERSATION)
       await SendMessageInternal(client)
     }
+
+    agent.status = state
+    await agent.save()
 
   });
 
@@ -147,7 +159,6 @@ async function startAgent(agent: Agent) {
     if (rejectCalls) await call.reject();
     await client.sendMessage(call.from, `[${call.fromMe ? 'Outgoing' : 'Incoming'}] Este número de telefone está programado para não receber chamadas. `);
   });
-
 
   return client
 

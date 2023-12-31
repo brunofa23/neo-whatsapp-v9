@@ -25,6 +25,7 @@ export default class Agent extends BaseModel {
       'status',
       'active',
       'qrcode',
+      'statusconnected',
       'createdAt',
       'updatedAt',
     ]
@@ -64,6 +65,9 @@ export default class Agent extends BaseModel {
 
   @column()
   public qrcode: string
+
+  @column()
+  public statusconnected: boolean
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime

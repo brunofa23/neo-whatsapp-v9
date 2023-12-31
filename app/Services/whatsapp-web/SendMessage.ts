@@ -46,6 +46,9 @@ export default async (client: Client, agent: Agent) => {
 
   async function sendMessages() {
     setInterval(async () => {
+
+      await Agent.query().where('id', agent.id).update({ statusconnected: true })
+
       const totMessageSend = await countLimitSendMessage()
       if (totMessageSend >= agent.max_limit_message) {
         console.log(`LIMITE DE ENVIO DIÁRIO ATINGIDO, Enviados:${totMessageSend} - Limite Máximo:${agent.max_limit_message}`)

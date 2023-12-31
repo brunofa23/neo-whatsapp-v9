@@ -1,11 +1,19 @@
 import Route from '@ioc:Adonis/Core/Route'
-//import { sendRepeatedMessage } from '../app/Services/whatsapp-web/SendRepeatedMessage'
+
 import DatasourcesController from 'App/Controllers/Http/DatasourcesController'
 
 import { startAgent } from '../app/Services/whatsapp-web/whatsappConnection'
+import Agent from 'App/Models/Agent'
 
 console.log("***CHAT BOT V-88***21/12/2023")
 console.log(`***NOME DO CLIENTE: ${process.env.CHAT_NAME}***`)
+validAgent()
+
+async function validAgent() {
+  setInterval(() => {
+    Agent.query().update({ statusconnected: false })
+  }, 5000)
+}
 
 Route.get('/', async () => {
   return { hello: 'world' }
@@ -34,9 +42,12 @@ Route.group(() => {
   //   return "Executei a chamada da api do whatsapp"
   // })
 
+
+  //AGENTS
   Route.get("/agents", "AgentsController.index")
   Route.post("/agents", "AgentsController.store")
   Route.post("/agents/connection/:id", "AgentsController.connection")
+  Route.post("/agents/connectionall", "AgentsController.connectionAll")
   Route.patch("/agents/:id", "AgentsController.update")
 
 

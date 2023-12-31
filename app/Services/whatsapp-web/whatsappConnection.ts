@@ -47,6 +47,8 @@ async function startAgent(_agent: Agent) {
   });
 
   client.initialize();
+  const info = await client.info.user
+  console.log("info>>", info)
   client.on('loading_screen', (percent, message) => {
     console.log('LOADING SCREEN', percent, message);
   });
@@ -102,7 +104,8 @@ async function startAgent(_agent: Agent) {
     console.log(`READY...${agent.name}`);
     const state = await client.getState()
     console.log("State:", state)
-    //console.log("LABELS:", await client.info())
+    const info = await client.info.user
+    console.log("INFO:", await client.info)
 
     await SendMessage(client, agent)
 

@@ -56,7 +56,20 @@ export default class AgentsController {
       const agent = await Agent.query().where('id', params.id).first()
       //console.log("AGENTE", params.id, "agente", agent)
       await startAgent(agent)
-      return response.status(201).abort('Connected')
+      return response.status(201).send('Connected')
+    } catch (error) {
+      error
+    }
+  }
+
+  public async connectionAll({ response }: HttpContextContract) {
+    try {
+      const agents = await Agent.query()
+      for (const agent of agents) {
+        console.log("Conectando agente:", agent.id)
+        await startAgent(agent.id)
+      }
+      return response.status(201).send('ConnectedAll')
     } catch (error) {
       error
     }

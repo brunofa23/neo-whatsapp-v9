@@ -5,6 +5,8 @@ import { DateTime } from 'luxon';
 import PersistShippingcampaign from './PersistShippingcampaign';
 import { DateFormat, GenerateRandomTime, TimeSchedule } from './util'
 
+
+
 async function sendRepeatedMessage() {
   let startTimeSendMessageRepeated //= parseInt(process.env.EXECUTE_SEND_REPEATED_MESSAGE)
   let endtTimeSendMessageRepeated //= parseInt(process.env.EXECUTE_SEND_REPEATED_MESSAGE_END)
@@ -20,6 +22,8 @@ async function sendRepeatedMessage() {
     endtTimeSendMessageRepeated = agent.interval_final_query
   }
 
+
+
   await getAgent(process.env.CHAT_NAME)
   setInterval(async () => {
     const date = await DateFormat("dd/MM/yyyy HH:mm:ss", DateTime.local())
@@ -31,6 +35,10 @@ async function sendRepeatedMessage() {
       }
     }
   }, await GenerateRandomTime(startTimeSendMessageRepeated, endtTimeSendMessageRepeated, '****Send Message Repeated'))
+
+
+  console.log("PASSEI AQUI 1500...")
+  return
 
 }
 module.exports = { sendRepeatedMessage }

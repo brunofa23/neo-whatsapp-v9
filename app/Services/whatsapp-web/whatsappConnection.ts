@@ -21,6 +21,7 @@ let qrcodePath
 async function startAgent(_agent: Agent) {
   const agent = await Agent.findOrFail(_agent.id)
 
+
   if (!_agent) {
     console.log("CHATNAME INVÁLIDO - Verifique o .env Chatname está igual ao name tabela Agents")
     return
@@ -50,7 +51,6 @@ async function startAgent(_agent: Agent) {
     console.log('LOADING SCREEN', percent, message);
   });
 
-
   client.on('qr', async (qr) => {
 
     agent.status = "Qrcode require"
@@ -61,12 +61,9 @@ async function startAgent(_agent: Agent) {
         console.error('Ocorreu um erro ao gerar o URL de dados:', err);
         return;
       }
-      console.log('URL de dados do código QR:', url);
+      //console.log('URL de dados do código QR:', url);
       agent.qrcode = url
       agent.save()
-      //console.log("qr code modificado")
-      // Você pode usar o URL de dados (data URL) aqui conforme necessário
-      //console.log(">>>>>", agent.qrcode)
     });
 
     qrcodeTerminal.generate(qr, { small: true });
@@ -91,29 +88,13 @@ async function startAgent(_agent: Agent) {
 
   });
 
-  // await client.on('ready', async () => {
-  //   console.log('READY...');
-  //   const state = await client.getState()
-  //   console.log("State:", state)
-  //   const myNumber = client.info;
-  //   agent.number_phone = myNumber.wid.user
-  //   agent.save()
-
-  //   await SendMessage(client)
-
-  //   if (process.env.SELF_CONVERSATION?.toLocaleLowerCase() === "true") {
-  //     console.log("self_conversation", process.env.SELF_CONVERSATION)
-  //     await SendMessageInternal(client)
-  //   }
-  //   agent.status = state
-  //   await agent.save()
-  // });
-
 
   client.on('auth_failure', msg => {
     // Fired if session restore was unsuccessful
     console.error('AUTHENTICATION FAILURE', msg);
   });
+
+
 
   await client.on('ready', async () => {
 
@@ -136,6 +117,7 @@ async function startAgent(_agent: Agent) {
 
   });
 
+
   sendRepeatedMessage()
   const chatMonitoring = new ChatMonitoring
   await chatMonitoring.monitoring(client)
@@ -144,6 +126,8 @@ async function startAgent(_agent: Agent) {
     const chatMonitoringInternal = new ChatMonitoringInternal
     await chatMonitoringInternal.monitoring(client)
   }
+
+
 
   //************************************************ */
   client.on('disconnected', async (reason) => {

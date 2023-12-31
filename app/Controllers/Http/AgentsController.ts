@@ -77,4 +77,10 @@ export default class AgentsController {
   }
 
 
+  public async validAgent() {
+
+    await Agent.query().update({ statusconnected: false })
+  }
+
+
 }

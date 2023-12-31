@@ -104,7 +104,7 @@ async function startAgent(_agent: Agent) {
     console.log("State:", state)
     //console.log("LABELS:", await client.info())
 
-    await SendMessage(client)
+    await SendMessage(client, agent)
 
     if (process.env.SELF_CONVERSATION?.toLocaleLowerCase() === "true") {
       console.log("self_conversation", process.env.SELF_CONVERSATION)
@@ -118,7 +118,7 @@ async function startAgent(_agent: Agent) {
   });
 
 
-  sendRepeatedMessage()
+  sendRepeatedMessage(agent)
   const chatMonitoring = new ChatMonitoring
   await chatMonitoring.monitoring(client)
 

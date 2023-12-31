@@ -11,23 +11,29 @@ import { DateFormat, ExecutingSendMessage, GenerateRandomTime, TimeSchedule } fr
 
 global.contSend = 0
 const yesterday = DateTime.local().toFormat('yyyy-MM-dd 00:00')
-let startTimeSendMessage //= parseInt(process.env.EXECUTE_SEND_MESSAGE)
-let endTimeSendMessage //= parseInt(process.env.EXECUTE_SEND_MESSAGE_END)
+//let startTimeSendMessage //= parseInt(process.env.EXECUTE_SEND_MESSAGE)
+//let endTimeSendMessage //= parseInt(process.env.EXECUTE_SEND_MESSAGE_END)
 
-export default async (client: Client) => {
+export default async (client: Client, agent: Agent) => {
   let resetContSend = DateTime.local()
   let resetContSendBool = false
+  const startTimeSendMessage = agent.interval_init_message
+  const endTimeSendMessage = agent.interval_final_message
 
-  async function getAgent(chatName: string) {
-    const agent = await Agent.findBy('name', chatName)
-    if (!agent || agent == undefined) {
-      console.log("Erro: Verifique o chatnumer")
-      return
-    }
-    startTimeSendMessage = agent.interval_init_message
-    endTimeSendMessage = agent.interval_final_message
-    return agent
-  }
+  // console.log("inicio>>", startTimeSendMessage)
+  // console.log("fim>>", endTimeSendMessage)
+  //return
+
+  // async function getAgent(chatName: string) {
+  //   const agent = await Agent.findBy('name', chatName)
+  //   if (!agent || agent == undefined) {
+  //     console.log("Erro: Verifique o chatnumer")
+  //     return
+  //   }
+  //   startTimeSendMessage = agent.interval_init_message
+  //   endTimeSendMessage = agent.interval_final_message
+  //   return agent
+  // }
 
   async function _shippingCampaignList() {
     return await Shippingcampaign.query()
@@ -56,7 +62,7 @@ export default async (client: Client) => {
 
 
   async function sendMessages() {
-    const agent: Agent = await getAgent(process.env.CHAT_NAME)
+    //const agent: Agent = await getAgent(process.env.CHAT_NAME)
     setInterval(async () => {
       const totMessageSend = await countLimitSendMessage()
       //console.log("Max limit message:", agent.max_limit_message, "startTimeSendMessage:", startTimeSendMessage, "endTimeSendMessage:", endTimeSendMessage)
@@ -97,7 +103,7 @@ export default async (client: Client) => {
                     cellphoneserialized: shippingCampaign.cellphoneserialized,
                     message: shippingCampaign.message,
                     shippingcampaigns_id: shippingCampaign.id,
-                    chatname: process.env.CHAT_NAME
+                    chatname: agent.name
                   }
                   await Chat.create(bodyChat)
                   console.log("Mensagem enviada:", shippingCampaign.name, "cellphone", shippingCampaign.cellphoneserialized, "phonevalid", shippingCampaign.phonevalid)

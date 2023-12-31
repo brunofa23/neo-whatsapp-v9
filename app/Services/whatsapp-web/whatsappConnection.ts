@@ -134,11 +134,16 @@ async function startAgent(_agent: Agent) {
     console.log("EXECUTANDO DISCONECT")
     console.log("REASON>>>", reason)
 
-    agent.status = 'Disconnected - banned'
+    agent.status = 'Disconnected'
     await agent.save()
     // Destroy and reinitialize the client when disconnected
-    client.destroy();
-    client.initialize();
+    // try {
+    //   client.destroy();
+    //   client.initialize();
+    // } catch (error) {
+    //   throw error
+    // }
+
   });
 
 

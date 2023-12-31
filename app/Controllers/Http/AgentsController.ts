@@ -51,9 +51,10 @@ export default class AgentsController {
 
   public async connection({ params, request, response }: HttpContextContract) {
 
+
     try {
       const agent = await Agent.query().where('id', params.id).first()
-      //console.log("AGENTE", agent)
+      //console.log("AGENTE", params.id, "agente", agent)
       await startAgent(agent)
       return response.status(201).abort('Connected')
     } catch (error) {

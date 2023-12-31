@@ -63,7 +63,7 @@ export default class Agent extends BaseModel {
   public active: boolean
 
   @column()
-  public qrcode: Blob
+  public qrcode: string
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime

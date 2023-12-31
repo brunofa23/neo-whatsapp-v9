@@ -86,7 +86,7 @@ async function startAgent(_agent: Agent) {
 
   client.on('authenticated', () => {
     console.log(`AUTHENTICATED ${agent.name}`);
-    agent.status = 'Authentication Failure'
+    agent.status = 'Authentication'
     agent.save()
 
   });
@@ -131,6 +131,7 @@ async function startAgent(_agent: Agent) {
     }
 
     agent.status = state
+    agent.qrcode = null
     await agent.save()
 
   });

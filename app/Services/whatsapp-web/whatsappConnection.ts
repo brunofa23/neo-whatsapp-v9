@@ -61,10 +61,10 @@ async function startAgent(_agent: Agent) {
         console.error('Ocorreu um erro ao gerar o URL de dados:', err);
         return;
       }
-      //console.log('URL de dados do código QR:', url);
+      console.log('URL de dados do código QR:', url);
       agent.qrcode = url
       agent.save()
-      console.log("qr code modificado")
+      //console.log("qr code modificado")
       // Você pode usar o URL de dados (data URL) aqui conforme necessário
       //console.log(">>>>>", agent.qrcode)
     });

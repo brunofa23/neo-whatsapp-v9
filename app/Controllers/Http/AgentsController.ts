@@ -3,12 +3,12 @@ import Agent from 'App/Models/Agent'
 import { startAgent } from "../../Services/whatsapp-web/whatsappConnection"
 import { ConsoleMessage } from 'puppeteer'
 
+
+
 export default class AgentsController {
 
 
   public async index({ response }: HttpContextContract) {
-
-    console.log('agent store')
 
     try {
       const data = await Agent.all()

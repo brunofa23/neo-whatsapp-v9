@@ -55,6 +55,7 @@ export default class AgentsController {
     try {
       const agent = await Agent.query().where('id', params.id).first()
       //console.log("AGENTE", params.id, "agente", agent)
+      console.log("conectando...")
       await startAgent(agent)
       return response.status(201).send('Connected')
     } catch (error) {
@@ -67,7 +68,7 @@ export default class AgentsController {
       const agents = await Agent.query()
       for (const agent of agents) {
         console.log("Conectando agente:", agent.id)
-        await startAgent(agent.id)
+        await startAgent(agent)
       }
       return response.status(201).send('ConnectedAll')
     } catch (error) {

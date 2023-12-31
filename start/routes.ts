@@ -1,8 +1,23 @@
 import Route from '@ioc:Adonis/Core/Route'
 import { validAgent } from "../app/Services/whatsapp-web/util"
+import { connectionAll } from './events'
 
 console.log("***CHAT BOT V-88***21/12/2023")
 console.log(`***NOME DO CLIENTE: ${process.env.CHAT_NAME}***`)
+
+function operacaoAssincrona(callback) {
+  setTimeout(function () {
+    callback(null, connectionAll());
+  }, 1000); // Aguarde 1 segundo antes de chamar o callback
+}
+
+operacaoAssincrona(function (erro, resultado) {
+  if (erro) {
+    console.error('Erro:', erro);
+  } else {
+    console.log('Resultado:', resultado);
+  }
+});
 
 
 setInterval(() => {

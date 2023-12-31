@@ -1,18 +1,20 @@
 import Route from '@ioc:Adonis/Core/Route'
-
 import DatasourcesController from 'App/Controllers/Http/DatasourcesController'
 
 import { startAgent } from '../app/Services/whatsapp-web/whatsappConnection'
-import Agent from 'App/Models/Agent'
-
 console.log("***CHAT BOT V-88***21/12/2023")
 console.log(`***NOME DO CLIENTE: ${process.env.CHAT_NAME}***`)
-validAgent()
+
 
 async function validAgent() {
-  setInterval(() => {
-    Agent.query().update({ statusconnected: false })
-  }, 5000)
+
+  // const update = () => {
+  //   await Agent.query().where('id', 209).update({ statusconnected: true })
+  // }
+  // setInterval(() => {
+  //   const update = await Agent.query().where('id', 209).update({ statusconnected: true })
+  //   console.log("validando agente...", update)
+  // }, 9000)
 }
 
 Route.get('/', async () => {
@@ -28,13 +30,13 @@ Route.group(() => {
   //   return "Executei a chamada da api do whatsapp"
   // })
 
-  // Route.get('/connection/:id', async ({ params, request }) => {
-  //   console.log("entrei no whatsapp router", params)
-  //   console.log("REQUEST>>", request.body())
-
-  //   await startAgent(params.id)
-  //   return "Executei a chamada da api do whatsapp"
-  // })
+  Route.get('/start', async () => {
+    await validAgent()
+    //const agent = await Agent.query().where('id', 209).first()
+    //const update = await Agent.query().where('id', 209).update({ statusconnected: true })
+    //console.log("validando...", update)
+    return "Executei a chamada da api do whatsapp"
+  })
 
   // Route.get('/status/:id', async ({ params }) => {
   //   console.log("entrei no whatsapp router", params)
@@ -44,6 +46,7 @@ Route.group(() => {
 
 
   //AGENTS
+  Route.get("/validagent", "AgentsController.validAgent")
   Route.get("/agents", "AgentsController.index")
   Route.post("/agents", "AgentsController.store")
   Route.post("/agents/connection/:id", "AgentsController.connection")

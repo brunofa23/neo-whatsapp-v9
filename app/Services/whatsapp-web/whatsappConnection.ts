@@ -19,6 +19,7 @@ let qrcodePath
 
 
 async function startAgent(_agent: Agent) {
+
   const agent = await Agent.findOrFail(_agent.id)
 
 
@@ -47,11 +48,13 @@ async function startAgent(_agent: Agent) {
   });
 
   client.initialize();
-  const info = await client.info.user
-  console.log("info>>", info)
+
   client.on('loading_screen', (percent, message) => {
     console.log('LOADING SCREEN', percent, message);
   });
+
+
+
 
   client.on('qr', async (qr) => {
 
@@ -100,11 +103,12 @@ async function startAgent(_agent: Agent) {
 
   await client.on('ready', async () => {
 
+    console.log("cheguei aqui....1500", _agent.name)
+
     ClearFolder(qrcodePath)
     console.log(`READY...${agent.name}`);
     const state = await client.getState()
     console.log("State:", state)
-    const info = await client.info.user
     console.log("INFO:", await client.info)
 
     await SendMessage(client, agent)
@@ -115,6 +119,7 @@ async function startAgent(_agent: Agent) {
     }
 
     agent.status = state
+    agent.number_phone = client.info.wid.user
     agent.qrcode = null
     await agent.save()
 

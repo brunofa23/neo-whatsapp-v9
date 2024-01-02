@@ -19,15 +19,11 @@ let qrcodePath
 
 
 async function startAgent(_agent: Agent) {
-
   const agent = await Agent.findOrFail(_agent.id)
-
-
   if (!_agent) {
     console.log("CHATNAME INVÁLIDO - Verifique o .env Chatname está igual ao name tabela Agents")
     return
   }
-
   const client = new Client({
     authStrategy: new LocalAuth({ clientId: _agent.name }),
     puppeteer: {
@@ -48,7 +44,6 @@ async function startAgent(_agent: Agent) {
   });
 
   client.initialize();
-
   client.on('loading_screen', (percent, message) => {
     console.log('LOADING SCREEN', percent, message);
   });

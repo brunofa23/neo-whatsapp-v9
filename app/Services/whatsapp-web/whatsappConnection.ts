@@ -20,10 +20,13 @@ let qrcodePath
 
 async function startAgent(_agent: Agent) {
   const agent = await Agent.findOrFail(_agent.id)
+
   if (!_agent) {
     console.log("CHATNAME INVÁLIDO - Verifique o .env Chatname está igual ao name tabela Agents")
     return
   }
+
+
   const client = new Client({
     authStrategy: new LocalAuth({ clientId: _agent.name }),
     puppeteer: {
@@ -43,14 +46,14 @@ async function startAgent(_agent: Agent) {
     }
   });
 
+  console.log("passei no 1500 - startAgent", agent.name)
+
   client.initialize();
   client.on('loading_screen', (percent, message) => {
     console.log('LOADING SCREEN', percent, message);
   });
 
-
-
-
+  console.log("passei no 1502 - startAgent")
   client.on('qr', async (qr) => {
 
     agent.status = "Qrcode require"
@@ -81,6 +84,7 @@ async function startAgent(_agent: Agent) {
 
   });
 
+  console.log("passei no 1500 - startAgent")
   client.on('authenticated', () => {
     console.log(`AUTHENTICATED ${agent.name}`);
     agent.status = 'Authentication'
@@ -121,6 +125,7 @@ async function startAgent(_agent: Agent) {
   });
 
 
+  console.log("passei no 1510 - startAgent")
   sendRepeatedMessage(agent)
   const chatMonitoring = new ChatMonitoring
   await chatMonitoring.monitoring(client)

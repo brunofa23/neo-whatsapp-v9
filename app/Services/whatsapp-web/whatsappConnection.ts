@@ -21,6 +21,7 @@ let qrcodePath
 async function startAgent(_agent: Agent) {
   const agent = await Agent.findOrFail(_agent.id)
 
+  console.log("passei no 1500 - startAgent", _agent.name)
   if (!_agent) {
     console.log("CHATNAME INVÁLIDO - Verifique o .env Chatname está igual ao name tabela Agents")
     return
@@ -46,7 +47,7 @@ async function startAgent(_agent: Agent) {
     }
   });
 
-  console.log("passei no 1500 - startAgent", agent.name)
+  console.log("passei no 1501 - startAgent", agent.name)
 
   client.initialize();
   client.on('loading_screen', (percent, message) => {

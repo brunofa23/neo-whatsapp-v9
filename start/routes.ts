@@ -1,4 +1,5 @@
 import Route from '@ioc:Adonis/Core/Route'
+
 import { validAgent } from "../app/Services/whatsapp-web/util"
 import { connectionAll } from './events'
 
@@ -52,7 +53,7 @@ Route.group(() => {
   Route.post("/agents", "AgentsController.store")
   Route.post("/agents/connection/:id", "AgentsController.connection")
   Route.post("/agents/connectionall", "AgentsController.connectionAll")
-  Route.patch("/agents/:id", "AgentsController.update")
+  Route.put("/agents/:id", "AgentsController.update")
 
 
   Route.get("/smart", "DatasourcesController.scheduledPatients")

@@ -6,7 +6,7 @@ export default class AgentsController {
   public async index({ response }: HttpContextContract) {
 
     try {
-      const data = await Agent.all()
+      const data = await Agent.query()
       return response.status(200).send(data)
     } catch (error) {
       return error
@@ -14,10 +14,7 @@ export default class AgentsController {
 
   }
   public async store({ request, response }: HttpContextContract) {
-
-    console.log('agent store')
     const body = request.only(Agent.fillable)
-
     try {
       const data = await Agent.create(body)
       return response.status(201).send(data)

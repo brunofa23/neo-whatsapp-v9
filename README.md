@@ -29,3 +29,5 @@ git push origin <branch>
     console.log("HORA É MENOR")
   }
 
+## CASO API DÊ BUG
+"whatsapp-web.js": "https://github.com/Julzk/whatsapp-web.js/tarball/jkr_hotfix_8"

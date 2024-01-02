@@ -21,7 +21,7 @@ let qrcodePath
 async function startAgent(_agent: Agent) {
   const agent = await Agent.findOrFail(_agent.id)
 
-  console.log("passei no 1500 - startAgent", _agent.name)
+  //console.log("passei no 1500 - startAgent", _agent.name)
   if (!_agent) {
     console.log("CHATNAME INVÁLIDO - Verifique o .env Chatname está igual ao name tabela Agents")
     return
@@ -47,14 +47,14 @@ async function startAgent(_agent: Agent) {
     }
   });
 
-  console.log("passei no 1501 - startAgent", agent.name)
+  //console.log("passei no 1501 - startAgent", agent.name)
 
   client.initialize();
   client.on('loading_screen', (percent, message) => {
     console.log('LOADING SCREEN', percent, message);
   });
 
-  console.log("passei no 1502 - startAgent")
+
   client.on('qr', async (qr) => {
 
     agent.status = "Qrcode require"
@@ -74,18 +74,18 @@ async function startAgent(_agent: Agent) {
     const folderPath = path.resolve(__dirname, "../../../");
     qrcodePath = path.join(folderPath, "/qrcode", `qrcode${agent.name}.png`)
     ClearFolder(qrcodePath)
-    qrcode.toFile(qrcodePath, qr, { small: true }, (err) => {
-      if (err) {
-        console.error('Ocorreu um erro ao gerar o arquivo do código QR:', err);
-        return;
-      }
-      console.log('Arquivo do código QR foi gerado com sucesso:');
-    });
+    // qrcode.toFile(qrcodePath, qr, { small: true }, (err) => {
+    //   if (err) {
+    //     console.error('Ocorreu um erro ao gerar o arquivo do código QR:', err);
+    //     return;
+    //   }
+    //   console.log('Arquivo do código QR foi gerado com sucesso:');
+    // });
 
 
   });
 
-  console.log("passei no 1500 - startAgent")
+  //console.log("passei no 1500 - startAgent")
   client.on('authenticated', () => {
     console.log(`AUTHENTICATED ${agent.name}`);
     agent.status = 'Authentication'
@@ -103,7 +103,7 @@ async function startAgent(_agent: Agent) {
 
   await client.on('ready', async () => {
 
-    console.log("cheguei aqui....1500", _agent.name)
+    //console.log("cheguei aqui....1500", _agent.name)
 
     ClearFolder(qrcodePath)
     console.log(`READY...${agent.name}`);
@@ -126,7 +126,7 @@ async function startAgent(_agent: Agent) {
   });
 
 
-  console.log("passei no 1510 - startAgent")
+  //console.log("passei no 1510 - startAgent")
   sendRepeatedMessage(agent)
   const chatMonitoring = new ChatMonitoring
   await chatMonitoring.monitoring(client)

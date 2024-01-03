@@ -7,6 +7,11 @@ console.log("***CHAT BOT V-88***21/12/2023")
 console.log(`***NOME DO CLIENTE: ${process.env.CHAT_NAME}***`)
 
 function operacaoAssincrona(callback) {
+  if (process.env.SERVER === 'true') {
+    console.log("SERVER DATAS")
+    return
+  }
+
   setTimeout(function () {
     callback(null, connectionAll());
   }, 1000); // Aguarde 1 segundo antes de chamar o callback
@@ -22,6 +27,10 @@ operacaoAssincrona(function (erro, resultado) {
 
 
 setInterval(() => {
+  if (process.env.SERVER === 'true') {
+    console.log("SERVER DATAS")
+    return
+  }
   validAgent()
 }, 100000)
 

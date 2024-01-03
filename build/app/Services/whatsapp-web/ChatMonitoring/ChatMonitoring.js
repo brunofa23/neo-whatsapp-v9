@@ -91,6 +91,12 @@ class Monitoring {
                         client.sendMessage(message.from, `*Posição diária até o momento:*`);
                         client.sendMessage(message.from, sendResponse);
                     }
+                    else if (message.body === "destroy") {
+                        console.log("EXECUTANDO DISCONECT");
+                        console.log("mandei destruir...");
+                        await client.destroy();
+                        console.log("DESTRUIDO...");
+                    }
                     else if (message.body === 'PinChat') {
                         console.log("CLIENTE", message);
                     }

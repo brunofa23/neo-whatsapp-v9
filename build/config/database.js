@@ -40,6 +40,21 @@ const databaseConfig = {
             },
             healthCheck: false,
             debug: false,
+        },
+        mysql: {
+            client: 'mysql2',
+            connection: {
+                host: Env_1.default.get('MYSQL_HOST'),
+                port: parseInt(Env_1.default.get('MYSQL_PORT')),
+                user: Env_1.default.get('MYSQL_USER'),
+                password: Env_1.default.get('MYSQL_PASSWORD', ''),
+                database: Env_1.default.get('MYSQL_DB_NAME'),
+            },
+            migrations: {
+                naturalSort: true,
+            },
+            healthCheck: false,
+            debug: false,
         }
     }
 };

@@ -12,21 +12,11 @@ const luxon_1 = require("luxon");
 const util_1 = require("./util");
 global.contSend = 0;
 const yesterday = luxon_1.DateTime.local().toFormat('yyyy-MM-dd 00:00');
-let startTimeSendMessage = parseInt(process.env.EXECUTE_SEND_MESSAGE);
-let endTimeSendMessage = parseInt(process.env.EXECUTE_SEND_MESSAGE_END);
-exports.default = async (client) => {
+exports.default = async (client, agent) => {
     let resetContSend = luxon_1.DateTime.local();
     let resetContSendBool = false;
-    async function getAgent(chatName) {
-        const agent = await Agent_1.default.findBy('name', chatName);
-        if (!agent || agent == undefined) {
-            console.log("Erro: Verifique o chatnumer");
-            return;
-        }
-        startTimeSendMessage = agent.interval_init_message;
-        endTimeSendMessage = agent.interval_final_message;
-        return agent;
-    }
+    const startTimeSendMessage = agent.interval_init_message;
+    const endTimeSendMessage = agent.interval_final_message;
     async function _shippingCampaignList() {
         return await Shippingcampaign_1.default.query()
             .whereNull('phonevalid')
@@ -51,7 +41,7 @@ exports.default = async (client) => {
     }
     async function sendMessages() {
         setInterval(async () => {
-            const agent = await getAgent(process.env.CHAT_NAME);
+            await Agent_1.default.query().where('id', agent.id).update({ statusconnected: true });
             const totMessageSend = await countLimitSendMessage();
             if (totMessageSend >= agent.max_limit_message) {
                 console.log(`LIMITE DE ENVIO DIÁRIO ATINGIDO, Enviados:${totMessageSend} - Limite Máximo:${agent.max_limit_message}`);
@@ -87,7 +77,7 @@ exports.default = async (client) => {
                                     cellphoneserialized: shippingCampaign.cellphoneserialized,
                                     message: shippingCampaign.message,
                                     shippingcampaigns_id: shippingCampaign.id,
-                                    chatname: process.env.CHAT_NAME
+                                    chatname: agent.name
                                 };
                                 await Chat_1.default.create(bodyChat);
                                 console.log("Mensagem enviada:", shippingCampaign.name, "cellphone", shippingCampaign.cellphoneserialized, "phonevalid", shippingCampaign.phonevalid);

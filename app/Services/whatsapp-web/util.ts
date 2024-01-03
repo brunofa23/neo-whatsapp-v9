@@ -1,6 +1,7 @@
+import Agent from 'App/Models/Agent';
 import { DateTime } from 'luxon';
 import { Message } from 'whatsapp-web.js';
-import Agent from 'App/Models/Agent';
+
 import { startAgent } from "../../Services/whatsapp-web/whatsappConnection"
 
 const fs = require('fs')
@@ -108,9 +109,11 @@ async function ValidatePhone(cellphone) {
   return regexTelefoneCelular.test(cellphone);
 }
 
-async function validAgent() {
+async function validAgent(agent) {
   console.log("Rodando valid agent...")
-  await Agent.query().update({ statusconnected: false })
+  await Agent.query()
+    .where('id', agent.id)
+    .update({ statusconnected: false })
 }
 
 

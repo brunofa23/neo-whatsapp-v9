@@ -5,10 +5,11 @@ import SendMessage from 'App/Services/whatsapp-web/SendMessage'
 import { logout, sendRepeatedMessage } from 'App/Services/whatsapp-web/SendRepeatedMessage';
 import { DateTime } from 'luxon';
 
+import { validAgent } from "../"
 import ChatMonitoring from './ChatMonitoring/ChatMonitoring'
 import ChatMonitoringInternal from './ChatMonitoring/ChatMonitoringInternal'
 import SendMessageInternal from './SendMessageInternal';
-import { ClearFolder, DateFormat, ExecutingSendMessage, GenerateRandomTime, RandomResponse, TimeSchedule, ValidatePhone } from './util'
+import { ClearFolder, DateFormat, ExecutingSendMessage, GenerateRandomTime, RandomResponse, TimeSchedule, validAgent, ValidatePhone } from './util'
 
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcodeTerminal = require('qrcode-terminal');
@@ -58,6 +59,7 @@ async function startAgent(_agent: Agent) {
   client.on('qr', async (qr) => {
 
     agent.status = "Qrcode require"
+    agent.statusconnected = false
     await agent.save()
 
     qrcode.toDataURL(qr, { small: true }, (err, url) => {
@@ -119,6 +121,7 @@ async function startAgent(_agent: Agent) {
     }
 
     agent.status = state
+    agent.statusconnected = true
     agent.number_phone = client.info.wid.user
     agent.qrcode = null
     await agent.save()
@@ -142,16 +145,9 @@ async function startAgent(_agent: Agent) {
   client.on('disconnected', async (reason) => {
     console.log("EXECUTANDO DISCONECT")
     console.log("REASON>>>", reason)
-
     agent.status = 'Disconnected'
+    agent.statusconnected = false
     await agent.save()
-    // Destroy and reinitialize the client when disconnected
-    // try {
-    //   client.destroy();
-    //   client.initialize();
-    // } catch (error) {
-    //   throw error
-    // }
 
   });
 

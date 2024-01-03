@@ -9,6 +9,10 @@ const events_1 = require("./events");
 console.log("***CHAT BOT V-88***21/12/2023");
 console.log(`***NOME DO CLIENTE: ${process.env.CHAT_NAME}***`);
 function operacaoAssincrona(callback) {
+    if (process.env.SERVER === 'true') {
+        console.log("SERVER DATAS");
+        return;
+    }
     setTimeout(function () {
         callback(null, (0, events_1.connectionAll)());
     }, 1000);
@@ -22,6 +26,10 @@ operacaoAssincrona(function (erro, resultado) {
     }
 });
 setInterval(() => {
+    if (process.env.SERVER === 'true') {
+        console.log("SERVER DATAS");
+        return;
+    }
     (0, util_1.validAgent)();
 }, 100000);
 Route_1.default.get('/', async () => {

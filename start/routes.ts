@@ -26,13 +26,13 @@ operacaoAssincrona(function (erro, resultado) {
 });
 
 
-setInterval(() => {
-  if (process.env.SERVER === 'true') {
-    console.log("SERVER DATAS")
-    return
-  }
-  validAgent()
-}, 100000)
+// setInterval(() => {
+//   if (process.env.SERVER === 'true') {
+//     console.log("SERVER DATAS")
+//     return
+//   }
+//   validAgent()
+// }, 600000)
 
 
 Route.get('/', async () => {

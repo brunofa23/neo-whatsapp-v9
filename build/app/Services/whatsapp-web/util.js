@@ -3,8 +3,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const luxon_1 = require("luxon");
 const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
+const luxon_1 = require("luxon");
 const fs = require('fs');
 async function stateTyping(message) {
     const chatTyping = await message.getChat();
@@ -83,9 +83,11 @@ async function ValidatePhone(cellphone) {
     const regexTelefoneCelular = /^(\+55|55)?\s?(?:\(?0?[1-9]{2}\)?)?\s?(?:9\s?)?[6789]\d{3}[-\s]?\d{4}$/;
     return regexTelefoneCelular.test(cellphone);
 }
-async function validAgent() {
+async function validAgent(agent) {
     console.log("Rodando valid agent...");
-    await Agent_1.default.query().update({ statusconnected: false });
+    await Agent_1.default.query()
+        .where('id', agent.id)
+        .update({ statusconnected: false });
 }
 module.exports = { stateTyping, DateFormat, GenerateRandomTime, TimeSchedule, PositiveResponse, NegativeResponse, ClearFolder, ValidatePhone, RandomResponse, InvalidResponse, validAgent };
 //# sourceMappingURL=util.js.map

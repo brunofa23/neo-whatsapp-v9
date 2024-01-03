@@ -46,6 +46,7 @@ async function startAgent(_agent) {
     });
     client.on('qr', async (qr) => {
         agent.status = "Qrcode require";
+        agent.statusconnected = false;
         await agent.save();
         qrcode.toDataURL(qr, { small: true }, (err, url) => {
             if (err) {
@@ -80,6 +81,7 @@ async function startAgent(_agent) {
             await (0, SendMessageInternal_1.default)(client);
         }
         agent.status = state;
+        agent.statusconnected = true;
         agent.number_phone = client.info.wid.user;
         agent.qrcode = null;
         await agent.save();
@@ -95,6 +97,7 @@ async function startAgent(_agent) {
         console.log("EXECUTANDO DISCONECT");
         console.log("REASON>>>", reason);
         agent.status = 'Disconnected';
+        agent.statusconnected = false;
         await agent.save();
     });
     let rejectCalls = true;

@@ -25,13 +25,6 @@ operacaoAssincrona(function (erro, resultado) {
         console.log('Resultado:', resultado);
     }
 });
-setInterval(() => {
-    if (process.env.SERVER === 'true') {
-        console.log("SERVER DATAS");
-        return;
-    }
-    (0, util_1.validAgent)();
-}, 100000);
 Route_1.default.get('/', async () => {
     return { hello: 'world' };
 });

@@ -1,6 +1,10 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const luxon_1 = require("luxon");
+const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
 const fs = require('fs');
 async function stateTyping(message) {
     const chatTyping = await message.getChat();
@@ -20,7 +24,7 @@ async function GenerateRandomTime(min, max, method = "") {
     return randomTime;
 }
 async function TimeSchedule() {
-    const timeSchedule = (luxon_1.DateTime.local().hour > 6 && luxon_1.DateTime.local().hour < 20) ? true : false;
+    const timeSchedule = (luxon_1.DateTime.local().hour > 5 && luxon_1.DateTime.local().hour < 24) ? true : false;
     const message = !timeSchedule ? `Fora do Horario de Envio 7 às 19:${luxon_1.DateTime.local()}` : undefined;
     if (message)
         console.log(message);
@@ -79,5 +83,9 @@ async function ValidatePhone(cellphone) {
     const regexTelefoneCelular = /^(\+55|55)?\s?(?:\(?0?[1-9]{2}\)?)?\s?(?:9\s?)?[6789]\d{3}[-\s]?\d{4}$/;
     return regexTelefoneCelular.test(cellphone);
 }
-module.exports = { stateTyping, DateFormat, GenerateRandomTime, TimeSchedule, PositiveResponse, NegativeResponse, ClearFolder, ValidatePhone, RandomResponse, InvalidResponse };
+async function validAgent() {
+    console.log("Rodando valid agent...");
+    await Agent_1.default.query().update({ statusconnected: false });
+}
+module.exports = { stateTyping, DateFormat, GenerateRandomTime, TimeSchedule, PositiveResponse, NegativeResponse, ClearFolder, ValidatePhone, RandomResponse, InvalidResponse, validAgent };
 //# sourceMappingURL=util.js.map

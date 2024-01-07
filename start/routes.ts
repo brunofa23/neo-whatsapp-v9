@@ -70,6 +70,9 @@ Route.group(() => {
   //USERS
   Route.resource("/users", "UsersController").apiOnly()
 
+  //LOGIN
+  Route.post("/login", "UsersController.login")
+
 
 
   //AGENTS

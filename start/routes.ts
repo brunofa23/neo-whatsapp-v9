@@ -9,6 +9,17 @@ console.log(`***NOME DO CLIENTE: ${process.env.CHAT_NAME}***`)
 function operacaoAssincrona(callback) {
   if (process.env.SERVER === 'true') {
     console.log("SERVER DATAS")
+
+    // setInterval(async () => {
+    //   const date = await DateFormat("dd/MM/yyyy HH:mm:ss", DateTime.local())
+    //   if (!executingSendMessage?.valuebool) {
+    //     if (await TimeSchedule()) {
+    //       console.log(`Buscando dados no Smart: ${date}`)
+    //       await PersistShippingcampaign()
+    //     }
+    //   }
+    // }, await GenerateRandomTime(startTimeSendMessageRepeated, endtTimeSendMessageRepeated, '****Send Message Repeated'))
+
     return
   }
 
@@ -55,6 +66,11 @@ Route.group(() => {
     //console.log("validando...", update)
     return "Executei a chamada da api do whatsapp"
   })
+
+  //USERS
+  Route.resource("/users", "UsersController").apiOnly()
+
+
 
   //AGENTS
   Route.get("/validagent", "AgentsController.validAgent")

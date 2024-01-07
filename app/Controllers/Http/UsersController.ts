@@ -1,5 +1,7 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import User from 'App/Models/User'
+import BadRequest from 'App/Exceptions/BadRequestException'
+import Hash from "@ioc:Adonis/Core/Hash"
 
 export default class UsersController {
 
@@ -42,39 +44,30 @@ export default class UsersController {
 
   public async login({ auth, request, response }: HttpContextContract) {
 
-    const username = request.input('username')
-    const shortname = request.input('shortname')
-    const password = request.input('password')
+    const body = request.only(User.fillable)
 
     const user = await User
       .query()
-      .preload('company')
-      .where('username', username)
-      .whereHas('company', builder => {
-        builder.where('shortname', shortname)
-      })
+      .where('username', body.username)
       .first()
 
     if (!user) {
-      const errorValidation = await new validations('user_error_205')
-      throw new BadRequest(errorValidation.messages, errorValidation.status, errorValidation.code)
+      //const errorValidation = await new validations('user_error_205')
+      throw new BadRequest("error", 401, "Invalid User")
     }
 
     // Verify password
-    if (!(await Hash.verify(user.password, password))) {
-      let errorValidation = await new validations('user_error_206')
-      throw new BadRequest(errorValidation.messages, errorValidation.status, errorValidation.code)
+    if (!(await Hash.verify(user.password, body.password))) {
+      //let errorValidation = await new validations('user_error_206')
+      throw new BadRequest("error", 401, "Invalid Password")
     }
 
     // Generate token
     const token = await auth.use('api').generate(user, {
       expiresIn: '7 days',
-      name: 'For the CLI app'
+      name: user.username
 
     })
-
-    logtail.debug("debug", { token, user })
-    logtail.flush()
 
     //return { token, user }
     return response.status(200).send({ token, user })

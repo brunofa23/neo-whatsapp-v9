@@ -33,6 +33,8 @@ Route_1.default.group(() => {
         await (0, util_1.validAgent)();
         return "Executei a chamada da api do whatsapp";
     });
+    Route_1.default.resource("/users", "UsersController").apiOnly();
+    Route_1.default.post("/login", "UsersController.login");
     Route_1.default.get("/validagent", "AgentsController.validAgent");
     Route_1.default.get("/agents", "AgentsController.index");
     Route_1.default.post("/agents", "AgentsController.store");

@@ -3,6 +3,7 @@ import ShippingcampaignsController from 'App/Controllers/Http/ShippingcampaignsC
 import Agent from 'App/Models/Agent';
 import Chat from "App/Models/Chat"
 import Shippingcampaign from "App/Models/Shippingcampaign"
+import Interaction from 'App/Models/Interaction';
 import { verifyNumber } from 'App/Services/whatsapp-web/VerifyNumber';
 import { DateTime } from 'luxon';
 import { Client } from "whatsapp-web.js"
@@ -43,6 +44,13 @@ export default async (client: Client, agent: Agent) => {
     return value
   }
 
+  async function totalInteractionSend(id) {
+    const maxsendlimit = await Interaction.query().where("id", id)
+    const totalSend = await Shippingcampaign.query().where('interaction_id', id).count('* as total').first()
+    console.log("limite de interaction", maxsendlimit, 'total enviado', totalSend?.$extras.total)
+  }
+
+
 
   async function sendMessages() {
     setInterval(async () => {
@@ -59,6 +67,10 @@ export default async (client: Client, agent: Agent) => {
       }
       await verifyContSend()
       const shippingCampaign = await _shippingCampaignList()
+
+      console.log("shipping campaign 1222", shippingCampaign)
+      //await totalInteractionSend(shippingCampaign)
+
 
       if (shippingCampaign) {
         if (global.contSend < 3) {

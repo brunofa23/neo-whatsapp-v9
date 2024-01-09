@@ -29,6 +29,9 @@ export default class Interaction extends BaseModel {
   @column()
   public status: boolean
 
+  @column()
+  public maxsendlimit: number
+
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
 

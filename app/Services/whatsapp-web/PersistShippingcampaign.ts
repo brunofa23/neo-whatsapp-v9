@@ -22,7 +22,7 @@ export default async () => {
     console.log("Algum erro ocorrido, não é iterable", dataSourceList)
     return
   }
-  //console.log("DADOS:::", dataSourceList)
+
   for (const data of dataSourceList) {
     try {
       const yesterday = moment().subtract(1, 'day').format('YYYY-MM-DD');
@@ -30,9 +30,10 @@ export default async () => {
       shipping.interaction_id = data.interaction_id
       shipping.interaction_seq = data.interaction_seq
       shipping.reg = data.reg
+      shipping.dateshedule = data.agm_hini
       shipping.idexternal = data.idexternal
       shipping.name = String(data.name).trim()
-      shipping.cellphone = data.cellphone
+      shipping.cellphone = String(data.cellphone).replace(/[^0-9]+/g, ''); //data.cellphone.replace("(", "").replace("-", "")
 
       if (!await ValidatePhone(data.cellphone))
         shipping.phonevalid = false
@@ -40,6 +41,7 @@ export default async () => {
       shipping.messagesent = false
       shipping.message = String(data.message).replace(/@p[0-9]/g, '?')
       shipping.otherfields = data.otherfields
+
 
       const verifyExist = await Shippingcampaign.query()
         .where('reg', '=', data.reg)

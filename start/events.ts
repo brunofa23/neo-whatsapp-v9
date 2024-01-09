@@ -31,7 +31,7 @@ async function sendRepeatedMessage() {
         await PersistShippingcampaign()
       }
     }
-  }, await GenerateRandomTime(20, 30, '****Send Message Repeated'))
+  }, await GenerateRandomTime(200, 300, '****Send Message Repeated'))
 
 }
 

@@ -33,6 +33,7 @@ export default class AgentsController {
           max_limit_message: agent.max_limit_message,
           status: agent.status,
           active: agent.active,
+          qrcode: agent.qrcode,
           totMessage: totMessage?.$extras.totMessage
         })
       }

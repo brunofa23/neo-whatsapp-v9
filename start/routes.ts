@@ -13,9 +13,9 @@ function operacaoAssincrona(callback) {
     return
   }
 
-  setTimeout(function () {
-    callback(null, connectionAll());
-  }, 1000); // Aguarde 1 segundo antes de chamar o callback
+  // setTimeout(function () {
+  //   callback(null, connectionAll());
+  // }, 1000); // Aguarde 1 segundo antes de chamar o callback
 }
 
 operacaoAssincrona(function (erro, resultado) {

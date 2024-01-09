@@ -22,12 +22,11 @@ let qrcodePath
 async function startAgent(_agent: Agent) {
   const agent = await Agent.findOrFail(_agent.id)
 
-  //console.log("passei no 1500 - startAgent", _agent.name)
+
   if (!_agent) {
     console.log("CHATNAME INVÁLIDO - Verifique o .env Chatname está igual ao name tabela Agents")
     return
   }
-
 
   const client = new Client({
     authStrategy: new LocalAuth({ clientId: _agent.name }),
@@ -47,6 +46,7 @@ async function startAgent(_agent: Agent) {
       setJavaScriptEnabled: false
     }
   });
+
 
   //console.log("passei no 1501 - startAgent", agent.name)
 
@@ -86,6 +86,7 @@ async function startAgent(_agent: Agent) {
 
 
   });
+
 
   //console.log("passei no 1500 - startAgent")
   client.on('authenticated', () => {
@@ -128,9 +129,9 @@ async function startAgent(_agent: Agent) {
 
   });
 
-
   //console.log("passei no 1510 - startAgent")
-  sendRepeatedMessage(agent)
+  await sendRepeatedMessage(agent)
+
   const chatMonitoring = new ChatMonitoring
   await chatMonitoring.monitoring(client)
 

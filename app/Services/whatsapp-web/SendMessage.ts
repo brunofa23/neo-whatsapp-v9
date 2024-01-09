@@ -2,8 +2,8 @@ import { typeServerConfig } from '@ioc:Adonis/Core/Server';
 import ShippingcampaignsController from 'App/Controllers/Http/ShippingcampaignsController';
 import Agent from 'App/Models/Agent';
 import Chat from "App/Models/Chat"
-import Shippingcampaign from "App/Models/Shippingcampaign"
 import Interaction from 'App/Models/Interaction';
+import Shippingcampaign from 'App/Models/Shippingcampaign';
 import { verifyNumber } from 'App/Services/whatsapp-web/VerifyNumber';
 import { DateTime } from 'luxon';
 import { Client } from "whatsapp-web.js"
@@ -20,9 +20,8 @@ export default async (client: Client, agent: Agent) => {
   const endTimeSendMessage = agent.interval_final_message
 
   async function _shippingCampaignList() {
-    return await Shippingcampaign.query()
-      .whereNull('phonevalid')
-      .andWhere('created_at', '>', yesterday).first()
+    return await Shippingcampaign.query().whereNull('phonevalid')
+      .andWhere('created_at', '>', yesterday).orderBy(['interaction_id', 'created_at']).first()
   }
 
   async function verifyContSend() {
@@ -45,12 +44,25 @@ export default async (client: Client, agent: Agent) => {
   }
 
   async function totalInteractionSend(id) {
-    const maxsendlimit = await Interaction.query().where("id", id)
-    const totalSend = await Shippingcampaign.query().where('interaction_id', id).count('* as total').first()
-    console.log("limite de interaction", maxsendlimit, 'total enviado', totalSend?.$extras.total)
+
+    const dateStart = await DateFormat("yyyy-MM-dd 00:00:00", DateTime.local())
+    const dateEnd = await DateFormat("yyyy-MM-dd 23:59:00", DateTime.local())
+
+    try {
+      const maxsendlimit = await Interaction.query().select('maxsendlimit').where("id", id).first()
+      const totalSend = await Chat.query()
+        .where('interaction_id', id)
+        .andWhereBetween('created_at', [dateStart, dateEnd])
+        .count('* as total').first()
+
+      if (totalSend?.$extras.total < maxsendlimit.maxsendlimit || maxsendlimit == null)
+        return false
+      else return true
+
+    } catch (error) {
+      throw error
+    }
   }
-
-
 
   async function sendMessages() {
     setInterval(async () => {
@@ -68,9 +80,12 @@ export default async (client: Client, agent: Agent) => {
       await verifyContSend()
       const shippingCampaign = await _shippingCampaignList()
 
-      console.log("shipping campaign 1222", shippingCampaign)
-      //await totalInteractionSend(shippingCampaign)
-
+      if (shippingCampaign?.interaction_id) {
+        if (await totalInteractionSend(shippingCampaign?.interaction_id)) {
+          console.log("Limite de Interação atingida...")
+          return
+        }
+      }
 
       if (shippingCampaign) {
         if (global.contSend < 3) {

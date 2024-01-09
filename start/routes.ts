@@ -1,7 +1,10 @@
 import Route from '@ioc:Adonis/Core/Route'
 
-import { validAgent } from "../app/Services/whatsapp-web/util"
+//import { validAgent } from "../app/Services/whatsapp-web/util"
 import { connectionAll, sendRepeatedMessage } from './events'
+
+import { DateTime } from 'luxon';
+import Shippingcampaign from 'App/Models/Shippingcampaign';
 
 console.log("***CHAT BOT V-88***21/12/2023")
 console.log(`***NOME DO CLIENTE: ${process.env.CHAT_NAME}***`)
@@ -34,12 +37,14 @@ Route.get('/', async () => {
 Route.group(() => {
 
   Route.get('/start', async () => {
-    await validAgent()
-    //const agent = await Agent.query().where('id', 209).first()
-    //const update = await Agent.query().where('id', 209).update({ statusconnected: true })
-    //console.log("validando...", update)
-    return "Executei a chamada da api do whatsapp"
-  })
+
+    const yesterday = DateTime.local().toFormat('yyyy-MM-dd 00:00')
+
+    return await Shippingcampaign.query().whereNull('phonevalid')
+      .andWhere('created_at', '>', yesterday).orderBy(['interaction_id', 'created_at']).first()
+  }
+
+  )
 
   //USERS
   Route.resource("/users", "UsersController").apiOnly()

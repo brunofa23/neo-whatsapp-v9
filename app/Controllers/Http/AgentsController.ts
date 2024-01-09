@@ -10,8 +10,6 @@ export default class AgentsController {
 
     const dateStart = await DateFormat("yyyy-MM-dd 00:00:00", DateTime.local())
     const dateEnd = await DateFormat("yyyy-MM-dd 23:59:00", DateTime.local())
-    console.log(dateStart)
-
     try {
       const data = await Agent.query()
       const agents = []

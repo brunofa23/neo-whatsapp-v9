@@ -31,3 +31,6 @@ git push origin <branch>
 
 ## CASO API DÊ BUG
 "whatsapp-web.js": "https://github.com/Julzk/whatsapp-web.js/tarball/jkr_hotfix_8"
+
+## DATAS
+const yesterday = DateTime.local().toFormat('yyyy-MM-dd 00:00') = '2023-12-21'

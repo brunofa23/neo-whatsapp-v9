@@ -6,17 +6,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const Env_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Env"));
 const config_1 = require("@adonisjs/core/build/config");
 exports.default = (0, config_1.hashConfig)({
-    default: Env_1.default.get('HASH_DRIVER', 'scrypt'),
+    default: Env_1.default.get('HASH_DRIVER', 'argon'),
     list: {
-        scrypt: {
-            driver: 'scrypt',
-            cost: 16384,
-            blockSize: 8,
-            parallelization: 1,
-            saltSize: 16,
-            keyLength: 64,
-            maxMemory: 32 * 1024 * 1024,
-        },
         argon: {
             driver: 'argon2',
             variant: 'id',

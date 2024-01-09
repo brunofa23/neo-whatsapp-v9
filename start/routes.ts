@@ -1,7 +1,7 @@
 import Route from '@ioc:Adonis/Core/Route'
 
 import { validAgent } from "../app/Services/whatsapp-web/util"
-import { connectionAll } from './events'
+import { connectionAll, sendRepeatedMessage } from './events'
 
 console.log("***CHAT BOT V-88***21/12/2023")
 console.log(`***NOME DO CLIENTE: ${process.env.CHAT_NAME}***`)
@@ -9,23 +9,13 @@ console.log(`***NOME DO CLIENTE: ${process.env.CHAT_NAME}***`)
 function operacaoAssincrona(callback) {
   if (process.env.SERVER === 'true') {
     console.log("SERVER DATAS")
-
-    // setInterval(async () => {
-    //   const date = await DateFormat("dd/MM/yyyy HH:mm:ss", DateTime.local())
-    //   if (!executingSendMessage?.valuebool) {
-    //     if (await TimeSchedule()) {
-    //       console.log(`Buscando dados no Smart: ${date}`)
-    //       await PersistShippingcampaign()
-    //     }
-    //   }
-    // }, await GenerateRandomTime(startTimeSendMessageRepeated, endtTimeSendMessageRepeated, '****Send Message Repeated'))
-
+    sendRepeatedMessage()
     return
   }
 
-  setTimeout(function () {
-    callback(null, connectionAll());
-  }, 1000); // Aguarde 1 segundo antes de chamar o callback
+  // setTimeout(function () {
+  //   callback(null, connectionAll());
+  // }, 1000); // Aguarde 1 segundo antes de chamar o callback
 }
 
 operacaoAssincrona(function (erro, resultado) {
@@ -37,27 +27,11 @@ operacaoAssincrona(function (erro, resultado) {
 });
 
 
-// setInterval(() => {
-//   if (process.env.SERVER === 'true') {
-//     console.log("SERVER DATAS")
-//     return
-//   }
-//   validAgent()
-// }, 600000)
-
-
 Route.get('/', async () => {
   return { hello: 'world' }
 })
 
 Route.group(() => {
-  // Route.get('/teste', async () => {
-  //   console.log("entrei no whatsapp router")
-  //   //await executeWhatsapp()
-  //   const state = await stateAgent()
-  //   console.log("esse é o estado do cliente>>>", state)
-  //   return "Executei a chamada da api do whatsapp"
-  // })
 
   Route.get('/start', async () => {
     await validAgent()
@@ -72,7 +46,6 @@ Route.group(() => {
 
   //LOGIN
   Route.post("/login", "UsersController.login")
-
 
 
   //AGENTS

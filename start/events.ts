@@ -1,10 +1,15 @@
 import Agent from "App/Models/Agent"
 import { startAgent } from "../app/Services/whatsapp-web/whatsappConnection"
+import Config from "App/Models/Config"
+import { DateTime } from 'luxon';
+import PersistShippingcampaign from "App/Services/whatsapp-web/PersistShippingcampaign"
+import { DateFormat, GenerateRandomTime, TimeSchedule } from '../app/Services/whatsapp-web/util'
+
+
 async function connectionAll() {
   try {
     console.log("connection all acionado...")
     const agents = await Agent.query()
-    //console.log("agents", agents)
     for (const agent of agents) {
       console.log("Conectando agente:", agent.id)
       await startAgent(agent)
@@ -15,4 +20,21 @@ async function connectionAll() {
   }
 }
 
-module.exports = { connectionAll }
+async function sendRepeatedMessage() {
+  console.log("EXECUTANDO BUSCA SMART")
+  const executingSendMessage = await Config.find('executingSendMessage')
+  setInterval(async () => {
+    const date = await DateFormat("dd/MM/yyyy HH:mm:ss", DateTime.local())
+    if (!executingSendMessage?.valuebool) {
+      if (await TimeSchedule()) {
+        console.log(`Buscando dados no Smart(Server): ${date}`)
+        await PersistShippingcampaign()
+      }
+    }
+  }, await GenerateRandomTime(20, 30, '****Send Message Repeated'))
+
+}
+
+
+
+module.exports = { connectionAll, sendRepeatedMessage }

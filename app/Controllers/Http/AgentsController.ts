@@ -1,13 +1,46 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Agent from 'App/Models/Agent'
 import { startAgent } from "../../Services/whatsapp-web/whatsappConnection"
+import Chat from 'App/Models/Chat'
+import { DateFormat } from '../../Services/whatsapp-web/util'
+import { DateTime } from 'luxon'
 
 export default class AgentsController {
   public async index({ response }: HttpContextContract) {
 
+    const dateStart = await DateFormat("yyyy-MM-dd 00:00:00", DateTime.local())
+    const dateEnd = await DateFormat("yyyy-MM-dd 23:59:00", DateTime.local())
+    console.log(dateStart)
+
     try {
       const data = await Agent.query()
-      return response.status(200).send(data)
+      const agents = []
+      for (const agent of data) {
+        const totMessage =
+          await Chat.query()
+            .where('chatname', agent.name)
+            .andWhereBetween('created_at', [dateStart, dateEnd])
+            .count('* as totMessage').first()
+
+        agents.push({
+          id: agent.id,
+          name: agent.name,
+          number_phone: agent.number_phone,
+          interval_init_query: agent.interval_init_query,
+          interval_final_query: agent.interval_final_query,
+          interval_init_message: agent.interval_init_message,
+          interval_final_message: agent.interval_final_message,
+          max_limit_message: agent.max_limit_message,
+          status: agent.status,
+          active: agent.active,
+          totMessage: totMessage?.$extras.totMessage
+        })
+      }
+
+      //console.log("Agentes", agents)
+
+
+      return response.status(200).send(agents)
     } catch (error) {
       return error
     }

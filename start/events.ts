@@ -36,5 +36,9 @@ async function sendRepeatedMessage() {
 }
 
 
+async function resetStatusConnected() {
+  await Agent.query().update({ statusconnected: false })
+}
 
-module.exports = { connectionAll, sendRepeatedMessage }
+
+module.exports = { connectionAll, sendRepeatedMessage, resetStatusConnected }

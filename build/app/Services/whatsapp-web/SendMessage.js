@@ -36,8 +36,14 @@ exports.default = async (client, agent) => {
     }
     async function countLimitSendMessage() {
         const shippingcampaignsController = new ShippingcampaignsController_1.default();
-        const value = await shippingcampaignsController.maxLimitSendMessage();
+        const value = await shippingcampaignsController.maxLimitSendMessage(agent);
         return value;
+    }
+    async function maxLimitSendMessageAgent(id) {
+        const agentMaxLimitSend = await Agent_1.default.query().where('id', id).first();
+        if (agentMaxLimitSend == undefined || agentMaxLimitSend?.max_limit_message == undefined)
+            return 0;
+        return agentMaxLimitSend?.max_limit_message;
     }
     async function totalInteractionSend(id) {
         const dateStart = await (0, util_1.DateFormat)("yyyy-MM-dd 00:00:00", luxon_1.DateTime.local());
@@ -61,8 +67,9 @@ exports.default = async (client, agent) => {
         setInterval(async () => {
             await Agent_1.default.query().where('id', agent.id).update({ statusconnected: true });
             const totMessageSend = await countLimitSendMessage();
-            if (totMessageSend >= agent.max_limit_message) {
-                console.log(`LIMITE DE ENVIO DIÁRIO ATINGIDO, Enviados:${totMessageSend} - Limite Máximo:${agent.max_limit_message}`);
+            const maxLimitSendAgent = await maxLimitSendMessageAgent(agent.id);
+            if (totMessageSend >= maxLimitSendAgent) {
+                console.log(`LIMITE DIÁRIO ATINGIDO, Agent: ${agent.name} Enviados:${totMessageSend} - Limite Máximo:${maxLimitSendAgent}`);
                 return;
             }
             if (await (0, util_1.TimeSchedule)() == false) {

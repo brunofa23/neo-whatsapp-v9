@@ -17,7 +17,7 @@ async function sendRepeatedMessage(agent) {
                 await (0, PersistShippingcampaign_1.default)();
             }
         }
-    }, await (0, util_1.GenerateRandomTime)(200, 300, '****Send Message Repeated'));
+    }, await (0, util_1.GenerateRandomTime)(300, 400, '****Send Message Repeated'));
 }
 module.exports = { sendRepeatedMessage };
 //# sourceMappingURL=SendRepeatedMessage.js.map

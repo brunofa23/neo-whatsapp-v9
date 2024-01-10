@@ -30,7 +30,7 @@ export default class AgentsController {
           interval_final_message: agent.interval_final_message,
           max_limit_message: agent.max_limit_message,
           status: agent.status,
-          active: agent.active,
+          statusconnected: agent.statusconnected,
           qrcode: agent.qrcode,
           totMessage: totMessage?.$extras.totMessage
         })
@@ -73,6 +73,9 @@ export default class AgentsController {
 
   public async connection({ params, request, response }: HttpContextContract) {
     try {
+      await Agent.query()
+        .where('id', params.id)
+        .update({ statusconnected: false })
       const agent = await Agent.query().where('id', params.id).first()
       //console.log("AGENTE", params.id, "agente", agent)
       console.log("conectando...")
@@ -86,6 +89,7 @@ export default class AgentsController {
   public async connectionAll({ response }: HttpContextContract) {
     try {
       console.log("connection all acionado...")
+      await Agent.query().update({ statusconnected: false })
       const agents = await Agent.query()
       for (const agent of agents) {
         console.log("Conectando agente:", agent.id)

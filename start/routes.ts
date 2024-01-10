@@ -1,7 +1,7 @@
 import Route from '@ioc:Adonis/Core/Route'
 
 //import { validAgent } from "../app/Services/whatsapp-web/util"
-import { connectionAll, sendRepeatedMessage } from './events'
+import { connectionAll, sendRepeatedMessage, resetStatusConnected } from './events'
 
 import { DateTime } from 'luxon';
 import Shippingcampaign from 'App/Models/Shippingcampaign';
@@ -9,6 +9,7 @@ import Shippingcampaign from 'App/Models/Shippingcampaign';
 console.log("***CHAT BOT V-88***21/12/2023")
 console.log(`***NOME DO CLIENTE: ${process.env.CHAT_NAME}***`)
 
+resetStatusConnected()
 function operacaoAssincrona(callback) {
   if (process.env.SERVER === 'true') {
     console.log("SERVER DATAS")

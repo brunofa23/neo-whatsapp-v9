@@ -19,7 +19,9 @@ exports.default = async (client, agent) => {
     const startTimeSendMessage = agent.interval_init_message;
     const endTimeSendMessage = agent.interval_final_message;
     async function _shippingCampaignList() {
-        return await Shippingcampaign_1.default.query().whereNull('phonevalid')
+        return await Shippingcampaign_1.default.query()
+            .whereNull('phonevalid')
+            .andWhere('messagesent', 0)
             .andWhere('created_at', '>', yesterday).orderBy(['interaction_id', 'created_at']).first();
     }
     async function verifyContSend() {

@@ -20,7 +20,9 @@ export default async (client: Client, agent: Agent) => {
   const endTimeSendMessage = agent.interval_final_message
 
   async function _shippingCampaignList() {
-    return await Shippingcampaign.query().whereNull('phonevalid')
+    return await Shippingcampaign.query()
+      .whereNull('phonevalid')
+      .andWhere('messagesent', 0)
       .andWhere('created_at', '>', yesterday).orderBy(['interaction_id', 'created_at']).first()
   }
 

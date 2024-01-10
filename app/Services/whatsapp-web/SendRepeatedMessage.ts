@@ -14,7 +14,7 @@ async function sendRepeatedMessage(agent: Agent) {
         await PersistShippingcampaign()
       }
     }
-  }, await GenerateRandomTime(200, 300, '****Send Message Repeated'))
+  }, await GenerateRandomTime(300, 400, '****Send Message Repeated'))
 
 }
 module.exports = { sendRepeatedMessage }

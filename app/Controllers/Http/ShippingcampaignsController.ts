@@ -1,4 +1,5 @@
 import { typeInferListFromConfig } from '@adonisjs/core/build/config';
+
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Shippingcampaign from 'App/Models/Shippingcampaign'
 import { executeWhatsapp } from '../../Services/whatsapp-web/whatsapp'
@@ -9,6 +10,7 @@ import Env from '@ioc:Adonis/Core/Env'
 import { DateFormat, InvalidResponse } from '../../Services/whatsapp-web/util'
 import { DateTime } from 'luxon'
 import { Response } from '@adonisjs/core/build/standalone'
+import Agent from 'App/Models/Agent';
 
 export default class ShippingcampaignsController {
 
@@ -51,14 +53,29 @@ export default class ShippingcampaignsController {
   }
 
 
-  public async maxLimitSendMessage() {
+  // public async maxLimitSendMessage(agent: Agent) {
+  //   const dateStart = await DateFormat("yyyy-MM-dd 00:00:00", DateTime.local())
+  //   const dateEnd = await DateFormat("yyyy-MM-dd 23:59:00", DateTime.local())
+  //   const chatName = process.env.CHAT_NAME
+  //   const countMessage = await Chat.query()
+  //     .countDistinct('shippingcampaigns_id as tot')
+  //     .where('chatname', String(chatName))
+  //     .whereBetween('created_at', [dateStart, dateEnd]).first()
+  //   if (!countMessage || countMessage == undefined || countMessage == null)
+  //     return 0
+  //   return parseInt(countMessage.$extras.tot)
+  // }
+
+  public async maxLimitSendMessage(agent: Agent) {
     const dateStart = await DateFormat("yyyy-MM-dd 00:00:00", DateTime.local())
     const dateEnd = await DateFormat("yyyy-MM-dd 23:59:00", DateTime.local())
-    const chatName = process.env.CHAT_NAME
+    const chatName = agent.name
     const countMessage = await Chat.query()
       .countDistinct('shippingcampaigns_id as tot')
-      .where('chatname', String(chatName))
+      .where('chatname', chatName)
       .whereBetween('created_at', [dateStart, dateEnd]).first()
+
+    //console.log("PASSEI LIMITE DE ENVIO NA CONTROLLER 1516", countMessage)
     if (!countMessage || countMessage == undefined || countMessage == null)
       return 0
     return parseInt(countMessage.$extras.tot)

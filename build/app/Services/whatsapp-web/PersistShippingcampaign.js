@@ -29,9 +29,10 @@ exports.default = async () => {
             shipping.interaction_id = data.interaction_id;
             shipping.interaction_seq = data.interaction_seq;
             shipping.reg = data.reg;
+            shipping.dateshedule = data.agm_hini;
             shipping.idexternal = data.idexternal;
             shipping.name = String(data.name).trim();
-            shipping.cellphone = data.cellphone;
+            shipping.cellphone = String(data.cellphone).replace(/[^0-9]+/g, '');
             if (!await (0, util_1.ValidatePhone)(data.cellphone))
                 shipping.phonevalid = false;
             shipping.messagesent = false;

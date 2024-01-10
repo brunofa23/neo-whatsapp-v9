@@ -8,8 +8,6 @@ const luxon_1 = require("luxon");
 const PersistShippingcampaign_1 = __importDefault(require("./PersistShippingcampaign"));
 const util_1 = require("./util");
 async function sendRepeatedMessage(agent) {
-    const startTimeSendMessageRepeated = agent.interval_init_query;
-    let endtTimeSendMessageRepeated = agent.interval_final_query;
     const executingSendMessage = await Config_1.default.find('executingSendMessage');
     setInterval(async () => {
         const date = await (0, util_1.DateFormat)("dd/MM/yyyy HH:mm:ss", luxon_1.DateTime.local());
@@ -19,7 +17,7 @@ async function sendRepeatedMessage(agent) {
                 await (0, PersistShippingcampaign_1.default)();
             }
         }
-    }, await (0, util_1.GenerateRandomTime)(startTimeSendMessageRepeated, endtTimeSendMessageRepeated, '****Send Message Repeated'));
+    }, await (0, util_1.GenerateRandomTime)(200, 300, '****Send Message Repeated'));
 }
 module.exports = { sendRepeatedMessage };
 //# sourceMappingURL=SendRepeatedMessage.js.map

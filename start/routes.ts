@@ -4,7 +4,7 @@ import Route from '@ioc:Adonis/Core/Route'
 import { connectionAll, sendRepeatedMessage, resetStatusConnected } from './events'
 
 import { DateTime } from 'luxon';
-import Agent from 'App/Models/Agent';
+import Shippingcampaign from 'App/Models/Shippingcampaign';
 
 console.log("***CHAT BOT V-89***10/01/2024")
 console.log(`***NOME DO CLIENTE: ${process.env.CHAT_NAME}***`)
@@ -38,17 +38,15 @@ Route.group(() => {
 
   Route.get('/start', async () => {
 
-    // const agentMaxLimitSend = await Agent.query().where('id', 1).first()
-    // if (agentMaxLimitSend == null)
-    //   return 0
+    const value = await Shippingcampaign.query()
+      .whereNull('phonevalid')
+      .andWhere('messagesent', 0)
+      .andWhere('created_at', '>', '2024-01-09').orderBy(['interaction_id', 'created_at']).first()
 
-    // return agentMaxLimitSend?.max_limit_message
-    // const yesterday = DateTime.local().toFormat('yyyy-MM-dd 00:00')
+    return value
 
-    // return await Shippingcampaign.query().whereNull('phonevalid')
-    //   .andWhere('created_at', '>', yesterday).orderBy(['interaction_id', 'created_at']).first()
+
   }
-
   )
 
   //USERS

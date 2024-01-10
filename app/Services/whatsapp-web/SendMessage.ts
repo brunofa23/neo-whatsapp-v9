@@ -39,8 +39,15 @@ export default async (client: Client, agent: Agent) => {
 
   async function countLimitSendMessage() {
     const shippingcampaignsController = new ShippingcampaignsController()
-    const value = await shippingcampaignsController.maxLimitSendMessage()
+    const value = await shippingcampaignsController.maxLimitSendMessage(agent)
     return value
+  }
+
+  async function maxLimitSendMessageAgent(id) {
+    const agentMaxLimitSend = await Agent.query().where('id', id).first()
+    if (agentMaxLimitSend == undefined || agentMaxLimitSend?.max_limit_message == undefined)
+      return 0
+    return agentMaxLimitSend?.max_limit_message
   }
 
   async function totalInteractionSend(id) {
@@ -70,8 +77,10 @@ export default async (client: Client, agent: Agent) => {
       await Agent.query().where('id', agent.id).update({ statusconnected: true })
 
       const totMessageSend = await countLimitSendMessage()
-      if (totMessageSend >= agent.max_limit_message) {
-        console.log(`LIMITE DE ENVIO DIÁRIO ATINGIDO, Enviados:${totMessageSend} - Limite Máximo:${agent.max_limit_message}`)
+      const maxLimitSendAgent = await maxLimitSendMessageAgent(agent.id)
+
+      if (totMessageSend >= maxLimitSendAgent) {
+        console.log(`LIMITE DIÁRIO ATINGIDO, Agent: ${agent.name} Enviados:${totMessageSend} - Limite Máximo:${maxLimitSendAgent}`)
         return
       }
       if (await TimeSchedule() == false) {

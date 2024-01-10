@@ -86,7 +86,7 @@ async function startAgent(_agent) {
         agent.qrcode = null;
         await agent.save();
     });
-    (0, SendRepeatedMessage_1.sendRepeatedMessage)(agent);
+    await (0, SendRepeatedMessage_1.sendRepeatedMessage)(agent);
     const chatMonitoring = new ChatMonitoring_1.default;
     await chatMonitoring.monitoring(client);
     if (process.env.SELF_CONVERSATION?.toLowerCase() === "true") {

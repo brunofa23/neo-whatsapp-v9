@@ -24,7 +24,7 @@ async function GenerateRandomTime(min, max, method = "") {
     return randomTime;
 }
 async function TimeSchedule() {
-    const timeSchedule = (luxon_1.DateTime.local().hour > 5 && luxon_1.DateTime.local().hour < 24) ? true : false;
+    const timeSchedule = (luxon_1.DateTime.local().hour > 5 && luxon_1.DateTime.local().hour < 21) ? true : false;
     const message = !timeSchedule ? `Fora do Horario de Envio 7 às 19:${luxon_1.DateTime.local()}` : undefined;
     if (message)
         console.log(message);

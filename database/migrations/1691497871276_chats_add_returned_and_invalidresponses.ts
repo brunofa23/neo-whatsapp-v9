@@ -6,7 +6,7 @@ export default class extends BaseSchema {
   public async up() {
     this.schema.alterTable(this.tableName, (table) => {
       table.boolean('returned').defaultTo('false')
-      table.string('invalidresponse', 350)
+      table.string('invalidresponse', 600)
 
     })
   }

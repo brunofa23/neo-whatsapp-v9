@@ -5,9 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const Route_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Route"));
 const events_1 = require("./events");
-const luxon_1 = require("luxon");
-const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Shippingcampaign"));
-console.log("***CHAT BOT V-88***21/12/2023");
+console.log("***CHAT BOT V-89***10/01/2024");
 console.log(`***NOME DO CLIENTE: ${process.env.CHAT_NAME}***`);
 (0, events_1.resetStatusConnected)();
 function operacaoAssincrona(callback) {
@@ -30,9 +28,6 @@ Route_1.default.get('/', async () => {
 });
 Route_1.default.group(() => {
     Route_1.default.get('/start', async () => {
-        const yesterday = luxon_1.DateTime.local().toFormat('yyyy-MM-dd 00:00');
-        return await Shippingcampaign_1.default.query().whereNull('phonevalid')
-            .andWhere('created_at', '>', yesterday).orderBy(['interaction_id', 'created_at']).first();
     });
     Route_1.default.resource("/users", "UsersController").apiOnly();
     Route_1.default.post("/login", "UsersController.login");

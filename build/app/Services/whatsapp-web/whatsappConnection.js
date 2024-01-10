@@ -43,6 +43,8 @@ async function startAgent(_agent) {
     client.initialize();
     client.on('loading_screen', (percent, message) => {
         console.log('LOADING SCREEN', percent, message);
+        agent.status = `Carregando ${percent} - ${message}`;
+        agent.save();
     });
     client.on('qr', async (qr) => {
         agent.status = "Qrcode require";

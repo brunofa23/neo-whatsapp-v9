@@ -1,12 +1,10 @@
 import Route from '@ioc:Adonis/Core/Route'
+import { DateTime } from 'luxon';
 
-//import { validAgent } from "../app/Services/whatsapp-web/util"
+//import { connectionAll, resetStatusConnected, sendRepeatedMessage } from "../app/Services/whatsapp-web/util"
 import { connectionAll, sendRepeatedMessage, resetStatusConnected } from './events'
 
-import { DateTime } from 'luxon';
-import Shippingcampaign from 'App/Models/Shippingcampaign';
-
-console.log("***CHAT BOT V-89***10/01/2024")
+console.log("***CHAT BOT V-90***10/01/2024")
 console.log(`***NOME DO CLIENTE: ${process.env.CHAT_NAME}***`)
 
 resetStatusConnected()
@@ -37,15 +35,12 @@ Route.get('/', async () => {
 Route.group(() => {
 
   Route.get('/start', async () => {
+    // const value = await Shippingcampaign.query()
+    //   .whereNull('phonevalid')
+    //   .andWhere('messagesent', 0)
+    //   .andWhere('created_at', '>', '2024-01-09').orderBy(['interaction_id', 'created_at']).first()
 
-    const value = await Shippingcampaign.query()
-      .whereNull('phonevalid')
-      .andWhere('messagesent', 0)
-      .andWhere('created_at', '>', '2024-01-09').orderBy(['interaction_id', 'created_at']).first()
-
-    return value
-
-
+    // return value
   }
   )
 

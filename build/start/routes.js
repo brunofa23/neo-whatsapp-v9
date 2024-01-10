@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const Route_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Route"));
 const events_1 = require("./events");
-console.log("***CHAT BOT V-89***10/01/2024");
+console.log("***CHAT BOT V-90***10/01/2024");
 console.log(`***NOME DO CLIENTE: ${process.env.CHAT_NAME}***`);
 (0, events_1.resetStatusConnected)();
 function operacaoAssincrona(callback) {

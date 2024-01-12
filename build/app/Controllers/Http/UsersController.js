@@ -39,6 +39,7 @@ class UsersController {
         }
     }
     async login({ auth, request, response }) {
+        console.log("acessei o login...", auth);
         const body = request.only(User_1.default.fillable);
         const user = await User_1.default
             .query()

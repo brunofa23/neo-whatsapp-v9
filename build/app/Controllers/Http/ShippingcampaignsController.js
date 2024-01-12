@@ -314,6 +314,38 @@ class ShippingcampaignsController {
             throw new Error(error);
         }
     }
+    async scheduleConfirmationDashboard({ request, response }) {
+        const { initialdate, finaldate, phonevalid, absoluteresp, interactions, messagesent, invalidresponse } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp', 'interactions', 'messagesent']);
+        let query = "1=1";
+        if (phonevalid) {
+            query += ` and phonevalid=${phonevalid}`;
+        }
+        if (messagesent) {
+            query += ` and messagesent=${messagesent} `;
+        }
+        if (interactions)
+            query += ` and response is not null `;
+        if (absoluteresp)
+            query += ` and absoluteresp=${absoluteresp} `;
+        if (invalidresponse)
+            query += ` and invalidresponse not in ('1','2', 'Sim', 'Não', 'confirmado', 'pode confirmar', '1sim', '10', 'cancelar', '2 cancelar') `;
+        if (!luxon_1.DateTime.fromISO(initialdate).isValid || !luxon_1.DateTime.fromISO(finaldate).isValid) {
+            throw new Error("Datas inválidas.");
+        }
+        try {
+            const result = await Database_1.default.connection(Env_1.default.get('DB_CONNECTION_MAIN')).query()
+                .from('shippingcampaigns')
+                .select('shippingcampaigns.interaction_id', 'shippingcampaigns.reg', 'shippingcampaigns.name', 'shippingcampaigns.cellphone', 'otherfields', 'phonevalid', 'messagesent', 'chats.created_at', 'response', 'returned', 'invalidresponse', 'chatname', 'absoluteresp')
+                .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
+                .whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
+                .where('shippingcampaigns.interaction_id', 1)
+                .whereRaw(query);
+            return response.status(201).send(result);
+        }
+        catch (error) {
+            throw new Error(error);
+        }
+    }
 }
 exports.default = ShippingcampaignsController;
 //# sourceMappingURL=ShippingcampaignsController.js.map

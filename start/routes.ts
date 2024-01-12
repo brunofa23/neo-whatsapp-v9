@@ -35,12 +35,6 @@ Route.get('/', async () => {
 Route.group(() => {
 
   Route.get('/start', async () => {
-    // const value = await Shippingcampaign.query()
-    //   .whereNull('phonevalid')
-    //   .andWhere('messagesent', 0)
-    //   .andWhere('created_at', '>', '2024-01-09').orderBy(['interaction_id', 'created_at']).first()
-
-    // return value
   }
   )
 
@@ -74,6 +68,7 @@ Route.group(() => {
   Route.get('/datepositionsynthetic', 'ShippingcampaignsController.datePositionSynthetic')
   Route.get('/listshippingcampaigns', 'ShippingcampaignsController.listShippingCampaigns')
   Route.get('/serviceevaluationdashboard', 'ShippingcampaignsController.serviceEvaluationDashboard')
+  Route.get('/scheduleconfirmationdashboard', 'ShippingcampaignsController.scheduleConfirmationDashboard')
 
   Route.get('/confirmschedule', 'DatasourcesController.confirmSchedule')
   Route.get('/serviceevaluation', 'DatasourcesController.serviceEvaluation')

@@ -52,20 +52,6 @@ export default class ShippingcampaignsController {
     }
   }
 
-
-  // public async maxLimitSendMessage(agent: Agent) {
-  //   const dateStart = await DateFormat("yyyy-MM-dd 00:00:00", DateTime.local())
-  //   const dateEnd = await DateFormat("yyyy-MM-dd 23:59:00", DateTime.local())
-  //   const chatName = process.env.CHAT_NAME
-  //   const countMessage = await Chat.query()
-  //     .countDistinct('shippingcampaigns_id as tot')
-  //     .where('chatname', String(chatName))
-  //     .whereBetween('created_at', [dateStart, dateEnd]).first()
-  //   if (!countMessage || countMessage == undefined || countMessage == null)
-  //     return 0
-  //   return parseInt(countMessage.$extras.tot)
-  // }
-
   public async maxLimitSendMessage(agent: Agent) {
     const dateStart = await DateFormat("yyyy-MM-dd 00:00:00", DateTime.local())
     const dateEnd = await DateFormat("yyyy-MM-dd 23:59:00", DateTime.local())
@@ -474,6 +460,62 @@ export default class ShippingcampaignsController {
       }));
 
       return response.status(201).send({ result, resultAcumulatedList, resultByStation, resultByMedic, resultByAttendant, npsResult })
+    } catch (error) {
+      throw new Error(error)
+    }
+
+  }
+
+  public async scheduleConfirmationDashboard({ request, response }: HttpContextContract) {
+
+    const { initialdate, finaldate, phonevalid, absoluteresp, interactions, messagesent } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp', 'interactions', 'messagesent'])
+
+    let query = "1=1"
+    if (phonevalid && phonevalid !== undefined) {
+      query += ` and phonevalid=${phonevalid == 1 ? 1 : 0}`
+    }
+
+    if (messagesent) {
+      console.log("entrei aqui.....", messagesent)
+      if (messagesent == 'false')
+        query += ` and messagesent=0 `
+      else query += ` and messagesent=1 `
+    }
+
+    if (interactions)
+      query += ` and response is not null `
+
+    if (!DateTime.fromISO(initialdate).isValid || !DateTime.fromISO(finaldate).isValid) {
+      throw new Error("Datas inválidas.")
+    }
+
+    //return { query, initialdate, finaldate }
+
+    try {
+      const result = await Database.connection(Env.get('DB_CONNECTION_MAIN')).query()
+        .from('shippingcampaigns')
+        .select(
+          'shippingcampaigns.interaction_id',
+          'shippingcampaigns.reg',
+          'shippingcampaigns.name',
+          'shippingcampaigns.cellphone',
+          'otherfields',
+          'phonevalid',
+          'messagesent',
+          'chats.created_at',
+          'response',
+          'returned',
+          'invalidresponse',
+          'chatname',
+          'absoluteresp'
+        )
+        .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
+        .whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
+        .where('shippingcampaigns.interaction_id', 1)
+        .whereRaw(query).toQuery()
+
+
+      return response.status(201).send(result)
     } catch (error) {
       throw new Error(error)
     }

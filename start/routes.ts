@@ -4,7 +4,7 @@ import { DateTime } from 'luxon';
 //import { connectionAll, resetStatusConnected, sendRepeatedMessage } from "../app/Services/whatsapp-web/util"
 import { connectionAll, sendRepeatedMessage, resetStatusConnected } from './events'
 
-console.log("***CHAT BOT V-90***10/01/2024")
+console.log("***CHAT BOT V-91***12/01/2024")
 console.log(`***NOME DO CLIENTE: ${process.env.CHAT_NAME}***`)
 
 resetStatusConnected()

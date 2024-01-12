@@ -468,26 +468,29 @@ export default class ShippingcampaignsController {
 
   public async scheduleConfirmationDashboard({ request, response }: HttpContextContract) {
 
-    const { initialdate, finaldate, phonevalid, absoluteresp, interactions, messagesent } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp', 'interactions', 'messagesent'])
+    const { initialdate, finaldate, phonevalid, absoluteresp, interactions, messagesent, invalidresponse } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp', 'interactions', 'messagesent'])
 
     let query = "1=1"
-    if (phonevalid && phonevalid !== undefined) {
-      query += ` and phonevalid=${phonevalid == 1 ? 1 : 0}`
+    if (phonevalid) {
+      query += ` and phonevalid=${phonevalid}`
     }
-
     if (messagesent) {
-      console.log("entrei aqui.....", messagesent)
-      if (messagesent == 'false')
-        query += ` and messagesent=0 `
-      else query += ` and messagesent=1 `
+      query += ` and messagesent=${messagesent} `
     }
-
     if (interactions)
       query += ` and response is not null `
+
+    if (absoluteresp)
+      query += ` and absoluteresp=${absoluteresp} `
+
+    if (invalidresponse)
+      query += ` and invalidresponse not in ('1','2', 'Sim', 'Não', 'confirmado', 'pode confirmar', '1sim', '10', 'cancelar', '2 cancelar') `
+
 
     if (!DateTime.fromISO(initialdate).isValid || !DateTime.fromISO(finaldate).isValid) {
       throw new Error("Datas inválidas.")
     }
+
 
     //return { query, initialdate, finaldate }
 
@@ -512,8 +515,7 @@ export default class ShippingcampaignsController {
         .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
         .whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
         .where('shippingcampaigns.interaction_id', 1)
-        .whereRaw(query).toQuery()
-
+        .whereRaw(query)
 
       return response.status(201).send(result)
     } catch (error) {

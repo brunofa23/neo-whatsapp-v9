@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const Route_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Route"));
 const events_1 = require("./events");
-console.log("***CHAT BOT V-90***10/01/2024");
+console.log("***CHAT BOT V-91***12/01/2024");
 console.log(`***NOME DO CLIENTE: ${process.env.CHAT_NAME}***`);
 (0, events_1.resetStatusConnected)();
 function operacaoAssincrona(callback) {
@@ -48,6 +48,7 @@ Route_1.default.group(() => {
     Route_1.default.get('/datepositionsynthetic', 'ShippingcampaignsController.datePositionSynthetic');
     Route_1.default.get('/listshippingcampaigns', 'ShippingcampaignsController.listShippingCampaigns');
     Route_1.default.get('/serviceevaluationdashboard', 'ShippingcampaignsController.serviceEvaluationDashboard');
+    Route_1.default.get('/scheduleconfirmationdashboard', 'ShippingcampaignsController.scheduleConfirmationDashboard');
     Route_1.default.get('/confirmschedule', 'DatasourcesController.confirmSchedule');
     Route_1.default.get('/serviceevaluation', 'DatasourcesController.serviceEvaluation');
 }).prefix('/api');

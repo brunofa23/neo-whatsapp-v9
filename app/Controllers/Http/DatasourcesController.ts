@@ -101,7 +101,7 @@ export default class DatasourcesController {
     const dateNow = await DateFormat("dd/MM/yyyy HH:mm:ss", DateTime.local())
     const startOfDay = await DateFormat("yyyy-MM-dd 00:00", DateTime.local())
     const endOfDay = await DateFormat("yyyy-MM-dd 23:59", DateTime.local())
-
+    //************************************** */
     const dateSchedule = DateTime.fromFormat(chatOtherFields['schedule'], 'yyyy-MM-dd HH:mm')//converte string para data
 
     console.log("passei aqui....", dateNow)

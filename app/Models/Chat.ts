@@ -1,8 +1,8 @@
+import Env from '@ioc:Adonis/Core/Env'
 import { BaseModel, column, hasOne, HasOne } from '@ioc:Adonis/Lucid/Orm'
 import { DateTime } from 'luxon'
 
 import Shippingcampaign from './Shippingcampaign'
-import Env from '@ioc:Adonis/Core/Env'
 
 export default class Chat extends BaseModel {
 
@@ -55,6 +55,9 @@ export default class Chat extends BaseModel {
 
   @column()
   public absoluteresp: number
+
+  @column()
+  public externalstatus: string
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime

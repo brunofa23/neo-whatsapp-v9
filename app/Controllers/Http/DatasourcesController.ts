@@ -95,6 +95,51 @@ export default class DatasourcesController {
       return error
     }
   }
+
+  async confirmScheduleAll() {
+
+    const dateNow = await DateFormat("dd/MM/yyyy HH:mm:ss", DateTime.local())
+    const startOfDay = await DateFormat("yyyy-MM-dd 00:00", DateTime.local())
+    const endOfDay = await DateFormat("yyyy-MM-dd 23:59", DateTime.local())
+
+    const dateSchedule = DateTime.fromFormat(chatOtherFields['schedule'], 'yyyy-MM-dd HH:mm')//converte string para data
+
+    console.log("passei aqui....", dateNow)
+
+    const returnChats = await Chat.query()
+      .whereBetween('created_at', [startOfDay, endOfDay])
+      .andWhere('externalstatus', 'A')
+
+
+
+    //return { dateNow, startOfDay, endOfDay, returnChats }
+    try {
+
+      for (const chat of returnChats) {
+        const query = await Database.connection('mssql')
+          .from('agm')
+          .where('agm_pac', chat.reg)
+          .whereBetween('agm_hini', [startOfDay, endOfDay])
+          .whereNotIn('agm_stat', ['C', 'B'])
+          .whereNotIn('agm_confirm_stat', ['C'])
+          .update({
+            AGM_CONFIRM_STAT: 'C',
+            AGM_CONFIRM_OBS: `NEO CONFIRMA by CONFIRMA ou CANCELA - WhatsApp em ${dateNow}`,
+            AGM_CONFIRM_USR: 'NEOCONFIRM'
+          }).toQuery()
+
+        console.log(query)
+      }
+
+      await Database.manager.close('mssql')
+      //console.log("QUERY CONFIRMAÇÃO", query)
+      //return query
+
+    } catch (error) {
+      return error
+    }
+  }
+
   async cancelSchedule(chat: Chat, chatOtherFields: String = "") {
     const dateNow = await DateFormat("dd/MM/yyyy HH:mm:ss", DateTime.local())
     const dateSchedule = DateTime.fromFormat(chatOtherFields['schedule'], 'yyyy-MM-dd HH:mm')//converte string para data

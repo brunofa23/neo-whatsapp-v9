@@ -1,7 +1,8 @@
-import { NegativeResponse, PositiveResponse, stateTyping } from '../util'
 import DatasourcesController from 'App/Controllers/Http/DatasourcesController';
 import Chat from 'App/Models/Chat';
 import { Client, Message } from 'whatsapp-web.js';
+
+import { NegativeResponse, PositiveResponse, stateTyping } from '../util'
 
 export default async (client: Client, message: Message, chat: Chat) => {
 
@@ -16,18 +17,20 @@ export default async (client: Client, message: Message, chat: Chat) => {
         chat.response = message.body.slice(0, 500)
         chat.returned = true
         chat.absoluteresp = 1
+        chat.externalstatus = 'A'
         await chat.save()
       } catch (error) {
         console.log("Erro 454:", error)
       }
       //Salvar no Smart e marcar presença
-      const datasourcesController = new DatasourcesController
-      await datasourcesController.confirmSchedule(chat, chatOtherFields)
+      //const datasourcesController = new DatasourcesController
+      //await datasourcesController.confirmSchedule(chat, chatOtherFields)
     } else
       //CANCELAR AGENDAMENTO
       if (await NegativeResponse(message.body)) {
         chat.response = message.body
         chat.absoluteresp = 2
+        chat.externalstatus = 'A'
 
         try {
           await chat.save()
@@ -35,8 +38,8 @@ export default async (client: Client, message: Message, chat: Chat) => {
           console.log("Erro 121:", error)
         }
         //CANCELA MARCAÇÃO NO SMART
-        const datasourcesController = new DatasourcesController
-        await datasourcesController.cancelSchedule(chat, chatOtherFields)
+        // const datasourcesController = new DatasourcesController
+        // await datasourcesController.cancelSchedule(chat, chatOtherFields)
 
         await stateTyping(message)
         const message2 = `Entendi 😉, sabemos que nosso dia está muito atarefado! Sua consulta foi desmarcada, se deseja reagendar, clique no link que estou enviando para conversar com uma de nossas atendentes e podermos agendar novo horário mais conveniente para você.`

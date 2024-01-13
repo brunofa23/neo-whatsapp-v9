@@ -1,6 +1,7 @@
 import Agent from 'App/Models/Agent';
 import Config from 'App/Models/Config';
 import { DateTime } from 'luxon';
+
 import PersistShippingcampaign from './PersistShippingcampaign';
 import { DateFormat, GenerateRandomTime, TimeSchedule } from './util'
 
@@ -14,7 +15,7 @@ async function sendRepeatedMessage(agent: Agent) {
         await PersistShippingcampaign()
       }
     }
-  }, await GenerateRandomTime(300, 400, '****Send Message Repeated'))
+  }, await GenerateRandomTime(30, 40, '****Send Message Repeated'))
 
 }
 module.exports = { sendRepeatedMessage }

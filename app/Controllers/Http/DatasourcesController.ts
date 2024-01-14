@@ -3,7 +3,9 @@ import { Env } from '@ioc:Adonis/Core/Env';
 import Database from '@ioc:Adonis/Lucid/Database'
 import Chat from 'App/Models/Chat';
 import Interaction from 'App/Models/Interaction';
+import Shippingcampaign from 'App/Models/Shippingcampaign';
 import { DateTime } from 'luxon';
+import moment from 'moment';
 
 import { DateFormat, InvalidResponse } from '../../Services/whatsapp-web/util'
 
@@ -98,43 +100,46 @@ export default class DatasourcesController {
 
   async confirmScheduleAll() {
 
+    console.log("EXEC CONFIRMSHCEDULE")
     const dateNow = await DateFormat("dd/MM/yyyy HH:mm:ss", DateTime.local())
+
+    //************************************** */
+    //const dateSchedule = DateTime.fromFormat(chatOtherFields['schedule'], 'yyyy-MM-dd HH:mm')//converte string para data
     const startOfDay = await DateFormat("yyyy-MM-dd 00:00", DateTime.local())
     const endOfDay = await DateFormat("yyyy-MM-dd 23:59", DateTime.local())
-    //************************************** */
-    const dateSchedule = DateTime.fromFormat(chatOtherFields['schedule'], 'yyyy-MM-dd HH:mm')//converte string para data
-
-    console.log("passei aqui....", dateNow)
-
     const returnChats = await Chat.query()
+      .preload('shippingcampaign')
       .whereBetween('created_at', [startOfDay, endOfDay])
       .andWhere('externalstatus', 'A')
-
-
-
-    //return { dateNow, startOfDay, endOfDay, returnChats }
+      .andWhere('absoluteresp', 1)
+      .andWhere('interaction_id', 1)
     try {
-
       for (const chat of returnChats) {
+        const momentDate = moment(chat.shippingcampaign.dateshedule)
+        const dateStart = momentDate.format('YYYY-MM-DD 00:00:00')
+        const dateEnd = momentDate.format('YYYY-MM-DD 23:59:00')
         const query = await Database.connection('mssql')
           .from('agm')
           .where('agm_pac', chat.reg)
-          .whereBetween('agm_hini', [startOfDay, endOfDay])
+          .andWhereBetween('agm_hini', [dateStart, dateEnd])
           .whereNotIn('agm_stat', ['C', 'B'])
           .whereNotIn('agm_confirm_stat', ['C'])
           .update({
             AGM_CONFIRM_STAT: 'C',
             AGM_CONFIRM_OBS: `NEO CONFIRMA by CONFIRMA ou CANCELA - WhatsApp em ${dateNow}`,
             AGM_CONFIRM_USR: 'NEOCONFIRM'
-          }).toQuery()
+          })
 
-        console.log(query)
+        if (query > 0) {
+          console.log("update realizado sucesso")
+          await Chat.query().where('reg', chat.reg).andWhere('idexternal', chat.idexternal).update({ externalstatus: 'B' })
+        }
+        //console.log(query)
+        //await Database.manager.close('mssql')
+
+        //return query
+
       }
-
-      await Database.manager.close('mssql')
-      //console.log("QUERY CONFIRMAÇÃO", query)
-      //return query
-
     } catch (error) {
       return error
     }

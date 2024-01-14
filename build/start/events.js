@@ -3,12 +3,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const DatasourcesController_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Controllers/Http/DatasourcesController"));
 const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
-const whatsappConnection_1 = require("../app/Services/whatsapp-web/whatsappConnection");
 const Config_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Config"));
-const luxon_1 = require("luxon");
 const PersistShippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/PersistShippingcampaign"));
+const luxon_1 = require("luxon");
 const util_1 = require("../app/Services/whatsapp-web/util");
+const whatsappConnection_1 = require("../app/Services/whatsapp-web/whatsappConnection");
 async function connectionAll() {
     try {
         console.log("connection all acionado...");
@@ -31,6 +32,9 @@ async function sendRepeatedMessage() {
             if (await (0, util_1.TimeSchedule)()) {
                 console.log(`Buscando dados no Smart(Server): ${date}`);
                 await (0, PersistShippingcampaign_1.default)();
+                const datasourcesController = new DatasourcesController_1.default;
+                await datasourcesController.confirmScheduleAll();
+                await datasourcesController.cancelScheduleAll();
             }
         }
     }, await (0, util_1.GenerateRandomTime)(300, 400, '****Send Message Repeated'));

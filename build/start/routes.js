@@ -38,6 +38,7 @@ Route_1.default.group(() => {
     Route_1.default.post("/agents/connectionall", "AgentsController.connectionAll");
     Route_1.default.put("/agents/:id", "AgentsController.update");
     Route_1.default.get("/smart", "DatasourcesController.scheduledPatients");
+    Route_1.default.get("/confirmscheduleall", "DatasourcesController.cancelScheduleAll");
     Route_1.default.post('/restart', 'ShippingcampaignsController.resetWhatsapp');
     Route_1.default.post('/logout', 'ShippingcampaignsController.logout');
     Route_1.default.post('/chat', 'ShippingcampaignsController.chat');

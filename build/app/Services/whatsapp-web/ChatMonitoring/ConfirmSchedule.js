@@ -4,7 +4,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const util_1 = require("../util");
-const DatasourcesController_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Controllers/Http/DatasourcesController"));
 const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
 exports.default = async (client, message, chat) => {
     if (chat.interaction_seq == 1) {
@@ -16,25 +15,23 @@ exports.default = async (client, message, chat) => {
                 chat.response = message.body.slice(0, 500);
                 chat.returned = true;
                 chat.absoluteresp = 1;
+                chat.externalstatus = 'A';
                 await chat.save();
             }
             catch (error) {
                 console.log("Erro 454:", error);
             }
-            const datasourcesController = new DatasourcesController_1.default;
-            await datasourcesController.confirmSchedule(chat, chatOtherFields);
         }
         else if (await (0, util_1.NegativeResponse)(message.body)) {
             chat.response = message.body;
             chat.absoluteresp = 2;
+            chat.externalstatus = 'A';
             try {
                 await chat.save();
             }
             catch (error) {
                 console.log("Erro 121:", error);
             }
-            const datasourcesController = new DatasourcesController_1.default;
-            await datasourcesController.cancelSchedule(chat, chatOtherFields);
             await (0, util_1.stateTyping)(message);
             const message2 = `Entendi 😉, sabemos que nosso dia está muito atarefado! Sua consulta foi desmarcada, se deseja reagendar, clique no link que estou enviando para conversar com uma de nossas atendentes e podermos agendar novo horário mais conveniente para você.`;
             client.sendMessage(message.from, message2);

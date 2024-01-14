@@ -102,9 +102,6 @@ export default class DatasourcesController {
 
     console.log("EXEC CONFIRMSHCEDULE")
     const dateNow = await DateFormat("dd/MM/yyyy HH:mm:ss", DateTime.local())
-
-    //************************************** */
-    //const dateSchedule = DateTime.fromFormat(chatOtherFields['schedule'], 'yyyy-MM-dd HH:mm')//converte string para data
     const startOfDay = await DateFormat("yyyy-MM-dd 00:00", DateTime.local())
     const endOfDay = await DateFormat("yyyy-MM-dd 23:59", DateTime.local())
     const returnChats = await Chat.query()
@@ -128,6 +125,51 @@ export default class DatasourcesController {
             AGM_CONFIRM_STAT: 'C',
             AGM_CONFIRM_OBS: `NEO CONFIRMA by CONFIRMA ou CANCELA - WhatsApp em ${dateNow}`,
             AGM_CONFIRM_USR: 'NEOCONFIRM'
+          })
+
+        if (query > 0) {
+          console.log("update realizado sucesso")
+          await Chat.query().where('reg', chat.reg).andWhere('idexternal', chat.idexternal).update({ externalstatus: 'B' })
+        }
+        //console.log(query)
+        //await Database.manager.close('mssql')
+
+        //return query
+
+      }
+    } catch (error) {
+      return error
+    }
+  }
+
+  async cancelScheduleAll() {
+
+    console.log("EXEC cancelSHCEDULE")
+    const dateNow = await DateFormat("dd/MM/yyyy HH:mm:ss", DateTime.local())
+    const startOfDay = await DateFormat("yyyy-MM-dd 00:00", DateTime.local())
+    const endOfDay = await DateFormat("yyyy-MM-dd 23:59", DateTime.local())
+    const returnChats = await Chat.query()
+      .preload('shippingcampaign')
+      .whereBetween('created_at', [startOfDay, endOfDay])
+      .andWhere('externalstatus', 'A')
+      .andWhere('absoluteresp', 2)
+      .andWhere('interaction_id', 1)
+    try {
+      for (const chat of returnChats) {
+        const momentDate = moment(chat.shippingcampaign.dateshedule)
+        const dateStart = momentDate.format('YYYY-MM-DD 00:00:00')
+        const dateEnd = momentDate.format('YYYY-MM-DD 23:59:00')
+        const query = await Database.connection('mssql')
+          .from('agm')
+          .where('agm_pac', chat.reg)
+          .andWhereBetween('agm_hini', [dateStart, dateEnd])
+          .whereNotIn('agm_stat', ['C', 'B'])
+          .whereNotIn('agm_confirm_stat', ['C'])
+          .update({
+            AGM_CONFIRM_STAT: 'N',
+            AGM_CONFIRM_OBS: chat.invalidresponse + ` (Desmarcado por NEO CONFIRMA by CONFIRMA ou CANCELA - WhatsApp em ${dateNow})`,
+            AGM_CONFIRM_USR: 'NEOCONFIRM',
+            AGM_CONFIRM_MOC: 'IRI'
           })
 
         if (query > 0) {

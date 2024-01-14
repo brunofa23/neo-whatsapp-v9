@@ -32,10 +32,11 @@ async function sendRepeatedMessage() {
         await PersistShippingcampaign()
         const datasourcesController = new DatasourcesController
         await datasourcesController.confirmScheduleAll()
+        await datasourcesController.cancelScheduleAll()
 
       }
     }
-  }, await GenerateRandomTime(30, 40, '****Send Message Repeated'))
+  }, await GenerateRandomTime(200, 300, '****Send Message Repeated'))
 
 }
 

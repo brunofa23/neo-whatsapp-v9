@@ -1,10 +1,11 @@
+import DatasourcesController from "App/Controllers/Http/DatasourcesController";
 import Agent from "App/Models/Agent"
-import { startAgent } from "../app/Services/whatsapp-web/whatsappConnection"
 import Config from "App/Models/Config"
-import { DateTime } from 'luxon';
 import PersistShippingcampaign from "App/Services/whatsapp-web/PersistShippingcampaign"
-import { DateFormat, GenerateRandomTime, TimeSchedule } from '../app/Services/whatsapp-web/util'
+import { DateTime } from 'luxon';
 
+import { DateFormat, GenerateRandomTime, TimeSchedule } from '../app/Services/whatsapp-web/util'
+import { startAgent } from "../app/Services/whatsapp-web/whatsappConnection"
 
 async function connectionAll() {
   try {
@@ -29,9 +30,12 @@ async function sendRepeatedMessage() {
       if (await TimeSchedule()) {
         console.log(`Buscando dados no Smart(Server): ${date}`)
         await PersistShippingcampaign()
+        const datasourcesController = new DatasourcesController
+        await datasourcesController.confirmScheduleAll()
+
       }
     }
-  }, await GenerateRandomTime(300, 400, '****Send Message Repeated'))
+  }, await GenerateRandomTime(30, 40, '****Send Message Repeated'))
 
 }
 

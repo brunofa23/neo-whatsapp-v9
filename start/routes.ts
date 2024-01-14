@@ -55,7 +55,7 @@ Route.group(() => {
 
 
   Route.get("/smart", "DatasourcesController.scheduledPatients")
-  Route.get("/confirmscheduleall", "DatasourcesController.confirmScheduleAll")
+  Route.get("/confirmscheduleall", "DatasourcesController.cancelScheduleAll")
 
 
   Route.post('/restart', 'ShippingcampaignsController.resetWhatsapp')

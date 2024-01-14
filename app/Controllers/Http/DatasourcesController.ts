@@ -173,10 +173,10 @@ export default class DatasourcesController {
           })
 
         if (query > 0) {
-          console.log("update realizado sucesso")
+          console.log("cancelamento realizado sucesso")
           await Chat.query().where('reg', chat.reg).andWhere('idexternal', chat.idexternal).update({ externalstatus: 'B' })
         }
-        //console.log(query)
+        console.log(query)
         //await Database.manager.close('mssql')
 
         //return query

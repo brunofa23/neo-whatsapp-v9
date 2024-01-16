@@ -109,7 +109,7 @@ export default async (client: Client, agent: Agent) => {
         }
       }
 
-      if (shippingCampaign) {
+      if (shippingCampaign && verifyChat == undefined) {
         if (global.contSend < 3) {
           if (global.contSend < 0)
             global.contSend = 0
@@ -117,7 +117,7 @@ export default async (client: Client, agent: Agent) => {
             //verificar o numero
             const validationCellPhone = await verifyNumber(client, shippingCampaign?.cellphone)
             //console.log(`VALIDAÇÃO DE TELEFONE DO PACIENTE:${shippingCampaign?.name}:`, validationCellPhone)
-            console.log("VERIFICAI CHAT>>>>>>>", verifyChat)
+            //console.log("VERIFICAI CHAT>>>>>>>", verifyChat)
             if (validationCellPhone) {
               await client.sendMessage(validationCellPhone, shippingCampaign.message)
                 .then(async (response) => {

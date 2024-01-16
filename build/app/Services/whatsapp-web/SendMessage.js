@@ -95,13 +95,12 @@ exports.default = async (client, agent) => {
                     return;
                 }
             }
-            if (shippingCampaign) {
+            if (shippingCampaign && verifyChat == undefined) {
                 if (global.contSend < 3) {
                     if (global.contSend < 0)
                         global.contSend = 0;
                     try {
                         const validationCellPhone = await (0, VerifyNumber_1.verifyNumber)(client, shippingCampaign?.cellphone);
-                        console.log("VERIFICAI CHAT>>>>>>>", verifyChat);
                         if (validationCellPhone) {
                             await client.sendMessage(validationCellPhone, shippingCampaign.message)
                                 .then(async (response) => {

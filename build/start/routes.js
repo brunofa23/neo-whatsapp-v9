@@ -4,9 +4,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const Route_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Route"));
+const PersistShippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/PersistShippingcampaign"));
 const events_1 = require("./events");
-console.log("***CHAT BOT V-91***12/01/2024");
-console.log(`***NOME DO CLIENTE: ${process.env.CHAT_NAME}***`);
+console.log("***CHAT BOT V-92***16/01/2024");
 (0, events_1.resetStatusConnected)();
 function operacaoAssincrona(callback) {
     if (process.env.SERVER === 'true') {
@@ -28,6 +28,10 @@ Route_1.default.get('/', async () => {
 });
 Route_1.default.group(() => {
     Route_1.default.get('/start', async () => {
+    });
+    Route_1.default.get('/executequery', async () => {
+        console.log("EXECUTANDO BUSCA NO SMART");
+        await (0, PersistShippingcampaign_1.default)();
     });
     Route_1.default.resource("/users", "UsersController").apiOnly();
     Route_1.default.post("/login", "UsersController.login");

@@ -12,7 +12,6 @@ async function verifyNumberInternal(phoneVerify) {
     const list_phone_talking = process.env.LIST_PHONES_TALK;
     const list_phones = list_phone_talking?.split(",");
     for (const phone of list_phones) {
-        console.log("passei no verify internals", phoneVerify, "Listphones:", list_phones);
         if (phoneVerify === phone)
             return true;
     }

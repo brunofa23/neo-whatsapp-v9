@@ -86,7 +86,7 @@ class DatasourcesController {
         }
     }
     async confirmScheduleAll() {
-        console.log("EXEC CONFIRMSHCEDULE");
+        console.log("Executando confirmações no Smart...");
         const dateNow = await (0, util_1.DateFormat)("dd/MM/yyyy HH:mm:ss", luxon_1.DateTime.local());
         const startOfDay = await (0, util_1.DateFormat)("yyyy-MM-dd 00:00", luxon_1.DateTime.local());
         const endOfDay = await (0, util_1.DateFormat)("yyyy-MM-dd 23:59", luxon_1.DateTime.local());
@@ -123,7 +123,7 @@ class DatasourcesController {
         }
     }
     async cancelScheduleAll() {
-        console.log("EXEC cancelSHCEDULE");
+        console.log("Executando Cancelamentos no Smart...");
         const dateNow = await (0, util_1.DateFormat)("dd/MM/yyyy HH:mm:ss", luxon_1.DateTime.local());
         const startOfDay = await (0, util_1.DateFormat)("yyyy-MM-dd 00:00", luxon_1.DateTime.local());
         const endOfDay = await (0, util_1.DateFormat)("yyyy-MM-dd 23:59", luxon_1.DateTime.local());

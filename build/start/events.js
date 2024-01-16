@@ -24,7 +24,6 @@ async function connectionAll() {
     }
 }
 async function sendRepeatedMessage() {
-    console.log("EXECUTANDO BUSCA SMART");
     const executingSendMessage = await Config_1.default.find('executingSendMessage');
     setInterval(async () => {
         const date = await (0, util_1.DateFormat)("dd/MM/yyyy HH:mm:ss", luxon_1.DateTime.local());

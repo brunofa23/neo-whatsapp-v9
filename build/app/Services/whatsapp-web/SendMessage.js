@@ -70,6 +70,7 @@ exports.default = async (client, agent) => {
             await Agent_1.default.query().where('id', agent.id).update({ statusconnected: true });
             const totMessageSend = await countLimitSendMessage();
             const maxLimitSendAgent = await maxLimitSendMessageAgent(agent.id);
+            let verifyChat;
             if (totMessageSend >= maxLimitSendAgent) {
                 console.log(`LIMITE DIÁRIO ATINGIDO, Agent: ${agent.name} Enviados:${totMessageSend} - Limite Máximo:${maxLimitSendAgent}`);
                 return;
@@ -79,12 +80,14 @@ exports.default = async (client, agent) => {
             }
             await verifyContSend();
             const shippingCampaign = await _shippingCampaignList();
-            const verifyChat = await Chat_1.default.query()
-                .where('interaction_id', shippingCampaign?.interaction_id)
-                .andWhere('interaction_seq', shippingCampaign?.interaction_seq)
-                .andWhere('shippingcampaigns_id', shippingCampaign?.id).first();
-            if (verifyChat) {
-                return;
+            if (shippingCampaign) {
+                verifyChat = await Chat_1.default.query()
+                    .where('interaction_id', shippingCampaign?.interaction_id)
+                    .andWhere('interaction_seq', shippingCampaign?.interaction_seq)
+                    .andWhere('shippingcampaigns_id', shippingCampaign?.id).first();
+                if (verifyChat) {
+                    return;
+                }
             }
             if (shippingCampaign?.interaction_id) {
                 if (await totalInteractionSend(shippingCampaign?.interaction_id)) {
@@ -98,6 +101,7 @@ exports.default = async (client, agent) => {
                         global.contSend = 0;
                     try {
                         const validationCellPhone = await (0, VerifyNumber_1.verifyNumber)(client, shippingCampaign?.cellphone);
+                        console.log("VERIFICAI CHAT>>>>>>>", verifyChat);
                         if (validationCellPhone) {
                             await client.sendMessage(validationCellPhone, shippingCampaign.message)
                                 .then(async (response) => {

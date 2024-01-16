@@ -79,6 +79,13 @@ exports.default = async (client, agent) => {
             }
             await verifyContSend();
             const shippingCampaign = await _shippingCampaignList();
+            const verifyChat = await Chat_1.default.query()
+                .where('interaction_id', shippingCampaign?.interaction_id)
+                .andWhere('interaction_seq', shippingCampaign?.interaction_seq)
+                .andWhere('shippingcampaigns_id', shippingCampaign?.id).first();
+            if (verifyChat) {
+                return;
+            }
             if (shippingCampaign?.interaction_id) {
                 if (await totalInteractionSend(shippingCampaign?.interaction_id)) {
                     console.log("Limite de Interação atingida...");
@@ -91,7 +98,6 @@ exports.default = async (client, agent) => {
                         global.contSend = 0;
                     try {
                         const validationCellPhone = await (0, VerifyNumber_1.verifyNumber)(client, shippingCampaign?.cellphone);
-                        console.log(`VALIDAÇÃO DE TELEFONE DO PACIENTE:${shippingCampaign?.name}:`, validationCellPhone);
                         if (validationCellPhone) {
                             await client.sendMessage(validationCellPhone, shippingCampaign.message)
                                 .then(async (response) => {

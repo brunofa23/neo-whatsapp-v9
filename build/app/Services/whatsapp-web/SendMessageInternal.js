@@ -18,7 +18,6 @@ exports.default = async (client) => {
     async function sendMessages() {
         setInterval(async () => {
             if (await (0, util_1.TimeSchedule)() == false) {
-                console.log("Passei no Timeshecule>>>>");
                 return;
             }
             const phrase = await (0, ListInternalPhrases_1.default)();

@@ -1,11 +1,11 @@
 import Route from '@ioc:Adonis/Core/Route'
+import PersistShippingcampaign from "App/Services/whatsapp-web/PersistShippingcampaign"
 import { DateTime } from 'luxon';
 
 //import { connectionAll, resetStatusConnected, sendRepeatedMessage } from "../app/Services/whatsapp-web/util"
 import { connectionAll, sendRepeatedMessage, resetStatusConnected } from './events'
 
-console.log("***CHAT BOT V-91***12/01/2024")
-console.log(`***NOME DO CLIENTE: ${process.env.CHAT_NAME}***`)
+console.log("***CHAT BOT V-92***16/01/2024")
 
 resetStatusConnected()
 function operacaoAssincrona(callback) {
@@ -34,9 +34,17 @@ Route.get('/', async () => {
 
 Route.group(() => {
 
+
   Route.get('/start', async () => {
   }
   )
+
+  //Executa busca no Smart
+  Route.get('/executequery', async () => {
+    console.log("EXECUTANDO BUSCA NO SMART")
+    await PersistShippingcampaign()
+
+  })
 
   //USERS
   Route.resource("/users", "UsersController").apiOnly()

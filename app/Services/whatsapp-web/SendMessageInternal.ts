@@ -22,7 +22,7 @@ export default async (client: Client) => {
     setInterval(async () => {
 
       if (await TimeSchedule() == false) {
-        console.log("Passei no Timeshecule>>>>")
+        //console.log("Passei no Timeshecule>>>>")
         return
       }
       //const groupChat = client.getChatById('120363170786645695');

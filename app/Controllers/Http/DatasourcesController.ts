@@ -100,7 +100,7 @@ export default class DatasourcesController {
 
   async confirmScheduleAll() {
 
-    console.log("EXEC CONFIRMSHCEDULE")
+    console.log("Executando confirmações no Smart...")
     const dateNow = await DateFormat("dd/MM/yyyy HH:mm:ss", DateTime.local())
     const startOfDay = await DateFormat("yyyy-MM-dd 00:00", DateTime.local())
     const endOfDay = await DateFormat("yyyy-MM-dd 23:59", DateTime.local())
@@ -131,10 +131,6 @@ export default class DatasourcesController {
           console.log("update realizado sucesso")
           await Chat.query().where('reg', chat.reg).andWhere('idexternal', chat.idexternal).update({ externalstatus: 'B' })
         }
-        //console.log(query)
-        //await Database.manager.close('mssql')
-
-        //return query
 
       }
     } catch (error) {
@@ -144,7 +140,7 @@ export default class DatasourcesController {
 
   async cancelScheduleAll() {
 
-    console.log("EXEC cancelSHCEDULE")
+    console.log("Executando Cancelamentos no Smart...")
     const dateNow = await DateFormat("dd/MM/yyyy HH:mm:ss", DateTime.local())
     const startOfDay = await DateFormat("yyyy-MM-dd 00:00", DateTime.local())
     const endOfDay = await DateFormat("yyyy-MM-dd 23:59", DateTime.local())

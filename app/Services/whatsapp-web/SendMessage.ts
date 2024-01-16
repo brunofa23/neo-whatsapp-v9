@@ -5,7 +5,7 @@ import Chat from "App/Models/Chat"
 import Interaction from 'App/Models/Interaction';
 import Shippingcampaign from 'App/Models/Shippingcampaign';
 import { verifyNumber } from 'App/Services/whatsapp-web/VerifyNumber';
-import { DateTime } from 'luxon';
+import { DateTime, VERSION } from 'luxon';
 import { Client } from "whatsapp-web.js"
 
 import { DateFormat, ExecutingSendMessage, GenerateRandomTime, TimeSchedule } from './util'
@@ -90,6 +90,15 @@ export default async (client: Client, agent: Agent) => {
       }
       await verifyContSend()
       const shippingCampaign = await _shippingCampaignList()
+      const verifyChat = await Chat.query()
+        .where('interaction_id', shippingCampaign?.interaction_id)
+        .andWhere('interaction_seq', shippingCampaign?.interaction_seq)
+        .andWhere('shippingcampaigns_id', shippingCampaign?.id).first()
+      if (verifyChat) {
+        //console.log("Envio já existe")
+        return
+      }
+
 
       if (shippingCampaign?.interaction_id) {
         if (await totalInteractionSend(shippingCampaign?.interaction_id)) {
@@ -105,7 +114,10 @@ export default async (client: Client, agent: Agent) => {
           try {
             //verificar o numero
             const validationCellPhone = await verifyNumber(client, shippingCampaign?.cellphone)
-            console.log(`VALIDAÇÃO DE TELEFONE DO PACIENTE:${shippingCampaign?.name}:`, validationCellPhone)
+            //console.log(`VALIDAÇÃO DE TELEFONE DO PACIENTE:${shippingCampaign?.name}:`, validationCellPhone)
+
+
+
             if (validationCellPhone) {
               await client.sendMessage(validationCellPhone, shippingCampaign.message)
                 .then(async (response) => {

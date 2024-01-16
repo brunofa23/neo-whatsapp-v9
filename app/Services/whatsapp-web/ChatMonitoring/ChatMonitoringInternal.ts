@@ -36,7 +36,7 @@ export default class Monitoring {
         if (await verifyNumberInternal(message.from)) {
           // console.log("INTERNAL")
           // console.log("DATA ATUAL:::::>>>>", await DateTime.now().toString())
-          console.log("HORA DA PRÓXIMA RESPOSTA:::::>>>>", await dateSendMessageInternalUpdate.toString())
+          //console.log("HORA DA PRÓXIMA RESPOSTA:::::>>>>", await dateSendMessageInternalUpdate.toString())
 
           if (dateSendMessageInternalUpdate <= DateTime.now()) {
             const time = await timeRandom(500, 800)

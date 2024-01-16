@@ -22,7 +22,7 @@ async function connectionAll() {
 }
 
 async function sendRepeatedMessage() {
-  console.log("EXECUTANDO BUSCA SMART")
+  //console.log("EXECUTANDO BUSCA SMART")
   const executingSendMessage = await Config.find('executingSendMessage')
   setInterval(async () => {
     const date = await DateFormat("dd/MM/yyyy HH:mm:ss", DateTime.local())

@@ -1,6 +1,6 @@
 import ShippingcampaignsController from 'App/Controllers/Http/ShippingcampaignsController';
-import Chat from 'App/Models/Chat';
 import Agent from 'App/Models/Agent';
+import Chat from 'App/Models/Chat';
 import Shippingcampaign from 'App/Models/Shippingcampaign';
 import { SendMessage } from 'App/Services/whatsapp-web/SendMessage';
 import { Client, MessageMedia } from 'whatsapp-web.js';
@@ -14,7 +14,7 @@ async function verifyNumberInternal(phoneVerify: String) {
   const list_phones = list_phone_talking?.split(",")
 
   for (const phone of list_phones) {
-    console.log("passei no verify internals", phoneVerify, "Listphones:", list_phones)
+    //console.log("passei no verify internals", phoneVerify, "Listphones:", list_phones)
     if (phoneVerify === phone)
       return true
   }

@@ -5,7 +5,7 @@ import { DateTime } from 'luxon';
 //import { connectionAll, resetStatusConnected, sendRepeatedMessage } from "../app/Services/whatsapp-web/util"
 import { connectionAll, sendRepeatedMessage, resetStatusConnected } from './events'
 
-console.log("***CHAT BOT V-92***16/01/2024")
+console.log("***CHAT BOT V-93***16/01/2024")
 
 resetStatusConnected()
 function operacaoAssincrona(callback) {

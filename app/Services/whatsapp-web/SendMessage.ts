@@ -26,7 +26,7 @@ export default async (client: Client, agent: Agent) => {
     //   .andWhere('messagesent', 0)
     //   .andWhere('created_at', '>', yesterday)
     //.orderBy(['interaction_id', 'created_at']).first()
-
+    console.log("PASSEI NO SHIPPING.....1554")
     return await Shippingcampaign.query()
       .whereNull('phonevalid')
       .andWhere('messagesent', 0)
@@ -85,7 +85,7 @@ export default async (client: Client, agent: Agent) => {
     }
   }
 
-  async function sendMessages() {
+  async function () {
     setInterval(async () => {
 
       await Agent.query().where('id', agent.id).update({ statusconnected: true })
@@ -97,7 +97,7 @@ export default async (client: Client, agent: Agent) => {
         console.log(`LIMITE DIÁRIO ATINGIDO, Agent: ${agent.name} Enviados:${totMessageSend} - Limite Máximo:${maxLimitSendAgent}`)
         return
       }
-      if (await TimeSchedule() == false) {
+      if (await TimeSchesendMessagesdule() == false) {
         return
       }
       await verifyContSend()

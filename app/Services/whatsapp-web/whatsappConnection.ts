@@ -116,6 +116,7 @@ async function startAgent(_agent: Agent) {
     console.log("State:", state)
     console.log("INFO:", await client.info)
 
+
     await SendMessage(client, agent)
 
     if (process.env.SELF_CONVERSATION?.toLocaleLowerCase() === "true") {

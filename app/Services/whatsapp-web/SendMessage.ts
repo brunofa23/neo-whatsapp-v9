@@ -20,11 +20,22 @@ export default async (client: Client, agent: Agent) => {
   const endTimeSendMessage = agent.interval_final_message
 
   async function _shippingCampaignList() {
+
+    // return await Shippingcampaign.query()
+    //   .whereNull('phonevalid')
+    //   .andWhere('messagesent', 0)
+    //   .andWhere('created_at', '>', yesterday)
+    //.orderBy(['interaction_id', 'created_at']).first()
+
     return await Shippingcampaign.query()
       .whereNull('phonevalid')
       .andWhere('messagesent', 0)
-      .andWhere('created_at', '>', yesterday)
-    //.orderBy(['interaction_id', 'created_at']).first()
+      .andWhere('created_at', '>', yesterday) // Certifique-se de usar a data correta aqui
+      .whereNotExists((query) => {
+        query.select('*').from('chats').whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id');
+      }).first()
+
+
   }
 
   async function verifyContSend() {

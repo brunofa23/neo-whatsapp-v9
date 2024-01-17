@@ -26,7 +26,7 @@ export default async (client: Client, agent: Agent) => {
     //   .andWhere('messagesent', 0)
     //   .andWhere('created_at', '>', yesterday)
     //.orderBy(['interaction_id', 'created_at']).first()
-    console.log("PASSEI NO SHIPPING.....1554")
+    //console.log("PASSEI NO SHIPPING.....1554")
     return await Shippingcampaign.query()
       .whereNull('phonevalid')
       .andWhere('messagesent', 0)
@@ -157,14 +157,13 @@ export default async (client: Client, agent: Agent) => {
                   console.log("ERRO 1452:::", error)
                 })
 
-
             } else {//número é inválido
               shippingCampaign.phonevalid = false
               await shippingCampaign.save()
             }
           }
           catch (error) {
-            console.log("ERRO:::", error)
+            console.log("ERRO 1555555:::", error)
           }
         }
       }

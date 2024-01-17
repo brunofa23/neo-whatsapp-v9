@@ -1,11 +1,12 @@
 import Route from '@ioc:Adonis/Core/Route'
+import Shippingcampaign from 'App/Models/Shippingcampaign';
 import PersistShippingcampaign from "App/Services/whatsapp-web/PersistShippingcampaign"
 import { DateTime } from 'luxon';
 
 //import { connectionAll, resetStatusConnected, sendRepeatedMessage } from "../app/Services/whatsapp-web/util"
 import { connectionAll, sendRepeatedMessage, resetStatusConnected } from './events'
 
-console.log("***CHAT BOT V-95***17/01/2024")
+console.log("***CHAT BOT V-96***17/01/2024")
 
 resetStatusConnected()
 function operacaoAssincrona(callback) {
@@ -36,8 +37,22 @@ Route.group(() => {
 
 
   Route.get('/start', async () => {
-  }
-  )
+    // return await Shippingcampaign.query()
+    //   .whereNull('phonevalid')
+    //   .andWhere('messagesent', 0)
+    //   .andWhere('created_at', '>', '2024-01-16').toQuery()
+
+    return await Shippingcampaign.query()
+      .whereNull('phonevalid')
+      .andWhere('messagesent', 0)
+      .andWhere('created_at', '>', '2024-01-16') // Certifique-se de usar a data correta aqui
+      .whereNotExists((query) => {
+        query.select('*').from('chats').whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id');
+      }).first()
+
+
+
+  })
 
   //Executa busca no Smart
   Route.get('/executequery', async () => {

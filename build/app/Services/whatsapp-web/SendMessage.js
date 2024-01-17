@@ -98,13 +98,13 @@ exports.default = async (client, agent) => {
                     return;
                 }
             }
-            if (shippingCampaign && verifyChat == undefined) {
+            if (shippingCampaign) {
                 if (global.contSend < 3) {
                     if (global.contSend < 0)
                         global.contSend = 0;
                     try {
                         const validationCellPhone = await (0, VerifyNumber_1.verifyNumber)(client, shippingCampaign?.cellphone);
-                        if (validationCellPhone) {
+                        if (validationCellPhone && verifyChat == undefined) {
                             await client.sendMessage(validationCellPhone, shippingCampaign.message)
                                 .then(async (response) => {
                                 global.contSend++;
@@ -136,7 +136,7 @@ exports.default = async (client, agent) => {
                         }
                     }
                     catch (error) {
-                        console.log("ERRO:::", error);
+                        console.log("ERRO 1555555:::", error);
                     }
                 }
             }

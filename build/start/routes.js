@@ -7,7 +7,7 @@ const Route_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Route
 const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Shippingcampaign"));
 const PersistShippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/PersistShippingcampaign"));
 const events_1 = require("./events");
-console.log("***CHAT BOT V-96***17/01/2024");
+console.log("***CHAT BOT V-97***17/01/2024");
 (0, events_1.resetStatusConnected)();
 function operacaoAssincrona(callback) {
     if (process.env.SERVER === 'true') {

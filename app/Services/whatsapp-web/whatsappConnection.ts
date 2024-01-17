@@ -133,7 +133,10 @@ async function startAgent(_agent: Agent) {
   });
 
   //console.log("passei no 1510 - startAgent")
-  await sendRepeatedMessage(agent)
+  if (process.env.SERVER === 'true') {
+    //console.log("chamei send repeated")
+    await sendRepeatedMessage(agent)
+  }
 
   const chatMonitoring = new ChatMonitoring
   await chatMonitoring.monitoring(client)

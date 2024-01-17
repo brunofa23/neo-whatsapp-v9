@@ -85,7 +85,7 @@ export default async (client: Client, agent: Agent) => {
     }
   }
 
-  async function () {
+  async function sendMessages() {
     setInterval(async () => {
 
       await Agent.query().where('id', agent.id).update({ statusconnected: true })
@@ -97,7 +97,7 @@ export default async (client: Client, agent: Agent) => {
         console.log(`LIMITE DIÁRIO ATINGIDO, Agent: ${agent.name} Enviados:${totMessageSend} - Limite Máximo:${maxLimitSendAgent}`)
         return
       }
-      if (await TimeSchesendMessagesdule() == false) {
+      if (await TimeSchedule() == false) {
         return
       }
       await verifyContSend()
@@ -121,7 +121,7 @@ export default async (client: Client, agent: Agent) => {
         }
       }
 
-      if (shippingCampaign && verifyChat == undefined) {
+      if (shippingCampaign) {
         if (global.contSend < 3) {
           if (global.contSend < 0)
             global.contSend = 0
@@ -130,7 +130,7 @@ export default async (client: Client, agent: Agent) => {
             const validationCellPhone = await verifyNumber(client, shippingCampaign?.cellphone)
             //console.log(`VALIDAÇÃO DE TELEFONE DO PACIENTE:${shippingCampaign?.name}:`, validationCellPhone)
             //console.log("VERIFICAI CHAT>>>>>>>", verifyChat)
-            if (validationCellPhone) {
+            if (validationCellPhone && verifyChat == undefined) {
               await client.sendMessage(validationCellPhone, shippingCampaign.message)
                 .then(async (response) => {
                   global.contSend++

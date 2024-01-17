@@ -103,16 +103,16 @@ export default async (client: Client, agent: Agent) => {
       await verifyContSend()
       const shippingCampaign = await _shippingCampaignList()
 
-      if (shippingCampaign) {
-        verifyChat = await Chat.query()
-          .where('interaction_id', shippingCampaign?.interaction_id)
-          .andWhere('interaction_seq', shippingCampaign?.interaction_seq)
-          .andWhere('shippingcampaigns_id', shippingCampaign?.id).first()
-        if (verifyChat) {
-          //console.log("Envio já existe")
-          return
-        }
-      }
+      // if (shippingCampaign) {
+      //   verifyChat = await Chat.query()
+      //     .where('interaction_id', shippingCampaign?.interaction_id)
+      //     .andWhere('interaction_seq', shippingCampaign?.interaction_seq)
+      //     .andWhere('shippingcampaigns_id', shippingCampaign?.id).first()
+      //   if (verifyChat) {
+      //     //console.log("Envio já existe")
+      //     return
+      //   }
+      // }
 
       if (shippingCampaign?.interaction_id) {
         if (await totalInteractionSend(shippingCampaign?.interaction_id)) {
@@ -130,32 +130,40 @@ export default async (client: Client, agent: Agent) => {
             const validationCellPhone = await verifyNumber(client, shippingCampaign?.cellphone)
             //console.log(`VALIDAÇÃO DE TELEFONE DO PACIENTE:${shippingCampaign?.name}:`, validationCellPhone)
             //console.log("VERIFICAI CHAT>>>>>>>", verifyChat)
-            if (validationCellPhone && verifyChat == undefined) {
-              await client.sendMessage(validationCellPhone, shippingCampaign.message)
-                .then(async (response) => {
-                  global.contSend++
-                  shippingCampaign.messagesent = true
-                  shippingCampaign.phonevalid = true
-                  shippingCampaign.cellphoneserialized = validationCellPhone
-                  await shippingCampaign.save()
+            if (validationCellPhone) {
 
-                  const bodyChat = {
-                    interaction_id: shippingCampaign.interaction_id,
-                    interaction_seq: shippingCampaign.interaction_seq,
-                    idexternal: shippingCampaign.idexternal,
-                    reg: shippingCampaign.reg,
-                    name: shippingCampaign.name,
-                    cellphone: shippingCampaign.cellphone,
-                    cellphoneserialized: shippingCampaign.cellphoneserialized,
-                    message: shippingCampaign.message,
-                    shippingcampaigns_id: shippingCampaign.id,
-                    chatname: agent.name
-                  }
-                  await Chat.create(bodyChat)
-                  console.log("Mensagem enviada:", shippingCampaign.name, "cellphone", shippingCampaign.cellphoneserialized, "phonevalid", shippingCampaign.phonevalid)
-                }).catch(async (error) => {
-                  console.log("ERRO 1452:::", error)
-                })
+              verifyChat = await Chat.query()
+                .where('interaction_id', shippingCampaign?.interaction_id)
+                .andWhere('interaction_seq', shippingCampaign?.interaction_seq)
+                .andWhere('shippingcampaigns_id', shippingCampaign?.id).first()
+
+              if (verifyChat == undefined) {
+                await client.sendMessage(validationCellPhone, shippingCampaign.message)
+                  .then(async (response) => {
+                    global.contSend++
+                    shippingCampaign.messagesent = true
+                    shippingCampaign.phonevalid = true
+                    shippingCampaign.cellphoneserialized = validationCellPhone
+                    await shippingCampaign.save()
+
+                    const bodyChat = {
+                      interaction_id: shippingCampaign.interaction_id,
+                      interaction_seq: shippingCampaign.interaction_seq,
+                      idexternal: shippingCampaign.idexternal,
+                      reg: shippingCampaign.reg,
+                      name: shippingCampaign.name,
+                      cellphone: shippingCampaign.cellphone,
+                      cellphoneserialized: shippingCampaign.cellphoneserialized,
+                      message: shippingCampaign.message,
+                      shippingcampaigns_id: shippingCampaign.id,
+                      chatname: agent.name
+                    }
+                    await Chat.create(bodyChat)
+                    console.log("Mensagem enviada:", shippingCampaign.name, "cellphone", shippingCampaign.cellphoneserialized, "agent", agent.name)
+                  }).catch(async (error) => {
+                    console.log("ERRO 1452:::", error)
+                  })
+              }
 
             } else {//número é inválido
               shippingCampaign.phonevalid = false

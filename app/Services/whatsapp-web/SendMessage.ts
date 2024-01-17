@@ -23,7 +23,8 @@ export default async (client: Client, agent: Agent) => {
     return await Shippingcampaign.query()
       .whereNull('phonevalid')
       .andWhere('messagesent', 0)
-      .andWhere('created_at', '>', yesterday).orderBy(['interaction_id', 'created_at']).first()
+      .andWhere('created_at', '>', yesterday)
+    //.orderBy(['interaction_id', 'created_at']).first()
   }
 
   async function verifyContSend() {

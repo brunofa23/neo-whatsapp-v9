@@ -42,13 +42,13 @@ Route.group(() => {
     //   .andWhere('messagesent', 0)
     //   .andWhere('created_at', '>', '2024-01-16').toQuery()
 
-    return await Shippingcampaign.query()
-      .whereNull('phonevalid')
-      .andWhere('messagesent', 0)
-      .andWhere('created_at', '>', '2024-01-16') // Certifique-se de usar a data correta aqui
-      .whereNotExists((query) => {
-        query.select('*').from('chats').whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id');
-      }).first()
+    // return await Shippingcampaign.query()
+    //   .whereNull('phonevalid')
+    //   .andWhere('messagesent', 0)
+    //   .andWhere('created_at', '>', '2024-01-16') // Certifique-se de usar a data correta aqui
+    //   .whereNotExists((query) => {
+    //     query.select('*').from('chats').whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id');
+    //   }).first()
 
 
 
@@ -75,6 +75,8 @@ Route.group(() => {
   Route.post("/agents/connection/:id", "AgentsController.connection")
   Route.post("/agents/connectionall", "AgentsController.connectionAll")
   Route.put("/agents/:id", "AgentsController.update")
+  Route.post("/agents/connectionagentchat/:id", "AgentsController.connectionAgentChat")
+
 
 
   Route.get("/smart", "DatasourcesController.scheduledPatients")

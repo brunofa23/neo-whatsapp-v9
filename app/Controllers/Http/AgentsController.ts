@@ -4,6 +4,7 @@ import { startAgent } from "../../Services/whatsapp-web/whatsappConnection"
 import Chat from 'App/Models/Chat'
 import { DateFormat } from '../../Services/whatsapp-web/util'
 import { DateTime } from 'luxon'
+import { startAgentChat } from "../../Services/whatsapp-web/whatsapp"
 
 export default class AgentsController {
   public async index({ response }: HttpContextContract) {
@@ -80,6 +81,22 @@ export default class AgentsController {
       //console.log("AGENTE", params.id, "agente", agent)
       console.log("conectando...")
       await startAgent(agent)
+      return response.status(201).send('Connected')
+    } catch (error) {
+      error
+    }
+  }
+
+  public async connectionAgentChat({ params, request, response }: HttpContextContract) {
+
+    try {
+      await Agent.query()
+        .where('id', params.id)
+        .update({ statusconnected: false })
+      const agent = await Agent.query().where('id', params.id).first()
+      //console.log("AGENTE", params.id, "agente", agent)
+      console.log("conectando agent chat...")
+      await startAgentChat(agent)
       return response.status(201).send('Connected')
     } catch (error) {
       error

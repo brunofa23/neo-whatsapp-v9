@@ -25,7 +25,9 @@ async function verifyNumberInternal(phoneVerify: String) {
 export default class Monitoring {
   async monitoring(client: Client) {
     try {
+      console.log("CHAT PASSO 1")
       client.on('message', async message => {
+        console.log("CHAT PASSO 2", message.body)
 
         let groupChat = await message.getChat();
 

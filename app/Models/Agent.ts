@@ -1,7 +1,6 @@
+import Env from '@ioc:Adonis/Core/Env'
 import { BaseModel, column } from '@ioc:Adonis/Lucid/Orm'
 import { DateTime } from 'luxon'
-
-import Env from '@ioc:Adonis/Core/Env'
 
 export default class Agent extends BaseModel {
 
@@ -26,6 +25,7 @@ export default class Agent extends BaseModel {
       'active',
       'qrcode',
       'statusconnected',
+      'default_chat',
       'createdAt',
       'updatedAt',
     ]
@@ -68,6 +68,9 @@ export default class Agent extends BaseModel {
 
   @column()
   public statusconnected: boolean
+
+  @column()
+  public default_chat: boolean
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime

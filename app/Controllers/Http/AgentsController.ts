@@ -106,19 +106,19 @@ export default class AgentsController {
   }
 
 
-  public async sendMessageAgentDefalut() {
-    const client = global.agentDefault
-    console.log("CLIENT", client)
-    if (Object.keys(client).length === 0 || client === null || client === undefined)
-      return
-    console.log("Enviando...")
-    await global.agentDefault.sendMessage('553185228619@c.us', "teste de envio")
-      .then(async (response) => {
-        console.log("response>> Mensagem enviada com sucesso!!!", response)
-      }).catch(async (error) => {
-        console.log("ERRO 1452:::", error)
-      })
-  }
+  // public async sendMessageAgentDefalut() {
+  //   const client = global.agentDefault
+  //   console.log("CLIENT", client)
+  //   if (Object.keys(client).length === 0 || client === null || client === undefined)
+  //     return
+  //   console.log("Enviando...")
+  //   await global.agentDefault.sendMessage('553185228619@c.us', "teste de envio")
+  //     .then(async (response) => {
+  //       console.log("response>> Mensagem enviada com sucesso!!!", response)
+  //     }).catch(async (error) => {
+  //       console.log("ERRO 1452:::", error)
+  //     })
+  // }
 
   public async connectionAll({ response }: HttpContextContract) {
     try {

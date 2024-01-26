@@ -1,6 +1,7 @@
 import ShippingcampaignsController from 'App/Controllers/Http/ShippingcampaignsController';
 import Agent from 'App/Models/Agent';
 import Chat from 'App/Models/Chat';
+import Customchat from 'App/Models/Customchat';
 import Shippingcampaign from 'App/Models/Shippingcampaign';
 import { SendMessage } from 'App/Services/whatsapp-web/SendMessage';
 import { Client, MessageMedia } from 'whatsapp-web.js';
@@ -12,15 +13,29 @@ import ServiceEvaluation from './ServiceEvaluation';
 async function verifyNumberInternal(phoneVerify: String) {
   const list_phone_talking = process.env.LIST_PHONES_TALK
   const list_phones = list_phone_talking?.split(",")
-
   for (const phone of list_phones) {
     //console.log("passei no verify internals", phoneVerify, "Listphones:", list_phones)
     if (phoneVerify === phone)
       return true
   }
+}
 
+
+async function getCustomChat(cellphone: String) {
+  return await Customchat.query()
+    .where('cellphoneserialized', cellphone)
+    .andWhereNull('returned').first()
+  //console.log("CUSTOM CHAT 4000>>>>", cellphone, "valor", valor)
 
 }
+
+async function getChat(cellphone: String) {
+  return await Chat.query()
+    .preload('shippingcampaign')
+    .where('cellphoneserialized', '=', cellphone)
+    .andWhereNull('returned').first()
+}
+
 
 export default class Monitoring {
   async monitoring(client: Client) {
@@ -34,20 +49,30 @@ export default class Monitoring {
         if (message.type.toLowerCase() == "e2e_notification") return null;
         if (message.body == "") return null;
         if (message.from.includes("@g.us")) return null;
-
         // console.log("GET CONTACT::::>>>>", await message.getContact())
         // console.log("GET INFO::::>>>>", await message.getInfo())
         // console.log("DEVICE TYPE::::>>>>", await message.deviceType)
-
         if (await verifyNumberInternal(message.from)) {
           console.log("Numero interno", message.from)
           return
         }
 
-        const chat = await Chat.query()
-          .preload('shippingcampaign')
-          .where('cellphoneserialized', '=', message.from)
-          .whereNull('response').first()
+        const customChat = await getCustomChat(message.from)
+        let chat
+        if (customChat) {
+          console.log("ENTREI NO CUSTOM CHAT.....>>>")
+          return
+        } else {
+          console.log("não estou dentro do custom chat 4521")
+          chat = await getChat(message.from)
+        }
+
+
+        // const chat = await Chat.query()
+        //   .preload('shippingcampaign')
+        //   .where('cellphoneserialized', '=', message.from)
+        //   //.whereNull('response').first()
+        //   .andWhere('returned', false).first()
 
         if (chat && chat.returned == false) {
           chat.invalidresponse = message.body.slice(0, 348)

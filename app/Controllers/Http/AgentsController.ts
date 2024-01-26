@@ -5,6 +5,7 @@ import Chat from 'App/Models/Chat'
 import { DateFormat } from '../../Services/whatsapp-web/util'
 import { DateTime } from 'luxon'
 import { startAgentChat } from "../../Services/whatsapp-web/whatsapp"
+import { Client } from 'whatsapp-web.js'
 
 export default class AgentsController {
   public async index({ response }: HttpContextContract) {
@@ -89,18 +90,35 @@ export default class AgentsController {
 
   public async connectionAgentChat({ params, request, response }: HttpContextContract) {
 
+    console.log("Global", global.agentDefault)
+
     try {
       await Agent.query()
         .where('id', params.id)
         .update({ statusconnected: false })
       const agent = await Agent.query().where('id', params.id).first()
-      //console.log("AGENTE", params.id, "agente", agent)
       console.log("conectando agent chat...")
-      await startAgentChat(agent)
+      global.agentDefault = {}
+      global.agentDefault = await startAgentChat(agent)
       return response.status(201).send('Connected')
     } catch (error) {
       error
     }
+  }
+
+
+  public async sendMessageAgentDefalut() {
+    const client = global.agentDefault
+    console.log("CLIENT", client)
+    if (Object.keys(client).length === 0 || client === null || client === undefined)
+      return
+    console.log("Enviando...")
+    await global.agentDefault.sendMessage('553185228619@c.us', "teste de envio")
+      .then(async (response) => {
+        console.log("response>> Mensagem enviada com sucesso!!!", response)
+      }).catch(async (error) => {
+        console.log("ERRO 1452:::", error)
+      })
   }
 
   public async connectionAll({ response }: HttpContextContract) {

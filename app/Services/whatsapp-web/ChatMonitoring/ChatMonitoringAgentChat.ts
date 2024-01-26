@@ -1,13 +1,12 @@
+import { DateFormat, RandomResponse, stateTyping } from '../util'
+import ConfirmSchedule from './ConfirmSchedule'
+import ServiceEvaluation from './ServiceEvaluation';
 import ShippingcampaignsController from 'App/Controllers/Http/ShippingcampaignsController';
 import Agent from 'App/Models/Agent';
 import Chat from 'App/Models/Chat';
 import Shippingcampaign from 'App/Models/Shippingcampaign';
 import { SendMessage } from 'App/Services/whatsapp-web/SendMessage';
 import { Client, MessageMedia } from 'whatsapp-web.js';
-
-import { DateFormat, RandomResponse, stateTyping } from '../util'
-import ConfirmSchedule from './ConfirmSchedule'
-import ServiceEvaluation from './ServiceEvaluation';
 
 async function verifyNumberInternal(phoneVerify: String) {
   const list_phone_talking = process.env.LIST_PHONES_TALK

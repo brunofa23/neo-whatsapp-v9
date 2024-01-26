@@ -6,6 +6,9 @@ import { DateTime } from 'luxon';
 //import { connectionAll, resetStatusConnected, sendRepeatedMessage } from "../app/Services/whatsapp-web/util"
 import { connectionAll, sendRepeatedMessage, resetStatusConnected } from './events'
 
+global.agentDefault = {};
+
+
 console.log("***CHAT BOT V-97***17/01/2024")
 
 resetStatusConnected()
@@ -37,20 +40,8 @@ Route.group(() => {
 
 
   Route.get('/start', async () => {
-    // return await Shippingcampaign.query()
-    //   .whereNull('phonevalid')
-    //   .andWhere('messagesent', 0)
-    //   .andWhere('created_at', '>', '2024-01-16').toQuery()
-
-    // return await Shippingcampaign.query()
-    //   .whereNull('phonevalid')
-    //   .andWhere('messagesent', 0)
-    //   .andWhere('created_at', '>', '2024-01-16') // Certifique-se de usar a data correta aqui
-    //   .whereNotExists((query) => {
-    //     query.select('*').from('chats').whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id');
-    //   }).first()
-
-
+    global.agentDefault = { name: 'Bruno', sobrenome: "Favato" }
+    return global.agentDefault
 
   })
 
@@ -76,6 +67,7 @@ Route.group(() => {
   Route.post("/agents/connectionall", "AgentsController.connectionAll")
   Route.put("/agents/:id", "AgentsController.update")
   Route.post("/agents/connectionagentchat/:id", "AgentsController.connectionAgentChat")
+  Route.post("/agents/sendmessageagentdefalut", "AgentsController.sendMessageAgentDefalut")
 
 
 

@@ -1,10 +1,11 @@
-import Agent from 'App/Models/Agent';
-import SendMessage from 'App/Services/whatsapp-web/SendMessage'
-
+import ChatMonitoring from './ChatMonitoring/ChatMonitoring'
 import ChatMonitoringAgentChat from './ChatMonitoring/ChatMonitoringAgentChat'
 import ChatMonitoringInternal from './ChatMonitoring/ChatMonitoringInternal'
+import SendMessageAgentDefault from './SendMessageAgentDefault';
 import SendMessageInternal from './SendMessageInternal';
 import { ClearFolder, DateFormat, ExecutingSendMessage, GenerateRandomTime, RandomResponse, TimeSchedule, validAgent, ValidatePhone } from './util'
+import Agent from 'App/Models/Agent';
+import SendMessage from 'App/Services/whatsapp-web/SendMessage'
 
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcodeTerminal = require('qrcode-terminal');
@@ -79,7 +80,6 @@ async function startAgentChat(_agent: Agent) {
     console.log(`AUTHENTICATED ${agent.name}`);
     agent.status = 'Authentication'
     agent.save()
-
   });
 
 
@@ -88,20 +88,14 @@ async function startAgentChat(_agent: Agent) {
     console.error('AUTHENTICATION FAILURE', msg);
   });
 
-
-
   await clientChat.on('ready', async () => {
-
-
-    //console.log("cheguei aqui....1500", _agent.name)
-
     ClearFolder(qrcodePath)
     console.log(`READY...${agent.name}`);
     const state = await clientChat.getState()
     console.log("State:", state)
     console.log("INFO:", await clientChat.info)
 
-    //await SendMessage(clientChat, agent)
+    await SendMessageAgentDefault(clientChat, agent)
 
     // if (process.env.SELF_CONVERSATION?.toLocaleLowerCase() === "true") {
     //   console.log("self_conversation", process.env.SELF_CONVERSATION)
@@ -116,19 +110,8 @@ async function startAgentChat(_agent: Agent) {
 
   });
 
-  //console.log("passei no 1510 - startAgent")
-  // if (process.env.SERVER === 'true') {
-  //   //console.log("chamei send repeated")
-  //   await sendRepeatedMessage(agent)
-  // }
-
-  const chatMonitoringAgentChat = new ChatMonitoringAgentChat
-  await chatMonitoringAgentChat.monitoring(clientChat)
-
-  // clientChat.on('message', (message) => {
-  //   console.log("entrei no message...")
-  //   console.log(message.body)
-  // })
+  const chatMonitoring = new ChatMonitoring
+  await chatMonitoring.monitoring(clientChat)
 
   if (process.env.SELF_CONVERSATION?.toLowerCase() === "true") {
     const chatMonitoringInternal = new ChatMonitoringInternal
@@ -154,6 +137,7 @@ async function startAgentChat(_agent: Agent) {
     if (rejectCalls) await call.reject();
     await clientChat.sendMessage(call.from, `[${call.fromMe ? 'Outgoing' : 'Incoming'}] Este número de telefone está programado para não receber chamadas. `);
   });
+
 
   return clientChat
 

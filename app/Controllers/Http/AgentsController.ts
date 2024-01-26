@@ -79,18 +79,26 @@ export default class AgentsController {
         .where('id', params.id)
         .update({ statusconnected: false })
       const agent = await Agent.query().where('id', params.id).first()
-      //console.log("AGENTE", params.id, "agente", agent)
-      console.log("conectando...")
-      await startAgent(agent)
-      return response.status(201).send('Connected')
+
+      let client
+      if (agent) {
+        if (agent.default_chat) {
+          console.log("agente default")
+          client = await startAgentChat(agent)
+        }
+        else {
+          console.log("agente comum")
+          client = await startAgent(agent)
+        }
+      }
+      return response.status(201).send('Connected', client)
+
     } catch (error) {
       error
     }
   }
 
   public async connectionAgentChat({ params, request, response }: HttpContextContract) {
-
-
     try {
       await Agent.query()
         .where('id', params.id)

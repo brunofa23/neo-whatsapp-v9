@@ -6,16 +6,44 @@ import { DateTime } from 'luxon';
 
 import { DateFormat, GenerateRandomTime, TimeSchedule } from '../app/Services/whatsapp-web/util'
 import { startAgent } from "../app/Services/whatsapp-web/whatsappConnection"
+import { startAgentChat } from "../app/Services/whatsapp-web/whatsapp"
 
 async function connectionAll() {
+
+  // let client
+  //     if (agent) {
+  //       if (agent.default_chat) {
+  //         console.log("agente default")
+  //         client = await startAgentChat(agent)
+  //       }
+  //       else {
+  //         console.log("agente comum")
+  //         client = await startAgent(agent)
+  //       }
+  //     }
+  //     return response.status(201).send('Connected', client)
+
   try {
     console.log("connection all acionado...")
     const agents = await Agent.query()
+      .where('active', true)
+
     for (const agent of agents) {
-      console.log("Conectando agente:", agent.id)
-      await startAgent(agent)
+      if (agent) {
+        if (agent.default_chat) {
+          console.log("agente default")
+          await startAgentChat(agent)
+        }
+        else {
+          console.log("agente comum")
+          await startAgent(agent)
+        }
+      }
+
+      //console.log("teste...", agent.name)
+      //await startAgent(agent)
     }
-    // return response.status(201).send('ConnectedAll')
+    //return response.status(201).send('ConnectedAll')
   } catch (error) {
     error
   }

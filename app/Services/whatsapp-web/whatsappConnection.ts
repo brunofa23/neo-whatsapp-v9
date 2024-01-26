@@ -139,7 +139,7 @@ async function startAgent(_agent: Agent) {
   }
 
   const chatMonitoring = new ChatMonitoring
-  await chatMonitoring.monitoring(client)
+  await chatMonitoring.monitoring(client, agent)
 
   if (process.env.SELF_CONVERSATION?.toLowerCase() === "true") {
     const chatMonitoringInternal = new ChatMonitoringInternal

@@ -50,8 +50,8 @@ async function startAgent(_agent: Agent) {
 
   //console.log("passei no 1501 - startAgent", agent.name)
 
-  client.initialize();
-  client.on('loading_screen', (percent, message) => {
+  await client.initialize();
+  await client.on('loading_screen', (percent, message) => {
     console.log('LOADING SCREEN', percent, message);
     agent.status = `Carregando ${percent} - ${message}`
     agent.save()
@@ -91,7 +91,7 @@ async function startAgent(_agent: Agent) {
 
 
   //console.log("passei no 1500 - startAgent")
-  client.on('authenticated', () => {
+  await client.on('authenticated', async () => {
     console.log(`AUTHENTICATED ${agent.name}`);
     agent.status = 'Authentication'
     agent.save()

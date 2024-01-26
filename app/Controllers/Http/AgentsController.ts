@@ -90,7 +90,6 @@ export default class AgentsController {
 
   public async connectionAgentChat({ params, request, response }: HttpContextContract) {
 
-    console.log("Global", global.agentDefault)
 
     try {
       await Agent.query()
@@ -98,9 +97,9 @@ export default class AgentsController {
         .update({ statusconnected: false })
       const agent = await Agent.query().where('id', params.id).first()
       console.log("conectando agent chat...")
-      global.agentDefault = {}
-      global.agentDefault = await startAgentChat(agent)
-      return response.status(201).send('Connected')
+
+      const client = await startAgentChat(agent)
+      return response.status(201).send("client")
     } catch (error) {
       error
     }

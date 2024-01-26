@@ -1,26 +1,25 @@
 import Route from '@ioc:Adonis/Core/Route'
 import Shippingcampaign from 'App/Models/Shippingcampaign';
 import PersistShippingcampaign from "App/Services/whatsapp-web/PersistShippingcampaign"
-import { DateTime } from 'luxon';
-
 //import { connectionAll, resetStatusConnected, sendRepeatedMessage } from "../app/Services/whatsapp-web/util"
 import { connectionAll, sendRepeatedMessage, resetStatusConnected } from './events'
-
-global.agentDefault = {};
-
+import Chat from 'App/Models/Chat';
 
 console.log("***CHAT BOT V-97***17/01/2024")
-
 resetStatusConnected()
+
 function operacaoAssincrona(callback) {
   if (process.env.SERVER === 'true') {
     console.log("SERVER DATAS")
     sendRepeatedMessage()
     return
   }
-  // setTimeout(function () {
-  //   callback(null, connectionAll());
-  // }, 1000); // Aguarde 1 segundo antes de chamar o callback
+
+  if (process.env.SERVER === 'false') {
+    console.log("Chat Monitoring")
+    connectionAll()
+    return
+  }
 }
 
 operacaoAssincrona(function (erro, resultado) {
@@ -40,8 +39,13 @@ Route.group(() => {
 
 
   Route.get('/start', async () => {
-    global.agentDefault = { name: 'Bruno', sobrenome: "Favato" }
-    return global.agentDefault
+    // global.agentDefault = { name: 'Bruno', sobrenome: "Favato" }
+    // return global.agentDefault
+    const chat = await Chat.query()
+      .preload('shippingcampaign')
+      .where('cellphoneserialized', '=', '553185228619@c.us')
+      .whereNull('response')
+    return chat
 
   })
 
@@ -69,6 +73,8 @@ Route.group(() => {
   Route.post("/agents/connectionagentchat/:id", "AgentsController.connectionAgentChat")
   Route.post("/agents/sendmessageagentdefalut", "AgentsController.sendMessageAgentDefalut")
 
+  //CUSTOM CHATS
+  Route.post("/customchat/sendmessage", "CustomchatsController.sendMessage")
 
 
   Route.get("/smart", "DatasourcesController.scheduledPatients")

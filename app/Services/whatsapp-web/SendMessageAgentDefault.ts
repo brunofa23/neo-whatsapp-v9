@@ -1,16 +1,13 @@
-import ShippingcampaignsController from 'App/Controllers/Http/ShippingcampaignsController';
+//import { DateFormat, ExecutingSendMessage, GenerateRandomTime, TimeSchedule } from './util'
+//import ShippingcampaignsController from 'App/Controllers/Http/ShippingcampaignsController';
 import Agent from 'App/Models/Agent';
-import Chat from "App/Models/Chat"
-import Interaction from 'App/Models/Interaction';
+//import Chat from "App/Models/Chat"
+//import Interaction from 'App/Models/Interaction';
 import Shippingcampaign from 'App/Models/Shippingcampaign';
 import { verifyNumber } from 'App/Services/whatsapp-web/VerifyNumber';
-import { DateTime, VERSION } from 'luxon';
 import { Client } from "whatsapp-web.js"
 
-import { DateFormat, ExecutingSendMessage, GenerateRandomTime, TimeSchedule } from './util'
 
-global.contSend = 0
-const yesterday = DateTime.local().toFormat('yyyy-MM-dd 00:00')
 
 export default async (client: Client, agent: Agent) => {
   const startTimeSendMessage = agent.interval_init_message
@@ -25,13 +22,13 @@ export default async (client: Client, agent: Agent) => {
       .whereNotExists((query) => {
         query.select('*').from('chats').whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id');
       }).first()
-
-
   }
 
 
   async function sendMessages() {
     setInterval(async () => {
+
+      const validationCellPhone = await verifyNumber(client, shippingCampaign?.cellphone)
 
       await client.sendMessage('553185228619@c.us', "teste de envio")
         .then(async (response) => {
@@ -42,9 +39,15 @@ export default async (client: Client, agent: Agent) => {
 
       await Agent.query().where('id', agent.id).update({ statusconnected: true })
 
-    }, await GenerateRandomTime(5, 15, '----Time Send Message'))
+    }, await GenerateRandomTime(startTimeSendMessage, endTimeSendMessage, '----Time Send Message'))
   }
-
   await sendMessages()
 
+  return client
 }
+
+// async function teste() {
+//   console.log("teste 15454")
+// }
+
+// module.exports = { teste }

@@ -29,6 +29,22 @@ async function getCustomChat(cellphone: String) {
 
 }
 
+//****QUERY PARA VERIFICAR EM QUAL TABELA ESTÁ MAIS RECENTE************* */
+// SELECT created_at, table_name
+// FROM (
+//     SELECT created_at, 'chats' AS table_name
+//     FROM chats
+//     WHERE cellphoneserialized = '553185228619@c.us'
+//     UNION
+//     SELECT created_at, 'customchats' AS table_name
+//     FROM customchats
+//     WHERE cellphoneserialized = '553185228619@c.us'
+// ) AS combined_tables
+// ORDER BY created_at DESC
+// LIMIT 1;
+
+
+
 async function getChat(cellphone: String) {
   return await Chat.query()
     .preload('shippingcampaign')
@@ -61,6 +77,10 @@ export default class Monitoring {
         let chat
         if (customChat) {
           console.log("ENTREI NO CUSTOM CHAT.....>>>")
+          customChat.returned = true
+          customChat.response = message.body
+          await customChat.save()
+          //chamar gravação
           return
         } else {
           console.log("não estou dentro do custom chat 4521")
@@ -162,8 +182,18 @@ export default class Monitoring {
 
           else {
 
+            // await stateTyping(message)
+            // const message2 = `Entendi 😉, sabemos que nosso dia está muito atarefado! Sua consulta foi desmarcada, se deseja reagendar, clique no link que estou enviando para conversar com uma de nossas atendentes e podermos agendar novo horário mais conveniente para você.`
+            // client.sendMessage(message.from, message2)
+
+            // const messageLink = `Olá, sou ${chat.name} e gostaria de reagendar uma consulta com ${chatOtherFields.medic}.`
+            // const phoneNumber = "553132350003"
+            // const encodedMessage = encodeURIComponent(messageLink);
+            // const linkRedirect = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodedMessage}`;
+            // client.sendMessage(message.from, linkRedirect)
+
             const responseArray = [
-              "Desculpe, mas esta conversa já foi encerrada. O Neo Agradece por sua compreensão, maiores esclarecimentos ligue para 31-32350003.",
+              "Desculpe, mas esta conversa já foi encerrada. O Neo Agradece por sua compreensão, para maiores esclarecimentos ligue para 31-32350003.",
               "Infelizmente esta conversa já foi encerrada. O Neo Agradece por sua interação! Maiores esclarecimentos ligue para 31-32350003.",
               "Olá, sou apenas uma atendente virtual, para maiores esclarecimentos ligue para 31-32350003.",
               "Olá, sou apenas uma atendente virtual, desculpe mas esta conversa já foi encerrada. Para maiores esclarecimentos ligue para 31-32350003. O Neo Agradece!"

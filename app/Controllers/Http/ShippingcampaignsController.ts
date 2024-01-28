@@ -267,9 +267,6 @@ export default class ShippingcampaignsController {
   }
 
   public async serviceEvaluationDashboard({ request, response }: HttpContextContract) {
-
-
-
     const { initialdate, finaldate, phonevalid, absoluteresp, interactions } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp', 'interactions'])
 
     let query = "1=1"
@@ -300,6 +297,7 @@ export default class ShippingcampaignsController {
           'shippingcampaigns.reg',
           'shippingcampaigns.name',
           'shippingcampaigns.cellphone',
+          'chats.id',
           'otherfields',
           'phonevalid',
           'messagesent',

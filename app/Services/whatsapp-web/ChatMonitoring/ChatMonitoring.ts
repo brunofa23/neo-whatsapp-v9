@@ -37,7 +37,8 @@ async function getChat(cellphone: String) {
   return await Chat.query()
     .preload('shippingcampaign')
     .where('cellphoneserialized', cellphone)
-    .andWhere('returned', false).first()
+    //.andWhere('returned', false).first()
+    .whereNull('response').first()
 }
 
 export default class Monitoring {
@@ -76,7 +77,6 @@ export default class Monitoring {
           return
         } else {
           chat = await getChat(message.from)
-          console.log("chat normal>>>")
         }
 
         if (chat && chat.returned == false) {

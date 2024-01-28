@@ -22,6 +22,7 @@ export default async (client: Client, agent: Agent) => {
   async function customChatSendMessage() {
     return await Customchat.query()
       .where('messagesent', 0)
+      .andWhereNotNull('message')
       .andWhereNull('phonevalid').first()
   }
 
@@ -40,7 +41,7 @@ export default async (client: Client, agent: Agent) => {
         if (validationCellPhone) {
           await client.sendMessage(validationCellPhone, customChat?.message)
             .then(async (response) => {
-              //console.log(response)
+              console.log("passei no 15444")
               customChat.messagesent = true
               customChat.cellphoneserialized = validationCellPhone
               customChat.chatname = agent.name

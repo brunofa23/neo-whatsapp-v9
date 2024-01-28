@@ -80,7 +80,7 @@ export default class Monitoring {
         const customChat = await getCustomChat(message.from, client.info.wid.user)
         let chat
         if (customChat) {
-          //console.log("ENTREI NO CUSTOM CHAT.....>>>")
+          console.log("ENTREI NO CUSTOM CHAT.....>>>")
           customChat.returned = true
           await customChat.save()
           const bodyResponse = {

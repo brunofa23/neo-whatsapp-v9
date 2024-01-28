@@ -10,7 +10,6 @@ export default async (client: Client, agent: Agent) => {
   const endTimeSendMessage = agent.interval_final_message
 
   // async function _shippingCampaignList() {
-
   //   return await Shippingcampaign.query()
   //     .whereNull('phonevalid')
   //     .andWhere('messagesent', 0)
@@ -22,7 +21,8 @@ export default async (client: Client, agent: Agent) => {
 
   async function customChatSendMessage() {
     return await Customchat.query()
-      .where('messagesent', 0).first()
+      .where('messagesent', 0)
+      .andWhereNull('phonevalid').first()
   }
 
   async function sendMessages() {
@@ -31,20 +31,28 @@ export default async (client: Client, agent: Agent) => {
       const customChat = await customChatSendMessage()
       if (customChat) {
         const validationCellPhone = await verifyNumber(client, customChat?.cellphone)
-        console.log("custom chat 1500", validationCellPhone)
-        await client.sendMessage(validationCellPhone, customChat?.message)
-          .then(async (response) => {
-            //console.log(response)
-            customChat.messagesent = true
-            customChat.cellphoneserialized = validationCellPhone
-            customChat.chatname = agent.name
-            await customChat.save()
-          }).catch(async (error) => {
-            console.log("ERRO 1452:::", error)
-          })
-      }
+        if (validationCellPhone == null) {
+          console.log("custom chat 1500", validationCellPhone)
+          customChat.phonevalid = false
+          await customChat.save()
+        }
 
-      await Agent.query().where('id', agent.id).update({ statusconnected: true })
+        if (validationCellPhone) {
+          await client.sendMessage(validationCellPhone, customChat?.message)
+            .then(async (response) => {
+              //console.log(response)
+              customChat.messagesent = true
+              customChat.cellphoneserialized = validationCellPhone
+              customChat.chatname = agent.name
+              customChat.chatnumber = client.info.wid.user
+              customChat.phonevalid = true
+              await customChat.save()
+            }).catch(async (error) => {
+              console.log("ERRO 1452:::", error)
+            })
+          await Agent.query().where('id', agent.id).update({ statusconnected: true })
+        }
+      }
 
     }, await GenerateRandomTime(startTimeSendMessage, endTimeSendMessage, '----Time Send Message'))
   }

@@ -11,6 +11,30 @@ export default class Chat extends BaseModel {
     return Env.get('DB_CONNECTION_MAIN')
   }
 
+
+  public static get fillable() {
+    return [
+      'id',
+      'shippingcampaigns_id',
+      'interaction_id',
+      'interaction_seq',
+      'idexternal',
+      'reg',
+      'name',
+      'cellphone',
+      'cellphoneserialized',
+      'message',
+      'response',
+      'invalidresponse',
+      'returned',
+      'chatname',
+      'absoluteresp',
+      'externalstatus',
+      'chatnumber',
+    ]
+  }
+
+
   @column({ isPrimary: true })
   public id: number
 
@@ -58,6 +82,9 @@ export default class Chat extends BaseModel {
 
   @column()
   public externalstatus: string
+
+  @column()
+  public chatnumber: string
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime

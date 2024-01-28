@@ -9,7 +9,8 @@ import { Client } from 'whatsapp-web.js'
 import { Application } from '@adonisjs/core/build/standalone'
 
 const fs = require('fs');
-const path = require('path');
+
+
 
 
 export default class AgentsController {
@@ -117,71 +118,15 @@ export default class AgentsController {
         }
       })
     }
-    else
-      console.log("não encontrei o caminho", pathFolder)
+    const data = await Agent.findOrFail(id)
+    await data.delete()
+    return {
+      message: "Agente excluido com sucesso!!",
+      data: data
+    }
 
-
-    //console.log('agent delete:', params.id)
-    //const body = request.only(Agent.fillable)
-
-
-
-    // try {
-    //   const data = await Agent.query().where('id', params.id)
-    //     .update(body)
-    //   return response.status(201).send(data)
-    // } catch (error) {
-    //   return error
-    // }
 
   }
-
-  // public async connectionAgentChat({ params, request, response }: HttpContextContract) {
-  //   try {
-  //     await Agent.query()
-  //       .where('id', params.id)
-  //       .update({ statusconnected: false })
-  //     const agent = await Agent.query().where('id', params.id).first()
-  //     console.log("conectando agent chat...")
-  //     const client = await startAgentChat(agent)
-  //     return response.status(201).send("client")
-  //   } catch (error) {
-  //     error
-  //   }
-  // }
-
-
-  // public async sendMessageAgentDefalut() {
-  //   const client = global.agentDefault
-  //   console.log("CLIENT", client)
-  //   if (Object.keys(client).length === 0 || client === null || client === undefined)
-  //     return
-  //   console.log("Enviando...")
-  //   await global.agentDefault.sendMessage('553185228619@c.us', "teste de envio")
-  //     .then(async (response) => {
-  //       console.log("response>> Mensagem enviada com sucesso!!!", response)
-  //     }).catch(async (error) => {
-  //       console.log("ERRO 1452:::", error)
-  //     })
-  // }
-
-  // public async connectionAll({ response }: HttpContextContract) {
-  //   try {
-  //     console.log("connection all acionado...")
-  //     await Agent.query().update({ statusconnected: false })
-  //     const agents = await Agent.query()
-  //     for (const agent of agents) {
-  //       console.log("Conectando agente:", agent.id)
-  //       await startAgent(agent)
-  //     }
-  //     return response.status(201).send('ConnectedAll')
-  //   } catch (error) {
-  //     error
-  //   }
-  // }
-
-
-
 
 
 }

@@ -18,11 +18,11 @@ async function connectionAll() {
     for (const agent of agents) {
       if (agent) {
         if (agent.default_chat) {
-          console.log("agente default")
+          console.log("Conectando Agente Default")
           await startAgentChat(agent)
         }
         else {
-          console.log("agente comum")
+          console.log("Conectando Agente Comum")
           await startAgent(agent)
         }
       }

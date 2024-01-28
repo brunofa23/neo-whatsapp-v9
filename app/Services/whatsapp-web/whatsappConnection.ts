@@ -20,17 +20,13 @@ let qrcodePath
 
 
 async function startAgent(_agent: Agent) {
-
-  console.log("PASSEI NO 2100>>>")
   const agent = await Agent.findOrFail(_agent.id)
-
   if (!_agent) {
     console.log("CHATNAME INVÁLIDO - Verifique o .env Chatname está igual ao name tabela Agents")
     return
   }
-
   const client = new Client({
-    authStrategy: new LocalAuth({ clientId: _agent.name }),
+    authStrategy: new LocalAuth({ clientId: _agent.id }),
     puppeteer: {
       args: ['--no-sandbox',
         '--max-memory=512MB',
@@ -48,14 +44,12 @@ async function startAgent(_agent: Agent) {
     }
   });
 
-  console.log("PASSEI NO 3100>>>")
   client.initialize();
   client.on('loading_screen', (percent, message) => {
     console.log('LOADING SCREEN', percent, message);
     agent.status = `Carregando ${percent} - ${message}`
     agent.save()
   });
-  console.log("PASSEI NO 4100>>>")
   client.on('qr', async (qr) => {
     agent.status = "Qrcode require"
     agent.statusconnected = false
@@ -95,9 +89,6 @@ async function startAgent(_agent: Agent) {
 
 
   client.on('ready', async () => {
-
-    console.log("cheguei ready agent comum aqui....1500", _agent.name)
-
     ClearFolder(qrcodePath)
     console.log(`READY...${agent.name}`);
     const state = await client.getState()

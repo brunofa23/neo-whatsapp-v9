@@ -76,6 +76,7 @@ export default class Monitoring {
           return
         } else {
           chat = await getChat(message.from)
+          console.log("chat normal>>>")
         }
 
         if (chat && chat.returned == false) {

@@ -6,6 +6,11 @@ import { DateFormat } from '../../Services/whatsapp-web/util'
 import { DateTime } from 'luxon'
 import { startAgentChat } from "../../Services/whatsapp-web/whatsapp"
 import { Client } from 'whatsapp-web.js'
+import { Application } from '@adonisjs/core/build/standalone'
+
+const fs = require('fs');
+const path = require('path');
+
 
 export default class AgentsController {
   public async index({ response }: HttpContextContract) {
@@ -97,6 +102,38 @@ export default class AgentsController {
     } catch (error) {
       error
     }
+  }
+
+  public async destroy({ params, request, response }: HttpContextContract) {
+
+    const id = params.id
+    const pathFolder = `.wwebjs_auth/session-${id}`
+    if (fs.existsSync(pathFolder)) {
+      fs.rm(pathFolder, { recursive: true }, (err) => {
+        if (err) {
+          console.error(err)
+        } else {
+          console.log("DIRETORIO DELETADO")
+        }
+      })
+    }
+    else
+      console.log("não encontrei o caminho", pathFolder)
+
+
+    //console.log('agent delete:', params.id)
+    //const body = request.only(Agent.fillable)
+
+
+
+    // try {
+    //   const data = await Agent.query().where('id', params.id)
+    //     .update(body)
+    //   return response.status(201).send(data)
+    // } catch (error) {
+    //   return error
+    // }
+
   }
 
   // public async connectionAgentChat({ params, request, response }: HttpContextContract) {

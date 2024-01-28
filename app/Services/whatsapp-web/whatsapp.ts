@@ -10,9 +10,9 @@ import SendMessage from 'App/Services/whatsapp-web/SendMessage'
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcodeTerminal = require('qrcode-terminal');
 const qrcode = require('qrcode')
-const path = require('path')
-const folderPath = path.resolve(__dirname, "../../../");
-let qrcodePath
+//const path = require('path')
+//const folderPath = path.resolve(__dirname, "../../../");
+//let qrcodePath
 
 
 async function startAgentChat(_agent: Agent) {
@@ -24,7 +24,7 @@ async function startAgentChat(_agent: Agent) {
   }
 
   const clientChat = new Client({
-    authStrategy: new LocalAuth({ clientId: _agent.name }),
+    authStrategy: new LocalAuth({ clientId: _agent.id }),
     puppeteer: {
       args: ['--no-sandbox',
         '--max-memory=512MB',
@@ -58,7 +58,7 @@ async function startAgentChat(_agent: Agent) {
     agent.statusconnected = false
     await agent.save()
 
-    qrcode.toDataURL(qr, { small: true }, (err, url) => {
+    qrcode.toDataURL(qr, (err, url) => {
       if (err) {
         console.error('Ocorreu um erro ao gerar o URL de dados:', err);
         return;
@@ -69,9 +69,9 @@ async function startAgentChat(_agent: Agent) {
     });
 
     qrcodeTerminal.generate(qr, { small: true });
-    const folderPath = path.resolve(__dirname, "../../../");
-    qrcodePath = path.join(folderPath, "/qrcode", `qrcode${agent.name}.png`)
-    ClearFolder(qrcodePath)
+    // const folderPath = path.resolve(__dirname, "../../../");
+    // qrcodePath = path.join(folderPath, "/qrcode", `qrcode${agent.name}.png`)
+    // ClearFolder(qrcodePath)
   });
 
 
@@ -89,7 +89,7 @@ async function startAgentChat(_agent: Agent) {
   });
 
   await clientChat.on('ready', async () => {
-    ClearFolder(qrcodePath)
+    //ClearFolder(qrcodePath)
     console.log(`READY...${agent.name}`);
     const state = await clientChat.getState()
     console.log("State:", state)

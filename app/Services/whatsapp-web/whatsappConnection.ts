@@ -14,9 +14,9 @@ import { ClearFolder, DateFormat, ExecutingSendMessage, GenerateRandomTime, Rand
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcodeTerminal = require('qrcode-terminal');
 const qrcode = require('qrcode')
-const path = require('path')
-const folderPath = path.resolve(__dirname, "../../../");
-let qrcodePath
+//const path = require('path')
+//const folderPath = path.resolve(__dirname, "../../../");
+//let qrcodePath
 
 
 async function startAgent(_agent: Agent) {
@@ -54,7 +54,8 @@ async function startAgent(_agent: Agent) {
     agent.status = "Qrcode require"
     agent.statusconnected = false
     await agent.save()
-    qrcode.toDataURL(qr, { small: true }, (err, url) => {
+
+    qrcode.toDataURL(qr, (err, url) => {
       if (err) {
         console.error('Ocorreu um erro ao gerar o URL de dados:', err);
         return;
@@ -64,10 +65,20 @@ async function startAgent(_agent: Agent) {
       agent.save()
     });
 
+    // qrcode.toDataURL(qr, { small: true }, (err, url) => {
+    //   if (err) {
+    //     console.error('Ocorreu um erro ao gerar o URL de dados:', err);
+    //     return;
+    //   }
+    //   //console.log('URL de dados do código QR:', url);
+    //   agent.qrcode = url
+    //   agent.save()
+    // });
+
     qrcodeTerminal.generate(qr, { small: true });
-    const folderPath = path.resolve(__dirname, "../../../");
-    qrcodePath = path.join(folderPath, "/qrcode", `qrcode${agent.name}.png`)
-    ClearFolder(qrcodePath)
+    //const folderPath = path.resolve(__dirname, "../../../");
+    //qrcodePath = path.join(folderPath, "/qrcode", `qrcode${agent.name}.png`)
+    //ClearFolder(qrcodePath)
 
   });
 
@@ -89,7 +100,7 @@ async function startAgent(_agent: Agent) {
 
 
   client.on('ready', async () => {
-    ClearFolder(qrcodePath)
+    //ClearFolder(qrcodePath)
     console.log(`READY...${agent.name}`);
     const state = await client.getState()
     console.log("State:", state)

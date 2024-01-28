@@ -4,15 +4,20 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const Route_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Route"));
-const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Shippingcampaign"));
 const PersistShippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/PersistShippingcampaign"));
 const events_1 = require("./events");
+const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
 console.log("***CHAT BOT V-97***17/01/2024");
 (0, events_1.resetStatusConnected)();
 function operacaoAssincrona(callback) {
     if (process.env.SERVER === 'true') {
         console.log("SERVER DATAS");
         (0, events_1.sendRepeatedMessage)();
+        return;
+    }
+    if (process.env.SERVER === 'false') {
+        console.log("Chat Monitoring");
+        (0, events_1.connectionAll)();
         return;
     }
 }
@@ -29,13 +34,11 @@ Route_1.default.get('/', async () => {
 });
 Route_1.default.group(() => {
     Route_1.default.get('/start', async () => {
-        return await Shippingcampaign_1.default.query()
-            .whereNull('phonevalid')
-            .andWhere('messagesent', 0)
-            .andWhere('created_at', '>', '2024-01-16')
-            .whereNotExists((query) => {
-            query.select('*').from('chats').whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id');
-        }).first();
+        const chat = await Chat_1.default.query()
+            .preload('shippingcampaign')
+            .where('cellphoneserialized', '=', '553185228619@c.us')
+            .whereNull('response');
+        return chat;
     });
     Route_1.default.get('/executequery', async () => {
         console.log("EXECUTANDO BUSCA NO SMART");
@@ -49,6 +52,10 @@ Route_1.default.group(() => {
     Route_1.default.post("/agents/connection/:id", "AgentsController.connection");
     Route_1.default.post("/agents/connectionall", "AgentsController.connectionAll");
     Route_1.default.put("/agents/:id", "AgentsController.update");
+    Route_1.default.post("/agents/connectionagentchat/:id", "AgentsController.connectionAgentChat");
+    Route_1.default.post("/agents/sendmessageagentdefalut", "AgentsController.sendMessageAgentDefalut");
+    Route_1.default.post("/agents/destroy/:id", "AgentsController.destroy");
+    Route_1.default.post("/customchat/sendmessage", "CustomchatsController.sendMessage");
     Route_1.default.get("/smart", "DatasourcesController.scheduledPatients");
     Route_1.default.get("/confirmscheduleall", "DatasourcesController.cancelScheduleAll");
     Route_1.default.post('/restart', 'ShippingcampaignsController.resetWhatsapp');

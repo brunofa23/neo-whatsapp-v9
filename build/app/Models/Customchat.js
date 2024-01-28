@@ -12,118 +12,97 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const Env_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Env"));
-const Orm_1 = global[Symbol.for('ioc.use')]("Adonis/Lucid/Orm");
 const luxon_1 = require("luxon");
-const Shippingcampaign_1 = __importDefault(require("./Shippingcampaign"));
-class Chat extends Orm_1.BaseModel {
+const Orm_1 = global[Symbol.for('ioc.use')]("Adonis/Lucid/Orm");
+const Env_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Env"));
+const Chat_1 = __importDefault(require("./Chat"));
+class Customchat extends Orm_1.BaseModel {
     static get connection() {
         return Env_1.default.get('DB_CONNECTION_MAIN');
     }
     static get fillable() {
         return [
             'id',
-            'shippingcampaigns_id',
-            'interaction_id',
-            'interaction_seq',
+            'chats_id',
             'idexternal',
             'reg',
-            'name',
             'cellphone',
             'cellphoneserialized',
             'message',
             'response',
-            'invalidresponse',
             'returned',
             'chatname',
-            'absoluteresp',
-            'externalstatus',
-            'chatnumber',
+            'messagesent',
+            'phonevalid'
         ];
     }
 }
 __decorate([
+    (0, Orm_1.hasOne)(() => Chat_1.default, {
+        foreignKey: 'id',
+        localKey: 'chats_id'
+    }),
+    __metadata("design:type", Object)
+], Customchat.prototype, "chat", void 0);
+__decorate([
     (0, Orm_1.column)({ isPrimary: true }),
     __metadata("design:type", Number)
-], Chat.prototype, "id", void 0);
+], Customchat.prototype, "id", void 0);
 __decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", Number)
-], Chat.prototype, "shippingcampaigns_id", void 0);
+], Customchat.prototype, "chats_id", void 0);
 __decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", Number)
-], Chat.prototype, "interaction_id", void 0);
+], Customchat.prototype, "idexternal", void 0);
 __decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", Number)
-], Chat.prototype, "interaction_seq", void 0);
-__decorate([
-    (0, Orm_1.column)(),
-    __metadata("design:type", Number)
-], Chat.prototype, "idexternal", void 0);
-__decorate([
-    (0, Orm_1.column)(),
-    __metadata("design:type", Number)
-], Chat.prototype, "reg", void 0);
+], Customchat.prototype, "reg", void 0);
 __decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", String)
-], Chat.prototype, "name", void 0);
+], Customchat.prototype, "cellphone", void 0);
 __decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", String)
-], Chat.prototype, "cellphone", void 0);
+], Customchat.prototype, "cellphoneserialized", void 0);
 __decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", String)
-], Chat.prototype, "cellphoneserialized", void 0);
+], Customchat.prototype, "message", void 0);
 __decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", String)
-], Chat.prototype, "message", void 0);
-__decorate([
-    (0, Orm_1.column)(),
-    __metadata("design:type", String)
-], Chat.prototype, "response", void 0);
-__decorate([
-    (0, Orm_1.column)(),
-    __metadata("design:type", String)
-], Chat.prototype, "invalidresponse", void 0);
+], Customchat.prototype, "response", void 0);
 __decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", Boolean)
-], Chat.prototype, "returned", void 0);
+], Customchat.prototype, "returned", void 0);
 __decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", String)
-], Chat.prototype, "chatname", void 0);
-__decorate([
-    (0, Orm_1.column)(),
-    __metadata("design:type", Number)
-], Chat.prototype, "absoluteresp", void 0);
+], Customchat.prototype, "chatname", void 0);
 __decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", String)
-], Chat.prototype, "externalstatus", void 0);
+], Customchat.prototype, "chatnumber", void 0);
 __decorate([
     (0, Orm_1.column)(),
-    __metadata("design:type", String)
-], Chat.prototype, "chatnumber", void 0);
+    __metadata("design:type", Boolean)
+], Customchat.prototype, "messagesent", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", Boolean)
+], Customchat.prototype, "phonevalid", void 0);
 __decorate([
     Orm_1.column.dateTime({ autoCreate: true }),
     __metadata("design:type", luxon_1.DateTime)
-], Chat.prototype, "createdAt", void 0);
+], Customchat.prototype, "createdAt", void 0);
 __decorate([
     Orm_1.column.dateTime({ autoCreate: true, autoUpdate: true }),
     __metadata("design:type", luxon_1.DateTime)
-], Chat.prototype, "updatedAt", void 0);
-__decorate([
-    (0, Orm_1.hasOne)(() => Shippingcampaign_1.default, {
-        foreignKey: 'id',
-        localKey: 'shippingcampaigns_id'
-    }),
-    __metadata("design:type", Object)
-], Chat.prototype, "shippingcampaign", void 0);
-exports.default = Chat;
-//# sourceMappingURL=Chat.js.map
+], Customchat.prototype, "updatedAt", void 0);
+exports.default = Customchat;
+//# sourceMappingURL=Customchat.js.map

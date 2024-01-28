@@ -20,8 +20,9 @@ let qrcodePath
 
 
 async function startAgent(_agent: Agent) {
-  const agent = await Agent.findOrFail(_agent.id)
 
+  console.log("PASSEI NO 2100>>>")
+  const agent = await Agent.findOrFail(_agent.id)
 
   if (!_agent) {
     console.log("CHATNAME INVÁLIDO - Verifique o .env Chatname está igual ao name tabela Agents")
@@ -47,23 +48,18 @@ async function startAgent(_agent: Agent) {
     }
   });
 
-
-  //console.log("passei no 1501 - startAgent", agent.name)
-
-  await client.initialize();
-  await client.on('loading_screen', (percent, message) => {
+  console.log("PASSEI NO 3100>>>")
+  client.initialize();
+  client.on('loading_screen', (percent, message) => {
     console.log('LOADING SCREEN', percent, message);
     agent.status = `Carregando ${percent} - ${message}`
     agent.save()
   });
-
-
+  console.log("PASSEI NO 4100>>>")
   client.on('qr', async (qr) => {
-
     agent.status = "Qrcode require"
     agent.statusconnected = false
     await agent.save()
-
     qrcode.toDataURL(qr, { small: true }, (err, url) => {
       if (err) {
         console.error('Ocorreu um erro ao gerar o URL de dados:', err);
@@ -78,20 +74,12 @@ async function startAgent(_agent: Agent) {
     const folderPath = path.resolve(__dirname, "../../../");
     qrcodePath = path.join(folderPath, "/qrcode", `qrcode${agent.name}.png`)
     ClearFolder(qrcodePath)
-    // qrcode.toFile(qrcodePath, qr, { small: true }, (err) => {
-    //   if (err) {
-    //     console.error('Ocorreu um erro ao gerar o arquivo do código QR:', err);
-    //     return;
-    //   }
-    //   console.log('Arquivo do código QR foi gerado com sucesso:');
-    // });
-
 
   });
 
 
   //console.log("passei no 1500 - startAgent")
-  await client.on('authenticated', async () => {
+  client.on('authenticated', async () => {
     console.log(`AUTHENTICATED ${agent.name}`);
     agent.status = 'Authentication'
     agent.save()
@@ -106,24 +94,20 @@ async function startAgent(_agent: Agent) {
 
 
 
-  await client.on('ready', async () => {
+  client.on('ready', async () => {
 
-    //console.log("cheguei aqui....1500", _agent.name)
+    console.log("cheguei ready agent comum aqui....1500", _agent.name)
 
     ClearFolder(qrcodePath)
     console.log(`READY...${agent.name}`);
     const state = await client.getState()
     console.log("State:", state)
     console.log("INFO:", await client.info)
-
-
     await SendMessage(client, agent)
-
     if (process.env.SELF_CONVERSATION?.toLocaleLowerCase() === "true") {
       console.log("self_conversation", process.env.SELF_CONVERSATION)
       await SendMessageInternal(client)
     }
-
     agent.status = state
     agent.statusconnected = true
     agent.number_phone = client.info.wid.user

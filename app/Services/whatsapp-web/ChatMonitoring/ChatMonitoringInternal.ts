@@ -23,7 +23,7 @@ let dateSendMessageInternalUpdate = DateTime.local()
 
 function timeRandom(min: number, max: number): number {
   const time = Math.floor(Math.random() * (max - min + 1)) + min;
-  console.log("time", time)
+  //console.log("time", time)
   return time
 }
 

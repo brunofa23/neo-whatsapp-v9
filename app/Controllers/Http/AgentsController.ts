@@ -65,10 +65,7 @@ export default class AgentsController {
   }
 
   public async update({ params, request, response }: HttpContextContract) {
-
-    console.log('agent update:', params.id)
     const body = request.only(Agent.fillable)
-
     try {
       const data = await Agent.query().where('id', params.id)
         .update(body)
@@ -76,7 +73,6 @@ export default class AgentsController {
     } catch (error) {
       return error
     }
-
   }
 
   public async connection({ params, request, response }: HttpContextContract) {
@@ -84,17 +80,15 @@ export default class AgentsController {
       await Agent.query()
         .where('id', params.id)
         .update({ statusconnected: false })
-
       const agent = await Agent.query().where('id', params.id).first()
-
       let client
       if (agent) {
         if (agent.default_chat) {
-          console.log("agente default")
+          console.log("Conectando Agente Default")
           client = await startAgentChat(agent)
         }
         else {
-          console.log("agente comum")
+          console.log("Conectando Agente Comum")
           client = await startAgent(agent)
         }
       }
@@ -106,7 +100,6 @@ export default class AgentsController {
   }
 
   public async destroy({ params, request, response }: HttpContextContract) {
-
     const id = params.id
     const pathFolder = `.wwebjs_auth/session-${id}`
     if (fs.existsSync(pathFolder)) {

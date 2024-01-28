@@ -30,28 +30,9 @@ async function getCustomChat(cellphone: String, chatnumber: String) {
     .where('cellphoneserialized', cellphone)
     .andWhere('chatnumber', chatnumber)
     .andWhereNull('returned').first()
-
-  //console.log("CUSTOM CHAT 4000>>>>", customChat, "chatnumber>>", chatnumber)
   return customChat
 
 }
-
-//****QUERY PARA VERIFICAR EM QUAL TABELA ESTÁ MAIS RECENTE************* */
-// SELECT created_at, table_name
-// FROM (
-//     SELECT created_at, 'chats' AS table_name
-//     FROM chats
-//     WHERE cellphoneserialized = '553185228619@c.us'
-//     UNION
-//     SELECT created_at, 'customchats' AS table_name
-//     FROM customchats
-//     WHERE cellphoneserialized = '553185228619@c.us'
-// ) AS combined_tables
-// ORDER BY created_at DESC
-// LIMIT 1;
-
-
-
 async function getChat(cellphone: String) {
   return await Chat.query()
     .preload('shippingcampaign')
@@ -80,7 +61,6 @@ export default class Monitoring {
         const customChat = await getCustomChat(message.from, client.info.wid.user)
         let chat
         if (customChat) {
-          console.log("ENTREI NO CUSTOM CHAT.....>>>")
           customChat.returned = true
           await customChat.save()
           const bodyResponse = {
@@ -95,15 +75,8 @@ export default class Monitoring {
           //chamar gravação
           return
         } else {
-          //console.log("não estou dentro do custom chat 4521")
           chat = await getChat(message.from)
         }
-
-        // const chat = await Chat.query()
-        //   .preload('shippingcampaign')
-        //   .where('cellphoneserialized', '=', message.from)
-        //   //.whereNull('response').first()
-        //   .andWhere('returned', false).first()
 
         if (chat && chat.returned == false) {
           chat.invalidresponse = message.body.slice(0, 348)

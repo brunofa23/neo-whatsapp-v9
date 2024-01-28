@@ -6,7 +6,9 @@ export default class CustomchatsController {
   public async sendMessage({ params, request, response }: HttpContextContract) {
 
     const body = request.only(Customchat.fillable)
+    body.messagesent = false
     console.log("body", body)
+
     try {
       const payLoad = await Customchat.create(body)
       return response.status(201).send(payLoad)

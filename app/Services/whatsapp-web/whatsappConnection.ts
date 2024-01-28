@@ -150,11 +150,12 @@ async function startAgent(_agent: Agent) {
 
   //************************************************ */
   client.on('disconnected', async (reason) => {
-    console.log("EXECUTANDO DISCONECT")
-    console.log("REASON>>>", reason)
     agent.status = 'Disconnected'
     agent.statusconnected = false
     await agent.save()
+    console.log("EXECUTANDO DISCONECT")
+    console.log("REASON>>>", reason)
+
 
   });
 

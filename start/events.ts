@@ -5,23 +5,10 @@ import PersistShippingcampaign from "App/Services/whatsapp-web/PersistShippingca
 import { DateTime } from 'luxon';
 
 import { DateFormat, GenerateRandomTime, TimeSchedule } from '../app/Services/whatsapp-web/util'
-import { startAgent } from "../app/Services/whatsapp-web/whatsappConnection"
 import { startAgentChat } from "../app/Services/whatsapp-web/whatsapp"
+import { startAgent } from "../app/Services/whatsapp-web/whatsappConnection"
 
 async function connectionAll() {
-
-  // let client
-  //     if (agent) {
-  //       if (agent.default_chat) {
-  //         console.log("agente default")
-  //         client = await startAgentChat(agent)
-  //       }
-  //       else {
-  //         console.log("agente comum")
-  //         client = await startAgent(agent)
-  //       }
-  //     }
-  //     return response.status(201).send('Connected', client)
 
   try {
     console.log("connection all acionado...")
@@ -67,10 +54,8 @@ async function sendRepeatedMessage() {
   }, await GenerateRandomTime(300, 400, '****Send Message Repeated'))
 
 }
-
-
 async function resetStatusConnected() {
-  await Agent.query().update({ statusconnected: false })
+  await Agent.query().update({ status: null, statusconnected: false })
 }
 
 

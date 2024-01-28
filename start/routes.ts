@@ -72,6 +72,7 @@ Route.group(() => {
   Route.put("/agents/:id", "AgentsController.update")
   Route.post("/agents/connectionagentchat/:id", "AgentsController.connectionAgentChat")
   Route.post("/agents/sendmessageagentdefalut", "AgentsController.sendMessageAgentDefalut")
+  Route.post("/agents/destroy/:id", "AgentsController.destroy")
 
   //CUSTOM CHATS
   Route.post("/customchat/sendmessage", "CustomchatsController.sendMessage")

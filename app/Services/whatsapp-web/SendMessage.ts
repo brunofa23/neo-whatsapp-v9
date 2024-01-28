@@ -86,7 +86,7 @@ export default async (client: Client, agent: Agent) => {
   }
 
   async function sendMessages() {
-    console.log("Entrei no SendMessage comum 4554")
+
     setInterval(async () => {
 
       await Agent.query().where('id', agent.id).update({ statusconnected: true })

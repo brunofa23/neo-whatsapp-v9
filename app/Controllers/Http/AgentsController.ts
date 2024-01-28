@@ -78,6 +78,7 @@ export default class AgentsController {
       await Agent.query()
         .where('id', params.id)
         .update({ statusconnected: false })
+
       const agent = await Agent.query().where('id', params.id).first()
 
       let client
@@ -98,20 +99,19 @@ export default class AgentsController {
     }
   }
 
-  public async connectionAgentChat({ params, request, response }: HttpContextContract) {
-    try {
-      await Agent.query()
-        .where('id', params.id)
-        .update({ statusconnected: false })
-      const agent = await Agent.query().where('id', params.id).first()
-      console.log("conectando agent chat...")
-
-      const client = await startAgentChat(agent)
-      return response.status(201).send("client")
-    } catch (error) {
-      error
-    }
-  }
+  // public async connectionAgentChat({ params, request, response }: HttpContextContract) {
+  //   try {
+  //     await Agent.query()
+  //       .where('id', params.id)
+  //       .update({ statusconnected: false })
+  //     const agent = await Agent.query().where('id', params.id).first()
+  //     console.log("conectando agent chat...")
+  //     const client = await startAgentChat(agent)
+  //     return response.status(201).send("client")
+  //   } catch (error) {
+  //     error
+  //   }
+  // }
 
 
   // public async sendMessageAgentDefalut() {
@@ -128,20 +128,20 @@ export default class AgentsController {
   //     })
   // }
 
-  public async connectionAll({ response }: HttpContextContract) {
-    try {
-      console.log("connection all acionado...")
-      await Agent.query().update({ statusconnected: false })
-      const agents = await Agent.query()
-      for (const agent of agents) {
-        console.log("Conectando agente:", agent.id)
-        await startAgent(agent)
-      }
-      return response.status(201).send('ConnectedAll')
-    } catch (error) {
-      error
-    }
-  }
+  // public async connectionAll({ response }: HttpContextContract) {
+  //   try {
+  //     console.log("connection all acionado...")
+  //     await Agent.query().update({ statusconnected: false })
+  //     const agents = await Agent.query()
+  //     for (const agent of agents) {
+  //       console.log("Conectando agente:", agent.id)
+  //       await startAgent(agent)
+  //     }
+  //     return response.status(201).send('ConnectedAll')
+  //   } catch (error) {
+  //     error
+  //   }
+  // }
 
 
 

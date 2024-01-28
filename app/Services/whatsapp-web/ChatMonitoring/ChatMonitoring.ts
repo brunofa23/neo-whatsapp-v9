@@ -1,9 +1,9 @@
 import ShippingcampaignsController from 'App/Controllers/Http/ShippingcampaignsController';
-import Agent from 'App/Models/Agent';
+//import Agent from 'App/Models/Agent';
 import Chat from 'App/Models/Chat';
 import Customchat from 'App/Models/Customchat';
-import Shippingcampaign from 'App/Models/Shippingcampaign';
-import { SendMessage } from 'App/Services/whatsapp-web/SendMessage';
+//import Shippingcampaign from 'App/Models/Shippingcampaign';
+//import { Client, MessageMedia } from 'App/Services/whatsapp-web/SendMessage';
 import { Client, MessageMedia } from 'whatsapp-web.js';
 
 import { DateFormat, RandomResponse, stateTyping } from '../util'
@@ -13,11 +13,14 @@ import ServiceEvaluation from './ServiceEvaluation';
 async function verifyNumberInternal(phoneVerify: String) {
   const list_phone_talking = process.env.LIST_PHONES_TALK
   const list_phones = list_phone_talking?.split(",")
-  for (const phone of list_phones) {
-    //console.log("passei no verify internals", phoneVerify, "Listphones:", list_phones)
-    if (phoneVerify === phone)
-      return true
+  if (list_phones) {
+    for (const phone of list_phones) {
+      //console.log("passei no verify internals", phoneVerify, "Listphones:", list_phones)
+      if (phoneVerify === phone)
+        return true
+    }
   }
+
 }
 
 
@@ -53,10 +56,11 @@ async function getCustomChat(cellphone: String, chatnumber: String) {
 async function getChat(cellphone: String) {
   return await Chat.query()
     .preload('shippingcampaign')
-    .where('cellphoneserialized', '=', cellphone)
-
-    .andWhereNull('returned').first()
+    .where('cellphoneserialized', cellphone)
+    .andWhere('returned', false).first()
 }
+
+
 
 
 export default class Monitoring {
@@ -85,7 +89,6 @@ export default class Monitoring {
           console.log("ENTREI NO CUSTOM CHAT.....>>>")
           customChat.returned = true
           await customChat.save()
-
           const bodyResponse = {
             chats_id: customChat.chats_id,
             reg: customChat.reg,
@@ -95,15 +98,12 @@ export default class Monitoring {
             response: message.body,
           }
           await Customchat.create(bodyResponse)
-
-
           //chamar gravação
           return
         } else {
-          console.log("não estou dentro do custom chat 4521")
+          //console.log("não estou dentro do custom chat 4521")
           chat = await getChat(message.from)
         }
-
 
         // const chat = await Chat.query()
         //   .preload('shippingcampaign')

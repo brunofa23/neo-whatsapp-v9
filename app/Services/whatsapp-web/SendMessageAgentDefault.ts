@@ -1,5 +1,5 @@
 import Agent from 'App/Models/Agent';
-import Shippingcampaign from 'App/Models/Shippingcampaign';
+//import Shippingcampaign from 'App/Models/Shippingcampaign';
 import { verifyNumber } from 'App/Services/whatsapp-web/VerifyNumber';
 import { Client } from "whatsapp-web.js"
 import Customchat from 'App/Models/Customchat';
@@ -33,7 +33,6 @@ export default async (client: Client, agent: Agent) => {
       if (customChat) {
         const validationCellPhone = await verifyNumber(client, customChat?.cellphone)
         if (validationCellPhone == null) {
-          console.log("custom chat 1500", validationCellPhone)
           customChat.phonevalid = false
           await customChat.save()
         }
@@ -41,7 +40,6 @@ export default async (client: Client, agent: Agent) => {
         if (validationCellPhone) {
           await client.sendMessage(validationCellPhone, customChat?.message)
             .then(async (response) => {
-              console.log("passei no 15444")
               customChat.messagesent = true
               customChat.cellphoneserialized = validationCellPhone
               customChat.chatname = agent.name

@@ -22,7 +22,7 @@ export default async (client: Client, message: Message, chat: Chat) => {
       await chat.save()
       await stateTyping(message)//status de digitando...
       client.sendMessage(message.from, `Consegue nos dizer o que motivou a sua nota ${notes[0]}? Tudo bem se não quiser responder, digite 9 para finalizar essa etapa.`)
-      console.log(message.body)
+      //console.log(message.body)
       return
     }
   }

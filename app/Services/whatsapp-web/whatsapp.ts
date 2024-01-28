@@ -135,7 +135,7 @@ async function startAgentChat(_agent: Agent) {
   clientChat.on('call', async (call) => {
     console.log('Call received, rejecting. GOTO Line 261 to disable', call);
     if (rejectCalls) await call.reject();
-    await clientChat.sendMessage(call.from, `[${call.fromMe ? 'Outgoing' : 'Incoming'}] Este número de telefone está programado para não receber chamadas. `);
+    await clientChat.sendMessage(call.from, `[${call.fromMe ? 'Outgoing' : 'Incoming'}] Olá tudo Bem? Sou uma atendente virtual e por isso não consigo receber chamadas. Desculpe!!☺️`);
   });
 
 

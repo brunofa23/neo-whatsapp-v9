@@ -22,7 +22,8 @@ export default class Customchat extends BaseModel {
       'response',
       'returned',
       'chatname',
-      'messagesent'
+      'messagesent',
+      'phonevalid'
     ]
   }
 
@@ -53,7 +54,11 @@ export default class Customchat extends BaseModel {
   @column()
   public chatname: string
   @column()
+  public chatnumber: string
+  @column()
   public messagesent: boolean
+  @column()
+  public phonevalid: boolean
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime

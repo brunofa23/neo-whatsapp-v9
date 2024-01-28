@@ -156,7 +156,8 @@ export default async (client: Client, agent: Agent) => {
                       cellphoneserialized: shippingCampaign.cellphoneserialized,
                       message: shippingCampaign.message,
                       shippingcampaigns_id: shippingCampaign.id,
-                      chatname: agent.name
+                      chatname: agent.name,
+                      chatnumber: client.info.wid.user
                     }
                     await Chat.create(bodyChat)
                     console.log("Mensagem enviada:", shippingCampaign.name, "cellphone", shippingCampaign.cellphoneserialized, "agent", agent.name)

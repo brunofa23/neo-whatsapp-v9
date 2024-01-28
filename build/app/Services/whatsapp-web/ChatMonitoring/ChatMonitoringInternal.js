@@ -17,7 +17,6 @@ async function verifyNumberInternal(phoneVerify) {
 let dateSendMessageInternalUpdate = luxon_1.DateTime.local();
 function timeRandom(min, max) {
     const time = Math.floor(Math.random() * (max - min + 1)) + min;
-    console.log("time", time);
     return time;
 }
 class Monitoring {

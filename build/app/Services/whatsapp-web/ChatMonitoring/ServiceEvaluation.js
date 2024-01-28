@@ -18,7 +18,6 @@ exports.default = async (client, message, chat) => {
             await chat.save();
             await (0, util_1.stateTyping)(message);
             client.sendMessage(message.from, `Consegue nos dizer o que motivou a sua nota ${notes[0]}? Tudo bem se não quiser responder, digite 9 para finalizar essa etapa.`);
-            console.log(message.body);
             return;
         }
     }

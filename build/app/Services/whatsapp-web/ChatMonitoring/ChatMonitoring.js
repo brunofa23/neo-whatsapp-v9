@@ -5,16 +5,33 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const ShippingcampaignsController_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Controllers/Http/ShippingcampaignsController"));
 const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
+const Customchat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Customchat"));
 const util_1 = require("../util");
 const ConfirmSchedule_1 = __importDefault(require("./ConfirmSchedule"));
 const ServiceEvaluation_1 = __importDefault(require("./ServiceEvaluation"));
 async function verifyNumberInternal(phoneVerify) {
     const list_phone_talking = process.env.LIST_PHONES_TALK;
     const list_phones = list_phone_talking?.split(",");
-    for (const phone of list_phones) {
-        if (phoneVerify === phone)
-            return true;
+    if (list_phones) {
+        for (const phone of list_phones) {
+            if (phoneVerify === phone)
+                return true;
+        }
     }
+}
+async function getCustomChat(cellphone, chatnumber) {
+    chatnumber = chatnumber.replace(/@.*$/, '');
+    const customChat = await Customchat_1.default.query()
+        .where('cellphoneserialized', cellphone)
+        .andWhere('chatnumber', chatnumber)
+        .andWhereNull('returned').first();
+    return customChat;
+}
+async function getChat(cellphone) {
+    return await Chat_1.default.query()
+        .preload('shippingcampaign')
+        .where('cellphoneserialized', cellphone)
+        .whereNull('response').first();
 }
 class Monitoring {
     async monitoring(client) {
@@ -34,10 +51,25 @@ class Monitoring {
                     console.log("Numero interno", message.from);
                     return;
                 }
-                const chat = await Chat_1.default.query()
-                    .preload('shippingcampaign')
-                    .where('cellphoneserialized', '=', message.from)
-                    .whereNull('response').first();
+                const customChat = await getCustomChat(message.from, client.info.wid.user);
+                let chat;
+                if (customChat) {
+                    customChat.returned = true;
+                    await customChat.save();
+                    const bodyResponse = {
+                        chats_id: customChat.chats_id,
+                        reg: customChat.reg,
+                        cellphone: customChat.cellphone,
+                        cellphoneserialized: customChat.cellphoneserialized,
+                        chatnumber: customChat.chatnumber,
+                        response: message.body,
+                    };
+                    await Customchat_1.default.create(bodyResponse);
+                    return;
+                }
+                else {
+                    chat = await getChat(message.from);
+                }
                 if (chat && chat.returned == false) {
                     chat.invalidresponse = message.body.slice(0, 348);
                     chat.returned = true;
@@ -101,7 +133,7 @@ class Monitoring {
                     }
                     else {
                         const responseArray = [
-                            "Desculpe, mas esta conversa já foi encerrada. O Neo Agradece por sua compreensão, maiores esclarecimentos ligue para 31-32350003.",
+                            "Desculpe, mas esta conversa já foi encerrada. O Neo Agradece por sua compreensão, para maiores esclarecimentos ligue para 31-32350003.",
                             "Infelizmente esta conversa já foi encerrada. O Neo Agradece por sua interação! Maiores esclarecimentos ligue para 31-32350003.",
                             "Olá, sou apenas uma atendente virtual, para maiores esclarecimentos ligue para 31-32350003.",
                             "Olá, sou apenas uma atendente virtual, desculpe mas esta conversa já foi encerrada. Para maiores esclarecimentos ligue para 31-32350003. O Neo Agradece!"

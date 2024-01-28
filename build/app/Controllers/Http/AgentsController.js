@@ -8,6 +8,8 @@ const whatsappConnection_1 = require("../../Services/whatsapp-web/whatsappConnec
 const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
 const util_1 = require("../../Services/whatsapp-web/util");
 const luxon_1 = require("luxon");
+const whatsapp_1 = require("../../Services/whatsapp-web/whatsapp");
+const fs = require('fs');
 class AgentsController {
     async index({ response }) {
         const dateStart = await (0, util_1.DateFormat)("yyyy-MM-dd 00:00:00", luxon_1.DateTime.local());
@@ -31,6 +33,8 @@ class AgentsController {
                     max_limit_message: agent.max_limit_message,
                     status: agent.status,
                     statusconnected: agent.statusconnected,
+                    active: agent.active,
+                    default_chat: agent.default_chat,
                     qrcode: agent.qrcode,
                     totMessage: totMessage?.$extras.totMessage
                 });
@@ -52,7 +56,6 @@ class AgentsController {
         }
     }
     async update({ params, request, response }) {
-        console.log('agent update:', params.id);
         const body = request.only(Agent_1.default.fillable);
         try {
             const data = await Agent_1.default.query().where('id', params.id)
@@ -69,28 +72,42 @@ class AgentsController {
                 .where('id', params.id)
                 .update({ statusconnected: false });
             const agent = await Agent_1.default.query().where('id', params.id).first();
-            console.log("conectando...");
-            await (0, whatsappConnection_1.startAgent)(agent);
-            return response.status(201).send('Connected');
+            let client;
+            if (agent) {
+                if (agent.default_chat) {
+                    console.log("Conectando Agente Default");
+                    client = await (0, whatsapp_1.startAgentChat)(agent);
+                }
+                else {
+                    console.log("Conectando Agente Comum");
+                    client = await (0, whatsappConnection_1.startAgent)(agent);
+                }
+            }
+            return response.status(201).send('Connected', client);
         }
         catch (error) {
             error;
         }
     }
-    async connectionAll({ response }) {
-        try {
-            console.log("connection all acionado...");
-            await Agent_1.default.query().update({ statusconnected: false });
-            const agents = await Agent_1.default.query();
-            for (const agent of agents) {
-                console.log("Conectando agente:", agent.id);
-                await (0, whatsappConnection_1.startAgent)(agent);
-            }
-            return response.status(201).send('ConnectedAll');
+    async destroy({ params, request, response }) {
+        const id = params.id;
+        const pathFolder = `.wwebjs_auth/session-${id}`;
+        if (fs.existsSync(pathFolder)) {
+            fs.rm(pathFolder, { recursive: true }, (err) => {
+                if (err) {
+                    console.error(err);
+                }
+                else {
+                    console.log("DIRETORIO DELETADO");
+                }
+            });
         }
-        catch (error) {
-            error;
-        }
+        const data = await Agent_1.default.findOrFail(id);
+        await data.delete();
+        return {
+            message: "Agente excluido com sucesso!!",
+            data: data
+        };
     }
 }
 exports.default = AgentsController;

@@ -9,13 +9,9 @@ const SendRepeatedMessage_1 = global[Symbol.for('ioc.use')]("App/Services/whatsa
 const ChatMonitoring_1 = __importDefault(require("./ChatMonitoring/ChatMonitoring"));
 const ChatMonitoringInternal_1 = __importDefault(require("./ChatMonitoring/ChatMonitoringInternal"));
 const SendMessageInternal_1 = __importDefault(require("./SendMessageInternal"));
-const util_1 = require("./util");
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcodeTerminal = require('qrcode-terminal');
 const qrcode = require('qrcode');
-const path = require('path');
-const folderPath = path.resolve(__dirname, "../../../");
-let qrcodePath;
 async function startAgent(_agent) {
     const agent = await Agent_1.default.findOrFail(_agent.id);
     if (!_agent) {
@@ -23,7 +19,7 @@ async function startAgent(_agent) {
         return;
     }
     const client = new Client({
-        authStrategy: new LocalAuth({ clientId: _agent.name }),
+        authStrategy: new LocalAuth({ clientId: _agent.id }),
         puppeteer: {
             args: ['--no-sandbox',
                 '--max-memory=512MB',
@@ -42,15 +38,15 @@ async function startAgent(_agent) {
     });
     client.initialize();
     client.on('loading_screen', (percent, message) => {
-        console.log('LOADING SCREEN', percent, message);
-        agent.status = `Carregando ${percent} - ${message}`;
+        console.log(`LOADING SCREEN: ${_agent.name}`, percent, message);
+        agent.status = `Carregando: ${_agent.name} - ${percent} - ${message}`;
         agent.save();
     });
     client.on('qr', async (qr) => {
         agent.status = "Qrcode require";
         agent.statusconnected = false;
         await agent.save();
-        qrcode.toDataURL(qr, { small: true }, (err, url) => {
+        qrcode.toDataURL(qr, (err, url) => {
             if (err) {
                 console.error('Ocorreu um erro ao gerar o URL de dados:', err);
                 return;
@@ -59,11 +55,8 @@ async function startAgent(_agent) {
             agent.save();
         });
         qrcodeTerminal.generate(qr, { small: true });
-        const folderPath = path.resolve(__dirname, "../../../");
-        qrcodePath = path.join(folderPath, "/qrcode", `qrcode${agent.name}.png`);
-        (0, util_1.ClearFolder)(qrcodePath);
     });
-    client.on('authenticated', () => {
+    client.on('authenticated', async () => {
         console.log(`AUTHENTICATED ${agent.name}`);
         agent.status = 'Authentication';
         agent.save();
@@ -71,8 +64,7 @@ async function startAgent(_agent) {
     client.on('auth_failure', msg => {
         console.error('AUTHENTICATION FAILURE', msg);
     });
-    await client.on('ready', async () => {
-        (0, util_1.ClearFolder)(qrcodePath);
+    client.on('ready', async () => {
         console.log(`READY...${agent.name}`);
         const state = await client.getState();
         console.log("State:", state);
@@ -92,24 +84,24 @@ async function startAgent(_agent) {
         await (0, SendRepeatedMessage_1.sendRepeatedMessage)(agent);
     }
     const chatMonitoring = new ChatMonitoring_1.default;
-    await chatMonitoring.monitoring(client);
+    await chatMonitoring.monitoring(client, agent);
     if (process.env.SELF_CONVERSATION?.toLowerCase() === "true") {
         const chatMonitoringInternal = new ChatMonitoringInternal_1.default;
         await chatMonitoringInternal.monitoring(client);
     }
     client.on('disconnected', async (reason) => {
-        console.log("EXECUTANDO DISCONECT");
-        console.log("REASON>>>", reason);
         agent.status = 'Disconnected';
         agent.statusconnected = false;
         await agent.save();
+        console.log("EXECUTANDO DISCONECT");
+        console.log("REASON>>>", reason);
     });
     let rejectCalls = true;
     client.on('call', async (call) => {
         console.log('Call received, rejecting. GOTO Line 261 to disable', call);
         if (rejectCalls)
             await call.reject();
-        await client.sendMessage(call.from, `[${call.fromMe ? 'Outgoing' : 'Incoming'}] Este número de telefone está programado para não receber chamadas. `);
+        await client.sendMessage(call.from, `[${call.fromMe ? 'Outgoing' : 'Incoming'}] Olá tudo Bem? Sou uma atendente virtual e por isso não consigo receber chamadas. Desculpe!!☺️`);
     });
     return client;
 }

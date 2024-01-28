@@ -26,11 +26,7 @@ async function connectionAll() {
           await startAgent(agent)
         }
       }
-
-      //console.log("teste...", agent.name)
-      //await startAgent(agent)
     }
-    //return response.status(201).send('ConnectedAll')
   } catch (error) {
     error
   }

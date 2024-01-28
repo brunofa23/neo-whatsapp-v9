@@ -29,10 +29,9 @@ async function getCustomChat(cellphone: String, chatnumber: String) {
   const customChat = await Customchat.query()
     .where('cellphoneserialized', cellphone)
     .andWhere('chatnumber', chatnumber)
-    //.andWhereNotNull('message')
     .andWhereNull('returned').first()
 
-  console.log("CUSTOM CHAT 4000>>>>", customChat, "chatnumber>>", chatnumber)
+  //console.log("CUSTOM CHAT 4000>>>>", customChat, "chatnumber>>", chatnumber)
   return customChat
 
 }
@@ -60,14 +59,9 @@ async function getChat(cellphone: String) {
     .andWhere('returned', false).first()
 }
 
-
-
-
 export default class Monitoring {
   async monitoring(client: Client) {
     try {
-      //console.log("CHAT PASSO 1")
-
       client.on('message', async message => {
 
         let groupChat = await message.getChat();
@@ -86,7 +80,7 @@ export default class Monitoring {
         const customChat = await getCustomChat(message.from, client.info.wid.user)
         let chat
         if (customChat) {
-          console.log("ENTREI NO CUSTOM CHAT.....>>>")
+          //console.log("ENTREI NO CUSTOM CHAT.....>>>")
           customChat.returned = true
           await customChat.save()
           const bodyResponse = {

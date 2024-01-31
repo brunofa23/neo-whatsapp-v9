@@ -44,7 +44,7 @@ export default class UsersController {
 
   public async login({ auth, request, response }: HttpContextContract) {
 
-    console.log("acessei o login...", auth)
+    console.log("acessei o login...")
     const body = request.only(User.fillable)
 
     const user = await User

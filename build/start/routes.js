@@ -56,6 +56,7 @@ Route_1.default.group(() => {
     Route_1.default.post("/agents/sendmessageagentdefalut", "AgentsController.sendMessageAgentDefalut");
     Route_1.default.post("/agents/destroy/:id", "AgentsController.destroy");
     Route_1.default.post("/customchat/sendmessage", "CustomchatsController.sendMessage");
+    Route_1.default.get("/customchat/:id", "CustomchatsController.show");
     Route_1.default.get("/smart", "DatasourcesController.scheduledPatients");
     Route_1.default.get("/confirmscheduleall", "DatasourcesController.cancelScheduleAll");
     Route_1.default.post('/restart', 'ShippingcampaignsController.resetWhatsapp');

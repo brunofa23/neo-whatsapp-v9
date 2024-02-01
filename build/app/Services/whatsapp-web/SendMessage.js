@@ -70,7 +70,8 @@ exports.default = async (client, agent) => {
     }
     async function sendMessages() {
         setInterval(async () => {
-            await Agent_1.default.query().where('id', agent.id).update({ statusconnected: true });
+            if (agent.statusconnected == false)
+                await Agent_1.default.query().where('id', agent.id).update({ statusconnected: true });
             const totMessageSend = await countLimitSendMessage();
             const maxLimitSendAgent = await maxLimitSendMessageAgent(agent.id);
             let verifyChat;

@@ -89,7 +89,8 @@ export default async (client: Client, agent: Agent) => {
 
     setInterval(async () => {
 
-      await Agent.query().where('id', agent.id).update({ statusconnected: true })
+      if (agent.statusconnected == false)
+        await Agent.query().where('id', agent.id).update({ statusconnected: true })
 
       const totMessageSend = await countLimitSendMessage()
       const maxLimitSendAgent = await maxLimitSendMessageAgent(agent.id)

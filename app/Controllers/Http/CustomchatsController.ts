@@ -13,7 +13,7 @@ export default class CustomchatsController {
 
     const body = request.only(Customchat.fillable)
     body.messagesent = false
-    console.log("Passei aqui 45888", body)
+    //console.log("Passei aqui 45888", body)
     try {
       const payLoad = await Customchat.create(body)
       return response.status(201).send(payLoad)

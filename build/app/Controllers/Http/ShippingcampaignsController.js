@@ -213,7 +213,7 @@ class ShippingcampaignsController {
                 .select('shippingcampaigns.interaction_id', 'shippingcampaigns.reg', 'shippingcampaigns.name', 'shippingcampaigns.cellphone', 'chats.id', 'otherfields', 'phonevalid', 'messagesent', 'chats.created_at', 'response', 'returned', 'invalidresponse', 'chatname', 'absoluteresp')
                 .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
                 .whereBetween('chats.created_at', [initialdate, finaldate])
-                .where('shippingcampaigns.interaction_id', 2)
+                .where('chats.interaction_id', 2)
                 .whereRaw(query);
             const resultAcumulated = await Chat_1.default.query()
                 .sumDistinct('absoluteresp as note')

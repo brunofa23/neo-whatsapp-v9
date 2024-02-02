@@ -70,8 +70,6 @@ exports.default = async (client, agent) => {
     }
     async function sendMessages() {
         setInterval(async () => {
-            if (agent.statusconnected == false)
-                await Agent_1.default.query().where('id', agent.id).update({ statusconnected: true });
             const totMessageSend = await countLimitSendMessage();
             const maxLimitSendAgent = await maxLimitSendMessageAgent(agent.id);
             let verifyChat;
@@ -124,6 +122,8 @@ exports.default = async (client, agent) => {
                                     };
                                     await Chat_1.default.create(bodyChat);
                                     console.log("Mensagem enviada:", shippingCampaign.name, "cellphone", shippingCampaign.cellphoneserialized, "agent", agent.name);
+                                    if (agent.statusconnected == false)
+                                        await Agent_1.default.query().where('id', agent.id).update({ statusconnected: true });
                                 }).catch(async (error) => {
                                     console.log("ERRO 1452:::", error);
                                 });

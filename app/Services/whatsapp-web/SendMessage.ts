@@ -89,9 +89,6 @@ export default async (client: Client, agent: Agent) => {
 
     setInterval(async () => {
 
-      if (agent.statusconnected == false)
-        await Agent.query().where('id', agent.id).update({ statusconnected: true })
-
       const totMessageSend = await countLimitSendMessage()
       const maxLimitSendAgent = await maxLimitSendMessageAgent(agent.id)
       let verifyChat
@@ -104,17 +101,6 @@ export default async (client: Client, agent: Agent) => {
       }
       await verifyContSend()
       const shippingCampaign = await _shippingCampaignList()
-
-      // if (shippingCampaign) {
-      //   verifyChat = await Chat.query()
-      //     .where('interaction_id', shippingCampaign?.interaction_id)
-      //     .andWhere('interaction_seq', shippingCampaign?.interaction_seq)
-      //     .andWhere('shippingcampaigns_id', shippingCampaign?.id).first()
-      //   if (verifyChat) {
-      //     //console.log("Envio já existe")
-      //     return
-      //   }
-      // }
 
       if (shippingCampaign?.interaction_id) {
         if (await totalInteractionSend(shippingCampaign?.interaction_id)) {
@@ -163,9 +149,13 @@ export default async (client: Client, agent: Agent) => {
                     }
                     await Chat.create(bodyChat)
                     console.log("Mensagem enviada:", shippingCampaign.name, "cellphone", shippingCampaign.cellphoneserialized, "agent", agent.name)
+
+                    if (agent.statusconnected == false)
+                      await Agent.query().where('id', agent.id).update({ statusconnected: true })
                   }).catch(async (error) => {
                     console.log("ERRO 1452:::", error)
                   })
+
               }
 
             } else {//número é inválido

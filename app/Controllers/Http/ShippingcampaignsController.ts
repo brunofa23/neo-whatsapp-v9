@@ -310,8 +310,10 @@ export default class ShippingcampaignsController {
         )
         .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
         .whereBetween('chats.created_at', [initialdate, finaldate])
-        .where('shippingcampaigns.interaction_id', 2)
+        //.where('shippingcampaigns.interaction_id', 2)
+        .where('chats.interaction_id', 2)
         .whereRaw(query)
+      //console.log(result)
 
 
 

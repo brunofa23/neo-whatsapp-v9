@@ -1,11 +1,12 @@
+import Agent from 'App/Models/Agent';
+import SendMessage from 'App/Services/whatsapp-web/SendMessage'
+
 import ChatMonitoring from './ChatMonitoring/ChatMonitoring'
 import ChatMonitoringAgentChat from './ChatMonitoring/ChatMonitoringAgentChat'
 import ChatMonitoringInternal from './ChatMonitoring/ChatMonitoringInternal'
 import SendMessageAgentDefault from './SendMessageAgentDefault';
 import SendMessageInternal from './SendMessageInternal';
 import { ClearFolder, DateFormat, ExecutingSendMessage, GenerateRandomTime, RandomResponse, TimeSchedule, validAgent, ValidatePhone } from './util'
-import Agent from 'App/Models/Agent';
-import SendMessage from 'App/Services/whatsapp-web/SendMessage'
 
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcodeTerminal = require('qrcode-terminal');
@@ -107,6 +108,25 @@ async function startAgentChat(_agent: Agent) {
     agent.number_phone = clientChat.info.wid.user
     agent.qrcode = null
     await agent.save()
+
+  });
+
+  clientChat.on('message_ack', (msg, ack) => {
+    /*
+        == ACK VALUES ==
+        ACK_ERROR: -1
+        ACK_PENDING: 0
+        ACK_SERVER: 1
+        ACK_DEVICE: 2
+        ACK_READ: 3
+        ACK_PLAYED: 4
+    */
+
+    if (ack == 3) {
+      console.log("msg", msg.to, "fromMe", msg.fromMe)
+      console.log("ack", ack)
+      // The message was read
+    }
 
   });
 

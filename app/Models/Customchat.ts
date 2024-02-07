@@ -1,6 +1,7 @@
-import { DateTime } from 'luxon'
-import { BaseModel, column, hasOne, HasOne } from '@ioc:Adonis/Lucid/Orm'
 import Env from '@ioc:Adonis/Core/Env'
+import { BaseModel, column, hasOne, HasOne } from '@ioc:Adonis/Lucid/Orm'
+import { DateTime } from 'luxon'
+
 import Chat from './Chat'
 
 export default class Customchat extends BaseModel {
@@ -23,6 +24,7 @@ export default class Customchat extends BaseModel {
       'returned',
       'chatname',
       'messagesent',
+      'messageready',
       'phonevalid'
     ]
   }
@@ -57,6 +59,8 @@ export default class Customchat extends BaseModel {
   public chatnumber: string
   @column()
   public messagesent: boolean
+  @column()
+  public messageready: boolean
   @column()
   public phonevalid: boolean
 

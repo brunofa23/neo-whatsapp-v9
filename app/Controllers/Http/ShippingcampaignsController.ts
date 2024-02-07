@@ -315,8 +315,6 @@ export default class ShippingcampaignsController {
         .whereRaw(query)
       //console.log(result)
 
-
-
       //console.log("result", result)
       const resultAcumulated = await Chat.query()
         .sumDistinct('absoluteresp as note')
@@ -468,6 +466,7 @@ export default class ShippingcampaignsController {
 
   public async scheduleConfirmationDashboard({ request, response }: HttpContextContract) {
 
+
     const { initialdate, finaldate, phonevalid, absoluteresp, interactions, messagesent, invalidresponse } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp', 'interactions', 'messagesent'])
 
     let query = "1=1"
@@ -475,25 +474,20 @@ export default class ShippingcampaignsController {
       query += ` and phonevalid=${phonevalid}`
     }
     if (messagesent) {
-      query += ` and messagesent=${messagesent} `
+      query += ` and messagesent=${messagesent} and chats.interaction_seq not in (2)`
     }
     if (interactions)
       query += ` and response is not null `
 
     if (absoluteresp)
-      query += ` and absoluteresp=${absoluteresp} `
+      query += ` and absoluteresp=${absoluteresp} and externalstatus='B' `
 
     if (invalidresponse)
       query += ` and invalidresponse not in ('1','2', 'Sim', 'Não', 'confirmado', 'pode confirmar', '1sim', '10', 'cancelar', '2 cancelar') `
 
-
     if (!DateTime.fromISO(initialdate).isValid || !DateTime.fromISO(finaldate).isValid) {
       throw new Error("Datas inválidas.")
     }
-
-
-    //return { query, initialdate, finaldate }
-
     try {
       const result = await Database.connection(Env.get('DB_CONNECTION_MAIN')).query()
         .from('shippingcampaigns')
@@ -501,6 +495,7 @@ export default class ShippingcampaignsController {
           'shippingcampaigns.interaction_id',
           'shippingcampaigns.reg',
           'shippingcampaigns.name',
+          'shippingcampaigns.dateshedule',
           'shippingcampaigns.cellphone',
           'otherfields',
           'phonevalid',

@@ -267,12 +267,18 @@ export default class ShippingcampaignsController {
   }
 
   public async serviceEvaluationDashboard({ request, response }: HttpContextContract) {
-    const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp', 'interactions', 'returned'])
+    const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp', 'interactions', 'returned', 'reg', 'name'])
 
+    //console.log("NAME", name, "reg", reg)
     let query = "1=1"
-
     if (returned)//clientes que enviaram mensagem dentro do sistema
       query += ` and chats.id in (select chats_id from customchats) `
+
+    if (reg)
+      query += ` and shippingcampaigns.reg=${reg} `
+
+    if (name)
+      query += ` and shippingcampaigns.name like '%${name}%' `
 
     if (phonevalid && phonevalid !== undefined) {
       query += ` and phonevalid=${phonevalid == 1 ? 1 : 0}`
@@ -319,7 +325,6 @@ export default class ShippingcampaignsController {
         //.where('shippingcampaigns.interaction_id', 2)
         .where('chats.interaction_id', 2)
         .whereRaw(query)
-
       //console.log(result)
 
       //console.log("result", result)

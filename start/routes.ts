@@ -5,7 +5,7 @@ import PersistShippingcampaign from "App/Services/whatsapp-web/PersistShippingca
 import { connectionAll, sendRepeatedMessage, resetStatusConnected } from './events'
 import Chat from 'App/Models/Chat';
 
-console.log("***CHAT BOT V-97***17/01/2024")
+console.log("***CHAT BOT V-98***08/02/2024")
 resetStatusConnected()
 
 function operacaoAssincrona(callback) {
@@ -77,6 +77,7 @@ Route.group(() => {
   //CUSTOM CHATS
   Route.post("/customchat/sendmessage", "CustomchatsController.sendMessage")
   Route.get("/customchat/:id", "CustomchatsController.show")
+  Route.post("/customchat/viewedconfirm/:chats_id", "CustomchatsController.viewedConfirm")
 
 
   Route.get("/smart", "DatasourcesController.scheduledPatients")

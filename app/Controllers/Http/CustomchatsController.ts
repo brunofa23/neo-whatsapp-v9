@@ -23,6 +23,18 @@ export default class CustomchatsController {
   }
 
 
+  public async viewedConfirm({ params, response }: HttpContextContract) {
+    try {
+      const data = await Customchat.query()
+        .where('chats_id', params.chats_id)
+        .update({ viewed: true })
+
+      return response.status(201).send(data)
+    } catch (error) {
+      return error
+    }
+  }
+
 
 
 

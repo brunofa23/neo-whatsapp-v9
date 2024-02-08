@@ -1,9 +1,8 @@
 import Agent from 'App/Models/Agent';
-import Customchat from 'App/Models/Customchat';
 //import Shippingcampaign from 'App/Models/Shippingcampaign';
 import { verifyNumber } from 'App/Services/whatsapp-web/VerifyNumber';
 import { Client } from "whatsapp-web.js"
-
+import Customchat from 'App/Models/Customchat';
 import { DateFormat, GenerateRandomTime, TimeSchedule } from './util'
 
 export default async (client: Client, agent: Agent) => {
@@ -41,22 +40,17 @@ export default async (client: Client, agent: Agent) => {
         if (validationCellPhone) {
           await client.sendMessage(validationCellPhone, customChat?.message)
             .then(async (response) => {
-              //console.log("SEND MESSAGE>>>>>", response)
               customChat.messagesent = true
               customChat.cellphoneserialized = validationCellPhone
               customChat.chatname = agent.name
               customChat.chatnumber = client.info.wid.user
-              customChat.read = false
               customChat.phonevalid = true
-
               await customChat.save()
             }).catch(async (error) => {
               console.log("ERRO 1452:::", error)
             })
           await Agent.query().where('id', agent.id).update({ statusconnected: true })
         }
-
-
       }
 
     }, await GenerateRandomTime(startTimeSendMessage, endTimeSendMessage, '----Time Send Message'))

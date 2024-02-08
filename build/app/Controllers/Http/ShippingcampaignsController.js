@@ -191,10 +191,14 @@ class ShippingcampaignsController {
         }
     }
     async serviceEvaluationDashboard({ request, response }) {
-        const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp', 'interactions', 'returned']);
+        const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp', 'interactions', 'returned', 'reg', 'name']);
         let query = "1=1";
         if (returned)
             query += ` and chats.id in (select chats_id from customchats) `;
+        if (reg)
+            query += ` and shippingcampaigns.reg=${reg} `;
+        if (name)
+            query += ` and shippingcampaigns.name like '%${name}%' `;
         if (phonevalid && phonevalid !== undefined) {
             query += ` and phonevalid=${phonevalid == 1 ? 1 : 0}`;
         }

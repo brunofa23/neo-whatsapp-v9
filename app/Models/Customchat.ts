@@ -24,7 +24,8 @@ export default class Customchat extends BaseModel {
       'returned',
       'chatname',
       'messagesent',
-      'messageready',
+      'read',
+      'viewed',
       'phonevalid'
     ]
   }
@@ -60,7 +61,9 @@ export default class Customchat extends BaseModel {
   @column()
   public messagesent: boolean
   @column()
-  public messageready: boolean
+  public read: boolean
+  @column()
+  public viewed: boolean
   @column()
   public phonevalid: boolean
 

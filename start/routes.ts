@@ -77,6 +77,7 @@ Route.group(() => {
   //CUSTOM CHATS
   Route.post("/customchat/sendmessage", "CustomchatsController.sendMessage")
   Route.get("/customchat/:id", "CustomchatsController.show")
+  Route.post("/customchat/viewedconfirm/:chats_id", "CustomchatsController.viewedConfirm")
 
 
   Route.get("/smart", "DatasourcesController.scheduledPatients")

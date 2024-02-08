@@ -46,8 +46,9 @@ export default async (client: Client, agent: Agent) => {
               customChat.cellphoneserialized = validationCellPhone
               customChat.chatname = agent.name
               customChat.chatnumber = client.info.wid.user
-              customChat.messageready = false
+              customChat.read = false
               customChat.phonevalid = true
+
               await customChat.save()
             }).catch(async (error) => {
               console.log("ERRO 1452:::", error)

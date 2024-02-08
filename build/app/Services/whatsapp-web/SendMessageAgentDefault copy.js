@@ -4,8 +4,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
-const Customchat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Customchat"));
 const VerifyNumber_1 = global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/VerifyNumber");
+const Customchat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Customchat"));
 const util_1 = require("./util");
 exports.default = async (client, agent) => {
     const startTimeSendMessage = agent.interval_init_message;
@@ -32,7 +32,6 @@ exports.default = async (client, agent) => {
                         customChat.cellphoneserialized = validationCellPhone;
                         customChat.chatname = agent.name;
                         customChat.chatnumber = client.info.wid.user;
-                        customChat.read = false;
                         customChat.phonevalid = true;
                         await customChat.save();
                     }).catch(async (error) => {
@@ -46,4 +45,4 @@ exports.default = async (client, agent) => {
     await sendMessages();
     return client;
 };
-//# sourceMappingURL=SendMessageAgentDefault.js.map
+//# sourceMappingURL=SendMessageAgentDefault%20copy.js.map

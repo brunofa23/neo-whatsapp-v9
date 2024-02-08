@@ -12,9 +12,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const luxon_1 = require("luxon");
-const Orm_1 = global[Symbol.for('ioc.use')]("Adonis/Lucid/Orm");
 const Env_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Env"));
+const Orm_1 = global[Symbol.for('ioc.use')]("Adonis/Lucid/Orm");
+const luxon_1 = require("luxon");
 const Chat_1 = __importDefault(require("./Chat"));
 class Customchat extends Orm_1.BaseModel {
     static get connection() {
@@ -33,6 +33,8 @@ class Customchat extends Orm_1.BaseModel {
             'returned',
             'chatname',
             'messagesent',
+            'read',
+            'viewed',
             'phonevalid'
         ];
     }
@@ -92,6 +94,14 @@ __decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", Boolean)
 ], Customchat.prototype, "messagesent", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", Boolean)
+], Customchat.prototype, "read", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", Boolean)
+], Customchat.prototype, "viewed", void 0);
 __decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", Boolean)

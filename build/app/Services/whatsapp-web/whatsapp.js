@@ -3,10 +3,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
 const ChatMonitoring_1 = __importDefault(require("./ChatMonitoring/ChatMonitoring"));
 const ChatMonitoringInternal_1 = __importDefault(require("./ChatMonitoring/ChatMonitoringInternal"));
 const SendMessageAgentDefault_1 = __importDefault(require("./SendMessageAgentDefault"));
-const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcodeTerminal = require('qrcode-terminal');
 const qrcode = require('qrcode');
@@ -73,6 +73,12 @@ async function startAgentChat(_agent) {
         agent.number_phone = clientChat.info.wid.user;
         agent.qrcode = null;
         await agent.save();
+    });
+    clientChat.on('message_ack', (msg, ack) => {
+        if (ack == 3) {
+            console.log("msg", msg.to, "fromMe", msg.fromMe);
+            console.log("ack", ack);
+        }
     });
     const chatMonitoring = new ChatMonitoring_1.default;
     await chatMonitoring.monitoring(clientChat);

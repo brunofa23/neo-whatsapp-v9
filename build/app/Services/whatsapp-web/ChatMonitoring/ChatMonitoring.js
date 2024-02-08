@@ -54,14 +54,14 @@ class Monitoring {
                 const customChat = await getCustomChat(message.from, client.info.wid.user);
                 let chat;
                 if (customChat) {
-                    customChat.returned = true;
-                    await customChat.save();
                     const bodyResponse = {
                         chats_id: customChat.chats_id,
                         reg: customChat.reg,
                         cellphone: customChat.cellphone,
                         cellphoneserialized: customChat.cellphoneserialized,
                         chatnumber: customChat.chatnumber,
+                        returned: true,
+                        viewed: false,
                         response: message.body,
                     };
                     await Customchat_1.default.create(bodyResponse);

@@ -20,6 +20,17 @@ class CustomchatsController {
             error;
         }
     }
+    async viewedConfirm({ params, response }) {
+        try {
+            const data = await Customchat_1.default.query()
+                .where('chats_id', params.chats_id)
+                .update({ viewed: true });
+            return response.status(201).send(data);
+        }
+        catch (error) {
+            return error;
+        }
+    }
 }
 exports.default = CustomchatsController;
 //# sourceMappingURL=CustomchatsController.js.map

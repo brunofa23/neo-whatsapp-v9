@@ -306,8 +306,10 @@ export default class ShippingcampaignsController {
           'returned',
           'invalidresponse',
           'chatname',
-          'absoluteresp'
+          'absoluteresp',
+          Database.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed')
         )
+
         .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
         .whereBetween('chats.created_at', [initialdate, finaldate])
         //.where('shippingcampaigns.interaction_id', 2)
@@ -466,9 +468,7 @@ export default class ShippingcampaignsController {
 
   public async scheduleConfirmationDashboard({ request, response }: HttpContextContract) {
 
-
-    const { initialdate, finaldate, phonevalid, absoluteresp, interactions, messagesent, invalidresponse } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp', 'interactions', 'messagesent'])
-
+    const { initialdate, finaldate, phonevalid, absoluteresp, interactions, messagesent, invalidresponse, reg, name } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp', 'interactions', 'messagesent', 'reg', 'name'])
     let query = "1=1"
     if (phonevalid) {
       query += ` and phonevalid=${phonevalid}`
@@ -484,6 +484,12 @@ export default class ShippingcampaignsController {
 
     if (invalidresponse)
       query += ` and invalidresponse not in ('1','2', 'Sim', 'Não', 'confirmado', 'pode confirmar', '1sim', '10', 'cancelar', '2 cancelar') `
+
+    if (reg)
+      query += ` and  shippingcampaigns.reg=${reg}`
+
+    if (name)
+      query += ` and  shippingcampaigns.name like '%${name}%' `
 
     if (!DateTime.fromISO(initialdate).isValid || !DateTime.fromISO(finaldate).isValid) {
       throw new Error("Datas inválidas.")

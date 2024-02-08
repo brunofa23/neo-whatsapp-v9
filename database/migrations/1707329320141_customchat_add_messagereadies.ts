@@ -5,14 +5,16 @@ export default class extends BaseSchema {
 
   public async up() {
     this.schema.alterTable(this.tableName, (table) => {
-      table.boolean('messageready')
+      table.boolean('read')
+      table.boolean('viewed')
     })
   }
 
   public async down() {
     this.schema.alterTable(this.tableName, (table) => {
       // Reverter as alterações feitas no método "up"
-      table.dropColumn('messageready')
+      table.dropColumn('read')
+      table.boolean('viewed')
     })
   }
 }

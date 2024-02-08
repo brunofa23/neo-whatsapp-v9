@@ -71,7 +71,7 @@ export default class Monitoring {
             cellphoneserialized: customChat.cellphoneserialized,
             chatnumber: customChat.chatnumber,
             returned: true,
-
+            viewed: false,
             response: message.body,
           }
           await Customchat.create(bodyResponse)

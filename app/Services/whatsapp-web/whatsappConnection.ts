@@ -21,11 +21,13 @@ const qrcode = require('qrcode')
 
 
 async function startAgent(_agent: Agent) {
+  console.log("START AGENT 001")
   const agent = await Agent.findOrFail(_agent.id)
   if (!_agent) {
     console.log("CHATNAME INVÁLIDO - Verifique o .env Chatname está igual ao name tabela Agents")
     return
   }
+  console.log("START AGENT 002")
   const client = new Client({
     authStrategy: new LocalAuth({ clientId: _agent.id }),
     puppeteer: {
@@ -46,6 +48,7 @@ async function startAgent(_agent: Agent) {
   });
 
   client.initialize();
+
   client.on('loading_screen', (percent, message) => {
     console.log(`LOADING SCREEN: ${_agent.name}`, percent, message);
     agent.status = `Carregando: ${_agent.name} - ${percent} - ${message}`
@@ -106,11 +109,13 @@ async function startAgent(_agent: Agent) {
     const state = await client.getState()
     console.log("State:", state)
     console.log("INFO:", await client.info)
+
     await SendMessage(client, agent)
-    if (process.env.SELF_CONVERSATION?.toLocaleLowerCase() === "true") {
-      console.log("self_conversation", process.env.SELF_CONVERSATION)
-      await SendMessageInternal(client)
-    }
+    // if (process.env.SELF_CONVERSATION?.toLocaleLowerCase() === "true") {
+    //   console.log("self_conversation", process.env.SELF_CONVERSATION)
+    //   await SendMessageInternal(client)
+    // }
+
     agent.status = state
     agent.statusconnected = true
     agent.number_phone = client.info.wid.user

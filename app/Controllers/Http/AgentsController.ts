@@ -57,6 +57,8 @@ export default class AgentsController {
   }
   public async store({ request, response }: HttpContextContract) {
     const body = request.only(Agent.fillable)
+    body.interval_init_query = 1
+    body.interval_final_query = 1
     try {
       const data = await Agent.create(body)
       return response.status(201).send(data)
@@ -86,11 +88,11 @@ export default class AgentsController {
       let client
       if (agent) {
         if (agent.default_chat) {
-          console.log("Conectando Agente Default")
+          console.log(`Conectando Agente Default: ${agent.name}`)
           client = await startAgentChat(agent)
         }
         else {
-          console.log("Conectando Agente Comum")
+          console.log(`Conectando Agente Envio: ${agent.name} `)
           client = await startAgent(agent)
         }
       }

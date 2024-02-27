@@ -1,9 +1,6 @@
 import ShippingcampaignsController from 'App/Controllers/Http/ShippingcampaignsController';
-//import Agent from 'App/Models/Agent';
 import Chat from 'App/Models/Chat';
 import Customchat from 'App/Models/Customchat';
-//import Shippingcampaign from 'App/Models/Shippingcampaign';
-//import { Client, MessageMedia } from 'App/Services/whatsapp-web/SendMessage';
 import { Client, MessageMedia } from 'whatsapp-web.js';
 
 import { DateFormat, RandomResponse, stateTyping } from '../util'

@@ -68,26 +68,9 @@ async function startAgent(_agent: Agent) {
       agent.qrcode = url
       agent.save()
     });
-
-    // qrcode.toDataURL(qr, { small: true }, (err, url) => {
-    //   if (err) {
-    //     console.error('Ocorreu um erro ao gerar o URL de dados:', err);
-    //     return;
-    //   }
-    //   //console.log('URL de dados do código QR:', url);
-    //   agent.qrcode = url
-    //   agent.save()
-    // });
-
     qrcodeTerminal.generate(qr, { small: true });
-    //const folderPath = path.resolve(__dirname, "../../../");
-    //qrcodePath = path.join(folderPath, "/qrcode", `qrcode${agent.name}.png`)
-    //ClearFolder(qrcodePath)
-
   });
 
-
-  //console.log("passei no 1500 - startAgent")
   client.on('authenticated', async () => {
     console.log(`AUTHENTICATED ${agent.name}`);
     agent.status = 'Authentication'
@@ -104,17 +87,16 @@ async function startAgent(_agent: Agent) {
 
 
   client.on('ready', async () => {
-    //ClearFolder(qrcodePath)
     console.log(`READY...${agent.name}`);
     const state = await client.getState()
     console.log("State:", state)
     console.log("INFO:", await client.info)
 
     await SendMessage(client, agent)
-    // if (process.env.SELF_CONVERSATION?.toLocaleLowerCase() === "true") {
-    //   console.log("self_conversation", process.env.SELF_CONVERSATION)
-    //   await SendMessageInternal(client)
-    // }
+    if (process.env.SELF_CONVERSATION?.toLocaleLowerCase() === "true") {
+      console.log("self_conversation", process.env.SELF_CONVERSATION)
+      await SendMessageInternal(client)
+    }
 
     agent.status = state
     agent.statusconnected = true

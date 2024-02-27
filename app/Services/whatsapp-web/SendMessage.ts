@@ -87,95 +87,96 @@ export default async (client: Client, agent: Agent) => {
   }
 
 
-  let teste = false
   async function sendMessages() {
     console.log("PASSEI NO SEND MESSAGE 800")
-    const sendMessagesInterval = setInterval(async () => {
+    //  const sendMessagesInterval = setInterval(async () => {
 
-      console.log("PASSEI NO SEND MESSAGE 850")
-      const totMessageSend = await countLimitSendMessage()
-      const maxLimitSendAgent = await maxLimitSendMessageAgent(agent.id)
-      let verifyChat
-      if (totMessageSend >= maxLimitSendAgent) {
-        console.log(`LIMITE DIÁRIO ATINGIDO, Agent: ${agent.name} Enviados:${totMessageSend} - Limite Máximo:${maxLimitSendAgent}`)
+    console.log("PASSEI NO SEND MESSAGE 850")
+    const totMessageSend = await countLimitSendMessage()
+    const maxLimitSendAgent = await maxLimitSendMessageAgent(agent.id)
+    let verifyChat
+    if (totMessageSend >= maxLimitSendAgent) {
+      console.log(`LIMITE DIÁRIO ATINGIDO, Agent: ${agent.name} Enviados:${totMessageSend} - Limite Máximo:${maxLimitSendAgent}`)
+      return
+    }
+    if (await TimeSchedule() == false) {
+      return
+    }
+    await verifyContSend()
+    const shippingCampaign = await _shippingCampaignList()
+    console.log("PASSEI NO SEND MESSAGE 860")
+    if (shippingCampaign?.interaction_id) {
+      if (await totalInteractionSend(shippingCampaign?.interaction_id)) {
+        console.log("Limite de Interação atingida...")
         return
       }
-      if (await TimeSchedule() == false) {
-        return
-      }
-      await verifyContSend()
-      const shippingCampaign = await _shippingCampaignList()
-      console.log("PASSEI NO SEND MESSAGE 860")
-      if (shippingCampaign?.interaction_id) {
-        if (await totalInteractionSend(shippingCampaign?.interaction_id)) {
-          console.log("Limite de Interação atingida...")
-          return
-        }
-      }
+    }
 
-      console.log("PASSEI NO SEND MESSAGE 870")
-      if (shippingCampaign) {
-        console.log("PASSEI NO SEND MESSAGE 999")
-        if (global.contSend < 3) {
-          if (global.contSend < 0)
-            global.contSend = 0
-          try {
-            //verificar o numero
-            console.log("PASSEI NO SEND MESSAGE 1000")
-            const validationCellPhone = await verifyNumber(client, shippingCampaign?.cellphone)
-            //console.log(`VALIDAÇÃO DE TELEFONE DO PACIENTE:${shippingCampaign?.name}:`, validationCellPhone)
-            //console.log("VERIFICAI CHAT>>>>>>>", verifyChat)
-            if (validationCellPhone) {
-              console.log("PASSEI NO SEND MESSAGE 1545")
-              verifyChat = await Chat.query()
-                .where('interaction_id', shippingCampaign?.interaction_id)
-                .andWhere('interaction_seq', shippingCampaign?.interaction_seq)
-                .andWhere('shippingcampaigns_id', shippingCampaign?.id).first()
+    console.log("PASSEI NO SEND MESSAGE 870")
+    if (shippingCampaign) {
+      console.log("PASSEI NO SEND MESSAGE 999")
+      if (global.contSend < 3) {
+        if (global.contSend < 0)
+          global.contSend = 0
+        try {
+          //verificar o numero
+          console.log("PASSEI NO SEND MESSAGE 1000")
+          const validationCellPhone = await verifyNumber(client, shippingCampaign?.cellphone)
+          //console.log(`VALIDAÇÃO DE TELEFONE DO PACIENTE:${shippingCampaign?.name}:`, validationCellPhone)
+          //console.log("VERIFICAI CHAT>>>>>>>", verifyChat)
+          if (validationCellPhone) {
+            console.log("PASSEI NO SEND MESSAGE 1545")
+            verifyChat = await Chat.query()
+              .where('interaction_id', shippingCampaign?.interaction_id)
+              .andWhere('interaction_seq', shippingCampaign?.interaction_seq)
+              .andWhere('shippingcampaigns_id', shippingCampaign?.id).first()
 
-              if (verifyChat == undefined) {
-                await client.sendMessage(validationCellPhone, shippingCampaign.message)
-                  .then(async (response) => {
-                    global.contSend++
-                    shippingCampaign.messagesent = true
-                    shippingCampaign.phonevalid = true
-                    shippingCampaign.cellphoneserialized = validationCellPhone
-                    await shippingCampaign.save()
+            if (verifyChat == undefined) {
+              await client.sendMessage(validationCellPhone, shippingCampaign.message)
+                .then(async (response) => {
+                  global.contSend++
+                  shippingCampaign.messagesent = true
+                  shippingCampaign.phonevalid = true
+                  shippingCampaign.cellphoneserialized = validationCellPhone
+                  await shippingCampaign.save()
 
-                    const bodyChat = {
-                      interaction_id: shippingCampaign.interaction_id,
-                      interaction_seq: shippingCampaign.interaction_seq,
-                      idexternal: shippingCampaign.idexternal,
-                      reg: shippingCampaign.reg,
-                      name: shippingCampaign.name,
-                      cellphone: shippingCampaign.cellphone,
-                      cellphoneserialized: shippingCampaign.cellphoneserialized,
-                      message: shippingCampaign.message,
-                      shippingcampaigns_id: shippingCampaign.id,
-                      chatname: agent.name,
-                      chatnumber: client.info.wid.user
-                    }
-                    await Chat.create(bodyChat)
-                    console.log("Mensagem enviada:", shippingCampaign.name, "cellphone", shippingCampaign.cellphoneserialized, "agent", agent.name)
+                  const bodyChat = {
+                    interaction_id: shippingCampaign.interaction_id,
+                    interaction_seq: shippingCampaign.interaction_seq,
+                    idexternal: shippingCampaign.idexternal,
+                    reg: shippingCampaign.reg,
+                    name: shippingCampaign.name,
+                    cellphone: shippingCampaign.cellphone,
+                    cellphoneserialized: shippingCampaign.cellphoneserialized,
+                    message: shippingCampaign.message,
+                    shippingcampaigns_id: shippingCampaign.id,
+                    chatname: agent.name,
+                    chatnumber: client.info.wid.user
+                  }
+                  await Chat.create(bodyChat)
+                  console.log("Mensagem enviada:", shippingCampaign.name, "cellphone", shippingCampaign.cellphoneserialized, "agent", agent.name)
 
-                    if (agent.statusconnected == false)
-                      await Agent.query().where('id', agent.id).update({ statusconnected: true })
-                  }).catch(async (error) => {
-                    console.log("ERRO 1452:::", error)
-                  })
+                  if (agent.statusconnected == false)
+                    await Agent.query().where('id', agent.id).update({ statusconnected: true })
+                }).catch(async (error) => {
+                  console.log("ERRO 1452:::", error)
+                })
 
-              }
-
-            } else {//número é inválido
-              shippingCampaign.phonevalid = false
-              await shippingCampaign.save()
             }
-          }
-          catch (error) {
-            console.log("ERRO 1555555:::", error)
+
+          } else {//número é inválido
+            shippingCampaign.phonevalid = false
+            await shippingCampaign.save()
           }
         }
+        catch (error) {
+          console.log("ERRO 1555555:::", error)
+        }
       }
-    }, await GenerateRandomTime(startTimeSendMessage, endTimeSendMessage, '----Time Send Message'))
+    }
+    //}, await GenerateRandomTime(startTimeSendMessage, endTimeSendMessage, '----Time Send Message'))
+
+
     // setTimeout(() => {
     //   clearInterval(sendMessagesInterval)
     //   teste = true

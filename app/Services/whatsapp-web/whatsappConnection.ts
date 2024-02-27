@@ -1,6 +1,6 @@
 //import Application from '@ioc:Adonis/Core/Application'
 import Agent from 'App/Models/Agent';
-//import Config from 'App/Models/Config';
+import Config from 'App/Models/Config';
 import SendMessage from 'App/Services/whatsapp-web/SendMessage'
 import { logout, sendRepeatedMessage } from 'App/Services/whatsapp-web/SendRepeatedMessage';
 
@@ -21,13 +21,11 @@ const qrcode = require('qrcode')
 
 
 async function startAgent(_agent: Agent) {
-  console.log("START AGENT 001")
   const agent = await Agent.findOrFail(_agent.id)
   if (!_agent) {
     console.log("CHATNAME INVÁLIDO - Verifique o .env Chatname está igual ao name tabela Agents")
     return
   }
-  console.log("START AGENT 002")
   const client = new Client({
     authStrategy: new LocalAuth({ clientId: _agent.id }),
     puppeteer: {
@@ -84,20 +82,20 @@ async function startAgent(_agent: Agent) {
     console.error('AUTHENTICATION FAILURE', msg);
   });
 
-
-
   client.on('ready', async () => {
     console.log(`READY...${agent.name}`);
     const state = await client.getState()
     console.log("State:", state)
     console.log("INFO:", await client.info)
 
-    await SendMessage(client, agent)
+    // setInterval(() => {
+    //   SendMessage(client, agent)
+    // }, 10000)
+
     if (process.env.SELF_CONVERSATION?.toLocaleLowerCase() === "true") {
       console.log("self_conversation", process.env.SELF_CONVERSATION)
       await SendMessageInternal(client)
     }
-
     agent.status = state
     agent.statusconnected = true
     agent.number_phone = client.info.wid.user
@@ -106,9 +104,18 @@ async function startAgent(_agent: Agent) {
 
   });
 
-  //console.log("passei no 1510 - startAgent")
+
+  const startTimeSendMessage = agent.interval_init_message
+  const endTimeSendMessage = agent.interval_final_message
+  const sendMessage = setInterval(async () => {
+    const statusSendMessage = await Config.query().select('valuebool').where('id', 'statusSendMessage').first()
+    if (statusSendMessage?.$original.valuebool === 1) {
+      SendMessage(client, agent)
+    }
+  }, await GenerateRandomTime(startTimeSendMessage, endTimeSendMessage, '----Time Send Message'))
+
+
   if (process.env.SERVER === 'true') {
-    //console.log("chamei send repeated")
     await sendRepeatedMessage(agent)
   }
 

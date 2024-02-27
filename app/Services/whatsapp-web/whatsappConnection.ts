@@ -92,10 +92,10 @@ async function startAgent(_agent: Agent) {
     //   SendMessage(client, agent)
     // }, 10000)
 
-    if (process.env.SELF_CONVERSATION?.toLocaleLowerCase() === "true") {
-      console.log("self_conversation", process.env.SELF_CONVERSATION)
-      await SendMessageInternal(client)
-    }
+    // if (process.env.SELF_CONVERSATION?.toLocaleLowerCase() === "true") {
+    //   console.log("self_conversation", process.env.SELF_CONVERSATION)
+    //   await SendMessageInternal(client)
+    // }
     agent.status = state
     agent.statusconnected = true
     agent.number_phone = client.info.wid.user
@@ -115,40 +115,57 @@ async function startAgent(_agent: Agent) {
   }, await GenerateRandomTime(startTimeSendMessage, endTimeSendMessage, '----Time Send Message'))
 
 
-  if (process.env.SERVER === 'true') {
-    await sendRepeatedMessage(agent)
-  }
+  const sendMessageInternal = setInterval(async () => {
+    const statusSendMessage = await Config.query().select('valuebool').where('id', 'statusSendMessage').first()
 
-  const chatMonitoring = new ChatMonitoring
-  await chatMonitoring.monitoring(client, agent)
-
-  if (process.env.SELF_CONVERSATION?.toLowerCase() === "true") {
-    const chatMonitoringInternal = new ChatMonitoringInternal
-    await chatMonitoringInternal.monitoring(client)
-  }
+    //colocar aqui para verificar tempo da variável foi zerada, se passar de 10 minutos ela volta para 1
+    colocar aqui.................
 
 
-
-  //************************************************ */
-  client.on('disconnected', async (reason) => {
-    agent.status = 'Disconnected'
-    agent.statusconnected = false
-    await agent.save()
-    console.log("EXECUTANDO DISCONECT")
-    console.log("REASON>>>", reason)
-
-
-  });
+    if(statusSendMessage?.$original.valuebool === 1) {
+    if(process.env.SELF_CONVERSATION?.toLocaleLowerCase() === "true") {
+      console.log("self_conversation", process.env.SELF_CONVERSATION)
+  await SendMessageInternal(client)
+}
+    }
+  }, 25000)
 
 
-  let rejectCalls = true;
-  client.on('call', async (call) => {
-    console.log('Call received, rejecting. GOTO Line 261 to disable', call);
-    if (rejectCalls) await call.reject();
-    await client.sendMessage(call.from, `[${call.fromMe ? 'Outgoing' : 'Incoming'}] Olá tudo Bem? Sou uma atendente virtual e por isso não consigo receber chamadas. Desculpe!!☺️`);
-  });
 
-  return client
+if (process.env.SERVER === 'true') {
+  await sendRepeatedMessage(agent)
+}
+
+const chatMonitoring = new ChatMonitoring
+await chatMonitoring.monitoring(client, agent)
+
+if (process.env.SELF_CONVERSATION?.toLowerCase() === "true") {
+  const chatMonitoringInternal = new ChatMonitoringInternal
+  await chatMonitoringInternal.monitoring(client)
+}
+
+
+
+//************************************************ */
+client.on('disconnected', async (reason) => {
+  agent.status = 'Disconnected'
+  agent.statusconnected = false
+  await agent.save()
+  console.log("EXECUTANDO DISCONECT")
+  console.log("REASON>>>", reason)
+
+
+});
+
+
+let rejectCalls = true;
+client.on('call', async (call) => {
+  console.log('Call received, rejecting. GOTO Line 261 to disable', call);
+  if (rejectCalls) await call.reject();
+  await client.sendMessage(call.from, `[${call.fromMe ? 'Outgoing' : 'Incoming'}] Olá tudo Bem? Sou uma atendente virtual e por isso não consigo receber chamadas. Desculpe!!☺️`);
+});
+
+return client
 
 }
 

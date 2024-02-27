@@ -176,25 +176,15 @@ export default async (client: Client, agent: Agent) => {
         }
       }
     }, await GenerateRandomTime(startTimeSendMessage, endTimeSendMessage, '----Time Send Message'))
-
-
-    setTimeout(() => {
-      clearInterval(sendMessagesInterval)
-      teste = true
-      console.log("set interval parado - 5444")
-
-
-      setTimeout(() => {
-        sendMessages()
-        console.log("INICIADO - 444")
-      }, 10000)
-
-
-    }, 10000)
-
-
-
-
+    // setTimeout(() => {
+    //   clearInterval(sendMessagesInterval)
+    //   teste = true
+    //   console.log("set interval parado - 5444")
+    //   setTimeout(() => {
+    //     sendMessages()
+    //     console.log("INICIADO - 444")
+    //   }, 10000)
+    // }, 10000)
 
   }
 

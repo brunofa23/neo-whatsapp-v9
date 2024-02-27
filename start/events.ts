@@ -12,12 +12,9 @@ async function connectionAll() {
 
   try {
     console.log("connection all acionado...")
-
-    await Agent.query().update({ qrcode: null })
-
+    await Agent.query().update({ statusconnected: false, qrcode: null })
     const agents = await Agent.query()
       .where('active', true)
-
     for (const agent of agents) {
       if (agent) {
         if (agent.default_chat) {

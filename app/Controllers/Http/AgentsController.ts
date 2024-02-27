@@ -83,7 +83,7 @@ export default class AgentsController {
     try {
       await Agent.query()
         .where('id', params.id)
-        .update({ statusconnected: false })
+        .update({ statusconnected: false, qrcode: null })
       const agent = await Agent.query().where('id', params.id).first()
       let client
       if (agent) {
@@ -98,6 +98,29 @@ export default class AgentsController {
       }
       return response.status(201).send('Connected', client)
 
+    } catch (error) {
+      error
+    }
+  }
+
+  public async connectionAll({ params, request, response }: HttpContextContract) {
+    try {
+      console.log("connection all acionado...")
+      await Agent.query().update({ statusconnected: false, qrcode: null })
+      const agents = await Agent.query()
+        .where('active', true)
+      for (const agent of agents) {
+        if (agent) {
+          if (agent.default_chat) {
+            console.log(`Conectando Agente Default: ${agent.name} `)
+            await startAgentChat(agent)
+          }
+          else {
+            console.log(`Conectando Agente Envio: ${agent.name} `)
+            await startAgent(agent)
+          }
+        }
+      }
     } catch (error) {
       error
     }

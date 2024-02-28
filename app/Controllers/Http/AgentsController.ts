@@ -5,12 +5,9 @@ import Chat from 'App/Models/Chat'
 import { DateFormat } from '../../Services/whatsapp-web/util'
 import { DateTime } from 'luxon'
 import { startAgentChat } from "../../Services/whatsapp-web/whatsapp"
-import { Client } from 'whatsapp-web.js'
-import { Application } from '@adonisjs/core/build/standalone'
+import Config from 'App/Models/Config'
 
 const fs = require('fs');
-
-
 
 
 export default class AgentsController {
@@ -57,6 +54,8 @@ export default class AgentsController {
   }
   public async store({ request, response }: HttpContextContract) {
     const body = request.only(Agent.fillable)
+    body.interval_init_query = 1
+    body.interval_final_query = 1
     try {
       const data = await Agent.create(body)
       return response.status(201).send(data)
@@ -79,23 +78,54 @@ export default class AgentsController {
 
   public async connection({ params, request, response }: HttpContextContract) {
     try {
+
+      const valuedatetime = DateTime.local().toFormat('yyyy-MM-dd HH:mm:ss')
+      await Config.query().where('id', 'statusSendMessage').update({ valuedatetime: valuedatetime })
+
       await Agent.query()
         .where('id', params.id)
-        .update({ statusconnected: false })
+        .update({ statusconnected: false, qrcode: null })
       const agent = await Agent.query().where('id', params.id).first()
       let client
       if (agent) {
         if (agent.default_chat) {
-          console.log("Conectando Agente Default")
+          console.log(`Conectando Agente Default: ${agent.name}`)
           client = await startAgentChat(agent)
         }
         else {
-          console.log("Conectando Agente Comum")
+          console.log(`Conectando Agente Envio: ${agent.name} `)
           client = await startAgent(agent)
         }
       }
       return response.status(201).send('Connected', client)
 
+    } catch (error) {
+      error
+    }
+  }
+
+  public async connectionAll({ params, request, response }: HttpContextContract) {
+    try {
+      console.log("connection all acionado...")
+
+      const valuedatetime = DateTime.local().toFormat('yyyy-MM-dd HH:mm:ss')
+      await Config.query().where('id', 'statusSendMessage').update({ valuedatetime: valuedatetime })
+
+      await Agent.query().update({ statusconnected: false, qrcode: null })
+      const agents = await Agent.query()
+        .where('active', true)
+      for (const agent of agents) {
+        if (agent) {
+          if (agent.default_chat) {
+            console.log(`Conectando Agente Default: ${agent.name} `)
+            await startAgentChat(agent)
+          }
+          else {
+            console.log(`Conectando Agente Envio: ${agent.name} `)
+            await startAgent(agent)
+          }
+        }
+      }
     } catch (error) {
       error
     }

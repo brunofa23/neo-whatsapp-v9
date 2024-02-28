@@ -7,22 +7,22 @@ import { DateTime } from 'luxon';
 import { DateFormat, GenerateRandomTime, TimeSchedule } from '../app/Services/whatsapp-web/util'
 import { startAgentChat } from "../app/Services/whatsapp-web/whatsapp"
 import { startAgent } from "../app/Services/whatsapp-web/whatsappConnection"
-
+import Agent from "App/Models/Agent";
 async function connectionAll() {
 
   try {
     console.log("connection all acionado...")
+    await Agent.query().update({ statusconnected: false, qrcode: null })
     const agents = await Agent.query()
       .where('active', true)
-
     for (const agent of agents) {
       if (agent) {
         if (agent.default_chat) {
-          console.log("Conectando Agente Default")
+          console.log(`Conectando Agente Default: ${agent.name} `)
           await startAgentChat(agent)
         }
         else {
-          console.log("Conectando Agente Comum")
+          console.log(`Conectando Agente Envio: ${agent.name} `)
           await startAgent(agent)
         }
       }

@@ -5,12 +5,9 @@ import Chat from 'App/Models/Chat'
 import { DateFormat } from '../../Services/whatsapp-web/util'
 import { DateTime } from 'luxon'
 import { startAgentChat } from "../../Services/whatsapp-web/whatsapp"
-import { Client } from 'whatsapp-web.js'
-import { Application } from '@adonisjs/core/build/standalone'
+import Config from 'App/Models/Config'
 
 const fs = require('fs');
-
-
 
 
 export default class AgentsController {
@@ -81,6 +78,10 @@ export default class AgentsController {
 
   public async connection({ params, request, response }: HttpContextContract) {
     try {
+
+      const valuedatetime = DateTime.local().toFormat('yyyy-MM-dd HH:mm:ss')
+      await Config.query().where('id', 'statusSendMessage').update({ valuedatetime: valuedatetime })
+
       await Agent.query()
         .where('id', params.id)
         .update({ statusconnected: false, qrcode: null })
@@ -106,6 +107,10 @@ export default class AgentsController {
   public async connectionAll({ params, request, response }: HttpContextContract) {
     try {
       console.log("connection all acionado...")
+
+      const valuedatetime = DateTime.local().toFormat('yyyy-MM-dd HH:mm:ss')
+      await Config.query().where('id', 'statusSendMessage').update({ valuedatetime: valuedatetime })
+
       await Agent.query().update({ statusconnected: false, qrcode: null })
       const agents = await Agent.query()
         .where('active', true)

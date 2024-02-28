@@ -16,13 +16,19 @@ export default class ConfigsController {
     }
 
   }
-  public async store({ request, response }: HttpContextContract) {
 
+
+  public async show({ auth, params, response }: HttpContextContract) {
+    //const authenticate = await auth.use('api').authenticate()
+    const data = await Config.query().where('id', params.id).first()
+    return response.status(200).send(data)
   }
+
+
 
   public async update({ params, request, response }: HttpContextContract) {
     const body = request.only(Config.fillable)
-    body.valuedatetime = DateTime.local().toFormat('yyyy-MM-dd HH:mm:ss')
+    //body.valuedatetime = DateTime.local().toFormat('yyyy-MM-dd HH:mm:ss')
     try {
       const data = await Config.query().where('id', params.id)
         .update(body)

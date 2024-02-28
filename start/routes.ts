@@ -1,11 +1,12 @@
 import Route from '@ioc:Adonis/Core/Route'
+import Chat from 'App/Models/Chat';
 import Shippingcampaign from 'App/Models/Shippingcampaign';
 import PersistShippingcampaign from "App/Services/whatsapp-web/PersistShippingcampaign"
+
 //import { connectionAll, resetStatusConnected, sendRepeatedMessage } from "../app/Services/whatsapp-web/util"
 import { connectionAll, sendRepeatedMessage, resetStatusConnected } from './events'
-import Chat from 'App/Models/Chat';
 
-console.log("***CHAT BOT V-98***08/02/2024")
+console.log("***CHAT BOT V-104***28/02/2024")
 resetStatusConnected()
 
 function operacaoAssincrona(callback) {
@@ -78,6 +79,9 @@ Route.group(() => {
   Route.post("/customchat/sendmessage", "CustomchatsController.sendMessage")
   Route.get("/customchat/:id", "CustomchatsController.show")
   Route.post("/customchat/viewedconfirm/:chats_id", "CustomchatsController.viewedConfirm")
+
+  //CONFIG
+  Route.resource("/config", "ConfigsController").apiOnly()
 
 
   Route.get("/smart", "DatasourcesController.scheduledPatients")

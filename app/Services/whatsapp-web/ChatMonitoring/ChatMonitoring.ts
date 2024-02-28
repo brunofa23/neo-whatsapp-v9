@@ -1,9 +1,6 @@
 import ShippingcampaignsController from 'App/Controllers/Http/ShippingcampaignsController';
-//import Agent from 'App/Models/Agent';
 import Chat from 'App/Models/Chat';
 import Customchat from 'App/Models/Customchat';
-//import Shippingcampaign from 'App/Models/Shippingcampaign';
-//import { Client, MessageMedia } from 'App/Services/whatsapp-web/SendMessage';
 import { Client, MessageMedia } from 'whatsapp-web.js';
 
 import { DateFormat, RandomResponse, stateTyping } from '../util'
@@ -33,10 +30,13 @@ async function getCustomChat(cellphone: String, chatnumber: String) {
   return customChat
 
 }
-async function getChat(cellphone: String) {
+async function getChat(cellphone: String, agentPhone: String) {
+  const phoneAgent = agentPhone.match(/\d/g).join("");
+
   return await Chat.query()
     .preload('shippingcampaign')
     .where('cellphoneserialized', cellphone)
+    .andWhere('chatnumber', phoneAgent)
     //.andWhere('returned', false).first()
     .whereNull('response').first()
 }
@@ -78,7 +78,7 @@ export default class Monitoring {
           //chamar gravação
           return
         } else {
-          chat = await getChat(message.from)
+          chat = await getChat(message.from, message.to)
         }
 
         if (chat && chat.returned == false) {

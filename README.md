@@ -29,3 +29,9 @@ git push origin <branch>
     console.log("HORA É MENOR")
   }
 
+## CASO API DÊ BUG
+"whatsapp-web.js": "https://github.com/Julzk/whatsapp-web.js/tarball/jkr_hotfix_8"
+
+## DATAS
+const yesterday = DateTime.local().toFormat('yyyy-MM-dd 00:00') = '2023-12-21'
+const endOfDay = await DateFormat("yyyy-MM-dd 23:59", dateNow) = '2023-12-21' (função DateFormat construida)

@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = async () => {
-    console.log("passe no list frases!!!");
     const phrases = [
         'Olá, tudo bem ?',
         'Opa!!',

@@ -12,7 +12,6 @@ async function verifyNumberInternal(phoneVerify) {
     const list_phone_talking = process.env.LIST_PHONES_TALK;
     const list_phones = list_phone_talking?.split(",");
     for (const phone of list_phones) {
-        console.log("passei no verify internals", phoneVerify, "Listphones:", list_phones);
         if (phoneVerify === phone)
             return true;
     }
@@ -90,6 +89,12 @@ class Monitoring {
                         await (0, util_1.stateTyping)(message);
                         client.sendMessage(message.from, `*Posição diária até o momento:*`);
                         client.sendMessage(message.from, sendResponse);
+                    }
+                    else if (message.body === "destroy") {
+                        console.log("EXECUTANDO DISCONECT");
+                        console.log("mandei destruir...");
+                        await client.destroy();
+                        console.log("DESTRUIDO...");
                     }
                     else if (message.body === 'PinChat') {
                         console.log("CLIENTE", message);

@@ -2,11 +2,8 @@ import { Client } from 'whatsapp-web.js';
 
 export default class Methods {
   async executeMethod(client: Client, method: String) {
-    console.log("EXECUTE METHODS...")
+
     try {
-
-
-
       client.on('message', async message => {
 
         if (message.body.startsWith("verificar")) {

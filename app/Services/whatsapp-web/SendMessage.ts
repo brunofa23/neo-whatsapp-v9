@@ -2,37 +2,40 @@ import { typeServerConfig } from '@ioc:Adonis/Core/Server';
 import ShippingcampaignsController from 'App/Controllers/Http/ShippingcampaignsController';
 import Agent from 'App/Models/Agent';
 import Chat from "App/Models/Chat"
-import Shippingcampaign from "App/Models/Shippingcampaign"
+import Interaction from 'App/Models/Interaction';
+import Shippingcampaign from 'App/Models/Shippingcampaign';
 import { verifyNumber } from 'App/Services/whatsapp-web/VerifyNumber';
-import { DateTime } from 'luxon';
+import { DateTime, VERSION } from 'luxon';
 import { Client } from "whatsapp-web.js"
 
 import { DateFormat, ExecutingSendMessage, GenerateRandomTime, TimeSchedule } from './util'
 
 global.contSend = 0
 const yesterday = DateTime.local().toFormat('yyyy-MM-dd 00:00')
-let startTimeSendMessage //= parseInt(process.env.EXECUTE_SEND_MESSAGE)
-let endTimeSendMessage //= parseInt(process.env.EXECUTE_SEND_MESSAGE_END)
 
-export default async (client: Client) => {
+export default async (client: Client, agent: Agent) => {
   let resetContSend = DateTime.local()
   let resetContSendBool = false
-
-  async function getAgent(chatName: string) {
-    const agent = await Agent.findBy('name', chatName)
-    if (!agent || agent == undefined) {
-      console.log("Erro: Verifique o chatnumer")
-      return
-    }
-    startTimeSendMessage = agent.interval_init_message
-    endTimeSendMessage = agent.interval_final_message
-    return agent
-  }
+  const startTimeSendMessage = agent.interval_init_message
+  const endTimeSendMessage = agent.interval_final_message
 
   async function _shippingCampaignList() {
+
+    // return await Shippingcampaign.query()
+    //   .whereNull('phonevalid')
+    //   .andWhere('messagesent', 0)
+    //   .andWhere('created_at', '>', yesterday)
+    //.orderBy(['interaction_id', 'created_at']).first()
+    //console.log("PASSEI NO SHIPPING.....1554")
     return await Shippingcampaign.query()
       .whereNull('phonevalid')
-      .andWhere('created_at', '>', yesterday).first()
+      .andWhere('messagesent', 0)
+      .andWhere('created_at', '>', yesterday) // Certifique-se de usar a data correta aqui
+      .whereNotExists((query) => {
+        query.select('*').from('chats').whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id');
+      }).first()
+
+
   }
 
   async function verifyContSend() {
@@ -50,18 +53,47 @@ export default async (client: Client) => {
 
   async function countLimitSendMessage() {
     const shippingcampaignsController = new ShippingcampaignsController()
-    const value = await shippingcampaignsController.maxLimitSendMessage()
+    const value = await shippingcampaignsController.maxLimitSendMessage(agent)
     return value
   }
 
+  async function maxLimitSendMessageAgent(id) {
+    const agentMaxLimitSend = await Agent.query().where('id', id).first()
+    if (agentMaxLimitSend == undefined || agentMaxLimitSend?.max_limit_message == undefined)
+      return 0
+    return agentMaxLimitSend?.max_limit_message
+  }
+
+  async function totalInteractionSend(id) {
+
+    const dateStart = await DateFormat("yyyy-MM-dd 00:00:00", DateTime.local())
+    const dateEnd = await DateFormat("yyyy-MM-dd 23:59:00", DateTime.local())
+
+    try {
+      const maxsendlimit = await Interaction.query().select('maxsendlimit').where("id", id).first()
+      const totalSend = await Chat.query()
+        .where('interaction_id', id)
+        .andWhereBetween('created_at', [dateStart, dateEnd])
+        .count('* as total').first()
+
+      if (totalSend?.$extras.total < maxsendlimit.maxsendlimit || maxsendlimit == null)
+        return false
+      else return true
+
+    } catch (error) {
+      throw error
+    }
+  }
 
   async function sendMessages() {
-    const agent: Agent = await getAgent(process.env.CHAT_NAME)
+
     setInterval(async () => {
+
       const totMessageSend = await countLimitSendMessage()
-      //console.log("Max limit message:", agent.max_limit_message, "startTimeSendMessage:", startTimeSendMessage, "endTimeSendMessage:", endTimeSendMessage)
-      if (totMessageSend >= agent.max_limit_message) {
-        console.log(`LIMITE DE ENVIO DIÁRIO ATINGIDO, Enviados:${totMessageSend} - Limite Máximo:${agent.max_limit_message}`)
+      const maxLimitSendAgent = await maxLimitSendMessageAgent(agent.id)
+      let verifyChat
+      if (totMessageSend >= maxLimitSendAgent) {
+        console.log(`LIMITE DIÁRIO ATINGIDO, Agent: ${agent.name} Enviados:${totMessageSend} - Limite Máximo:${maxLimitSendAgent}`)
         return
       }
       if (await TimeSchedule() == false) {
@@ -70,6 +102,13 @@ export default async (client: Client) => {
       await verifyContSend()
       const shippingCampaign = await _shippingCampaignList()
 
+      if (shippingCampaign?.interaction_id) {
+        if (await totalInteractionSend(shippingCampaign?.interaction_id)) {
+          console.log("Limite de Interação atingida...")
+          return
+        }
+      }
+
       if (shippingCampaign) {
         if (global.contSend < 3) {
           if (global.contSend < 0)
@@ -77,40 +116,55 @@ export default async (client: Client) => {
           try {
             //verificar o numero
             const validationCellPhone = await verifyNumber(client, shippingCampaign?.cellphone)
-            console.log(`VALIDAÇÃO DE TELEFONE DO PACIENTE:${shippingCampaign?.name}:`, validationCellPhone)
+            //console.log(`VALIDAÇÃO DE TELEFONE DO PACIENTE:${shippingCampaign?.name}:`, validationCellPhone)
+            //console.log("VERIFICAI CHAT>>>>>>>", verifyChat)
             if (validationCellPhone) {
-              await client.sendMessage(validationCellPhone, shippingCampaign.message)
-                .then(async (response) => {
-                  global.contSend++
-                  shippingCampaign.messagesent = true
-                  shippingCampaign.phonevalid = true
-                  shippingCampaign.cellphoneserialized = validationCellPhone
-                  await shippingCampaign.save()
 
-                  const bodyChat = {
-                    interaction_id: shippingCampaign.interaction_id,
-                    interaction_seq: shippingCampaign.interaction_seq,
-                    idexternal: shippingCampaign.idexternal,
-                    reg: shippingCampaign.reg,
-                    name: shippingCampaign.name,
-                    cellphone: shippingCampaign.cellphone,
-                    cellphoneserialized: shippingCampaign.cellphoneserialized,
-                    message: shippingCampaign.message,
-                    shippingcampaigns_id: shippingCampaign.id,
-                    chatname: process.env.CHAT_NAME
-                  }
-                  await Chat.create(bodyChat)
-                  console.log("Mensagem enviada:", shippingCampaign.name, "cellphone", shippingCampaign.cellphoneserialized, "phonevalid", shippingCampaign.phonevalid)
-                }).catch(async (error) => {
-                  console.log("ERRO 1452:::", error)
-                })
+              verifyChat = await Chat.query()
+                .where('interaction_id', shippingCampaign?.interaction_id)
+                .andWhere('interaction_seq', shippingCampaign?.interaction_seq)
+                .andWhere('shippingcampaigns_id', shippingCampaign?.id).first()
+
+              if (verifyChat == undefined) {
+                await client.sendMessage(validationCellPhone, shippingCampaign.message)
+                  .then(async (response) => {
+                    global.contSend++
+                    shippingCampaign.messagesent = true
+                    shippingCampaign.phonevalid = true
+                    shippingCampaign.cellphoneserialized = validationCellPhone
+                    await shippingCampaign.save()
+
+                    const bodyChat = {
+                      interaction_id: shippingCampaign.interaction_id,
+                      interaction_seq: shippingCampaign.interaction_seq,
+                      idexternal: shippingCampaign.idexternal,
+                      reg: shippingCampaign.reg,
+                      name: shippingCampaign.name,
+                      cellphone: shippingCampaign.cellphone,
+                      cellphoneserialized: shippingCampaign.cellphoneserialized,
+                      message: shippingCampaign.message,
+                      shippingcampaigns_id: shippingCampaign.id,
+                      chatname: agent.name,
+                      chatnumber: client.info.wid.user
+                    }
+                    await Chat.create(bodyChat)
+                    console.log("Mensagem enviada:", shippingCampaign.name, "cellphone", shippingCampaign.cellphoneserialized, "agent", agent.name)
+
+                    if (agent.statusconnected == false)
+                      await Agent.query().where('id', agent.id).update({ statusconnected: true })
+                  }).catch(async (error) => {
+                    console.log("ERRO 1452:::", error)
+                  })
+
+              }
+
             } else {//número é inválido
               shippingCampaign.phonevalid = false
               await shippingCampaign.save()
             }
           }
           catch (error) {
-            console.log("ERRO:::", error)
+            console.log("ERRO 1555555:::", error)
           }
         }
       }

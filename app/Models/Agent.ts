@@ -1,7 +1,6 @@
+import Env from '@ioc:Adonis/Core/Env'
 import { BaseModel, column } from '@ioc:Adonis/Lucid/Orm'
 import { DateTime } from 'luxon'
-
-import Env from '@ioc:Adonis/Core/Env'
 
 export default class Agent extends BaseModel {
 
@@ -10,6 +9,28 @@ export default class Agent extends BaseModel {
     //return 'mysql';
     return Env.get('DB_CONNECTION_MAIN')
   }
+
+
+  public static get fillable() {
+    return [
+      'id',
+      'name',
+      'number_phone',
+      'interval_init_query',
+      'interval_final_query',
+      'interval_init_message',
+      'interval_final_message',
+      'max_limit_message',
+      'status',
+      'active',
+      'qrcode',
+      'statusconnected',
+      'default_chat',
+      'createdAt',
+      'updatedAt',
+    ]
+  }
+
 
 
   @column({ isPrimary: true })
@@ -41,6 +62,15 @@ export default class Agent extends BaseModel {
 
   @column()
   public active: boolean
+
+  @column()
+  public qrcode: string
+
+  @column()
+  public statusconnected: boolean
+
+  @column()
+  public default_chat: boolean
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime

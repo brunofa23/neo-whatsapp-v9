@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 class Methods {
     async executeMethod(client, method) {
-        console.log("EXECUTE METHODS...");
         try {
             client.on('message', async (message) => {
                 if (message.body.startsWith("verificar")) {

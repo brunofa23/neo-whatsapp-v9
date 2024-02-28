@@ -1,4 +1,5 @@
 import { typeInferListFromConfig } from '@adonisjs/core/build/config';
+
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Shippingcampaign from 'App/Models/Shippingcampaign'
 import { executeWhatsapp } from '../../Services/whatsapp-web/whatsapp'
@@ -9,6 +10,7 @@ import Env from '@ioc:Adonis/Core/Env'
 import { DateFormat, InvalidResponse } from '../../Services/whatsapp-web/util'
 import { DateTime } from 'luxon'
 import { Response } from '@adonisjs/core/build/standalone'
+import Agent from 'App/Models/Agent';
 
 export default class ShippingcampaignsController {
 
@@ -50,15 +52,16 @@ export default class ShippingcampaignsController {
     }
   }
 
-
-  public async maxLimitSendMessage() {
+  public async maxLimitSendMessage(agent: Agent) {
     const dateStart = await DateFormat("yyyy-MM-dd 00:00:00", DateTime.local())
     const dateEnd = await DateFormat("yyyy-MM-dd 23:59:00", DateTime.local())
-    const chatName = process.env.CHAT_NAME
+    const chatName = agent.name
     const countMessage = await Chat.query()
       .countDistinct('shippingcampaigns_id as tot')
-      .where('chatname', String(chatName))
+      .where('chatname', chatName)
       .whereBetween('created_at', [dateStart, dateEnd]).first()
+
+    //console.log("PASSEI LIMITE DE ENVIO NA CONTROLLER 1516", countMessage)
     if (!countMessage || countMessage == undefined || countMessage == null)
       return 0
     return parseInt(countMessage.$extras.tot)
@@ -264,12 +267,19 @@ export default class ShippingcampaignsController {
   }
 
   public async serviceEvaluationDashboard({ request, response }: HttpContextContract) {
+    const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp', 'interactions', 'returned', 'reg', 'name'])
 
-
-
-    const { initialdate, finaldate, phonevalid, absoluteresp, interactions } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp', 'interactions'])
-
+    //console.log("NAME", name, "reg", reg)
     let query = "1=1"
+    if (returned)//clientes que enviaram mensagem dentro do sistema
+      query += ` and chats.id in (select chats_id from customchats) `
+
+    if (reg)
+      query += ` and shippingcampaigns.reg=${reg} `
+
+    if (name)
+      query += ` and shippingcampaigns.name like '%${name}%' `
+
     if (phonevalid && phonevalid !== undefined) {
       query += ` and phonevalid=${phonevalid == 1 ? 1 : 0}`
     }
@@ -297,6 +307,7 @@ export default class ShippingcampaignsController {
           'shippingcampaigns.reg',
           'shippingcampaigns.name',
           'shippingcampaigns.cellphone',
+          'chats.id',
           'otherfields',
           'phonevalid',
           'messagesent',
@@ -305,14 +316,16 @@ export default class ShippingcampaignsController {
           'returned',
           'invalidresponse',
           'chatname',
-          'absoluteresp'
+          'absoluteresp',
+          Database.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed')
         )
+
         .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
         .whereBetween('chats.created_at', [initialdate, finaldate])
-        .where('shippingcampaigns.interaction_id', 2)
+        //.where('shippingcampaigns.interaction_id', 2)
+        .where('chats.interaction_id', 2)
         .whereRaw(query)
-
-
+      //console.log(result)
 
       //console.log("result", result)
       const resultAcumulated = await Chat.query()
@@ -457,6 +470,65 @@ export default class ShippingcampaignsController {
       }));
 
       return response.status(201).send({ result, resultAcumulatedList, resultByStation, resultByMedic, resultByAttendant, npsResult })
+    } catch (error) {
+      throw new Error(error)
+    }
+
+  }
+
+  public async scheduleConfirmationDashboard({ request, response }: HttpContextContract) {
+
+    const { initialdate, finaldate, phonevalid, absoluteresp, interactions, messagesent, invalidresponse, reg, name } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp', 'interactions', 'messagesent', 'reg', 'name'])
+    let query = "1=1"
+    if (phonevalid) {
+      query += ` and phonevalid=${phonevalid}`
+    }
+    if (messagesent) {
+      query += ` and messagesent=${messagesent} and chats.interaction_seq not in (2)`
+    }
+    if (interactions)
+      query += ` and response is not null `
+
+    if (absoluteresp)
+      query += ` and absoluteresp=${absoluteresp} and externalstatus='B' `
+
+    if (invalidresponse)
+      query += ` and invalidresponse not in ('1','2', 'Sim', 'Não', 'confirmado', 'pode confirmar', '1sim', '10', 'cancelar', '2 cancelar') `
+
+    if (reg)
+      query += ` and  shippingcampaigns.reg=${reg}`
+
+    if (name)
+      query += ` and  shippingcampaigns.name like '%${name}%' `
+
+    if (!DateTime.fromISO(initialdate).isValid || !DateTime.fromISO(finaldate).isValid) {
+      throw new Error("Datas inválidas.")
+    }
+    try {
+      const result = await Database.connection(Env.get('DB_CONNECTION_MAIN')).query()
+        .from('shippingcampaigns')
+        .select(
+          'shippingcampaigns.interaction_id',
+          'shippingcampaigns.reg',
+          'shippingcampaigns.name',
+          'shippingcampaigns.dateshedule',
+          'shippingcampaigns.cellphone',
+          'otherfields',
+          'phonevalid',
+          'messagesent',
+          'chats.created_at',
+          'response',
+          'returned',
+          'invalidresponse',
+          'chatname',
+          'absoluteresp'
+        )
+        .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
+        .whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
+        .where('shippingcampaigns.interaction_id', 1)
+        .whereRaw(query)
+
+      return response.status(201).send(result)
     } catch (error) {
       throw new Error(error)
     }

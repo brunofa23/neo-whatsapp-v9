@@ -1,7 +1,11 @@
+import Agent from 'App/Models/Agent';
 import { DateTime } from 'luxon';
 import { Message } from 'whatsapp-web.js';
 
+import { startAgent } from "../../Services/whatsapp-web/whatsappConnection"
+
 const fs = require('fs')
+
 
 async function stateTyping(message: Message) {
   //console.log("passei pelo STATETYPING...")
@@ -31,7 +35,7 @@ async function GenerateRandomTime(min: number, max: number, method: String = "")
 }
 
 async function TimeSchedule() {
-  const timeSchedule = (DateTime.local().hour > 5 && DateTime.local().hour < 20) ? true : false
+  const timeSchedule = (DateTime.local().hour > 5 && DateTime.local().hour < 21) ? true : false
   const message = !timeSchedule ? `Fora do Horario de Envio 7 às 19:${DateTime.local()}` : undefined
   if (message) console.log(message)
   return timeSchedule
@@ -105,5 +109,16 @@ async function ValidatePhone(cellphone) {
   return regexTelefoneCelular.test(cellphone);
 }
 
+async function validAgent(agent) {
+  console.log("Rodando valid agent...")
+  await Agent.query()
+    .where('id', agent.id)
+    .update({ statusconnected: false })
+}
 
-module.exports = { stateTyping, DateFormat, GenerateRandomTime, TimeSchedule, PositiveResponse, NegativeResponse, ClearFolder, ValidatePhone, RandomResponse, InvalidResponse }
+
+
+
+
+
+module.exports = { stateTyping, DateFormat, GenerateRandomTime, TimeSchedule, PositiveResponse, NegativeResponse, ClearFolder, ValidatePhone, RandomResponse, InvalidResponse, validAgent }

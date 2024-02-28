@@ -25,7 +25,6 @@ class Monitoring {
         try {
             client.on('message', async (message) => {
                 if (await verifyNumberInternal(message.from)) {
-                    console.log("HORA DA PRÓXIMA RESPOSTA:::::>>>>", await dateSendMessageInternalUpdate.toString());
                     if (dateSendMessageInternalUpdate <= luxon_1.DateTime.now()) {
                         const time = await timeRandom(500, 800);
                         dateSendMessageInternalUpdate = await luxon_1.DateTime.local().plus({ seconds: time });

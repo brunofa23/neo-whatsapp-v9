@@ -23,7 +23,7 @@ let dateSendMessageInternalUpdate = DateTime.local()
 
 function timeRandom(min: number, max: number): number {
   const time = Math.floor(Math.random() * (max - min + 1)) + min;
-  console.log("time", time)
+  //console.log("time", time)
   return time
 }
 
@@ -36,7 +36,7 @@ export default class Monitoring {
         if (await verifyNumberInternal(message.from)) {
           // console.log("INTERNAL")
           // console.log("DATA ATUAL:::::>>>>", await DateTime.now().toString())
-          console.log("HORA DA PRÓXIMA RESPOSTA:::::>>>>", await dateSendMessageInternalUpdate.toString())
+          //console.log("HORA DA PRÓXIMA RESPOSTA:::::>>>>", await dateSendMessageInternalUpdate.toString())
 
           if (dateSendMessageInternalUpdate <= DateTime.now()) {
             const time = await timeRandom(500, 800)

@@ -81,7 +81,7 @@ async function executeWhatsapp() {
         agent.status = state;
         await agent.save();
     });
-    await (0, SendRepeatedMessage_1.sendRepeatedMessage)();
+    (0, SendRepeatedMessage_1.sendRepeatedMessage)();
     const chatMonitoring = new ChatMonitoring_1.default;
     await chatMonitoring.monitoring(client);
     if (process.env.SELF_CONVERSATION?.toLowerCase() === "true") {

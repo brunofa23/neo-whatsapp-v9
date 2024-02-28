@@ -48,11 +48,16 @@ export default class Shippingcampaign extends BaseModel {
   @column()
   public messagesent: boolean
 
+  @column()
+  public dateshedule: DateTime
+
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   public updatedAt: DateTime
+
+
 
   @hasOne(() => Chat, {
     foreignKey: 'shippingcampaigns_id'

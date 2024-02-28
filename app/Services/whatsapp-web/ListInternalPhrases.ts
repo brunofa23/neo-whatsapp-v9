@@ -1,5 +1,5 @@
 export default async () => {
-  console.log("passe no list frases!!!")
+  //console.log("passe no list frases!!!")
   const phrases = [
     'Olá, tudo bem ?',
     'Opa!!',

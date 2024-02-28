@@ -20,7 +20,8 @@
   "providers": [
     "./providers/AppProvider",
     "@adonisjs/core",
-    "@adonisjs/lucid"
+    "@adonisjs/lucid",
+    "@adonisjs/auth"
   ],
   "aceProviders": [
     "@adonisjs/repl"
@@ -32,7 +33,7 @@
         "files": [
           "tests/functional/**/*.spec(.ts|.js)"
         ],
-        "timeout": 60000
+        "timeout": 600000
       }
     ]
   },
@@ -42,5 +43,5 @@
   "metaFiles": [
     "qrcode"
   ],
-  "lastCompiledAt": "2023-10-07T20:49:17.443Z"
+  "lastCompiledAt": "2024-01-17T14:15:54.746Z"
 }

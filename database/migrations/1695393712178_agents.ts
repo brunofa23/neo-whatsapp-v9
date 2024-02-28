@@ -14,7 +14,7 @@ export default class extends BaseSchema {
       table.integer('interval_final_message').notNullable()
       table.integer('max_limit_message').notNullable()
       table.string('status')
-      table.boolean('active').defaultTo('true')
+      table.boolean('active').nullable()
       /**
        * Uses timestamptz for PostgreSQL and DATETIME2 for MSSQL
        */

@@ -3,6 +3,7 @@ import Config from 'App/Models/Config';
 import SendMessage from 'App/Services/whatsapp-web/SendMessage'
 import { logout, sendRepeatedMessage } from 'App/Services/whatsapp-web/SendRepeatedMessage';
 import { DateTime, DatetTime } from 'luxon';
+
 import ChatMonitoring from './ChatMonitoring/ChatMonitoring'
 import ChatMonitoringInternal from './ChatMonitoring/ChatMonitoringInternal'
 import SendMessageInternal from './SendMessageInternal';
@@ -125,11 +126,10 @@ async function startAgent(_agent: Agent) {
     const statusSendMessage = await getStatusSendMessage() //Config.query().select('valuebool', 'valuedatetime').where('id', 'statusSendMessage').first()
     if (statusSendMessage) {
       if (process.env.SELF_CONVERSATION?.toLocaleLowerCase() === "true") {
-        console.log("self_conversation", process.env.SELF_CONVERSATION)
         await SendMessageInternal(client)
       }
     }
-  }, 25000)
+  }, await GenerateRandomTime(600, 900, '----Time Send Message'))
 
 
 

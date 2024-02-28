@@ -2,7 +2,7 @@ name: Build and deploy api
 on:
   push:
     branches:
-      - main-1
+      - main-one
 
 jobs:
   build:
@@ -31,7 +31,7 @@ jobs:
         run: git pull
 
       - name: Merge changes from main
-        run: git merge main-1
+        run: git merge main-one
 
       - name: Push changes to GitHub
         run: git push origin main-one-production

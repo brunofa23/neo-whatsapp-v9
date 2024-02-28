@@ -88,10 +88,7 @@ export default async (client: Client, agent: Agent) => {
 
 
   async function sendMessages() {
-    console.log("PASSEI NO SEND MESSAGE 800")
     //  const sendMessagesInterval = setInterval(async () => {
-
-    console.log("PASSEI NO SEND MESSAGE 850")
     const totMessageSend = await countLimitSendMessage()
     const maxLimitSendAgent = await maxLimitSendMessageAgent(agent.id)
     let verifyChat
@@ -104,7 +101,7 @@ export default async (client: Client, agent: Agent) => {
     }
     await verifyContSend()
     const shippingCampaign = await _shippingCampaignList()
-    console.log("PASSEI NO SEND MESSAGE 860")
+
     if (shippingCampaign?.interaction_id) {
       if (await totalInteractionSend(shippingCampaign?.interaction_id)) {
         console.log("Limite de Interação atingida...")
@@ -112,18 +109,15 @@ export default async (client: Client, agent: Agent) => {
       }
     }
 
-    console.log("PASSEI NO SEND MESSAGE 870")
+
     if (shippingCampaign) {
-      console.log("PASSEI NO SEND MESSAGE 999")
+
       if (global.contSend < 3) {
         if (global.contSend < 0)
           global.contSend = 0
         try {
           //verificar o numero
-          console.log("PASSEI NO SEND MESSAGE 1000")
           const validationCellPhone = await verifyNumber(client, shippingCampaign?.cellphone)
-          //console.log(`VALIDAÇÃO DE TELEFONE DO PACIENTE:${shippingCampaign?.name}:`, validationCellPhone)
-          //console.log("VERIFICAI CHAT>>>>>>>", verifyChat)
           if (validationCellPhone) {
             console.log("PASSEI NO SEND MESSAGE 1545")
             verifyChat = await Chat.query()
@@ -175,17 +169,6 @@ export default async (client: Client, agent: Agent) => {
       }
     }
     //}, await GenerateRandomTime(startTimeSendMessage, endTimeSendMessage, '----Time Send Message'))
-
-
-    // setTimeout(() => {
-    //   clearInterval(sendMessagesInterval)
-    //   teste = true
-    //   console.log("set interval parado - 5444")
-    //   setTimeout(() => {
-    //     sendMessages()
-    //     console.log("INICIADO - 444")
-    //   }, 10000)
-    // }, 10000)
 
   }
 

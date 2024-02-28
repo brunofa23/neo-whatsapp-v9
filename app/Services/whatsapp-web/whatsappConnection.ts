@@ -1,12 +1,8 @@
-//import Application from '@ioc:Adonis/Core/Application'
 import Agent from 'App/Models/Agent';
 import Config from 'App/Models/Config';
 import SendMessage from 'App/Services/whatsapp-web/SendMessage'
 import { logout, sendRepeatedMessage } from 'App/Services/whatsapp-web/SendRepeatedMessage';
-
-//import { DateTime } from 'luxon';
-
-//import { validAgent } from "../"
+import { DateTime, DatetTime } from 'luxon';
 import ChatMonitoring from './ChatMonitoring/ChatMonitoring'
 import ChatMonitoringInternal from './ChatMonitoring/ChatMonitoringInternal'
 import SendMessageInternal from './SendMessageInternal';
@@ -15,12 +11,22 @@ import { ClearFolder, DateFormat, ExecutingSendMessage, GenerateRandomTime, Rand
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcodeTerminal = require('qrcode-terminal');
 const qrcode = require('qrcode')
-//const path = require('path')
-//const folderPath = path.resolve(__dirname, "../../../");
-//let qrcodePath
+
+
+async function getStatusSendMessage() {
+  const result = await Config.query().select('valuebool', 'valuedatetime').where('id', 'statusSendMessage').first()
+  const dateNow = DateTime.now();
+  const dateConfig = DateTime.fromJSDate(result?.$attributes.valuedatetime);
+  const diffMinutes = dateNow.diff(dateConfig).as('minutes');
+
+  if (result?.$attributes.valuebool == 1 && diffMinutes > 7)
+    return true
+  else return false
+}
 
 
 async function startAgent(_agent: Agent) {
+
   const agent = await Agent.findOrFail(_agent.id)
   if (!_agent) {
     console.log("CHATNAME INVÁLIDO - Verifique o .env Chatname está igual ao name tabela Agents")
@@ -91,7 +97,6 @@ async function startAgent(_agent: Agent) {
     // setInterval(() => {
     //   SendMessage(client, agent)
     // }, 10000)
-
     // if (process.env.SELF_CONVERSATION?.toLocaleLowerCase() === "true") {
     //   console.log("self_conversation", process.env.SELF_CONVERSATION)
     //   await SendMessageInternal(client)
@@ -108,64 +113,60 @@ async function startAgent(_agent: Agent) {
   const startTimeSendMessage = agent.interval_init_message
   const endTimeSendMessage = agent.interval_final_message
   const sendMessage = setInterval(async () => {
-    const statusSendMessage = await Config.query().select('valuebool').where('id', 'statusSendMessage').first()
-    if (statusSendMessage?.$original.valuebool === 1) {
+    const statusSendMessage = await getStatusSendMessage()//await Config.query().select('valuebool', 'valuedatetime').where('id', 'statusSendMessage').first()
+
+    if (statusSendMessage) {
+      console.log("send message ativado")
       SendMessage(client, agent)
     }
   }, await GenerateRandomTime(startTimeSendMessage, endTimeSendMessage, '----Time Send Message'))
 
 
   const sendMessageInternal = setInterval(async () => {
-    const statusSendMessage = await Config.query().select('valuebool').where('id', 'statusSendMessage').first()
+    const statusSendMessage = await getStatusSendMessage() //Config.query().select('valuebool', 'valuedatetime').where('id', 'statusSendMessage').first()
 
-    //colocar aqui para verificar tempo da variável foi zerada, se passar de 10 minutos ela volta para 1
-    colocar aqui.................
-
-
-    if(statusSendMessage?.$original.valuebool === 1) {
-    if(process.env.SELF_CONVERSATION?.toLocaleLowerCase() === "true") {
-      console.log("self_conversation", process.env.SELF_CONVERSATION)
-  await SendMessageInternal(client)
-}
+    if (statusSendMessage) {
+      if (process.env.SELF_CONVERSATION?.toLocaleLowerCase() === "true") {
+        console.log("self_conversation", process.env.SELF_CONVERSATION)
+        await SendMessageInternal(client)
+      }
     }
   }, 25000)
 
 
 
-if (process.env.SERVER === 'true') {
-  await sendRepeatedMessage(agent)
-}
+  if (process.env.SERVER === 'true') {
+    await sendRepeatedMessage(agent)
+  }
 
-const chatMonitoring = new ChatMonitoring
-await chatMonitoring.monitoring(client, agent)
+  const chatMonitoring = new ChatMonitoring
+  await chatMonitoring.monitoring(client, agent)
 
-if (process.env.SELF_CONVERSATION?.toLowerCase() === "true") {
-  const chatMonitoringInternal = new ChatMonitoringInternal
-  await chatMonitoringInternal.monitoring(client)
-}
-
-
-
-//************************************************ */
-client.on('disconnected', async (reason) => {
-  agent.status = 'Disconnected'
-  agent.statusconnected = false
-  await agent.save()
-  console.log("EXECUTANDO DISCONECT")
-  console.log("REASON>>>", reason)
+  if (process.env.SELF_CONVERSATION?.toLowerCase() === "true") {
+    const chatMonitoringInternal = new ChatMonitoringInternal
+    await chatMonitoringInternal.monitoring(client)
+  }
 
 
-});
+
+  //************************************************ */
+  client.on('disconnected', async (reason) => {
+    agent.status = 'Disconnected'
+    agent.statusconnected = false
+    await agent.save()
+    console.log("EXECUTANDO DISCONECT")
+    console.log("REASON>>>", reason)
+  });
 
 
-let rejectCalls = true;
-client.on('call', async (call) => {
-  console.log('Call received, rejecting. GOTO Line 261 to disable', call);
-  if (rejectCalls) await call.reject();
-  await client.sendMessage(call.from, `[${call.fromMe ? 'Outgoing' : 'Incoming'}] Olá tudo Bem? Sou uma atendente virtual e por isso não consigo receber chamadas. Desculpe!!☺️`);
-});
+  let rejectCalls = true;
+  client.on('call', async (call) => {
+    console.log('Call received, rejecting. GOTO Line 261 to disable', call);
+    if (rejectCalls) await call.reject();
+    await client.sendMessage(call.from, `[${call.fromMe ? 'Outgoing' : 'Incoming'}] Olá tudo Bem? Sou uma atendente virtual e por isso não consigo receber chamadas. Desculpe!!☺️`);
+  });
 
-return client
+  return client
 
 }
 

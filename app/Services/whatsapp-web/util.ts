@@ -2,10 +2,7 @@ import Agent from 'App/Models/Agent';
 import { DateTime } from 'luxon';
 import { Message } from 'whatsapp-web.js';
 
-import { startAgent } from "../../Services/whatsapp-web/whatsappConnection"
-
 const fs = require('fs')
-
 
 async function stateTyping(message: Message) {
   //console.log("passei pelo STATETYPING...")

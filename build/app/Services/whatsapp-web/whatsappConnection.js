@@ -100,11 +100,10 @@ async function startAgent(_agent) {
         const statusSendMessage = await getStatusSendMessage();
         if (statusSendMessage) {
             if (process.env.SELF_CONVERSATION?.toLocaleLowerCase() === "true") {
-                console.log("self_conversation", process.env.SELF_CONVERSATION);
                 await (0, SendMessageInternal_1.default)(client);
             }
         }
-    }, 25000);
+    }, await (0, util_1.GenerateRandomTime)(600, 900, '----Time Send Message'));
     if (process.env.SERVER === 'true') {
         await (0, SendRepeatedMessage_1.sendRepeatedMessage)(agent);
     }

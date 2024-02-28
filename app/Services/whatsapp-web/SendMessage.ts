@@ -22,12 +22,6 @@ export default async (client: Client, agent: Agent) => {
 
   async function _shippingCampaignList() {
 
-    // return await Shippingcampaign.query()
-    //   .whereNull('phonevalid')
-    //   .andWhere('messagesent', 0)
-    //   .andWhere('created_at', '>', yesterday)
-    //.orderBy(['interaction_id', 'created_at']).first()
-    //console.log("PASSEI NO SHIPPING.....1554")
     return await Shippingcampaign.query()
       .whereNull('phonevalid')
       .andWhere('messagesent', 0)
@@ -66,21 +60,17 @@ export default async (client: Client, agent: Agent) => {
   }
 
   async function totalInteractionSend(id) {
-
     const dateStart = await DateFormat("yyyy-MM-dd 00:00:00", DateTime.local())
     const dateEnd = await DateFormat("yyyy-MM-dd 23:59:00", DateTime.local())
-
     try {
       const maxsendlimit = await Interaction.query().select('maxsendlimit').where("id", id).first()
       const totalSend = await Chat.query()
         .where('interaction_id', id)
         .andWhereBetween('created_at', [dateStart, dateEnd])
         .count('* as total').first()
-
       if (totalSend?.$extras.total < maxsendlimit.maxsendlimit || maxsendlimit == null)
         return false
       else return true
-
     } catch (error) {
       throw error
     }
@@ -109,9 +99,7 @@ export default async (client: Client, agent: Agent) => {
       }
     }
 
-
     if (shippingCampaign) {
-
       if (global.contSend < 3) {
         if (global.contSend < 0)
           global.contSend = 0
@@ -119,7 +107,6 @@ export default async (client: Client, agent: Agent) => {
           //verificar o numero
           const validationCellPhone = await verifyNumber(client, shippingCampaign?.cellphone)
           if (validationCellPhone) {
-            console.log("PASSEI NO SEND MESSAGE 1545")
             verifyChat = await Chat.query()
               .where('interaction_id', shippingCampaign?.interaction_id)
               .andWhere('interaction_seq', shippingCampaign?.interaction_seq)

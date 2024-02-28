@@ -114,9 +114,8 @@ async function startAgent(_agent: Agent) {
   const endTimeSendMessage = agent.interval_final_message
   const sendMessage = setInterval(async () => {
     const statusSendMessage = await getStatusSendMessage()//await Config.query().select('valuebool', 'valuedatetime').where('id', 'statusSendMessage').first()
-
     if (statusSendMessage) {
-      console.log("send message ativado")
+
       SendMessage(client, agent)
     }
   }, await GenerateRandomTime(startTimeSendMessage, endTimeSendMessage, '----Time Send Message'))
@@ -124,7 +123,6 @@ async function startAgent(_agent: Agent) {
 
   const sendMessageInternal = setInterval(async () => {
     const statusSendMessage = await getStatusSendMessage() //Config.query().select('valuebool', 'valuedatetime').where('id', 'statusSendMessage').first()
-
     if (statusSendMessage) {
       if (process.env.SELF_CONVERSATION?.toLocaleLowerCase() === "true") {
         console.log("self_conversation", process.env.SELF_CONVERSATION)

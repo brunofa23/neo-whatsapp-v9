@@ -6,7 +6,7 @@ import PersistShippingcampaign from "App/Services/whatsapp-web/PersistShippingca
 //import { connectionAll, resetStatusConnected, sendRepeatedMessage } from "../app/Services/whatsapp-web/util"
 import { connectionAll, sendRepeatedMessage, resetStatusConnected } from './events'
 
-console.log("***CHAT BOT V-98***08/02/2024")
+console.log("***CHAT BOT V-99***28/02/2024")
 resetStatusConnected()
 
 function operacaoAssincrona(callback) {

@@ -28,6 +28,7 @@ async function getStatusSendMessage() {
 
 async function startAgent(_agent: Agent) {
 
+
   const agent = await Agent.findOrFail(_agent.id)
   if (!_agent) {
     console.log("CHATNAME INVÁLIDO - Verifique o .env Chatname está igual ao name tabela Agents")
@@ -55,6 +56,7 @@ async function startAgent(_agent: Agent) {
   client.initialize();
 
   client.on('loading_screen', (percent, message) => {
+    console.log("restart 001")
     console.log(`LOADING SCREEN: ${_agent.name}`, percent, message);
     agent.status = `Carregando: ${_agent.name} - ${percent} - ${message}`
     agent.save()
@@ -77,6 +79,7 @@ async function startAgent(_agent: Agent) {
   });
 
   client.on('authenticated', async () => {
+    console.log("restart 002")
     console.log(`AUTHENTICATED ${agent.name}`);
     agent.status = 'Authentication'
     agent.save()
@@ -89,7 +92,9 @@ async function startAgent(_agent: Agent) {
     console.error('AUTHENTICATION FAILURE', msg);
   });
 
+  console.log("restart 004")
   client.on('ready', async () => {
+    console.log("restart 003")
     console.log(`READY...${agent.name}`);
     const state = await client.getState()
     console.log("State:", state)
@@ -116,7 +121,7 @@ async function startAgent(_agent: Agent) {
   const sendMessage = setInterval(async () => {
     const statusSendMessage = await getStatusSendMessage()//await Config.query().select('valuebool', 'valuedatetime').where('id', 'statusSendMessage').first()
     if (statusSendMessage) {
-
+      console.log("send message:", DateTime.now().toFormat('HH:mm:ss'))
       SendMessage(client, agent)
     }
   }, await GenerateRandomTime(startTimeSendMessage, endTimeSendMessage, '----Time Send Message'))

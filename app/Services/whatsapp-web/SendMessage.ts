@@ -12,16 +12,14 @@ import { DateFormat, ExecutingSendMessage, GenerateRandomTime, TimeSchedule } fr
 
 global.contSend = 0
 const yesterday = DateTime.local().toFormat('yyyy-MM-dd 00:00')
+let resetContSend = DateTime.local()
+let resetContSendBool = false
 
 export default async (client: Client, agent: Agent) => {
-
-  let resetContSend = DateTime.local()
-  let resetContSendBool = false
-  const startTimeSendMessage = agent.interval_init_message
-  const endTimeSendMessage = agent.interval_final_message
+  // const startTimeSendMessage = agent.interval_init_message
+  // const endTimeSendMessage = agent.interval_final_message
 
   async function _shippingCampaignList() {
-
     return await Shippingcampaign.query()
       .whereNull('phonevalid')
       .andWhere('messagesent', 0)
@@ -29,14 +27,12 @@ export default async (client: Client, agent: Agent) => {
       .whereNotExists((query) => {
         query.select('*').from('chats').whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id');
       }).first()
-
-
   }
 
   async function verifyContSend() {
     if (global.contSend >= 3) {
       if (resetContSendBool == false) {
-        resetContSend = DateTime.local().plus({ minutes: 5 })
+        resetContSend = DateTime.local().plus({ minutes: 6 })
         resetContSendBool = true
       }
       else if (resetContSend <= DateTime.local()) {

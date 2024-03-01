@@ -34,9 +34,9 @@ export default async (client: Client, agent: Agent) => {
   }
 
   async function verifyContSend() {
-    if (global.contSend >= 3) {
+    if (global.contSend >= 4) {
       if (resetContSendBool == false) {
-        resetContSend = DateTime.local().plus({ minutes: 5 })
+        resetContSend = DateTime.local().plus({ minutes: 4 })
         resetContSendBool = true
       }
       else if (resetContSend <= DateTime.local()) {
@@ -100,7 +100,7 @@ export default async (client: Client, agent: Agent) => {
     }
 
     if (shippingCampaign) {
-      if (global.contSend < 3) {
+      if (global.contSend < 4) {
         if (global.contSend < 0)
           global.contSend = 0
         try {

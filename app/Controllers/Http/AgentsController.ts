@@ -79,7 +79,7 @@ export default class AgentsController {
   public async connection({ params, request, response }: HttpContextContract) {
     try {
 
-      const valuedatetime = DateTime.local().toFormat('yyyy-MM-dd HH:mm:ss')
+      //const valuedatetime = DateTime.local().toFormat('yyyy-MM-dd HH:mm:ss')
       await Config.query().where('id', 'statusSendMessage').update({ valuedatetime: valuedatetime })
 
       await Agent.query()

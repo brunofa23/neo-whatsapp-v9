@@ -26,7 +26,7 @@ async function GenerateRandomTime(min: number, max: number, method: String = "")
   const _min = Math.ceil(min) * 1000
   const _max = Math.ceil(max) * 1000
   const randomTime = Math.floor(Math.random() * (_max - _min) + _min);
-  //console.log(`Timer do método ${method}: ${randomTime}`)
+  //console.log(`GenerateRandomTime: ${randomTime}, min:${min}, max:${max}`)
   return randomTime
 
 }

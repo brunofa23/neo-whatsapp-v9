@@ -20,7 +20,7 @@ async function getStatusSendMessage() {
   const dateConfig = DateTime.fromJSDate(result?.$attributes.valuedatetime);
   const diffMinutes = dateNow.diff(dateConfig).as('minutes');
 
-  if (result?.$attributes.valuebool == 1 && diffMinutes > 7)
+  if (result?.$attributes.valuebool == 1 && diffMinutes > 5)
     return true
   else return false
 }
@@ -56,7 +56,6 @@ async function startAgent(_agent: Agent) {
   client.initialize();
 
   client.on('loading_screen', (percent, message) => {
-    console.log("restart 001")
     console.log(`LOADING SCREEN: ${_agent.name}`, percent, message);
     agent.status = `Carregando: ${_agent.name} - ${percent} - ${message}`
     agent.save()
@@ -79,7 +78,6 @@ async function startAgent(_agent: Agent) {
   });
 
   client.on('authenticated', async () => {
-    console.log("restart 002")
     console.log(`AUTHENTICATED ${agent.name}`);
     agent.status = 'Authentication'
     agent.save()
@@ -92,13 +90,13 @@ async function startAgent(_agent: Agent) {
     console.error('AUTHENTICATION FAILURE', msg);
   });
 
-  console.log("restart 004")
+
   client.on('ready', async () => {
-    console.log("restart 003")
     console.log(`READY...${agent.name}`);
     const state = await client.getState()
     console.log("State:", state)
-    console.log("INFO:", await client.info)
+    const infoClient = await client.info
+    console.log("Client:", infoClient.pushname, "- Phone number:", infoClient.wid.user)
 
     // setInterval(() => {
     //   SendMessage(client, agent)
@@ -121,7 +119,6 @@ async function startAgent(_agent: Agent) {
   const sendMessage = setInterval(async () => {
     const statusSendMessage = await getStatusSendMessage()//await Config.query().select('valuebool', 'valuedatetime').where('id', 'statusSendMessage').first()
     if (statusSendMessage) {
-      console.log("send message:", DateTime.now().toFormat('HH:mm:ss'))
       SendMessage(client, agent)
     }
   }, await GenerateRandomTime(startTimeSendMessage, endTimeSendMessage, '----Time Send Message'))
@@ -137,7 +134,6 @@ async function startAgent(_agent: Agent) {
   }, await GenerateRandomTime(600, 900, '----Time Send Message'))
 
 
-
   if (process.env.SERVER === 'true') {
     await sendRepeatedMessage(agent)
   }
@@ -149,8 +145,6 @@ async function startAgent(_agent: Agent) {
     const chatMonitoringInternal = new ChatMonitoringInternal
     await chatMonitoringInternal.monitoring(client)
   }
-
-
 
   //************************************************ */
   client.on('disconnected', async (reason) => {

@@ -71,7 +71,6 @@ class AgentsController {
     }
     async connection({ params, request, response }) {
         try {
-            const valuedatetime = luxon_1.DateTime.local().toFormat('yyyy-MM-dd HH:mm:ss');
             await Config_1.default.query().where('id', 'statusSendMessage').update({ valuedatetime: valuedatetime });
             await Agent_1.default.query()
                 .where('id', params.id)

@@ -20,7 +20,7 @@ async function getStatusSendMessage() {
     const dateNow = luxon_1.DateTime.now();
     const dateConfig = luxon_1.DateTime.fromJSDate(result?.$attributes.valuedatetime);
     const diffMinutes = dateNow.diff(dateConfig).as('minutes');
-    if (result?.$attributes.valuebool == 1 && diffMinutes > 7)
+    if (result?.$attributes.valuebool == 1 && diffMinutes > 5)
         return true;
     else
         return false;
@@ -81,7 +81,8 @@ async function startAgent(_agent) {
         console.log(`READY...${agent.name}`);
         const state = await client.getState();
         console.log("State:", state);
-        console.log("INFO:", await client.info);
+        const infoClient = await client.info;
+        console.log("Client:", infoClient.pushname, "- Phone number:", infoClient.wid.user);
         agent.status = state;
         agent.statusconnected = true;
         agent.number_phone = client.info.wid.user;

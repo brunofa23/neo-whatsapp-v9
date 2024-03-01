@@ -13,11 +13,9 @@ const luxon_1 = require("luxon");
 const util_1 = require("./util");
 global.contSend = 0;
 const yesterday = luxon_1.DateTime.local().toFormat('yyyy-MM-dd 00:00');
+let resetContSend = luxon_1.DateTime.local();
+let resetContSendBool = false;
 exports.default = async (client, agent) => {
-    let resetContSend = luxon_1.DateTime.local();
-    let resetContSendBool = false;
-    const startTimeSendMessage = agent.interval_init_message;
-    const endTimeSendMessage = agent.interval_final_message;
     async function _shippingCampaignList() {
         return await Shippingcampaign_1.default.query()
             .whereNull('phonevalid')
@@ -30,7 +28,7 @@ exports.default = async (client, agent) => {
     async function verifyContSend() {
         if (global.contSend >= 3) {
             if (resetContSendBool == false) {
-                resetContSend = luxon_1.DateTime.local().plus({ minutes: 5 });
+                resetContSend = luxon_1.DateTime.local().plus({ minutes: 6 });
                 resetContSendBool = true;
             }
             else if (resetContSend <= luxon_1.DateTime.local()) {

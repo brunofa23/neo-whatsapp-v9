@@ -20,18 +20,16 @@ export default async (client: Client, agent: Agent) => {
   // const endTimeSendMessage = agent.interval_final_message
 
   async function _shippingCampaignList() {
-    const query = await Shippingcampaign.query()
-      .whereNull('phonevalid')
-      .andWhere('messagesent', 0)
-      .andWhere('created_at', '>', yesterday) // Certifique-se de usar a data correta aqui
-      .whereNotExists((query) => {
-        query.select('*').from('chats').whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id');
-      }).toQuery()
+    // const query = await Shippingcampaign.query()
+    //   .whereNull('phonevalid')
+    //   .andWhere('messagesent', 0)
+    //   .andWhere('created_at', '>', yesterday) // Certifique-se de usar a data correta aqui
+    //   .whereNotExists((query) => {
+    //     query.select('*').from('chats').whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id');
+    //   }).toQuery()
 
-    console.log("DATA 1554", yesterday)
-    console.log("QUERY 1900", query)
-
-
+    // console.log("DATA 1554", yesterday)
+    // console.log("QUERY 1900", query)
     return await Shippingcampaign.query()
       .whereNull('phonevalid')
       .andWhere('messagesent', 0)

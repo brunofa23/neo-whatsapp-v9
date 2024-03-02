@@ -17,15 +17,6 @@ let resetContSend = luxon_1.DateTime.local();
 let resetContSendBool = false;
 exports.default = async (client, agent) => {
     async function _shippingCampaignList() {
-        const query = await Shippingcampaign_1.default.query()
-            .whereNull('phonevalid')
-            .andWhere('messagesent', 0)
-            .andWhere('created_at', '>', yesterday)
-            .whereNotExists((query) => {
-            query.select('*').from('chats').whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id');
-        }).toQuery();
-        console.log("DATA 1554", yesterday);
-        console.log("QUERY 1900", query);
         return await Shippingcampaign_1.default.query()
             .whereNull('phonevalid')
             .andWhere('messagesent', 0)

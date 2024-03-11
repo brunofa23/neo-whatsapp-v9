@@ -81,17 +81,6 @@ Route.group(() => {
   })
 
 
-  Route.get('/start', async () => {
-    // global.agentDefault = { name: 'Bruno', sobrenome: "Favato" }
-    // return global.agentDefault
-    const chat = await Chat.query()
-      .preload('shippingcampaign')
-      .where('cellphoneserialized', '=', '553185228619@c.us')
-      .whereNull('response')
-    return chat
-
-  })
-
   //Executa busca no Smart
   Route.get('/executequery', async () => {
     console.log("EXECUTANDO BUSCA NO SMART")

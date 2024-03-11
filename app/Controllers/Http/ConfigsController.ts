@@ -1,6 +1,7 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Config from 'App/Models/Config'
-import { DateTime } from 'luxon'
+
+const { exec } = require('child_process')
 export default class ConfigsController {
 
   public async index({ response }: HttpContextContract) {
@@ -39,5 +40,29 @@ export default class ConfigsController {
   }
 
 
+  public async restartSystem({ auth, response }: HttpContextContract) {
+
+    //const authenticate = await auth.use('api').authenticate()
+    console.log("Executando restart system....")
+    try {
+      exec('pm2 restart easytalk', (error, stdout, stderr) => {
+        if (error) {
+          console.error(`error: ${error.message}`);
+          return;
+        }
+        if (stderr) {
+          console.error(`stderr: ${stderr}`);
+          return;
+        }
+        console.log(`stdout:\n${stdout}`);
+        return response.status(200).send({ error, stderr, stdout })
+      });
+
+
+
+    } catch (error) {
+      return error
+    }
+  }
 
 }

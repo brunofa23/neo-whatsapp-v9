@@ -40,7 +40,9 @@ export default class ConfigsController {
   }
 
 
-  public async restartSystem() {
+  public async restartSystem({ auth, response }: HttpContextContract) {
+
+    //const authenticate = await auth.use('api').authenticate()
     console.log("Executando restart system....")
     try {
       exec('pm2 restart easytalk', (error, stdout, stderr) => {
@@ -48,14 +50,14 @@ export default class ConfigsController {
           console.error(`error: ${error.message}`);
           return;
         }
-
         if (stderr) {
           console.error(`stderr: ${stderr}`);
           return;
         }
-
         console.log(`stdout:\n${stdout}`);
+        return response.status(200).send({ error, stderr, stdout })
       });
+
 
 
     } catch (error) {

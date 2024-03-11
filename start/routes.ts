@@ -9,7 +9,7 @@ import { connectionAll, sendRepeatedMessage, resetStatusConnected } from './even
 const { exec } = require('child_process')
 
 
-console.log("***CHAT BOT V-106***28/02/2024")
+console.log("***CHAT BOT V-107***10/03/2024")
 resetStatusConnected()
 
 function operacaoAssincrona(callback) {

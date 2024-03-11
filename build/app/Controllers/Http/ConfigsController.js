@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const Config_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Config"));
+const { exec } = require('child_process');
 class ConfigsController {
     async index({ response }) {
         try {
@@ -24,6 +25,26 @@ class ConfigsController {
             const data = await Config_1.default.query().where('id', params.id)
                 .update(body);
             return response.status(201).send(data);
+        }
+        catch (error) {
+            return error;
+        }
+    }
+    async restartSystem({ auth, response }) {
+        console.log("Executando restart system....");
+        try {
+            exec('pm2 restart easytalk', (error, stdout, stderr) => {
+                if (error) {
+                    console.error(`error: ${error.message}`);
+                    return;
+                }
+                if (stderr) {
+                    console.error(`stderr: ${stderr}`);
+                    return;
+                }
+                console.log(`stdout:\n${stdout}`);
+                return response.status(200).send({ error, stderr, stdout });
+            });
         }
         catch (error) {
             return error;

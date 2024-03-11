@@ -4,10 +4,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const Route_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Route"));
-const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
 const PersistShippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/PersistShippingcampaign"));
 const events_1 = require("./events");
-const { exec } = require('child_process');
 console.log("***CHAT BOT V-108***10/03/2024");
 (0, events_1.resetStatusConnected)();
 function operacaoAssincrona(callback) {
@@ -34,41 +32,6 @@ Route_1.default.get('/', async () => {
     return { hello: 'world' };
 });
 Route_1.default.group(() => {
-    Route_1.default.get('/start', async () => {
-        console.log("Reinicializando sistema...");
-        exec('pm2 restart easytalk', (error, stdout, stderr) => {
-            if (error) {
-                console.error(`error: ${error.message}`);
-                return;
-            }
-            if (stderr) {
-                console.error(`stderr: ${stderr}`);
-                return;
-            }
-            console.log(`stdout:\n${stdout}`);
-        });
-        console.log("Reinicializado!!");
-    });
-    Route_1.default.get('/stop', async () => {
-        exec('pm2 stop all', (error, stdout, stderr) => {
-            if (error) {
-                console.error(`error: ${error.message}`);
-                return;
-            }
-            if (stderr) {
-                console.error(`stderr: ${stderr}`);
-                return;
-            }
-            console.log(`stdout:\n${stdout}`);
-        });
-    });
-    Route_1.default.get('/start', async () => {
-        const chat = await Chat_1.default.query()
-            .preload('shippingcampaign')
-            .where('cellphoneserialized', '=', '553185228619@c.us')
-            .whereNull('response');
-        return chat;
-    });
     Route_1.default.get('/executequery', async () => {
         console.log("EXECUTANDO BUSCA NO SMART");
         await (0, PersistShippingcampaign_1.default)();
@@ -88,6 +51,7 @@ Route_1.default.group(() => {
     Route_1.default.get("/customchat/:id", "CustomchatsController.show");
     Route_1.default.post("/customchat/viewedconfirm/:chats_id", "CustomchatsController.viewedConfirm");
     Route_1.default.resource("/config", "ConfigsController").apiOnly();
+    Route_1.default.post("/config/restartsystem", "ConfigsController.restartSystem");
     Route_1.default.get("/smart", "DatasourcesController.scheduledPatients");
     Route_1.default.get("/confirmscheduleall", "DatasourcesController.cancelScheduleAll");
     Route_1.default.post('/restart', 'ShippingcampaignsController.resetWhatsapp');

@@ -6,9 +6,6 @@ import PersistShippingcampaign from "App/Services/whatsapp-web/PersistShippingca
 //import { connectionAll, resetStatusConnected, sendRepeatedMessage } from "../app/Services/whatsapp-web/util"
 import { connectionAll, sendRepeatedMessage, resetStatusConnected } from './events'
 
-const { exec } = require('child_process')
-
-
 console.log("***CHAT BOT V-108***10/03/2024")
 resetStatusConnected()
 
@@ -42,43 +39,43 @@ Route.get('/', async () => {
 Route.group(() => {
 
 
-  Route.get('/start', async () => {
-    console.log("Reinicializando sistema...")
-    exec('pm2 restart easytalk', (error, stdout, stderr) => {
-      if (error) {
-        console.error(`error: ${error.message}`);
-        return;
-      }
+  // Route.get('/start', async () => {
+  //   console.log("Reinicializando sistema...")
+  //   exec('pm2 restart easytalk', (error, stdout, stderr) => {
+  //     if (error) {
+  //       console.error(`error: ${error.message}`);
+  //       return;
+  //     }
 
-      if (stderr) {
-        console.error(`stderr: ${stderr}`);
-        return;
-      }
+  //     if (stderr) {
+  //       console.error(`stderr: ${stderr}`);
+  //       return;
+  //     }
 
-      console.log(`stdout:\n${stdout}`);
-    });
+  //     console.log(`stdout:\n${stdout}`);
+  //   });
 
-    console.log("Reinicializado!!")
-  })
+  //   console.log("Reinicializado!!")
+  // })
 
-  Route.get('/stop', async () => {
+  // Route.get('/stop', async () => {
 
-    exec('pm2 stop all', (error, stdout, stderr) => {
-      if (error) {
-        console.error(`error: ${error.message}`);
-        return;
-      }
+  //   exec('pm2 stop all', (error, stdout, stderr) => {
+  //     if (error) {
+  //       console.error(`error: ${error.message}`);
+  //       return;
+  //     }
 
-      if (stderr) {
-        console.error(`stderr: ${stderr}`);
-        return;
-      }
+  //     if (stderr) {
+  //       console.error(`stderr: ${stderr}`);
+  //       return;
+  //     }
 
-      console.log(`stdout:\n${stdout}`);
-    });
+  //     console.log(`stdout:\n${stdout}`);
+  //   });
 
-    //return { hello: 'world' }
-  })
+  //   //return { hello: 'world' }
+  // })
 
 
   //Executa busca no Smart
@@ -113,6 +110,7 @@ Route.group(() => {
 
   //CONFIG
   Route.resource("/config", "ConfigsController").apiOnly()
+  Route.post("/config/restartsystem", "ConfigsController.restartSystem")
 
 
   Route.get("/smart", "DatasourcesController.scheduledPatients")

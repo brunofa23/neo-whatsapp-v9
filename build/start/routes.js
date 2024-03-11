@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const Route_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Route"));
+<<<<<<< HEAD
 const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
 const PersistShippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/PersistShippingcampaign"));
 const events_1 = require("./events");
@@ -30,6 +31,12 @@ operacaoAssincrona(function (erro, resultado) {
         console.log('Resultado:', resultado);
     }
 });
+=======
+const whatsapp_1 = require("../app/Services/whatsapp-web/whatsapp");
+console.log("***CHAT BOT V-82***");
+console.log(`***NOME DO CLIENTE: ${process.env.CHAT_NAME}***`);
+(0, whatsapp_1.executeWhatsapp)();
+>>>>>>> main-production
 Route_1.default.get('/', async () => {
     return { hello: 'world' };
 });
@@ -97,8 +104,11 @@ Route_1.default.group(() => {
     Route_1.default.get('/dateposition', 'ShippingcampaignsController.datePosition');
     Route_1.default.get('/datepositionsynthetic', 'ShippingcampaignsController.datePositionSynthetic');
     Route_1.default.get('/listshippingcampaigns', 'ShippingcampaignsController.listShippingCampaigns');
+<<<<<<< HEAD
     Route_1.default.get('/serviceevaluationdashboard', 'ShippingcampaignsController.serviceEvaluationDashboard');
     Route_1.default.get('/scheduleconfirmationdashboard', 'ShippingcampaignsController.scheduleConfirmationDashboard');
+=======
+>>>>>>> main-production
     Route_1.default.get('/confirmschedule', 'DatasourcesController.confirmSchedule');
     Route_1.default.get('/serviceevaluation', 'DatasourcesController.serviceEvaluation');
 }).prefix('/api');

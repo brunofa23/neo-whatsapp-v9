@@ -161,6 +161,7 @@ class ShippingcampaignsController {
         }
     }
     async listShippingCampaigns({ request, response }) {
+<<<<<<< HEAD
         const { initialdate, finaldate, phonevalid, invalidresponse, absoluteresp } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp']);
         console.log("phonevalid", phonevalid);
         let query = "1=1";
@@ -173,6 +174,9 @@ class ShippingcampaignsController {
         if (absoluteresp) {
             query += ` and absoluteresp=${absoluteresp} `;
         }
+=======
+        const { initialdate, finaldate } = request.only(['initialdate', 'finaldate']);
+>>>>>>> main-production
         if (!luxon_1.DateTime.fromISO(initialdate).isValid || !luxon_1.DateTime.fromISO(finaldate).isValid) {
             throw new Error("Datas inválidas.");
         }
@@ -182,6 +186,7 @@ class ShippingcampaignsController {
                 .select('shippingcampaigns.interaction_id', 'shippingcampaigns.reg', 'shippingcampaigns.name', 'shippingcampaigns.cellphone', 'otherfields', 'phonevalid', 'messagesent', 'chats.created_at', 'response', 'returned', 'invalidresponse', 'chatname', 'absoluteresp')
                 .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
                 .whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
+<<<<<<< HEAD
                 .where('shippingcampaigns.interaction_id', 1)
                 .whereRaw(query);
             return response.status(201).send(result);
@@ -350,6 +355,9 @@ class ShippingcampaignsController {
                 .whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
                 .where('shippingcampaigns.interaction_id', 1)
                 .whereRaw(query);
+=======
+                .where('shippingcampaigns.interaction_id', 1);
+>>>>>>> main-production
             return response.status(201).send(result);
         }
         catch (error) {

@@ -6,13 +6,15 @@ import PersistShippingcampaign from "App/Services/whatsapp-web/PersistShippingca
 //import { connectionAll, resetStatusConnected, sendRepeatedMessage } from "../app/Services/whatsapp-web/util"
 import { connectionAll, sendRepeatedMessage, resetStatusConnected } from './events'
 
+
+
 console.log("***CHAT BOT V-108***10/03/2024")
 resetStatusConnected()
 
 function operacaoAssincrona(callback) {
   if (process.env.SERVER === 'true') {
     console.log("SERVER DATAS")
-    sendRepeatedMessage()
+    //sendRepeatedMessage()
     return
   }
 
@@ -114,7 +116,7 @@ Route.group(() => {
 
 
   Route.get("/smart", "DatasourcesController.scheduledPatients")
-  Route.get("/confirmscheduleall", "DatasourcesController.cancelScheduleAll")
+  Route.get("/cancelscheduleall", "DatasourcesController.cancelScheduleAll")
 
 
   Route.post('/restart', 'ShippingcampaignsController.resetWhatsapp')

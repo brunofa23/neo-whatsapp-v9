@@ -186,20 +186,6 @@ export default class DatasourcesController {
 
   async cancelScheduleAll() {
     console.log("Executando Cancelamentos no Smart...")
-
-    const body = {
-      "PacienteId": 220285,
-      "ProcedimentoId": 'CONS',
-      "ProfissionalExecutanteId": 34376,
-      "DataHora": '2024-05-03 10:40'
-    }
-    const response = await cancelSchedule(body)
-
-
-    // const responseSession = await session()
-    // console.log("SESSION>>", responseSession)
-    // return responseSession.data.token
-
     //const dateNow = await DateFormat("dd/MM/yyyy HH:mm:ss", DateTime.local())
     const startOfDay = await DateFormat("yyyy-MM-dd 00:00", DateTime.local())
     const endOfDay = await DateFormat("yyyy-MM-dd 23:59", DateTime.local())
@@ -221,16 +207,6 @@ export default class DatasourcesController {
           .andWhereBetween('agm_hini', [dateStart, dateEnd])
           .whereNotIn('agm_stat', ['C', 'B'])
           .whereNotIn('agm_confirm_stat', ['C'])
-
-        // const query = await Database.connection('mssql')
-        //   .from('agm')
-        //   .where('agm_pac', 220285)
-        //   .andWhereBetween('agm_hini', ['2024-05-03 00:00', '2024-05-03 23:59'])
-        //.whereNotIn('agm_stat', ['C', 'B'])
-        //.whereNotIn('agm_confirm_stat', ['C'])
-
-        console.log("status 44444")
-
         for (const agm of query) {
           const body = {
             "PacienteId": agm.AGM_PAC,

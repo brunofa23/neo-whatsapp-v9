@@ -24,13 +24,11 @@ async function cancelSchedule(body) {
     let token
     const responseSession = await session()
     if (responseSession.status == 200) {
-      token = responseSession.data.token
+      token = responseSession.data.Token
+      console.log("token....", token)
     }
-    console.log("token....", token)
-    return
-
     const headers = {
-      'x-auth-token': '{FB64D88D-FC9E-45C1-AEA4-20E19C41549F}'
+      'x-auth-token': token
     }
     const url = "/agenda/cancelar"
     const response = await axios.post(url, body, { headers })

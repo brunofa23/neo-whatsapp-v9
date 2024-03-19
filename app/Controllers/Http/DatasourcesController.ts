@@ -4,10 +4,11 @@ import Database from '@ioc:Adonis/Lucid/Database'
 import Chat from 'App/Models/Chat';
 import Interaction from 'App/Models/Interaction';
 import Shippingcampaign from 'App/Models/Shippingcampaign';
-import { DateTime } from 'luxon';
+import { DateTime, DatetTime } from 'luxon';
 import moment from 'moment';
-
 import { DateFormat, InvalidResponse } from '../../Services/whatsapp-web/util'
+import { cancelSchedule, session } from '../../Services/requestExternal/request'
+
 
 export default class DatasourcesController {
 
@@ -138,7 +139,7 @@ export default class DatasourcesController {
     }
   }
 
-  async cancelScheduleAll() {
+  async cancelScheduleAll1() {
 
     console.log("Executando Cancelamentos no Smart...")
     const dateNow = await DateFormat("dd/MM/yyyy HH:mm:ss", DateTime.local())
@@ -177,6 +178,72 @@ export default class DatasourcesController {
 
         //return query
 
+      }
+    } catch (error) {
+      return error
+    }
+  }
+
+  async cancelScheduleAll() {
+    console.log("Executando Cancelamentos no Smart...")
+
+    const body = {
+      "PacienteId": 220285,
+      "ProcedimentoId": 'CONS',
+      "ProfissionalExecutanteId": 34376,
+      "DataHora": '2024-05-03 10:40'
+    }
+    const response = await cancelSchedule(body)
+
+
+    // const responseSession = await session()
+    // console.log("SESSION>>", responseSession)
+    // return responseSession.data.token
+
+    //const dateNow = await DateFormat("dd/MM/yyyy HH:mm:ss", DateTime.local())
+    const startOfDay = await DateFormat("yyyy-MM-dd 00:00", DateTime.local())
+    const endOfDay = await DateFormat("yyyy-MM-dd 23:59", DateTime.local())
+    const returnChats = await Chat.query()
+      .preload('shippingcampaign')
+      .whereBetween('created_at', [startOfDay, endOfDay])
+      .andWhere('externalstatus', 'A')
+      .andWhere('absoluteresp', 2)
+      .andWhere('interaction_id', 1)
+
+    try {
+      for (const chat of returnChats) {
+        const momentDate = moment(chat.shippingcampaign.dateshedule)
+        const dateStart = momentDate.format('YYYY-MM-DD 00:00:00')
+        const dateEnd = momentDate.format('YYYY-MM-DD 23:59:00')
+        const query = await Database.connection('mssql')
+          .from('agm')
+          .where('agm_pac', chat.reg)
+          .andWhereBetween('agm_hini', [dateStart, dateEnd])
+          .whereNotIn('agm_stat', ['C', 'B'])
+          .whereNotIn('agm_confirm_stat', ['C'])
+
+        // const query = await Database.connection('mssql')
+        //   .from('agm')
+        //   .where('agm_pac', 220285)
+        //   .andWhereBetween('agm_hini', ['2024-05-03 00:00', '2024-05-03 23:59'])
+        //.whereNotIn('agm_stat', ['C', 'B'])
+        //.whereNotIn('agm_confirm_stat', ['C'])
+
+        console.log("status 44444")
+
+        for (const agm of query) {
+          const body = {
+            "PacienteId": agm.AGM_PAC,
+            "ProcedimentoId": agm.AGM_SMK,
+            "ProfissionalExecutanteId": agm.AGM_MED,
+            "DataHora": DateTime.fromJSDate(agm.AGM_HINI, { zone: 'utc' }).toFormat('yyyy-MM-dd HH:mm')
+          }
+          const response = await cancelSchedule(body)
+          if (response?.status == 200) {
+            console.log("cancelamento realizado sucesso")
+            await Chat.query().where('reg', chat.reg).andWhere('idexternal', chat.idexternal).update({ externalstatus: 'B' })
+          }
+        }
       }
     } catch (error) {
       return error

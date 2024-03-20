@@ -6,9 +6,9 @@ import Interaction from 'App/Models/Interaction';
 import Shippingcampaign from 'App/Models/Shippingcampaign';
 import { DateTime, DatetTime } from 'luxon';
 import moment from 'moment';
-import { DateFormat, InvalidResponse } from '../../Services/whatsapp-web/util'
-import { cancelSchedule, session } from '../../Services/requestExternal/request'
 
+import { cancelSchedule, session } from '../../Services/requestExternal/request'
+import { DateFormat, InvalidResponse } from '../../Services/whatsapp-web/util'
 
 export default class DatasourcesController {
 
@@ -186,7 +186,6 @@ export default class DatasourcesController {
 
   async cancelScheduleAll() {
     console.log("Executando Cancelamentos no Smart...")
-    //const dateNow = await DateFormat("dd/MM/yyyy HH:mm:ss", DateTime.local())
     const startOfDay = await DateFormat("yyyy-MM-dd 00:00", DateTime.local())
     const endOfDay = await DateFormat("yyyy-MM-dd 23:59", DateTime.local())
     const returnChats = await Chat.query()
@@ -226,43 +225,43 @@ export default class DatasourcesController {
     }
   }
 
-  async cancelSchedule(chat: Chat, chatOtherFields: String = "") {
-    const dateNow = await DateFormat("dd/MM/yyyy HH:mm:ss", DateTime.local())
-    const dateSchedule = DateTime.fromFormat(chatOtherFields['schedule'], 'yyyy-MM-dd HH:mm')//converte string para data
-    const startOfDay = await DateFormat("yyyy-MM-dd 00:00", dateSchedule)
-    const endOfDay = await DateFormat("yyyy-MM-dd 23:59", dateSchedule)
+  // async cancelSchedule(chat: Chat, chatOtherFields: String = "") {
+  //   const dateNow = await DateFormat("dd/MM/yyyy HH:mm:ss", DateTime.local())
+  //   const dateSchedule = DateTime.fromFormat(chatOtherFields['schedule'], 'yyyy-MM-dd HH:mm')//converte string para data
+  //   const startOfDay = await DateFormat("yyyy-MM-dd 00:00", dateSchedule)
+  //   const endOfDay = await DateFormat("yyyy-MM-dd 23:59", dateSchedule)
 
-    let _invalidResponse = ""
-    if (await InvalidResponse(chat.invalidresponse) == false) {
-      _invalidResponse = chat.invalidresponse
-    }
+  //   let _invalidResponse = ""
+  //   if (await InvalidResponse(chat.invalidresponse) == false) {
+  //     _invalidResponse = chat.invalidresponse
+  //   }
 
-    try {
-      const query = await Database.connection('mssql')
-        .from('agm')
-        .where('agm_pac', chat.reg)
-        .whereBetween('agm_hini', [startOfDay, endOfDay])
-        .whereNotIn('agm_stat', ['C', 'B'])
-        .whereNotIn('agm_confirm_stat', ['C'])
-        .update({
-          AGM_CONFIRM_STAT: 'N',
-          AGM_CONFIRM_USR: 'NEOCONFIRM',
-          //AGM_STAT: 'A',
-          //AGM_EXT: 1,
-          //AGM_CONFIRM_OBS: `Desmarcado por NEO CONFIRMA by CONFIRMA ou CANCELA - WhatsApp em ${dateNow}`,
-          AGM_CONFIRM_OBS: _invalidResponse + ` (Desmarcado por NEO CONFIRMA by CONFIRMA ou CANCELA - WhatsApp em ${dateNow})`,
-          AGM_CONFIRM_DTHR: dateNow,
-          AGM_CONFIRM_MOC: 'IRI'
-          //AGM_CANC_USR_LOGIN: 'NEOCONFIRM'
-        })
-      await Database.manager.close('mssql')
-      //console.log("QUERY cancelamento", query)
-      return query
+  //   try {
+  //     const query = await Database.connection('mssql')
+  //       .from('agm')
+  //       .where('agm_pac', chat.reg)
+  //       .whereBetween('agm_hini', [startOfDay, endOfDay])
+  //       .whereNotIn('agm_stat', ['C', 'B'])
+  //       .whereNotIn('agm_confirm_stat', ['C'])
+  //       .update({
+  //         AGM_CONFIRM_STAT: 'N',
+  //         AGM_CONFIRM_USR: 'NEOCONFIRM',
+  //         //AGM_STAT: 'A',
+  //         //AGM_EXT: 1,
+  //         //AGM_CONFIRM_OBS: `Desmarcado por NEO CONFIRMA by CONFIRMA ou CANCELA - WhatsApp em ${dateNow}`,
+  //         AGM_CONFIRM_OBS: _invalidResponse + ` (Desmarcado por NEO CONFIRMA by CONFIRMA ou CANCELA - WhatsApp em ${dateNow})`,
+  //         AGM_CONFIRM_DTHR: dateNow,
+  //         AGM_CONFIRM_MOC: 'IRI'
+  //         //AGM_CANC_USR_LOGIN: 'NEOCONFIRM'
+  //       })
+  //     await Database.manager.close('mssql')
+  //     //console.log("QUERY cancelamento", query)
+  //     return query
 
-    } catch (error) {
-      return error
-    }
-  }
+  //   } catch (error) {
+  //     return error
+  //   }
+  // }
 
 
   async serviceEvaluation() {

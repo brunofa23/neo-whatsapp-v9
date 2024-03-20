@@ -8,6 +8,7 @@ import { DateFormat, GenerateRandomTime, TimeSchedule } from '../app/Services/wh
 import { startAgentChat } from "../app/Services/whatsapp-web/whatsapp"
 import { startAgent } from "../app/Services/whatsapp-web/whatsappConnection"
 import Agent from "App/Models/Agent";
+import '../app/Services/plugins/axios'
 async function connectionAll() {
 
   try {

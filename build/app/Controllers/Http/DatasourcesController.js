@@ -190,9 +190,9 @@ class DatasourcesController {
                         "ProfissionalExecutanteId": agm.AGM_MED,
                         "DataHora": luxon_1.DateTime.fromJSDate(agm.AGM_HINI, { zone: 'utc' }).toFormat('yyyy-MM-dd HH:mm')
                     };
+                    console.log(`Cancelamento PacReg:${agm.AGM_PAC}, Procedimento:${agm.AGM_SMK} Data:${luxon_1.DateTime.fromJSDate(agm.AGM_HINI, { zone: 'utc' }).toFormat('yyyy-MM-dd HH:mm')}`);
                     const response = await (0, request_1.cancelSchedule)(body);
                     if (response?.status == 200) {
-                        console.log(`Cancelamento PacReg:${agm.AGM_PAC}, Procedimento:${agm.AGM_SMK} Data:${luxon_1.DateTime.fromJSDate(agm.AGM_HINI, { zone: 'utc' }).toFormat('yyyy-MM-dd HH:mm')}`);
                         await Chat_1.default.query().where('reg', chat.reg).andWhere('idexternal', chat.idexternal).update({ externalstatus: 'B' });
                     }
                 }

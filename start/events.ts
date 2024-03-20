@@ -1,5 +1,6 @@
 import DatasourcesController from "App/Controllers/Http/DatasourcesController";
 import Agent from "App/Models/Agent"
+import Agent from "App/Models/Agent";
 import Config from "App/Models/Config"
 import PersistShippingcampaign from "App/Services/whatsapp-web/PersistShippingcampaign"
 import { DateTime } from 'luxon';
@@ -7,8 +8,9 @@ import { DateTime } from 'luxon';
 import { DateFormat, GenerateRandomTime, TimeSchedule } from '../app/Services/whatsapp-web/util'
 import { startAgentChat } from "../app/Services/whatsapp-web/whatsapp"
 import { startAgent } from "../app/Services/whatsapp-web/whatsappConnection"
-import Agent from "App/Models/Agent";
+
 import '../app/Services/plugins/axios'
+
 async function connectionAll() {
 
   try {
@@ -57,3 +59,4 @@ async function resetStatusConnected() {
 
 
 module.exports = { connectionAll, sendRepeatedMessage, resetStatusConnected }
+

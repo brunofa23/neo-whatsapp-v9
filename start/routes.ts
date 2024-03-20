@@ -6,13 +6,13 @@ import PersistShippingcampaign from "App/Services/whatsapp-web/PersistShippingca
 //import { connectionAll, resetStatusConnected, sendRepeatedMessage } from "../app/Services/whatsapp-web/util"
 import { connectionAll, sendRepeatedMessage, resetStatusConnected } from './events'
 
-console.log("***CHAT BOT V-109***20/03/2024")
+console.log("***CHAT BOT V-110***20/03/2024")
 resetStatusConnected()
 
 function operacaoAssincrona(callback) {
   if (process.env.SERVER === 'true') {
     console.log("SERVER DATAS")
-    //sendRepeatedMessage()
+    sendRepeatedMessage()
     return
   }
 
@@ -37,52 +37,10 @@ Route.get('/', async () => {
 })
 
 Route.group(() => {
-
-
-  // Route.get('/start', async () => {
-  //   console.log("Reinicializando sistema...")
-  //   exec('pm2 restart easytalk', (error, stdout, stderr) => {
-  //     if (error) {
-  //       console.error(`error: ${error.message}`);
-  //       return;
-  //     }
-
-  //     if (stderr) {
-  //       console.error(`stderr: ${stderr}`);
-  //       return;
-  //     }
-
-  //     console.log(`stdout:\n${stdout}`);
-  //   });
-
-  //   console.log("Reinicializado!!")
-  // })
-
-  // Route.get('/stop', async () => {
-
-  //   exec('pm2 stop all', (error, stdout, stderr) => {
-  //     if (error) {
-  //       console.error(`error: ${error.message}`);
-  //       return;
-  //     }
-
-  //     if (stderr) {
-  //       console.error(`stderr: ${stderr}`);
-  //       return;
-  //     }
-
-  //     console.log(`stdout:\n${stdout}`);
-  //   });
-
-  //   //return { hello: 'world' }
-  // })
-
-
   //Executa busca no Smart
   Route.get('/executequery', async () => {
     console.log("EXECUTANDO BUSCA NO SMART")
     await PersistShippingcampaign()
-
   })
 
   //USERS
@@ -90,7 +48,6 @@ Route.group(() => {
 
   //LOGIN
   Route.post("/login", "UsersController.login")
-
 
   //AGENTS
   Route.get("/validagent", "AgentsController.validAgent")

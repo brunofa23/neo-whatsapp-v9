@@ -4,9 +4,10 @@ import Database from '@ioc:Adonis/Lucid/Database'
 import Chat from 'App/Models/Chat';
 import Interaction from 'App/Models/Interaction';
 import Shippingcampaign from 'App/Models/Shippingcampaign';
-import { DateTime } from 'luxon';
+import { DateTime, DatetTime } from 'luxon';
 import moment from 'moment';
 
+import { cancelSchedule, session } from '../../Services/requestExternal/request'
 import { DateFormat, InvalidResponse } from '../../Services/whatsapp-web/util'
 
 export default class DatasourcesController {
@@ -138,7 +139,7 @@ export default class DatasourcesController {
     }
   }
 
-  async cancelScheduleAll() {
+  async cancelScheduleAll1() {
 
     console.log("Executando Cancelamentos no Smart...")
     const dateNow = await DateFormat("dd/MM/yyyy HH:mm:ss", DateTime.local())
@@ -183,43 +184,84 @@ export default class DatasourcesController {
     }
   }
 
-  async cancelSchedule(chat: Chat, chatOtherFields: String = "") {
-    const dateNow = await DateFormat("dd/MM/yyyy HH:mm:ss", DateTime.local())
-    const dateSchedule = DateTime.fromFormat(chatOtherFields['schedule'], 'yyyy-MM-dd HH:mm')//converte string para data
-    const startOfDay = await DateFormat("yyyy-MM-dd 00:00", dateSchedule)
-    const endOfDay = await DateFormat("yyyy-MM-dd 23:59", dateSchedule)
-
-    let _invalidResponse = ""
-    if (await InvalidResponse(chat.invalidresponse) == false) {
-      _invalidResponse = chat.invalidresponse
-    }
+  async cancelScheduleAll() {
+    console.log("Executando Cancelamentos no Smart...")
+    const startOfDay = await DateFormat("yyyy-MM-dd 00:00", DateTime.local())
+    const endOfDay = await DateFormat("yyyy-MM-dd 23:59", DateTime.local())
+    const returnChats = await Chat.query()
+      .preload('shippingcampaign')
+      .whereBetween('created_at', [startOfDay, endOfDay])
+      .andWhere('externalstatus', 'A')
+      .andWhere('absoluteresp', 2)
+      .andWhere('interaction_id', 1)
 
     try {
-      const query = await Database.connection('mssql')
-        .from('agm')
-        .where('agm_pac', chat.reg)
-        .whereBetween('agm_hini', [startOfDay, endOfDay])
-        .whereNotIn('agm_stat', ['C', 'B'])
-        .whereNotIn('agm_confirm_stat', ['C'])
-        .update({
-          AGM_CONFIRM_STAT: 'N',
-          AGM_CONFIRM_USR: 'NEOCONFIRM',
-          //AGM_STAT: 'A',
-          //AGM_EXT: 1,
-          //AGM_CONFIRM_OBS: `Desmarcado por NEO CONFIRMA by CONFIRMA ou CANCELA - WhatsApp em ${dateNow}`,
-          AGM_CONFIRM_OBS: _invalidResponse + ` (Desmarcado por NEO CONFIRMA by CONFIRMA ou CANCELA - WhatsApp em ${dateNow})`,
-          AGM_CONFIRM_DTHR: dateNow,
-          AGM_CONFIRM_MOC: 'IRI'
-          //AGM_CANC_USR_LOGIN: 'NEOCONFIRM'
-        })
-      await Database.manager.close('mssql')
-      //console.log("QUERY cancelamento", query)
-      return query
-
+      for (const chat of returnChats) {
+        const momentDate = moment(chat.shippingcampaign.dateshedule)
+        const dateStart = momentDate.format('YYYY-MM-DD 00:00:00')
+        const dateEnd = momentDate.format('YYYY-MM-DD 23:59:00')
+        const query = await Database.connection('mssql')
+          .from('agm')
+          .where('agm_pac', chat.reg)
+          .andWhereBetween('agm_hini', [dateStart, dateEnd])
+          .whereNotIn('agm_stat', ['C', 'B'])
+          .whereNotIn('agm_confirm_stat', ['C'])
+        for (const agm of query) {
+          const body = {
+            "PacienteId": agm.AGM_PAC,
+            "ProcedimentoId": agm.AGM_SMK,
+            "ProfissionalExecutanteId": agm.AGM_MED,
+            "DataHora": DateTime.fromJSDate(agm.AGM_HINI, { zone: 'utc' }).toFormat('yyyy-MM-dd HH:mm')
+          }
+          const response = await cancelSchedule(body)
+          if (response?.status == 200) {
+            console.log("cancelamento realizado sucesso")
+            await Chat.query().where('reg', chat.reg).andWhere('idexternal', chat.idexternal).update({ externalstatus: 'B' })
+          }
+        }
+      }
     } catch (error) {
       return error
     }
   }
+
+  // async cancelSchedule(chat: Chat, chatOtherFields: String = "") {
+  //   const dateNow = await DateFormat("dd/MM/yyyy HH:mm:ss", DateTime.local())
+  //   const dateSchedule = DateTime.fromFormat(chatOtherFields['schedule'], 'yyyy-MM-dd HH:mm')//converte string para data
+  //   const startOfDay = await DateFormat("yyyy-MM-dd 00:00", dateSchedule)
+  //   const endOfDay = await DateFormat("yyyy-MM-dd 23:59", dateSchedule)
+
+  //   let _invalidResponse = ""
+  //   if (await InvalidResponse(chat.invalidresponse) == false) {
+  //     _invalidResponse = chat.invalidresponse
+  //   }
+
+  //   try {
+  //     const query = await Database.connection('mssql')
+  //       .from('agm')
+  //       .where('agm_pac', chat.reg)
+  //       .whereBetween('agm_hini', [startOfDay, endOfDay])
+  //       .whereNotIn('agm_stat', ['C', 'B'])
+  //       .whereNotIn('agm_confirm_stat', ['C'])
+  //       .update({
+  //         AGM_CONFIRM_STAT: 'N',
+  //         AGM_CONFIRM_USR: 'NEOCONFIRM',
+  //         //AGM_STAT: 'A',
+  //         //AGM_EXT: 1,
+  //         //AGM_CONFIRM_OBS: `Desmarcado por NEO CONFIRMA by CONFIRMA ou CANCELA - WhatsApp em ${dateNow}`,
+  //         AGM_CONFIRM_OBS: _invalidResponse + ` (Desmarcado por NEO CONFIRMA by CONFIRMA ou CANCELA - WhatsApp em ${dateNow})`,
+  //         AGM_CONFIRM_DTHR: dateNow,
+  //         AGM_CONFIRM_MOC: 'IRI'
+  //         //AGM_CANC_USR_LOGIN: 'NEOCONFIRM'
+  //       })
+  //     await Database.manager.close('mssql')
+  //     //console.log("QUERY cancelamento", query)
+  //     return query
+
+  //   } catch (error) {
+  //     return error
+  //   }
+  // }
 
 
   async serviceEvaluation() {

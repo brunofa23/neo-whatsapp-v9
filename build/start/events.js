@@ -11,6 +11,7 @@ const luxon_1 = require("luxon");
 const util_1 = require("../app/Services/whatsapp-web/util");
 const whatsapp_1 = require("../app/Services/whatsapp-web/whatsapp");
 const whatsappConnection_1 = require("../app/Services/whatsapp-web/whatsappConnection");
+require("../app/Services/plugins/axios");
 async function connectionAll() {
     try {
         console.log("connection all acionado...");

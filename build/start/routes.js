@@ -6,12 +6,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const Route_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Route"));
 const PersistShippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/PersistShippingcampaign"));
 const events_1 = require("./events");
-console.log("***CHAT BOT V-108***10/03/2024");
+console.log("***CHAT BOT V-109***20/03/2024");
 (0, events_1.resetStatusConnected)();
 function operacaoAssincrona(callback) {
     if (process.env.SERVER === 'true') {
         console.log("SERVER DATAS");
-        (0, events_1.sendRepeatedMessage)();
         return;
     }
     if (process.env.SERVER === 'false') {
@@ -53,7 +52,7 @@ Route_1.default.group(() => {
     Route_1.default.resource("/config", "ConfigsController").apiOnly();
     Route_1.default.post("/config/restartsystem", "ConfigsController.restartSystem");
     Route_1.default.get("/smart", "DatasourcesController.scheduledPatients");
-    Route_1.default.get("/confirmscheduleall", "DatasourcesController.cancelScheduleAll");
+    Route_1.default.get("/cancelscheduleall", "DatasourcesController.cancelScheduleAll");
     Route_1.default.post('/restart', 'ShippingcampaignsController.resetWhatsapp');
     Route_1.default.post('/logout', 'ShippingcampaignsController.logout');
     Route_1.default.post('/chat', 'ShippingcampaignsController.chat');

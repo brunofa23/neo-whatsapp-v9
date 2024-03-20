@@ -25,7 +25,6 @@ async function cancelSchedule(body) {
     const responseSession = await session()
     if (responseSession.status == 200) {
       token = responseSession.data.Token
-      console.log("token....", token)
     }
     const headers = {
       'x-auth-token': token

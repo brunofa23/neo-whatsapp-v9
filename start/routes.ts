@@ -1,12 +1,9 @@
 import Route from '@ioc:Adonis/Core/Route'
-import Chat from 'App/Models/Chat';
-import Shippingcampaign from 'App/Models/Shippingcampaign';
 import PersistShippingcampaign from "App/Services/whatsapp-web/PersistShippingcampaign"
 
-//import { connectionAll, resetStatusConnected, sendRepeatedMessage } from "../app/Services/whatsapp-web/util"
-import { connectionAll, sendRepeatedMessage, resetStatusConnected } from './events'
+import { connectionAll, resetStatusConnected, sendRepeatedMessage } from './events'
 
-console.log("***CHAT BOT V-110***20/03/2024")
+console.log("***CHAT BOT V-111***20/03/2024")
 resetStatusConnected()
 
 function operacaoAssincrona(callback) {

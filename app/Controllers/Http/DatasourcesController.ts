@@ -215,7 +215,7 @@ export default class DatasourcesController {
           }
           const response = await cancelSchedule(body)
           if (response?.status == 200) {
-            console.log("cancelamento realizado sucesso")
+            console.log(`Cancelamento realizado, PacReg:${agm.AGM_SMK}, Data:${agm.AGM_HINI}`)
             await Chat.query().where('reg', chat.reg).andWhere('idexternal', chat.idexternal).update({ externalstatus: 'B' })
           }
         }

@@ -26,6 +26,7 @@ export default class Agent extends BaseModel {
       'qrcode',
       'statusconnected',
       'default_chat',
+      'deleted',
       'createdAt',
       'updatedAt',
     ]
@@ -71,6 +72,9 @@ export default class Agent extends BaseModel {
 
   @column()
   public default_chat: boolean
+
+  @column()
+  public deleted: boolean
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime

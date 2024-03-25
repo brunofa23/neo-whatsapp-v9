@@ -1,6 +1,6 @@
 import DatasourcesController from "App/Controllers/Http/DatasourcesController";
 import Agent from "App/Models/Agent"
-import Agent from "App/Models/Agent";
+import AgentsController from "App/Controllers/Http/AgentsController";
 import Config from "App/Models/Config"
 import PersistShippingcampaign from "App/Services/whatsapp-web/PersistShippingcampaign"
 import { DateTime } from 'luxon';
@@ -11,6 +11,15 @@ import { startAgent } from "../app/Services/whatsapp-web/whatsappConnection"
 
 import '../app/Services/plugins/axios'
 
+
+async function destroyFullAgents() {
+  //const agentController = AgentsController()
+  console.log("Passei no destroy agentes 1222")
+  const destroyAgents = new AgentsController
+  await destroyAgents.destroyFullAgents()
+
+}
+
 async function connectionAll() {
 
   try {
@@ -18,6 +27,8 @@ async function connectionAll() {
     await Agent.query().update({ statusconnected: false, qrcode: null })
     const agents = await Agent.query()
       .where('active', true)
+      .andWhereNull('deleted')
+
     for (const agent of agents) {
       if (agent) {
         if (agent.default_chat) {
@@ -58,5 +69,8 @@ async function resetStatusConnected() {
 }
 
 
-module.exports = { connectionAll, sendRepeatedMessage, resetStatusConnected }
+
+
+
+module.exports = { connectionAll, sendRepeatedMessage, resetStatusConnected, destroyFullAgents }
 

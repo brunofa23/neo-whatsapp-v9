@@ -16,7 +16,7 @@ export default class AgentsController {
     const dateStart = await DateFormat("yyyy-MM-dd 00:00:00", DateTime.local())
     const dateEnd = await DateFormat("yyyy-MM-dd 23:59:00", DateTime.local())
     try {
-      const data = await Agent.query()
+      const data = await Agent.query().whereNull('deleted')
       const agents = []
       for (const agent of data) {
         const totMessage =
@@ -56,6 +56,7 @@ export default class AgentsController {
     const body = request.only(Agent.fillable)
     body.interval_init_query = 1
     body.interval_final_query = 1
+    body.active = 1
     try {
       const data = await Agent.create(body)
       return response.status(201).send(data)
@@ -84,6 +85,7 @@ export default class AgentsController {
 
       await Agent.query()
         .where('id', params.id)
+        .andWhereNull('deleted')
         .update({ statusconnected: false, qrcode: null })
       const agent = await Agent.query().where('id', params.id).first()
       let client
@@ -111,7 +113,9 @@ export default class AgentsController {
       const valuedatetime = DateTime.local().toFormat('yyyy-MM-dd HH:mm:ss')
       await Config.query().where('id', 'statusSendMessage').update({ valuedatetime: valuedatetime })
 
-      await Agent.query().update({ statusconnected: false, qrcode: null })
+      await Agent.query()
+        .whereNull('deleted')
+        .update({ statusconnected: false, qrcode: null })
       const agents = await Agent.query()
         .where('active', true)
       for (const agent of agents) {
@@ -132,24 +136,34 @@ export default class AgentsController {
   }
 
   public async destroy({ params, request, response }: HttpContextContract) {
-    const id = params.id
-    const pathFolder = `.wwebjs_auth/session-${id}`
-    if (fs.existsSync(pathFolder)) {
-      fs.rm(pathFolder, { recursive: true }, (err) => {
-        if (err) {
-          console.error(err)
-        } else {
-          console.log("DIRETORIO DELETADO")
-        }
-      })
-    }
-    const data = await Agent.findOrFail(id)
-    await data.delete()
-    return {
-      message: "Agente excluido com sucesso!!",
-      data: data
-    }
+    console.log("passei no destroy....")
+    const data = await Agent.query().where('id', params.id)
+      .update({ deleted: true, active: null, status: null, number_phone: null, qrcode: null })
+    return response.status(201).send(data)
 
+  }
+
+  public async destroyFullAgents() {
+
+    const agents = await Agent.query().where('deleted', true)
+    for (const agent of agents) {
+
+      await setTimeout(() => {
+        console.log("Excluindo pasta...")
+        const pathFolder = `.wwebjs_auth/session-${agent.id}`
+        if (fs.existsSync(pathFolder)) {
+          fs.rm(pathFolder, { recursive: true }, (err) => {
+            if (err) {
+              console.error(err)
+            } else {
+              console.log(`DIRETORIO DELETADO: session-${agent.id}`)
+            }
+          })
+        }
+
+      }, 10000)
+
+    }
 
   }
 

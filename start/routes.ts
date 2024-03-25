@@ -1,12 +1,14 @@
 import Route from '@ioc:Adonis/Core/Route'
 import PersistShippingcampaign from "App/Services/whatsapp-web/PersistShippingcampaign"
 
-import { connectionAll, resetStatusConnected, sendRepeatedMessage } from './events'
+import { connectionAll, resetStatusConnected, sendRepeatedMessage, destroyFullAgents } from './events'
 
-console.log("***CHAT BOT V-113***20/03/2024")
+console.log("***CHAT BOT V-114***25/03/2024")
 resetStatusConnected()
 
 function operacaoAssincrona(callback) {
+  destroyFullAgents()
+
   if (process.env.SERVER === 'true') {
     console.log("SERVER DATAS")
     sendRepeatedMessage()
@@ -55,7 +57,9 @@ Route.group(() => {
   Route.put("/agents/:id", "AgentsController.update")
   Route.post("/agents/connectionagentchat/:id", "AgentsController.connectionAgentChat")
   Route.post("/agents/sendmessageagentdefalut", "AgentsController.sendMessageAgentDefalut")
-  Route.post("/agents/destroy/:id", "AgentsController.destroy")
+  Route.delete("/agents/:id", "AgentsController.destroy")
+  Route.post("/agents/destroyfullagents", "AgentsController.destroyFullAgents")
+
 
   //CUSTOM CHATS
   Route.post("/customchat/sendmessage", "CustomchatsController.sendMessage")

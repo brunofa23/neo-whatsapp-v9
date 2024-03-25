@@ -56,6 +56,7 @@ export default class AgentsController {
     const body = request.only(Agent.fillable)
     body.interval_init_query = 1
     body.interval_final_query = 1
+    body.active = 1
     try {
       const data = await Agent.create(body)
       return response.status(201).send(data)
@@ -136,11 +137,9 @@ export default class AgentsController {
 
   public async destroy({ params, request, response }: HttpContextContract) {
     console.log("passei no destroy....")
-    const id = params.id
     const data = await Agent.query().where('id', params.id)
-      .update({ deleted: true })
+      .update({ deleted: true, active: null, status: null, number_phone: null, qrcode: null })
     return response.status(201).send(data)
-
 
   }
 

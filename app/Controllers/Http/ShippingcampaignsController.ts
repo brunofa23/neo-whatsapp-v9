@@ -74,7 +74,6 @@ export default class ShippingcampaignsController {
 
   public async chat({ response, request }) {
 
-    //return "tester"
     const id = 567508
     const query = `update agm set AGM_CONFIRM_STAT = 'C' where agm_id = ${id}` //`update agm set agm_confirm_stat = 'C' where agm_id=:id`
     //const query = "select top 10 * from agm order by agm_hini desc"
@@ -148,11 +147,8 @@ export default class ShippingcampaignsController {
   }
 
   public async datePosition({ request, response }: HttpContextContract) {
-
     console.log("PASSEI DATEPOSITION")
-
     const { initialdate, finaldate } = request.only(['initialdate', 'finaldate'])
-
     if (!DateTime.fromISO(initialdate).isValid || !DateTime.fromISO(finaldate).isValid) {
       throw new Error("Datas inválidas.")
     }
@@ -355,44 +351,19 @@ export default class ShippingcampaignsController {
       //console.log("RESUUUULT", resultAcumulatedList)
       //calcula o percentual do NPS
       const npsResult = ((totalPromoters * 100) / totalEvaluations) - ((totalDetractors * 100) / totalEvaluations)
-
-      // console.log("% detratores", percentDetractors)
-      // console.log("% promoters", percentPromoters)
-      // console.log("NPS", npsResult)
-      // console.log("total geral", totalEvaluations)
-      // console.log("total detratores", totalDetractors)
-      // console.log("total promoters", totalPromoters)
-
-
-      const otherfields = result.map(item => JSON.parse(item.otherfields))
-      const station = otherfields.map(item => item.station)
-      const medic = otherfields.map(item => item.medic)
-
-      let itemFilter
+      //const otherfields = result.map(item => JSON.parse(item.otherfields))
+      //const station = otherfields.map(item => item.station)
+      //const medic = otherfields.map(item => item.medic)
+      //let itemFilter
       const resultFinal = result.map(item => {
         const otherfieldsObj = JSON.parse(item.otherfields);
-
-        // if (item.absoluteresp !== null) {
-        //   itemFilter = item
-        // }
-        // return {
-        //   itemFilter,
-        //   station: otherfieldsObj.station,
-        //   medic: otherfieldsObj.medic,
-        //   attendant: otherfieldsObj.attendant
-        // }
-
         return {
           ...item,
           station: otherfieldsObj.station,
           medic: otherfieldsObj.medic,
           attendant: otherfieldsObj.attendant
         };
-
-
       });
-
-      //console.log("ITEM>>>>>", resultFinal)
 
       // Função para classificar a pontuação
       function getClassification(score) {

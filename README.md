@@ -36,4 +36,32 @@ git push origin <branch>
 const yesterday = DateTime.local().toFormat('yyyy-MM-dd 00:00') = '2023-12-21'
 const endOfDay = await DateFormat("yyyy-MM-dd 23:59", dateNow) = '2023-12-21' (função DateFormat construida)
 
-ssss
+# CODIGO PARA FAZER BACKUP MYSQL DENTRO DO NODE
+npm install mysqldump
+
+const mysqldump = require('mysqldump');
+
+// Configurações de conexão com o banco de dados MySQL
+const connectionOptions = {
+  host: 'localhost',
+  user: 'seu_usuario',
+  password: 'sua_senha',
+  database: 'seu_banco_de_dados'
+};
+
+// Opções para o mysqldump
+const dumpOptions = {
+  dest: 'caminho_para_o_arquivo_backup.sql', // Caminho onde o arquivo de backup será salvo
+  // Outras opções aqui, como gzip: true, para comprimir o backup
+};
+
+// Executar o backup
+mysqldump(connectionOptions, dumpOptions)
+  .then(() => {
+    console.log('Backup do MySQL concluído com sucesso!');
+  })
+  .catch(error => {
+    console.error('Erro ao fazer o backup:', error);
+  });
+
+  # ###########################################################################

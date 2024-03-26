@@ -241,10 +241,6 @@ class ShippingcampaignsController {
                     totalPromoters = totalPromoters + result.$extras.total;
             }
             const npsResult = ((totalPromoters * 100) / totalEvaluations) - ((totalDetractors * 100) / totalEvaluations);
-            const otherfields = result.map(item => JSON.parse(item.otherfields));
-            const station = otherfields.map(item => item.station);
-            const medic = otherfields.map(item => item.medic);
-            let itemFilter;
             const resultFinal = result.map(item => {
                 const otherfieldsObj = JSON.parse(item.otherfields);
                 return {

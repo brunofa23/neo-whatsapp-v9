@@ -1,11 +1,9 @@
 import Route from '@ioc:Adonis/Core/Route'
 import PersistShippingcampaign from "App/Services/whatsapp-web/PersistShippingcampaign"
 
-import { connectionAll, resetStatusConnected, sendRepeatedMessage, destroyFullAgents } from './events'
+import { connectionAll, destroyFullAgents, resetStatusConnected, sendRepeatedMessage } from './events'
 
 console.log("***CHAT BOT V-115***25/03/2024")
-
-
 function operacaoAssincrona(callback) {
   if (process.env.SERVER === 'true') {
     console.log("SERVER DATAS")

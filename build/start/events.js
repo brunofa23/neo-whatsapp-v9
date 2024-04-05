@@ -3,9 +3,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const AgentsController_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Controllers/Http/AgentsController"));
 const DatasourcesController_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Controllers/Http/DatasourcesController"));
 const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
-const AgentsController_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Controllers/Http/AgentsController"));
 const Config_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Config"));
 const PersistShippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/PersistShippingcampaign"));
 const luxon_1 = require("luxon");
@@ -14,7 +14,7 @@ const whatsapp_1 = require("../app/Services/whatsapp-web/whatsapp");
 const whatsappConnection_1 = require("../app/Services/whatsapp-web/whatsappConnection");
 require("../app/Services/plugins/axios");
 async function destroyFullAgents() {
-    console.log("Passei no destroy agentes 1222");
+    const agentController = (0, AgentsController_1.default)();
     const destroyAgents = new AgentsController_1.default;
     await destroyAgents.destroyFullAgents();
 }

@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const Route_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Route"));
 const PersistShippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/PersistShippingcampaign"));
 const events_1 = require("./events");
-console.log("***CHAT BOT V-115***25/03/2024");
+console.log("***CHAT BOT V-116***05/04/2024");
 function operacaoAssincrona(callback) {
     if (process.env.SERVER === 'true') {
         console.log("SERVER DATAS");
@@ -15,7 +15,6 @@ function operacaoAssincrona(callback) {
     }
     if (process.env.SERVER === 'false') {
         (0, events_1.resetStatusConnected)();
-        (0, events_1.destroyFullAgents)();
         console.log("Chat Monitoring");
         (0, events_1.connectionAll)();
         return;

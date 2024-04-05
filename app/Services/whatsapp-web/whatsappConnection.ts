@@ -50,8 +50,14 @@ async function startAgent(_agent: Agent) {
       setRequestInterception: true,
       setBypassCSP: true,
       setJavaScriptEnabled: false
-    }
+    },
+    webVersionCache: {
+      type: 'remote',
+      remotePath: "https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/${wwebVersion}.html",
+    },
   });
+
+
 
   client.initialize();
 

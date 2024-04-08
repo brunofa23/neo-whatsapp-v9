@@ -14,7 +14,7 @@ const whatsapp_1 = require("../app/Services/whatsapp-web/whatsapp");
 const whatsappConnection_1 = require("../app/Services/whatsapp-web/whatsappConnection");
 require("../app/Services/plugins/axios");
 async function destroyFullAgents() {
-    const agentController = (0, AgentsController_1.default)();
+    console.log("Passei no destroy agentes 1222");
     const destroyAgents = new AgentsController_1.default;
     await destroyAgents.destroyFullAgents();
 }

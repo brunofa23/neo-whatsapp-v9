@@ -13,7 +13,7 @@ function operacaoAssincrona(callback) {
 
   if (process.env.SERVER === 'false') {
     resetStatusConnected()
-    //destroyFullAgents()
+    destroyFullAgents()
     console.log("Chat Monitoring")
     connectionAll()
     return

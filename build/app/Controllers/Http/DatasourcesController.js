@@ -37,18 +37,21 @@ class DatasourcesController {
         }
     }
     async scheduledPatients() {
+        console.log;
         async function greeting(message) {
             const greeting = ['Olá!😀', 'Oi tudo bem?😀', 'Saudações!😀', 'Oi como vai?😀'];
             const presentation = ['Eu me chamo Iris', 'Eu sou a Iris', 'Aqui é a Iris'];
             return message.replace('{greeting}', greeting[Math.floor(Math.random() * greeting.length)]).replace('{presentation}', presentation[Math.floor(Math.random() * presentation.length)]);
         }
-        const pacQueryModel = await Interaction_1.default.find(1);
+        const pacQueryModel = await Interaction_1.default.query().where('id', 1).first();
         const env = process.env.NODE_ENV;
         let pacQuery;
-        if (env === 'development')
+        if (env === 'development') {
             pacQuery = pacQueryModel?.querydev;
-        else
+        }
+        else {
             pacQuery = pacQueryModel?.query;
+        }
         try {
             const result = await Database_1.default.connection('mssql').rawQuery(pacQuery);
             for (const data of result) {

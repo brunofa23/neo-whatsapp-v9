@@ -17,12 +17,10 @@ function isIterable(obj) {
 export default async () => {
   const dataSource = new DatasourcesController
   const dataSourceList = await dataSource.DataSource()
-
   if (!isIterable(dataSourceList)) {
     console.log("Algum erro ocorrido, não é iterable", dataSourceList)
     return
   }
-
   for (const data of dataSourceList) {
     try {
       const yesterday = moment().subtract(1, 'day').format('YYYY-MM-DD');

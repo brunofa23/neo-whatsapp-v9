@@ -34,25 +34,6 @@ async function startAgent(_agent: Agent) {
     console.log("CHATNAME INVÁLIDO - Verifique o .env Chatname está igual ao name tabela Agents")
     return
   }
-  // const client = new Client({
-  //   authStrategy: new LocalAuth({ clientId: _agent.id }),
-  //   puppeteer: {
-  //     args: ['--no-sandbox',
-  //       '--max-memory=512MB',
-  //       '--disable-setuid-sandbox',
-  //       '--disable-dev-shm-usage',
-  //       '--disable-accelerated-2d-canvas',
-  //       '--no-first-run',
-  //       '--no-zygote',
-  //       '--disable-gpu'
-  //     ],
-  //     headless: true,
-  //     setRequestInterception: true,
-  //     setBypassCSP: true,
-  //     setJavaScriptEnabled: false
-  //   }
-  // });
-
   const client = new Client({
     authStrategy: new LocalAuth({ clientId: _agent.id }),
     puppeteer: {
@@ -69,11 +50,7 @@ async function startAgent(_agent: Agent) {
       setRequestInterception: true,
       setBypassCSP: true,
       setJavaScriptEnabled: false
-    },
-    webVersionCache: {
-      type: 'remote',
-      remotePath: "https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/${wwebVersion}.html",
-    },
+    }
   });
 
   client.initialize();

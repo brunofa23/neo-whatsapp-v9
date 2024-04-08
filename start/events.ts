@@ -12,8 +12,7 @@ import { startAgent } from "../app/Services/whatsapp-web/whatsappConnection"
 import '../app/Services/plugins/axios'
 
 async function destroyFullAgents() {
-  const agentController = AgentsController()
-  //console.log("Passei no destroy agentes 1222")
+  console.log("Passei no destroy agentes 1222")
   const destroyAgents = new AgentsController
   await destroyAgents.destroyFullAgents()
 

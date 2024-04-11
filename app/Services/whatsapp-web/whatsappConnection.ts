@@ -13,7 +13,6 @@ const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcodeTerminal = require('qrcode-terminal');
 const qrcode = require('qrcode')
 
-
 async function getStatusSendMessage() {
   const result = await Config.query().select('valuebool', 'valuedatetime').where('id', 'statusSendMessage').first()
   const dateNow = DateTime.now();
@@ -27,8 +26,6 @@ async function getStatusSendMessage() {
 
 
 async function startAgent(_agent: Agent) {
-
-
   const agent = await Agent.findOrFail(_agent.id)
   if (!_agent) {
     console.log("CHATNAME INVÁLIDO - Verifique o .env Chatname está igual ao name tabela Agents")
@@ -97,14 +94,6 @@ async function startAgent(_agent: Agent) {
     console.log("State:", state)
     const infoClient = await client.info
     console.log("Client:", infoClient.pushname, "- Phone number:", infoClient.wid.user)
-
-    // setInterval(() => {
-    //   SendMessage(client, agent)
-    // }, 10000)
-    // if (process.env.SELF_CONVERSATION?.toLocaleLowerCase() === "true") {
-    //   console.log("self_conversation", process.env.SELF_CONVERSATION)
-    //   await SendMessageInternal(client)
-    // }
     agent.status = state
     agent.statusconnected = true
     agent.number_phone = client.info.wid.user

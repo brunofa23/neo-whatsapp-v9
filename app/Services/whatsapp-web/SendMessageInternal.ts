@@ -19,8 +19,6 @@ async function PhoneInternal() {
 export default async (client: Client) => {
 
   async function sendMessages() {
-    //setInterval(async () => {
-
     if (await TimeSchedule() == false) {
       //console.log("Passei no Timeshecule>>>>")
       return
@@ -28,24 +26,20 @@ export default async (client: Client) => {
     //const groupChat = client.getChatById('120363170786645695');
     //groupChat.sendMessage("teste......");
     const phrase = await ListInternalPhrases()
-    const phone = await PhoneInternal()
-    const validationCellPhone = await verifyNumber(client, phone)
+    //const phone = await PhoneInternal()
     try {
-
-      await client.sendMessage('120363170786645695@g.us', phrase)
+        await client.sendMessage('120363170786645695@g.us', phrase)
         .then(async (response) => {
-          //console.log("Mensagem enviada com sucesso!!", response)
+          console.log("Mensagem enviada com sucesso!!", response)
         }).catch(async (error) => {
-          //console.log("ERRRRO:::", error)
+          console.log("ERRRRO:::", error)
         })
     }
     catch (error) {
       console.log("ERRO:::", error)
     }
-    //}, await GenerateRandomTime(600, 900, '----Time Send Message'))//await GenerateRandomTime(startTimeSendMessage, endTimeSendMessage, '----Time Send Message'))
   }
   await sendMessages()
-
 }
 
 

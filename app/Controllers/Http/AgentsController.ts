@@ -42,10 +42,7 @@ export default class AgentsController {
           totMessage: totMessage?.$extras.totMessage
         })
       }
-
       //console.log("Agentes", agents)
-
-
       return response.status(200).send(agents)
     } catch (error) {
       return error

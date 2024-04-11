@@ -32,10 +32,8 @@ export default async () => {
       shipping.idexternal = data.idexternal
       shipping.name = String(data.name).trim()
       shipping.cellphone = String(data.cellphone).replace(/[^0-9]+/g, ''); //data.cellphone.replace("(", "").replace("-", "")
-
       if (!await ValidatePhone(data.cellphone))
         shipping.phonevalid = false
-
       shipping.messagesent = false
       shipping.message = String(data.message).replace(/@p[0-9]/g, '?')
       shipping.otherfields = data.otherfields

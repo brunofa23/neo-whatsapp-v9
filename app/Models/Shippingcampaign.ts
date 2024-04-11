@@ -51,6 +51,21 @@ export default class Shippingcampaign extends BaseModel {
   @column()
   public dateshedule: DateTime
 
+  @column()
+  public doctor: string
+
+  @column()
+  public unit:string
+
+  @column()
+  public attendant:string
+
+  @column()
+  public covenant:string
+
+  @column()
+  public dateservice: DateTime
+
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
 

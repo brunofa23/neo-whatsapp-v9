@@ -37,6 +37,11 @@ export default async () => {
       shipping.messagesent = false
       shipping.message = String(data.message).replace(/@p[0-9]/g, '?')
       shipping.otherfields = data.otherfields
+      shipping.doctor = data.doctor
+      shipping.unit = data.unit
+      shipping.attendant = data.attendant
+      shipping.covenant = ''
+      shipping.dateservice = data.dateservice
 
 
       const verifyExist = await Shippingcampaign.query()

@@ -84,7 +84,6 @@ export default async (client: Client, agent: Agent) => {
 
 
   async function sendMessages() {
-    //  const sendMessagesInterval = setInterval(async () => {
     const totMessageSend = await countLimitSendMessage()
     const maxLimitSendAgent = await maxLimitSendMessageAgent(agent.id)
     let verifyChat
@@ -161,8 +160,6 @@ export default async (client: Client, agent: Agent) => {
         }
       }
     }
-    //}, await GenerateRandomTime(startTimeSendMessage, endTimeSendMessage, '----Time Send Message'))
-
   }
 
   await sendMessages()

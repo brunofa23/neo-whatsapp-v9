@@ -17,12 +17,10 @@ function isIterable(obj) {
 export default async () => {
   const dataSource = new DatasourcesController
   const dataSourceList = await dataSource.DataSource()
-
   if (!isIterable(dataSourceList)) {
     console.log("Algum erro ocorrido, não é iterable", dataSourceList)
     return
   }
-
   for (const data of dataSourceList) {
     try {
       const yesterday = moment().subtract(1, 'day').format('YYYY-MM-DD');
@@ -34,10 +32,8 @@ export default async () => {
       shipping.idexternal = data.idexternal
       shipping.name = String(data.name).trim()
       shipping.cellphone = String(data.cellphone).replace(/[^0-9]+/g, ''); //data.cellphone.replace("(", "").replace("-", "")
-
       if (!await ValidatePhone(data.cellphone))
         shipping.phonevalid = false
-
       shipping.messagesent = false
       shipping.message = String(data.message).replace(/@p[0-9]/g, '?')
       shipping.otherfields = data.otherfields

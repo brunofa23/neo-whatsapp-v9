@@ -18,13 +18,12 @@ export default class DatasourcesController {
     const interactionList = await Interaction.query().where('status', '=', 1)
     let schedulePatientsArray: any[] = []
     let serviceEvaluationArray: any[] = []
-
     try {
       for (const interaction of interactionList) {
         if (interaction.id == 1) {
           await Database.manager.close('mssql')
-          //return await this.scheduledPatients()
           schedulePatientsArray = await this.scheduledPatients()
+
         } else
           if (interaction.id == 2) {
             await Database.manager.close('mssql')
@@ -43,20 +42,24 @@ export default class DatasourcesController {
   }
 
   async scheduledPatients() {
-
-
+    console.log
     async function greeting(message: String) {
       const greeting = ['Olá!😀', 'Oi tudo bem?😀', 'Saudações!😀', 'Oi como vai?😀']
       const presentation = ['Eu me chamo Iris', 'Eu sou a Iris', 'Aqui é a Iris']
       return message.replace('{greeting}', greeting[Math.floor(Math.random() * greeting.length)]).replace('{presentation}', presentation[Math.floor(Math.random() * presentation.length)])
     }
-    const pacQueryModel = await Interaction.find(1)
+    //const pacQueryModel = await Interaction.find(1)
+    const pacQueryModel = await Interaction.query().where('id', 1).first()
+    //console.log("PACQUERY>>>>>", pacQueryModel?.query)
+
     const env = process.env.NODE_ENV
     let pacQuery
-
-    if (env === 'development')
+    if (env === 'development') {
       pacQuery = pacQueryModel?.querydev
-    else pacQuery = pacQueryModel?.query
+    }
+    else {
+      pacQuery = pacQueryModel?.query
+    }
 
     try {
       const result = await Database.connection('mssql').rawQuery(pacQuery)
@@ -225,46 +228,7 @@ export default class DatasourcesController {
     }
   }
 
-  // async cancelSchedule(chat: Chat, chatOtherFields: String = "") {
-  //   const dateNow = await DateFormat("dd/MM/yyyy HH:mm:ss", DateTime.local())
-  //   const dateSchedule = DateTime.fromFormat(chatOtherFields['schedule'], 'yyyy-MM-dd HH:mm')//converte string para data
-  //   const startOfDay = await DateFormat("yyyy-MM-dd 00:00", dateSchedule)
-  //   const endOfDay = await DateFormat("yyyy-MM-dd 23:59", dateSchedule)
-
-  //   let _invalidResponse = ""
-  //   if (await InvalidResponse(chat.invalidresponse) == false) {
-  //     _invalidResponse = chat.invalidresponse
-  //   }
-
-  //   try {
-  //     const query = await Database.connection('mssql')
-  //       .from('agm')
-  //       .where('agm_pac', chat.reg)
-  //       .whereBetween('agm_hini', [startOfDay, endOfDay])
-  //       .whereNotIn('agm_stat', ['C', 'B'])
-  //       .whereNotIn('agm_confirm_stat', ['C'])
-  //       .update({
-  //         AGM_CONFIRM_STAT: 'N',
-  //         AGM_CONFIRM_USR: 'NEOCONFIRM',
-  //         //AGM_STAT: 'A',
-  //         //AGM_EXT: 1,
-  //         //AGM_CONFIRM_OBS: `Desmarcado por NEO CONFIRMA by CONFIRMA ou CANCELA - WhatsApp em ${dateNow}`,
-  //         AGM_CONFIRM_OBS: _invalidResponse + ` (Desmarcado por NEO CONFIRMA by CONFIRMA ou CANCELA - WhatsApp em ${dateNow})`,
-  //         AGM_CONFIRM_DTHR: dateNow,
-  //         AGM_CONFIRM_MOC: 'IRI'
-  //         //AGM_CANC_USR_LOGIN: 'NEOCONFIRM'
-  //       })
-  //     await Database.manager.close('mssql')
-  //     //console.log("QUERY cancelamento", query)
-  //     return query
-
-  //   } catch (error) {
-  //     return error
-  //   }
-  // }
-
-
-  async serviceEvaluation() {
+ async serviceEvaluation() {
     async function greeting(message: String) {
       const greeting = ['Olá!😀', 'Oi tudo bem?😀', 'Saudações!😀', 'Oi como vai?😀']
       const question = ['Gostaríamos de avaliar a sua experiência recente em nosso hospital Neo. Em uma escala de *0 a 10*, o quanto você indicaria o nosso Núcleo de Excelência em Oftalmologia a um amigo ou parente?',

@@ -1,7 +1,5 @@
-import { types } from '@ioc:Adonis/Core/Helpers'
 import DatasourcesController from 'App/Controllers/Http/DatasourcesController'
 import Shippingcampaign from 'App/Models/Shippingcampaign'
-
 import { ValidatePhone } from '../whatsapp-web/util'
 
 import moment = require('moment');

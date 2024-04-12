@@ -60,6 +60,7 @@ async function sendRepeatedMessage() {
       }
     }
   }, await GenerateRandomTime(300, 400, '****Send Message Repeated'))
+  
 
 }
 async function resetStatusConnected() {

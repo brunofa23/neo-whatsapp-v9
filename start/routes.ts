@@ -72,10 +72,7 @@ Route.group(() => {
   Route.get("/smart", "DatasourcesController.scheduledPatients")
   Route.get("/cancelscheduleall", "DatasourcesController.cancelScheduleAll")
 
-
-  Route.post('/restart', 'ShippingcampaignsController.resetWhatsapp')
   Route.post('/logout', 'ShippingcampaignsController.logout')
-
   Route.post('/chat', 'ShippingcampaignsController.chat')
   Route.get('/maxlimitsendmessage', 'ShippingcampaignsController.maxLimitSendMessage')
   Route.get('/datasources', 'DatasourcesController.DataSource')
@@ -88,6 +85,10 @@ Route.group(() => {
 
   Route.get('/confirmschedule', 'DatasourcesController.confirmSchedule')
   Route.get('/serviceevaluation', 'DatasourcesController.serviceEvaluation')
+
+  Route.get('/doctorlist','ShippingcampaignsController.doctorList')
+  Route.get('/unitlist','ShippingcampaignsController.unitList')
+  Route.get('/attendantlist','ShippingcampaignsController.attendantList')
 
 }).prefix('/api')
 

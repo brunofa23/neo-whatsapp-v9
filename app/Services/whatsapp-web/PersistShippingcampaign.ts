@@ -37,9 +37,9 @@ export default async () => {
       shipping.messagesent = false
       shipping.message = String(data.message).replace(/@p[0-9]/g, '?')
       shipping.otherfields = data.otherfields
-      shipping.doctor = data.doctor
-      shipping.unit = data.unit
-      shipping.attendant = data.attendant
+      shipping.doctor =String(data.doctor).trim()
+      shipping.unit =String(data.unit).trim()
+      shipping.attendant = String(data.attendant).trim()
       shipping.covenant = ''
       shipping.dateservice = data.dateservice
 

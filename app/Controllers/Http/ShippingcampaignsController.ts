@@ -280,9 +280,9 @@ export default class ShippingcampaignsController {
   }
 
   public async serviceEvaluationDashboard({ request, response }: HttpContextContract) {
-    const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name, attendant, doctor, unit }
-      = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp', 'interactions', 'returned', 'reg', 'name', 'attendant', 'doctor', 'unit'])
 
+        const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name, attendant, doctor, unit }
+      = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp', 'interactions', 'returned', 'reg', 'name', 'attendant', 'doctor', 'unit'])
 
     let query = "1=1"
     if (returned)//clientes que enviaram mensagem dentro do sistema
@@ -338,12 +338,13 @@ export default class ShippingcampaignsController {
         )
         .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
 
-        .whereBetween('chats.created_at', [initialdate, finaldate])
-        .where('chats.interaction_id', 2)
-        // .whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
-        // .where('shippingcampaigns.interaction_id', 2)
-
+        //.whereBetween('chats.created_at', [initialdate, finaldate])
+        //.where('chats.interaction_id', 2)
+         .whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
+         .where('shippingcampaigns.interaction_id', 2)
         .whereRaw(query)
+
+
 
       const resultAcumulated = await Chat.query()
         .sumDistinct('absoluteresp as note')

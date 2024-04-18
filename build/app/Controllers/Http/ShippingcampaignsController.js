@@ -4,7 +4,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Shippingcampaign"));
-const whatsapp_1 = require("../../Services/whatsapp-web/whatsapp");
 const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
 const Database_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Lucid/Database"));
 const Env_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Env"));
@@ -43,6 +42,39 @@ class ShippingcampaignsController {
             return error;
         }
     }
+    async doctorList({ response, request }) {
+        try {
+            const shippingCampaign = await Shippingcampaign_1.default.query()
+                .distinct('doctor')
+                .orderBy('doctor', 'asc');
+            return response.status(200).send(shippingCampaign);
+        }
+        catch (error) {
+            return error;
+        }
+    }
+    async unitList({ response, request }) {
+        try {
+            const shippingCampaign = await Shippingcampaign_1.default.query()
+                .distinct('unit')
+                .orderBy('unit', 'asc');
+            return response.status(200).send(shippingCampaign);
+        }
+        catch (error) {
+            return error;
+        }
+    }
+    async attendantList({ response, request }) {
+        try {
+            const shippingCampaign = await Shippingcampaign_1.default.query()
+                .distinct('attendant')
+                .orderBy('attendant', 'asc');
+            return response.status(200).send(shippingCampaign);
+        }
+        catch (error) {
+            return error;
+        }
+    }
     async maxLimitSendMessage(agent) {
         const dateStart = await (0, util_1.DateFormat)("yyyy-MM-dd 00:00:00", luxon_1.DateTime.local());
         const dateEnd = await (0, util_1.DateFormat)("yyyy-MM-dd 23:59:00", luxon_1.DateTime.local());
@@ -54,9 +86,6 @@ class ShippingcampaignsController {
         if (!countMessage || countMessage == undefined || countMessage == null)
             return 0;
         return parseInt(countMessage.$extras.tot);
-    }
-    async resetWhatsapp() {
-        await whatsapp_1.executeWhatsapp;
     }
     async chat({ response, request }) {
         const id = 567508;
@@ -74,7 +103,6 @@ class ShippingcampaignsController {
         }
     }
     async dayPosition(period = "") {
-        console.log("ENTREI NO DAYPOSITION..");
         const startDate = await (0, util_1.DateFormat)("yyyy-MM-dd 00:00:00", luxon_1.DateTime.local());
         const endDate = await (0, util_1.DateFormat)("yyyy-MM-dd 23:59:00", luxon_1.DateTime.local());
         const totalDiario = await Shippingcampaign_1.default.query()
@@ -111,7 +139,6 @@ class ShippingcampaignsController {
         return result;
     }
     async datePosition({ request, response }) {
-        console.log("PASSEI DATEPOSITION");
         const { initialdate, finaldate } = request.only(['initialdate', 'finaldate']);
         if (!luxon_1.DateTime.fromISO(initialdate).isValid || !luxon_1.DateTime.fromISO(finaldate).isValid) {
             throw new Error("Datas inválidas.");
@@ -130,7 +157,6 @@ class ShippingcampaignsController {
                 .whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
                 .groupByRaw('CONVERT(date, shippingcampaigns.created_at)')
                 .orderByRaw(Database_1.default.raw('CONVERT(date, shippingcampaigns.created_at)')).toQuery();
-            console.log(">>>>>>>>>>", result);
             return response.status(201).send(result);
         }
         catch (error) {
@@ -138,7 +164,6 @@ class ShippingcampaignsController {
         }
     }
     async datePositionSynthetic({ request, response }) {
-        console.log("PASSEI DATEPOSITION");
         const { initialdate, finaldate } = request.only(['initialdate', 'finaldate']);
         if (!luxon_1.DateTime.fromISO(initialdate).isValid || !luxon_1.DateTime.fromISO(finaldate).isValid) {
             throw new Error("Datas inválidas.");
@@ -191,7 +216,7 @@ class ShippingcampaignsController {
         }
     }
     async serviceEvaluationDashboard({ request, response }) {
-        const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp', 'interactions', 'returned', 'reg', 'name']);
+        const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name, attendant, doctor, unit } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp', 'interactions', 'returned', 'reg', 'name', 'attendant', 'doctor', 'unit']);
         let query = "1=1";
         if (returned)
             query += ` and chats.id in (select chats_id from customchats) `;
@@ -210,6 +235,12 @@ class ShippingcampaignsController {
             query += ` and absoluteresp >= 7 and absoluteresp <9 `;
         else if (absoluteresp == 3)
             query += ` and absoluteresp >= 9 `;
+        if (attendant)
+            query += ` and attendant ='${attendant}'`;
+        if (doctor)
+            query += ` and doctor ='${doctor}' `;
+        if (unit)
+            query += ` and unit='${unit}'`;
         if (!luxon_1.DateTime.fromISO(initialdate).isValid || !luxon_1.DateTime.fromISO(finaldate).isValid) {
             throw new Error("Datas inválidas.");
         }
@@ -218,8 +249,8 @@ class ShippingcampaignsController {
                 .from('shippingcampaigns')
                 .select('shippingcampaigns.interaction_id', 'shippingcampaigns.reg', 'shippingcampaigns.name', 'shippingcampaigns.cellphone', 'chats.id', 'otherfields', 'phonevalid', 'messagesent', 'chats.created_at', 'response', 'returned', 'invalidresponse', 'chatname', 'absoluteresp', Database_1.default.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed'))
                 .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
-                .whereBetween('chats.created_at', [initialdate, finaldate])
-                .where('chats.interaction_id', 2)
+                .whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
+                .where('shippingcampaigns.interaction_id', 2)
                 .whereRaw(query);
             const resultAcumulated = await Chat_1.default.query()
                 .sumDistinct('absoluteresp as note')

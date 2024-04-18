@@ -74,6 +74,26 @@ __decorate([
     __metadata("design:type", luxon_1.DateTime)
 ], Shippingcampaign.prototype, "dateshedule", void 0);
 __decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", String)
+], Shippingcampaign.prototype, "doctor", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", String)
+], Shippingcampaign.prototype, "unit", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", String)
+], Shippingcampaign.prototype, "attendant", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", String)
+], Shippingcampaign.prototype, "covenant", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", luxon_1.DateTime)
+], Shippingcampaign.prototype, "dateservice", void 0);
+__decorate([
     Orm_1.column.dateTime({ autoCreate: true }),
     __metadata("design:type", luxon_1.DateTime)
 ], Shippingcampaign.prototype, "createdAt", void 0);

@@ -125,13 +125,6 @@ async function startAgentChat(_agent: Agent) {
    .where('message',msg.body)
    .andWhere('cellphoneserialized', msg.to)
    .update({ack:msg.ack})
-
-    // if (ack == 3) {
-    //   console.log("msg", msg.to, "fromMe", msg.fromMe)
-    //   console.log("ack", ack)
-    //   // The message was read
-    // }
-
   });
 
   const chatMonitoring = new ChatMonitoring

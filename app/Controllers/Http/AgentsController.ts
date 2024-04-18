@@ -141,11 +141,9 @@ export default class AgentsController {
   }
 
   public async destroyFullAgents() {
-
     const agents = await Agent.query().where('deleted', true)
     for (const agent of agents) {
-
-      await setTimeout(() => {
+      setTimeout(() => {
         console.log("Excluindo pasta...")
         const pathFolder = `.wwebjs_auth/session-${agent.id}`
         if (fs.existsSync(pathFolder)) {
@@ -157,7 +155,6 @@ export default class AgentsController {
             }
           })
         }
-
       }, 10000)
 
     }

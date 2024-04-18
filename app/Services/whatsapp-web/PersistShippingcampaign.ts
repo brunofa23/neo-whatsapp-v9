@@ -1,7 +1,5 @@
-import { types } from '@ioc:Adonis/Core/Helpers'
 import DatasourcesController from 'App/Controllers/Http/DatasourcesController'
 import Shippingcampaign from 'App/Models/Shippingcampaign'
-
 import { ValidatePhone } from '../whatsapp-web/util'
 
 import moment = require('moment');
@@ -32,13 +30,16 @@ export default async () => {
       shipping.idexternal = data.idexternal
       shipping.name = String(data.name).trim()
       shipping.cellphone = String(data.cellphone).replace(/[^0-9]+/g, ''); //data.cellphone.replace("(", "").replace("-", "")
-
       if (!await ValidatePhone(data.cellphone))
         shipping.phonevalid = false
-
       shipping.messagesent = false
       shipping.message = String(data.message).replace(/@p[0-9]/g, '?')
       shipping.otherfields = data.otherfields
+      shipping.doctor =String(data.doctor).trim()
+      shipping.unit =String(data.unit).trim()
+      shipping.attendant = String(data.attendant).trim()
+      shipping.covenant = ''
+      shipping.dateservice = data.dateservice
 
 
       const verifyExist = await Shippingcampaign.query()

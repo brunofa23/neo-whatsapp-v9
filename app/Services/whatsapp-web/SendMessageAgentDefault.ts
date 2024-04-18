@@ -10,16 +10,6 @@ export default async (client: Client, agent: Agent) => {
   const startTimeSendMessage = agent.interval_init_message
   const endTimeSendMessage = agent.interval_final_message
 
-  // async function _shippingCampaignList() {
-  //   return await Shippingcampaign.query()
-  //     .whereNull('phonevalid')
-  //     .andWhere('messagesent', 0)
-  //     .andWhere('created_at', '>', yesterday) // Certifique-se de usar a data correta aqui
-  //     .whereNotExists((query) => {
-  //       query.select('*').from('chats').whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id');
-  //     }).first()
-  // }
-
   async function customChatSendMessage() {
     return await Customchat.query()
       .where('messagesent', 0)
@@ -32,18 +22,17 @@ export default async (client: Client, agent: Agent) => {
 
       const customChat = await customChatSendMessage()
       if (customChat) {
-        const validationCellPhone = await verifyNumber(client, customChat?.cellphone)
+        //const validationCellPhone = await verifyNumber(client, customChat?.cellphone)
+        const validationCellPhone = await client.getNumberId(customChat.cellphone)
         if (validationCellPhone == null) {
           customChat.phonevalid = false
           await customChat.save()
         }
-
         if (validationCellPhone) {
-          await client.sendMessage(validationCellPhone, customChat?.message)
+          await client.sendMessage(validationCellPhone._serialized, customChat?.message)
             .then(async (response) => {
-              //console.log("SEND MESSAGE>>>>>", response)
               customChat.messagesent = true
-              customChat.cellphoneserialized = validationCellPhone
+              customChat.cellphoneserialized = validationCellPhone._serialized
               customChat.chatname = agent.name
               customChat.chatnumber = client.info.wid.user
               customChat.read = false

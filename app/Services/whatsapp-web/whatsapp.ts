@@ -1,12 +1,12 @@
 import Agent from 'App/Models/Agent';
-import SendMessage from 'App/Services/whatsapp-web/SendMessage'
-
+//import SendMessage from 'App/Services/whatsapp-web/SendMessage'
 import ChatMonitoring from './ChatMonitoring/ChatMonitoring'
-import ChatMonitoringAgentChat from './ChatMonitoring/ChatMonitoringAgentChat'
+//import ChatMonitoringAgentChat from './ChatMonitoring/ChatMonitoringAgentChat'
 import ChatMonitoringInternal from './ChatMonitoring/ChatMonitoringInternal'
 import SendMessageAgentDefault from './SendMessageAgentDefault';
-import SendMessageInternal from './SendMessageInternal';
+//import SendMessageInternal from './SendMessageInternal';
 import { ClearFolder, DateFormat, ExecutingSendMessage, GenerateRandomTime, RandomResponse, TimeSchedule, validAgent, ValidatePhone } from './util'
+import Customchat from 'App/Models/Customchat';
 
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcodeTerminal = require('qrcode-terminal');
@@ -111,7 +111,7 @@ async function startAgentChat(_agent: Agent) {
 
   });
 
-  clientChat.on('message_ack', (msg, ack) => {
+  clientChat.on('message_ack', async(msg, ack) => {
     /*
         == ACK VALUES ==
         ACK_ERROR: -1
@@ -121,12 +121,16 @@ async function startAgentChat(_agent: Agent) {
         ACK_READ: 3
         ACK_PLAYED: 4
     */
+   const returnAck = await Customchat.query()
+   .where('message',msg.body)
+   .andWhere('cellphoneserialized', msg.to)
+   .update({ack:msg.ack})
 
-    if (ack == 3) {
-      console.log("msg", msg.to, "fromMe", msg.fromMe)
-      console.log("ack", ack)
-      // The message was read
-    }
+    // if (ack == 3) {
+    //   console.log("msg", msg.to, "fromMe", msg.fromMe)
+    //   console.log("ack", ack)
+    //   // The message was read
+    // }
 
   });
 

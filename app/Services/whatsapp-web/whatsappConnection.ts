@@ -48,7 +48,9 @@ async function startAgent(_agent: Agent) {
       setBypassCSP: true,
       setJavaScriptEnabled: false
     }
+
   });
+
 
   client.initialize();
 

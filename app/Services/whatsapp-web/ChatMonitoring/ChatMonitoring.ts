@@ -45,7 +45,6 @@ export default class Monitoring {
   async monitoring(client: Client) {
     try {
       client.on('message', async message => {
-
         let groupChat = await message.getChat();
         if (groupChat.isGroup) { return null }
         if (message.type.toLowerCase() == "e2e_notification") return null;

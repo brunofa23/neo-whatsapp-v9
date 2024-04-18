@@ -24,7 +24,7 @@ async function verifyNumberInternal(phoneVerify: String) {
 export default class Monitoring {
   async monitoring(client: Client) {
     try {
-      console.log("CHAT PASSO 1")
+      console.log("MONITORANDO CHAT DEFAULT")
       client.on('message', async message => {
         console.log("CHAT PASSO 2", message.body)
 

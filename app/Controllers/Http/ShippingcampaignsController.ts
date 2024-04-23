@@ -361,7 +361,11 @@ export default class ShippingcampaignsController {
         'invalidresponse',
         'chatname',
         'absoluteresp',
-        Database.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed')
+        'prioritysend',
+        'excluded',
+        Database.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed'),
+
+
       )
       .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
 

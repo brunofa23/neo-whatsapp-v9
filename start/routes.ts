@@ -93,6 +93,7 @@ Route.group(() => {
   //shippingcampaigns
   Route.patch('/shippingcampaigns/:id','ShippingcampaignsController.update')
   Route.get('/shippingcampaigns/:id','ShippingcampaignsController.show')
+  Route.post('/shippingcampaigns','ShippingcampaignsController.store')
 
 }).prefix('/api')
 

@@ -12,6 +12,35 @@ export default class Shippingcampaign extends BaseModel {
     return Env.get('DB_CONNECTION_MAIN')
   }
 
+  public static get fillable() {
+    return [
+      'id',
+      'interaction_id',
+      'interaction_seq',
+      'idexternal',
+      'reg',
+      'name',
+      'cellphone',
+      'cellphoneserialized',
+      'message',
+      'otherfields',
+      'phonevalid',
+      'messagesent',
+      'dateshedule',
+      'doctor',
+      'unit',
+      'attendant',
+      'covenant',
+      'dateservice',
+      'prioritysend',
+      'excluded'
+    ]
+  }
+
+
+
+
+
   @column({ isPrimary: true })
   public id: number
 
@@ -55,16 +84,22 @@ export default class Shippingcampaign extends BaseModel {
   public doctor: string
 
   @column()
-  public unit:string
+  public unit: string
 
   @column()
-  public attendant:string
+  public attendant: string
 
   @column()
-  public covenant:string
+  public covenant: string
 
   @column()
   public dateservice: DateTime
+
+  @column()
+  public prioritysend: boolean
+
+  @column()
+  public excluded: boolean
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime

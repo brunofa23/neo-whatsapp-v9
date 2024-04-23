@@ -90,6 +90,10 @@ Route.group(() => {
   Route.get('/unitlist','ShippingcampaignsController.unitList')
   Route.get('/attendantlist','ShippingcampaignsController.attendantList')
 
+  //shippingcampaigns
+  Route.patch('/shippingcampaigns/:id','ShippingcampaignsController.update')
+  Route.get('/shippingcampaigns/:id','ShippingcampaignsController.show')
+
 }).prefix('/api')
 
 

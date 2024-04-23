@@ -48,13 +48,12 @@ export default class ShippingcampaignsController {
   }
 
 
-  public async update({ request, params, response }: HttpContextContract) {
+  public async update({auth, request, params, response }: HttpContextContract) {
     //const authenticate = await auth.use('api').authenticate()
     const body = request.only(Shippingcampaign.fillable)
     body.id = params.id
-    console.log("acessei update...", body)
-
     try {
+      //console.log("PASSEI AQUI", body)
       const data = await Shippingcampaign.query().where('id', params.id)
         .update(body)
       return response.status(201).send(data)
@@ -258,7 +257,6 @@ export default class ShippingcampaignsController {
 
   public async listShippingCampaigns({ request, response }: HttpContextContract) {
 
-
   const { initialdate, finaldate, phonevalid, invalidresponse, absoluteresp } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp'])
   console.log("phonevalid", phonevalid)
   let query = "1=1"
@@ -308,8 +306,9 @@ export default class ShippingcampaignsController {
 
   public async serviceEvaluationDashboard({ request, response }: HttpContextContract) {
 
-  const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name, attendant, doctor, unit }
-    = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp', 'interactions', 'returned', 'reg', 'name', 'attendant', 'doctor', 'unit'])
+  const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name, attendant, doctor, unit, excluded }
+    = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp',
+     'interactions', 'returned', 'reg', 'name', 'attendant', 'doctor', 'unit', 'excluded' ])
 
   let query = "1=1"
   if (returned)//clientes que enviaram mensagem dentro do sistema
@@ -340,13 +339,22 @@ export default class ShippingcampaignsController {
     query += ` and doctor ='${doctor}' `
   if (unit)
     query += ` and unit='${unit}'`
+
+  // if(excluded)
+  //   query +=` and excluded=1 `
+  // else query +=` and (excluded not in (1) or excluded is null) `
+
   if (!DateTime.fromISO(initialdate).isValid || !DateTime.fromISO(finaldate).isValid) {
     throw new Error("Datas inválidas.")
   }
+
+
+
   try {
     const result = await Database.connection(Env.get('DB_CONNECTION_MAIN')).query()
       .from('shippingcampaigns')
       .select(
+        'shippingcampaigns.id as idShipp',
         'shippingcampaigns.interaction_id',
         'shippingcampaigns.reg',
         'shippingcampaigns.name',
@@ -368,14 +376,13 @@ export default class ShippingcampaignsController {
 
       )
       .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
-
       //.whereBetween('chats.created_at', [initialdate, finaldate])
       //.where('chats.interaction_id', 2)
       .whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
       .where('shippingcampaigns.interaction_id', 2)
+      //.whereRaw('(not excluded = 1 or is excluded is null)')
       .whereRaw(query)
-
-
+      console.log(result)
 
     const resultAcumulated = await Chat.query()
       .sumDistinct('absoluteresp as note')
@@ -384,6 +391,8 @@ export default class ShippingcampaignsController {
       .andWhereBetween('absoluteresp', [0, 10])
       .whereBetween('created_at', [initialdate, finaldate])
       .groupBy('absoluteresp')
+
+
 
     let resultAcumulatedList = []
     let totalEvaluations = 0
@@ -399,12 +408,16 @@ export default class ShippingcampaignsController {
       if (result.$extras.note >= 9 && result.$extras.note <= 10)
         totalPromoters = totalPromoters + result.$extras.total
     }
+
+
     //calcula o percentual do NPS
     const npsResult = ((totalPromoters * 100) / totalEvaluations) - ((totalDetractors * 100) / totalEvaluations)
     //const otherfields = result.map(item => JSON.parse(item.otherfields))
     //const station = otherfields.map(item => item.station)
     //const medic = otherfields.map(item => item.medic)
     //let itemFilter
+
+
     const resultFinal = result.map(item => {
       const otherfieldsObj = JSON.parse(item.otherfields);
       return {
@@ -414,6 +427,8 @@ export default class ShippingcampaignsController {
         attendant: otherfieldsObj.attendant
       };
     });
+
+
 
     // Função para classificar a pontuação
     function getClassification(score) {

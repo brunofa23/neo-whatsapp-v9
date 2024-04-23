@@ -5,8 +5,8 @@ export default class extends BaseSchema {
 
   public async up() {
     this.schema.alterTable(this.tableName, (table) => {
-      table.boolean('prioritysend')
-      table.boolean('excluded')
+      table.boolean('prioritysend').defaultTo(false)
+      table.boolean('excluded').defaultTo(false)
     })
   }
 

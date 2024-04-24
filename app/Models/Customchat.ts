@@ -26,7 +26,9 @@ export default class Customchat extends BaseModel {
       'messagesent',
       'read',
       'viewed',
-      'phonevalid'
+      'phonevalid',
+      'ack'
+
     ]
   }
 
@@ -66,6 +68,8 @@ export default class Customchat extends BaseModel {
   public viewed: boolean
   @column()
   public phonevalid: boolean
+  @column()
+  public ack:number
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime

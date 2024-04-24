@@ -52,8 +52,8 @@ export default class ShippingcampaignsController {
     //const authenticate = await auth.use('api').authenticate()
     const body = request.only(Shippingcampaign.fillable)
     body.id = params.id
+    console.log("PASSEI AQUI", body)
     try {
-      //console.log("PASSEI AQUI", body)
       const data = await Shippingcampaign.query().where('id', params.id)
         .update(body)
       return response.status(201).send(data)
@@ -382,7 +382,7 @@ export default class ShippingcampaignsController {
       .where('shippingcampaigns.interaction_id', 2)
       //.whereRaw('(not excluded = 1 or is excluded is null)')
       .whereRaw(query)
-      console.log(result)
+      //console.log(result)
 
     const resultAcumulated = await Chat.query()
       .sumDistinct('absoluteresp as note')

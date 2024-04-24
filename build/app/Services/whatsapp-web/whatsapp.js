@@ -7,6 +7,7 @@ const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"
 const ChatMonitoring_1 = __importDefault(require("./ChatMonitoring/ChatMonitoring"));
 const ChatMonitoringInternal_1 = __importDefault(require("./ChatMonitoring/ChatMonitoringInternal"));
 const SendMessageAgentDefault_1 = __importDefault(require("./SendMessageAgentDefault"));
+const Customchat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Customchat"));
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcodeTerminal = require('qrcode-terminal');
 const qrcode = require('qrcode');
@@ -74,11 +75,11 @@ async function startAgentChat(_agent) {
         agent.qrcode = null;
         await agent.save();
     });
-    clientChat.on('message_ack', (msg, ack) => {
-        if (ack == 3) {
-            console.log("msg", msg.to, "fromMe", msg.fromMe);
-            console.log("ack", ack);
-        }
+    clientChat.on('message_ack', async (msg, ack) => {
+        const returnAck = await Customchat_1.default.query()
+            .where('message', msg.body)
+            .andWhere('cellphoneserialized', msg.to)
+            .update({ ack: msg.ack });
     });
     const chatMonitoring = new ChatMonitoring_1.default;
     await chatMonitoring.monitoring(clientChat);

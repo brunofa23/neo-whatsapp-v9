@@ -22,11 +22,29 @@ class ShippingcampaignsController {
             return error;
         }
     }
-    async store({ response, request }) {
+    async store({ request, response }) {
+        const body = request.only(Shippingcampaign_1.default.fillable);
+        response.send(body);
+        const data = await Shippingcampaign_1.default.create(body);
+        return response.status(201).send(data);
+    }
+    async show({ auth, params, response }) {
+        const authenticate = await auth.use('api').authenticate();
         try {
-            const shippingCampaign = await Shippingcampaign_1.default
-                .query();
-            return response.status(200).send(shippingCampaign);
+            const payLoad = await Shippingcampaign_1.default.find(params.id);
+            return response.status(200).send(payLoad);
+        }
+        catch (error) {
+            return error;
+        }
+    }
+    async update({ auth, request, params, response }) {
+        const body = request.only(Shippingcampaign_1.default.fillable);
+        body.id = params.id;
+        try {
+            const data = await Shippingcampaign_1.default.query().where('id', params.id)
+                .update(body);
+            return response.status(201).send(data);
         }
         catch (error) {
             return error;
@@ -40,6 +58,31 @@ class ShippingcampaignsController {
         }
         catch (error) {
             return error;
+        }
+    }
+    async resend({ auth, request, params, response }) {
+        console.log("reenviando mensagem...");
+        const data = await Shippingcampaign_1.default.query().where('id', params.id).update({ 'excluded': true });
+        const message = await Shippingcampaign_1.default.find(params.id);
+        if (message) {
+            const newData = await Shippingcampaign_1.default.create({
+                attendant: message?.attendant,
+                cellphone: message?.cellphone,
+                cellphoneserialized: message.cellphoneserialized,
+                doctor: message?.doctor,
+                idexternal: message?.idexternal,
+                interaction_id: message?.interaction_id,
+                interaction_seq: message?.interaction_seq,
+                message: message?.message,
+                messagesent: false,
+                name: message?.name,
+                otherfields: message?.otherfields,
+                prioritysend: true,
+                reg: message?.reg,
+                dateservice: message?.dateservice,
+                unit: message?.unit
+            });
+            return response.status(201).send(newData);
         }
     }
     async doctorList({ response, request }) {
@@ -216,7 +259,8 @@ class ShippingcampaignsController {
         }
     }
     async serviceEvaluationDashboard({ request, response }) {
-        const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name, attendant, doctor, unit } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp', 'interactions', 'returned', 'reg', 'name', 'attendant', 'doctor', 'unit']);
+        const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name, attendant, doctor, unit, excluded } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp',
+            'interactions', 'returned', 'reg', 'name', 'attendant', 'doctor', 'unit', 'excluded']);
         let query = "1=1";
         if (returned)
             query += ` and chats.id in (select chats_id from customchats) `;
@@ -241,15 +285,19 @@ class ShippingcampaignsController {
             query += ` and doctor ='${doctor}' `;
         if (unit)
             query += ` and unit='${unit}'`;
+        if (excluded)
+            query += ` and excluded=1 `;
+        else
+            query += ` and (excluded not in (1) or excluded is null) `;
         if (!luxon_1.DateTime.fromISO(initialdate).isValid || !luxon_1.DateTime.fromISO(finaldate).isValid) {
             throw new Error("Datas inválidas.");
         }
         try {
             const result = await Database_1.default.connection(Env_1.default.get('DB_CONNECTION_MAIN')).query()
                 .from('shippingcampaigns')
-                .select('shippingcampaigns.interaction_id', 'shippingcampaigns.reg', 'shippingcampaigns.name', 'shippingcampaigns.cellphone', 'chats.id', 'otherfields', 'phonevalid', 'messagesent', 'chats.created_at', 'response', 'returned', 'invalidresponse', 'chatname', 'absoluteresp', Database_1.default.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed'))
+                .select('shippingcampaigns.id as idShipp', 'shippingcampaigns.interaction_id', 'shippingcampaigns.reg', 'shippingcampaigns.name', 'shippingcampaigns.cellphone', 'chats.id', 'otherfields', 'phonevalid', 'messagesent', 'chats.created_at', 'response', 'returned', 'invalidresponse', 'chatname', 'absoluteresp', 'prioritysend', 'excluded', 'doctor', 'unit', 'attendant', Database_1.default.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed'))
                 .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
-                .whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
+                .whereBetween('chats.created_at', [initialdate, finaldate])
                 .where('shippingcampaigns.interaction_id', 2)
                 .whereRaw(query);
             const resultAcumulated = await Chat_1.default.query()

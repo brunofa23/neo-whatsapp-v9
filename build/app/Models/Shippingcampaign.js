@@ -20,6 +20,30 @@ class Shippingcampaign extends Orm_1.BaseModel {
     static get connection() {
         return Env_1.default.get('DB_CONNECTION_MAIN');
     }
+    static get fillable() {
+        return [
+            'id',
+            'interaction_id',
+            'interaction_seq',
+            'idexternal',
+            'reg',
+            'name',
+            'cellphone',
+            'cellphoneserialized',
+            'message',
+            'otherfields',
+            'phonevalid',
+            'messagesent',
+            'dateshedule',
+            'doctor',
+            'unit',
+            'attendant',
+            'covenant',
+            'dateservice',
+            'prioritysend',
+            'excluded'
+        ];
+    }
 }
 __decorate([
     (0, Orm_1.column)({ isPrimary: true }),
@@ -93,6 +117,14 @@ __decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", luxon_1.DateTime)
 ], Shippingcampaign.prototype, "dateservice", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", Boolean)
+], Shippingcampaign.prototype, "prioritysend", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", Boolean)
+], Shippingcampaign.prototype, "excluded", void 0);
 __decorate([
     Orm_1.column.dateTime({ autoCreate: true }),
     __metadata("design:type", luxon_1.DateTime)

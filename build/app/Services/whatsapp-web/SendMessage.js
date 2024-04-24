@@ -23,7 +23,7 @@ exports.default = async (client, agent) => {
             .andWhere('created_at', '>', yesterday)
             .whereNotExists((query) => {
             query.select('*').from('chats').whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id');
-        }).first();
+        }).orderBy('prioritysend', "desc").first();
     }
     async function verifyContSend() {
         if (global.contSend >= 3) {

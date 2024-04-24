@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const Route_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Route"));
 const PersistShippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/PersistShippingcampaign"));
 const events_1 = require("./events");
-console.log("***CHAT BOT V-123***12/04/2024");
+console.log("***CHAT BOT V-124***24/04/2024");
 function operacaoAssincrona(callback) {
     if (process.env.SERVER === 'true') {
         console.log("SERVER DATAS");
@@ -71,5 +71,9 @@ Route_1.default.group(() => {
     Route_1.default.get('/doctorlist', 'ShippingcampaignsController.doctorList');
     Route_1.default.get('/unitlist', 'ShippingcampaignsController.unitList');
     Route_1.default.get('/attendantlist', 'ShippingcampaignsController.attendantList');
+    Route_1.default.patch('/shippingcampaigns/:id', 'ShippingcampaignsController.update');
+    Route_1.default.get('/shippingcampaigns/:id', 'ShippingcampaignsController.show');
+    Route_1.default.post('/shippingcampaigns', 'ShippingcampaignsController.store');
+    Route_1.default.post('/resend/:id', 'ShippingcampaignsController.resend');
 }).prefix('/api');
 //# sourceMappingURL=routes.js.map

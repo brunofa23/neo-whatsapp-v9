@@ -5,7 +5,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
 const Customchat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Customchat"));
-const VerifyNumber_1 = global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/VerifyNumber");
 const util_1 = require("./util");
 exports.default = async (client, agent) => {
     const startTimeSendMessage = agent.interval_init_message;
@@ -20,16 +19,16 @@ exports.default = async (client, agent) => {
         setInterval(async () => {
             const customChat = await customChatSendMessage();
             if (customChat) {
-                const validationCellPhone = await (0, VerifyNumber_1.verifyNumber)(client, customChat?.cellphone);
+                const validationCellPhone = await client.getNumberId(customChat.cellphone);
                 if (validationCellPhone == null) {
                     customChat.phonevalid = false;
                     await customChat.save();
                 }
                 if (validationCellPhone) {
-                    await client.sendMessage(validationCellPhone, customChat?.message)
+                    await client.sendMessage(validationCellPhone._serialized, customChat?.message)
                         .then(async (response) => {
                         customChat.messagesent = true;
-                        customChat.cellphoneserialized = validationCellPhone;
+                        customChat.cellphoneserialized = validationCellPhone._serialized;
                         customChat.chatname = agent.name;
                         customChat.chatnumber = client.info.wid.user;
                         customChat.read = false;

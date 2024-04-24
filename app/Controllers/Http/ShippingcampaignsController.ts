@@ -26,17 +26,42 @@ export default class ShippingcampaignsController {
     }
   }
 
-  public async store({ response, request }) {
-    try {
-      const shippingCampaign = await Shippingcampaign
-        .query()
-      return response.status(200).send(shippingCampaign)
-    } catch (error) {
-      return error
-      //throw new BadRequest('Bad Request', 401, 'erro')
-    }
+
+  public async store({ request, response }: HttpContextContract) {
+    const body = request.only(Shippingcampaign.fillable)
+    response.send(body)
+    const data = await Shippingcampaign.create(body)
+    return response.status(201).send(data)
 
   }
+
+
+  public async show({ auth, params, response }: HttpContextContract) {
+    const authenticate = await auth.use('api').authenticate()
+    try {
+      const payLoad = await Shippingcampaign.find(params.id)
+      return response.status(200).send(payLoad)
+    } catch (error) {
+      return error
+      //throw new BadRequest('Erro', 401, 'erro')
+    }
+  }
+
+
+  public async update({ auth, request, params, response }: HttpContextContract) {
+    //const authenticate = await auth.use('api').authenticate()
+    const body = request.only(Shippingcampaign.fillable)
+    body.id = params.id
+    try {
+      const data = await Shippingcampaign.query().where('id', params.id)
+        .update(body)
+      return response.status(201).send(data)
+    } catch (error) {
+      return error
+      //throw new BadRequest('Bad Request', 401)
+    }
+  }
+
 
 
   public async messagesSent() {
@@ -49,6 +74,35 @@ export default class ShippingcampaignsController {
       return error
 
     }
+  }
+
+
+  public async resend({ auth, request, params, response }: HttpContextContract) {
+    console.log("reenviando mensagem...")
+    const data = await Shippingcampaign.query().where('id', params.id).update({ 'excluded': true })
+    const message = await Shippingcampaign.find(params.id)
+    if (message) {
+      const newData = await Shippingcampaign.create({
+        attendant: message?.attendant,
+        cellphone: message?.cellphone,
+        cellphoneserialized: message.cellphoneserialized,
+        doctor: message?.doctor,
+        idexternal: message?.idexternal,
+        interaction_id: message?.interaction_id,
+        interaction_seq: message?.interaction_seq,
+        message: message?.message,
+        messagesent: false,
+        name: message?.name,
+        otherfields: message?.otherfields,
+        prioritysend: true,
+        reg: message?.reg,
+        dateservice: message?.dateservice,
+        unit: message?.unit
+
+      })
+      return response.status(201).send(newData)
+    }
+
   }
 
 
@@ -98,8 +152,6 @@ export default class ShippingcampaignsController {
       .countDistinct('shippingcampaigns_id as tot')
       .where('chatname', chatName)
       .whereBetween('created_at', [dateStart, dateEnd]).first()
-
-    //console.log("PASSEI LIMITE DE ENVIO NA CONTROLLER 1516", countMessage)
     if (!countMessage || countMessage == undefined || countMessage == null)
       return 0
     return parseInt(countMessage.$extras.tot)
@@ -231,7 +283,6 @@ export default class ShippingcampaignsController {
 
   public async listShippingCampaigns({ request, response }: HttpContextContract) {
 
-
     const { initialdate, finaldate, phonevalid, invalidresponse, absoluteresp } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp'])
     console.log("phonevalid", phonevalid)
     let query = "1=1"
@@ -271,7 +322,6 @@ export default class ShippingcampaignsController {
         .where('shippingcampaigns.interaction_id', 1)
         .whereRaw(query)
 
-      //console.log("query", result)
       return response.status(201).send(result)
     } catch (error) {
       throw new Error(error)
@@ -281,8 +331,9 @@ export default class ShippingcampaignsController {
 
   public async serviceEvaluationDashboard({ request, response }: HttpContextContract) {
 
-        const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name, attendant, doctor, unit }
-      = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp', 'interactions', 'returned', 'reg', 'name', 'attendant', 'doctor', 'unit'])
+    const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name, attendant, doctor, unit, excluded }
+      = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp',
+        'interactions', 'returned', 'reg', 'name', 'attendant', 'doctor', 'unit', 'excluded'])
 
     let query = "1=1"
     if (returned)//clientes que enviaram mensagem dentro do sistema
@@ -313,13 +364,21 @@ export default class ShippingcampaignsController {
       query += ` and doctor ='${doctor}' `
     if (unit)
       query += ` and unit='${unit}'`
+
+    if (excluded)
+      query += ` and excluded=1 `
+    else query += ` and (excluded not in (1) or excluded is null) `
+
     if (!DateTime.fromISO(initialdate).isValid || !DateTime.fromISO(finaldate).isValid) {
       throw new Error("Datas inválidas.")
     }
+
+
     try {
       const result = await Database.connection(Env.get('DB_CONNECTION_MAIN')).query()
         .from('shippingcampaigns')
         .select(
+          'shippingcampaigns.id as idShipp',
           'shippingcampaigns.interaction_id',
           'shippingcampaigns.reg',
           'shippingcampaigns.name',
@@ -334,17 +393,18 @@ export default class ShippingcampaignsController {
           'invalidresponse',
           'chatname',
           'absoluteresp',
-          Database.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed')
+          'prioritysend',
+          'excluded',
+          'doctor',
+          'unit',
+          'attendant',
+          Database.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed'),
         )
         .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
-
-        //.whereBetween('chats.created_at', [initialdate, finaldate])
-        //.where('chats.interaction_id', 2)
-         .whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
-         .where('shippingcampaigns.interaction_id', 2)
+        .whereBetween('chats.created_at', [initialdate, finaldate])
+        //.whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
+        .where('shippingcampaigns.interaction_id', 2)
         .whereRaw(query)
-
-
 
       const resultAcumulated = await Chat.query()
         .sumDistinct('absoluteresp as note')
@@ -368,12 +428,15 @@ export default class ShippingcampaignsController {
         if (result.$extras.note >= 9 && result.$extras.note <= 10)
           totalPromoters = totalPromoters + result.$extras.total
       }
+
       //calcula o percentual do NPS
       const npsResult = ((totalPromoters * 100) / totalEvaluations) - ((totalDetractors * 100) / totalEvaluations)
       //const otherfields = result.map(item => JSON.parse(item.otherfields))
       //const station = otherfields.map(item => item.station)
       //const medic = otherfields.map(item => item.medic)
       //let itemFilter
+
+
       const resultFinal = result.map(item => {
         const otherfieldsObj = JSON.parse(item.otherfields);
         return {
@@ -383,6 +446,8 @@ export default class ShippingcampaignsController {
           attendant: otherfieldsObj.attendant
         };
       });
+
+
 
       // Função para classificar a pontuação
       function getClassification(score) {

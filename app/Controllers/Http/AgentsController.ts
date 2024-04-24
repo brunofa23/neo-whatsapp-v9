@@ -141,26 +141,25 @@ export default class AgentsController {
   }
 
   public async destroyFullAgents() {
-
     const agents = await Agent.query().where('deleted', true)
-    // for (const agent of agents) {
 
-    //   await setTimeout(() => {
-    //     console.log("Excluindo pasta...")
-    //     const pathFolder = `.wwebjs_auth/session-${agent.id}`
-    //     if (fs.existsSync(pathFolder)) {
-    //       fs.rm(pathFolder, { recursive: true }, (err) => {
-    //         if (err) {
-    //           console.error(err)
-    //         } else {
-    //           console.log(`DIRETORIO DELETADO: session-${agent.id}`)
-    //         }
-    //       })
-    //     }
+    for (const agent of agents) {
+      setTimeout(() => {
+        console.log("Excluindo pasta...")
+        const pathFolder = `.wwebjs_auth/session-${agent.id}`
+        if (fs.existsSync(pathFolder)) {
+          fs.rm(pathFolder, { recursive: true }, (err) => {
+            if (err) {
+              console.error(err)
+            } else {
+              console.log(`DIRETORIO DELETADO: session-${agent.id}`)
+            }
+          })
+        }
+      }, 10000)
 
-    //   }, 10000)
 
-    // }
+    }
 
   }
 

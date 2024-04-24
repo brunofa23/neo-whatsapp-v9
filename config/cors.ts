@@ -4,9 +4,9 @@ const corsConfig: CorsConfig = {
 
   enabled: true,
 
-  origin: true,
+  origin: '*',
 
-  methods: ['GET', 'HEAD', 'POST', 'PUT', 'DELETE'],
+  methods: ['GET', 'HEAD', 'POST', 'PUT','PATCH', 'DELETE'],
 
   headers: true,
 

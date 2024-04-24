@@ -52,7 +52,6 @@ export default class ShippingcampaignsController {
     //const authenticate = await auth.use('api').authenticate()
     const body = request.only(Shippingcampaign.fillable)
     body.id = params.id
-    console.log("PASSEI AQUI", body)
     try {
       const data = await Shippingcampaign.query().where('id', params.id)
         .update(body)

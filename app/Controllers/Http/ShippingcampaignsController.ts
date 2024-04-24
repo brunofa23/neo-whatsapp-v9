@@ -79,10 +79,8 @@ export default class ShippingcampaignsController {
 
   public async resend({ auth, request, params, response }: HttpContextContract) {
     console.log("reenviando mensagem...")
-
     const data = await Shippingcampaign.query().where('id', params.id).update({ 'excluded': true })
     const message = await Shippingcampaign.find(params.id)
-
     if (message) {
       const newData = await Shippingcampaign.create({
         attendant: message?.attendant,
@@ -102,7 +100,6 @@ export default class ShippingcampaignsController {
         unit: message?.unit
 
       })
-
       return response.status(201).send(newData)
     }
 
@@ -155,8 +152,6 @@ export default class ShippingcampaignsController {
       .countDistinct('shippingcampaigns_id as tot')
       .where('chatname', chatName)
       .whereBetween('created_at', [dateStart, dateEnd]).first()
-
-    //console.log("PASSEI LIMITE DE ENVIO NA CONTROLLER 1516", countMessage)
     if (!countMessage || countMessage == undefined || countMessage == null)
       return 0
     return parseInt(countMessage.$extras.tot)
@@ -327,7 +322,6 @@ export default class ShippingcampaignsController {
         .where('shippingcampaigns.interaction_id', 1)
         .whereRaw(query)
 
-      //console.log("query", result)
       return response.status(201).send(result)
     } catch (error) {
       throw new Error(error)

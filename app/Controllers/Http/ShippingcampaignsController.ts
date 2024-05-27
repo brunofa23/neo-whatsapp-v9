@@ -436,7 +436,6 @@ export default class ShippingcampaignsController {
       //const medic = otherfields.map(item => item.medic)
       //let itemFilter
 
-
       const resultFinal = result.map(item => {
         const otherfieldsObj = JSON.parse(item.otherfields);
         return {
@@ -446,8 +445,6 @@ export default class ShippingcampaignsController {
           attendant: otherfieldsObj.attendant
         };
       });
-
-
 
       // Função para classificar a pontuação
       function getClassification(score) {
@@ -482,6 +479,7 @@ export default class ShippingcampaignsController {
           countsByStation[station][classification]++;
         }
 
+
         //MEDIC********* */
         if (item.messagesent && item.absoluteresp !== null) {
           if (!countsByMedic[medic]) {
@@ -492,8 +490,9 @@ export default class ShippingcampaignsController {
             };
           }
           countsByMedic[medic][classification]++;
-
         }
+
+        console.log("recepção resultado", countsByMedic)
 
         //RECEP********* */
         if (item.messagesent && item.absoluteresp !== null) {
@@ -513,6 +512,8 @@ export default class ShippingcampaignsController {
         station,
         ...counts
       }));
+
+
 
       const resultByMedic = Object.entries(countsByMedic).map(([medic, counts]) => ({
         medic,

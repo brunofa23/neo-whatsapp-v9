@@ -300,94 +300,77 @@ class ShippingcampaignsController {
                 .whereBetween('chats.created_at', [initialdate, finaldate])
                 .where('shippingcampaigns.interaction_id', 2)
                 .whereRaw(query);
-            const resultAcumulated = await Chat_1.default.query()
+            const resultAcumulated = await Database_1.default.from('chats')
+                .innerJoin('shippingcampaigns', 'chats.shippingcampaigns_id', 'shippingcampaigns.id')
                 .sumDistinct('absoluteresp as note')
                 .count('* as total')
-                .where('interaction_id', 2)
+                .where('chats.interaction_id', 2)
                 .andWhereBetween('absoluteresp', [0, 10])
-                .whereBetween('created_at', [initialdate, finaldate])
+                .whereBetween('chats.created_at', [initialdate, finaldate])
+                .andWhereRaw('(excluded not in (1) or excluded is null)')
                 .groupBy('absoluteresp');
             let resultAcumulatedList = [];
             let totalEvaluations = 0;
             let totalDetractors = 0;
             let totalPromoters = 0;
             for (const result of resultAcumulated) {
-                resultAcumulatedList.push(result.$extras);
-                totalEvaluations = totalEvaluations + result.$extras.total;
-                if (result.$extras.note <= 6)
-                    totalDetractors = totalDetractors + result.$extras.total;
-                if (result.$extras.note >= 9 && result.$extras.note <= 10)
-                    totalPromoters = totalPromoters + result.$extras.total;
+                totalEvaluations = totalEvaluations + result.total;
+                if (result.note <= 6)
+                    totalDetractors = totalDetractors + result.total;
+                if (result.note >= 9 && result.note <= 10)
+                    totalPromoters = totalPromoters + result.total;
             }
             const npsResult = ((totalPromoters * 100) / totalEvaluations) - ((totalDetractors * 100) / totalEvaluations);
-            const resultFinal = result.map(item => {
-                const otherfieldsObj = JSON.parse(item.otherfields);
-                return {
-                    ...item,
-                    station: otherfieldsObj.station,
-                    medic: otherfieldsObj.medic,
-                    attendant: otherfieldsObj.attendant
-                };
-            });
-            function getClassification(score) {
-                if (score <= 7) {
-                    return 'detrator';
-                }
-                else if (score > 7 && score <= 8) {
-                    return 'passivo';
-                }
-                else if (score > 8 && score <= 10) {
-                    return 'promotor';
-                }
-            }
-            const countsByStation = {};
-            const countsByMedic = {};
-            const countsByAttendant = {};
-            resultFinal.forEach(item => {
-                const { attendant, station, absoluteresp, medic } = item;
-                const classification = getClassification(absoluteresp);
-                if (item.messagesent && item.absoluteresp !== null) {
-                    if (!countsByStation[station]) {
-                        countsByStation[station] = {
-                            detrator: 0,
-                            passivo: 0,
-                            promotor: 0
-                        };
-                    }
-                    countsByStation[station][classification]++;
-                }
-                if (item.messagesent && item.absoluteresp !== null) {
-                    if (!countsByMedic[medic]) {
-                        countsByMedic[medic] = {
-                            detrator: 0,
-                            passivo: 0,
-                            promotor: 0
-                        };
-                    }
-                    countsByMedic[medic][classification]++;
-                }
-                if (item.messagesent && item.absoluteresp !== null) {
-                    if (!countsByAttendant[attendant]) {
-                        countsByAttendant[attendant] = {
-                            detrator: 0,
-                            passivo: 0,
-                            promotor: 0
-                        };
-                    }
-                    countsByAttendant[attendant][classification]++;
-                }
-            });
-            const resultByStation = Object.entries(countsByStation).map(([station, counts]) => ({
-                station,
-                ...counts
+            const unitResult = await Database_1.default
+                .from('chats')
+                .innerJoin('shippingcampaigns', 'chats.shippingcampaigns_id', 'shippingcampaigns.id')
+                .where('chats.interaction_id', 2)
+                .whereBetween('chats.created_at', [initialdate, finaldate])
+                .andWhereRaw('(excluded not in (1) or excluded is null)')
+                .select('unit as station')
+                .sum(Database_1.default.raw(`CASE WHEN absoluteresp < 7 THEN 1 ELSE 0 END`), 'detrator')
+                .sum(Database_1.default.raw(`CASE WHEN absoluteresp BETWEEN 7 AND 8 THEN 1 ELSE 0 END`), 'passivo')
+                .sum(Database_1.default.raw(`CASE WHEN absoluteresp >= 9 THEN 1 ELSE 0 END`), 'promotor')
+                .groupBy('unit');
+            const resultByStation = unitResult.map(result => ({
+                station: result.station,
+                detrator: parseInt(result.detrator, 10),
+                passivo: parseInt(result.passivo, 10),
+                promotor: parseInt(result.promotor, 10)
             }));
-            const resultByMedic = Object.entries(countsByMedic).map(([medic, counts]) => ({
-                medic,
-                ...counts
+            const doctorResult = await Database_1.default
+                .from('chats')
+                .innerJoin('shippingcampaigns', 'chats.shippingcampaigns_id', 'shippingcampaigns.id')
+                .where('chats.interaction_id', 2)
+                .whereBetween('chats.created_at', [initialdate, finaldate])
+                .andWhereRaw('(excluded not in (1) or excluded is null)')
+                .select('doctor as medic')
+                .sum(Database_1.default.raw(`CASE WHEN absoluteresp < 7 THEN 1 ELSE 0 END`), 'detrator')
+                .sum(Database_1.default.raw(`CASE WHEN absoluteresp BETWEEN 7 AND 8 THEN 1 ELSE 0 END`), 'passivo')
+                .sum(Database_1.default.raw(`CASE WHEN absoluteresp >= 9 THEN 1 ELSE 0 END`), 'promotor')
+                .groupBy('doctor');
+            const resultByMedic = doctorResult.map(result => ({
+                medic: result.medic,
+                detrator: parseInt(result.detrator, 10),
+                passivo: parseInt(result.passivo, 10),
+                promotor: parseInt(result.promotor, 10)
             }));
-            const resultByAttendant = Object.entries(countsByAttendant).map(([attendant, counts]) => ({
-                attendant,
-                ...counts
+            const attendantResult = await Database_1.default
+                .from('chats')
+                .innerJoin('shippingcampaigns', 'chats.shippingcampaigns_id', 'shippingcampaigns.id')
+                .where('chats.interaction_id', 2)
+                .whereBetween('chats.created_at', [initialdate, finaldate])
+                .andWhereRaw('(excluded not in (1) or excluded is null)')
+                .select('attendant')
+                .sum(Database_1.default.raw(`CASE WHEN absoluteresp < 7 THEN 1 ELSE 0 END`), 'detrator')
+                .sum(Database_1.default.raw(`CASE WHEN absoluteresp BETWEEN 7 AND 8 THEN 1 ELSE 0 END`), 'passivo')
+                .sum(Database_1.default.raw(`CASE WHEN absoluteresp >= 9 THEN 1 ELSE 0 END`), 'promotor')
+                .groupBy('attendant');
+            const resultByAttendant = attendantResult.map(result => ({
+                attendant: result.attendant,
+                detrator: parseInt(result.detrator, 10),
+                passivo: parseInt(result.passivo, 10),
+                promotor: parseInt(result.promotor, 10)
             }));
             return response.status(201).send({ result, resultAcumulatedList, resultByStation, resultByMedic, resultByAttendant, npsResult });
         }

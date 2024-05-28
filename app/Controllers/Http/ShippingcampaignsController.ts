@@ -498,6 +498,28 @@ export default class ShippingcampaignsController {
       console.log(resultByMedic)
       //******************************************************************* */
 
+       //ATENDENTE****************************************************************** */
+       const attendantResult = await Database
+       .from('chats')
+       .innerJoin('shippingcampaigns', 'chats.shippingcampaigns_id', 'shippingcampaigns.id')
+       .where('chats.interaction_id', 2)
+       .whereBetween('chats.created_at', [initialdate, finaldate])
+       .andWhereRaw('(excluded not in (1) or excluded is null)')
+       .select('doctor as medic')
+       .sum(Database.raw(`CASE WHEN absoluteresp < 7 THEN 1 ELSE 0 END`), 'detrator')
+       .sum(Database.raw(`CASE WHEN absoluteresp BETWEEN 7 AND 8 THEN 1 ELSE 0 END`), 'passivo')
+       .sum(Database.raw(`CASE WHEN absoluteresp >= 9 THEN 1 ELSE 0 END`), 'promotor')
+       .groupBy('doctor')
+     const resultByAttendant1 = doctorResult.map(result => ({
+       medic: result.medic,
+       detrator: parseInt(result.detrator, 10),
+       passivo: parseInt(result.passivo, 10),
+       promotor: parseInt(result.promotor, 10)
+     }))
+     console.log(resultByMedic)
+     //******************************************************************* */
+
+
       // Objeto para armazenar as contagens por estação e classificação
       const countsByStation = {};
       const countsByMedic = {}

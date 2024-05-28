@@ -44,7 +44,8 @@ export default class UsersController {
 
   public async login({ auth, request, response }: HttpContextContract) {
 
-    console.log("acessei o login...")
+
+    //const authenticate = await auth.use('api').authenticate()
     const body = request.only(User.fillable)
 
     const user = await User
@@ -71,6 +72,7 @@ export default class UsersController {
     })
 
     //return { token, user }
+    console.log("acessei o login...", token, user)
     return response.status(200).send({ token, user })
 
   }

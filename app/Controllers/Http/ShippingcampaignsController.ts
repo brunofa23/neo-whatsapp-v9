@@ -413,7 +413,8 @@ export default class ShippingcampaignsController {
         .where('chats.interaction_id', 2)
         .andWhereBetween('absoluteresp', [0, 10])
         .whereBetween('chats.created_at', [initialdate, finaldate])
-        .andWhereRaw('(excluded not in (1) or excluded is null)')
+        //.andWhereRaw('(excluded not in (1) or excluded is null)')
+        .whereRaw(query)
         .groupBy('absoluteresp')
 
       let resultAcumulatedList = []

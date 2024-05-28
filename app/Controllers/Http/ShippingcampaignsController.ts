@@ -406,6 +406,7 @@ export default class ShippingcampaignsController {
         .where('shippingcampaigns.interaction_id', 2)
         .whereRaw(query)
 
+
       const resultAcumulated = await Chat.query()
         .sumDistinct('absoluteresp as note')
         .count('* as total')
@@ -457,6 +458,46 @@ export default class ShippingcampaignsController {
         }
       }
 
+      //UNIDADES****************************************************************** */
+      const unitResult = await Database
+        .from('chats')
+        .innerJoin('shippingcampaigns', 'chats.shippingcampaigns_id', 'shippingcampaigns.id')
+        .where('chats.interaction_id', 2)
+        .whereBetween('chats.created_at', [initialdate, finaldate])
+        .andWhereRaw('(excluded not in (1) or excluded is null)')
+        .select('unit as station')
+        .sum(Database.raw(`CASE WHEN absoluteresp < 7 THEN 1 ELSE 0 END`), 'detrator')
+        .sum(Database.raw(`CASE WHEN absoluteresp BETWEEN 7 AND 8 THEN 1 ELSE 0 END`), 'passivo')
+        .sum(Database.raw(`CASE WHEN absoluteresp >= 9 THEN 1 ELSE 0 END`), 'promotor')
+        .groupBy('unit')
+      const resultByStation = unitResult.map(result => ({
+        station: result.station,
+        detrator: parseInt(result.detrator, 10),
+        passivo: parseInt(result.passivo, 10),
+        promotor: parseInt(result.promotor, 10)
+      }))
+
+      //MEDICO****************************************************************** */
+      const doctorResult = await Database
+        .from('chats')
+        .innerJoin('shippingcampaigns', 'chats.shippingcampaigns_id', 'shippingcampaigns.id')
+        .where('chats.interaction_id', 2)
+        .whereBetween('chats.created_at', [initialdate, finaldate])
+        .andWhereRaw('(excluded not in (1) or excluded is null)')
+        .select('doctor as medic')
+        .sum(Database.raw(`CASE WHEN absoluteresp < 7 THEN 1 ELSE 0 END`), 'detrator')
+        .sum(Database.raw(`CASE WHEN absoluteresp BETWEEN 7 AND 8 THEN 1 ELSE 0 END`), 'passivo')
+        .sum(Database.raw(`CASE WHEN absoluteresp >= 9 THEN 1 ELSE 0 END`), 'promotor')
+        .groupBy('doctor')
+      const resultByMedic = doctorResult.map(result => ({
+        medic: result.medic,
+        detrator: parseInt(result.detrator, 10),
+        passivo: parseInt(result.passivo, 10),
+        promotor: parseInt(result.promotor, 10)
+      }))
+      console.log(resultByMedic)
+      //******************************************************************* */
+
       // Objeto para armazenar as contagens por estação e classificação
       const countsByStation = {};
       const countsByMedic = {}
@@ -492,7 +533,7 @@ export default class ShippingcampaignsController {
           countsByMedic[medic][classification]++;
         }
 
-        console.log("recepção resultado", countsByMedic)
+        //console.log("recepção resultado", countsByMedic)
 
         //RECEP********* */
         if (item.messagesent && item.absoluteresp !== null) {
@@ -508,17 +549,20 @@ export default class ShippingcampaignsController {
 
       });
 
-      const resultByStation = Object.entries(countsByStation).map(([station, counts]) => ({
-        station,
-        ...counts
-      }));
+      // const resultByStation = Object.entries(countsByStation).map(([station, counts]) => ({
+      //   station,
+      //   ...counts
+      // }));
+
+      // console.log("RESULTADO POR ESTAÇÃO:", resultByStation)
 
 
 
-      const resultByMedic = Object.entries(countsByMedic).map(([medic, counts]) => ({
-        medic,
-        ...counts
-      }));
+      // const resultByMedic = Object.entries(countsByMedic).map(([medic, counts]) => ({
+      //   medic,
+      //   ...counts
+      // }));
+      //console.log(resultByMedic)
 
       const resultByAttendant = Object.entries(countsByAttendant).map(([attendant, counts]) => ({
         attendant,

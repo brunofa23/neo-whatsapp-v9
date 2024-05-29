@@ -12,6 +12,8 @@ const fs = require('fs');
 
 export default class AgentsController {
   public async index({ response }: HttpContextContract) {
+    //const authenticate = await auth.use('api').authenticate()
+    console.log("passei aqui...")
 
     const dateStart = await DateFormat("yyyy-MM-dd 00:00:00", DateTime.local())
     const dateEnd = await DateFormat("yyyy-MM-dd 23:59:00", DateTime.local())

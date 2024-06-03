@@ -68,8 +68,12 @@ mysqldump(connectionOptions, dumpOptions)
 
   # ###########################################################################
 
-colocar dentro de util da pasta whattsapp
-webVersionCache: {
+colocar dentro Constants.js da pasta util em node_modules -> whattsapp
+ webVersion: '2.2346.52',
+    // webVersionCache: {
+    //     type: 'local',
+    // },
+    webVersionCache: {
       type: 'remote',
         remotePath:"https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html",
       },

@@ -331,9 +331,9 @@ export default class ShippingcampaignsController {
 
   public async serviceEvaluationDashboard({ request, response }: HttpContextContract) {
 
-    const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name, attendant, doctor, unit, excluded }
+    const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name, attendant, doctor, unit, excluded, cellphone }
       = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp',
-        'interactions', 'returned', 'reg', 'name', 'attendant', 'doctor', 'unit', 'excluded'])
+        'interactions', 'returned', 'reg', 'name', 'attendant', 'doctor', 'unit', 'excluded', 'cellphone'])
 
     let query = "1=1"
     if (returned)//clientes que enviaram mensagem dentro do sistema
@@ -350,6 +350,10 @@ export default class ShippingcampaignsController {
     }
     if (interactions)
       query += ` and response is not null `
+
+    if (cellphone)
+      query += ` and shippingcampaigns.cellphone like '%${cellphone}%' `
+
 
     if (absoluteresp == 1)
       query += ` and absoluteresp < 7 `
@@ -431,7 +435,7 @@ export default class ShippingcampaignsController {
         }
       //calcula o percentual do NPS
       const nps = ((totalPromoters * 100) / totalEvaluations) - ((totalDetractors * 100) / totalEvaluations)
-      const npsResult =nps<0?0:nps 
+      const npsResult =nps<0?0:nps
       //UNIDADES****************************************************************** */
       const unitResult = await Database
         .from('chats')

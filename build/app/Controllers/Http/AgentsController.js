@@ -13,7 +13,6 @@ const Config_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Confi
 const fs = require('fs');
 class AgentsController {
     async index({ response }) {
-        console.log("passei aqui...");
         const dateStart = await (0, util_1.DateFormat)("yyyy-MM-dd 00:00:00", luxon_1.DateTime.local());
         const dateEnd = await (0, util_1.DateFormat)("yyyy-MM-dd 23:59:00", luxon_1.DateTime.local());
         try {

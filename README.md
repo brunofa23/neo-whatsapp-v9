@@ -30,6 +30,8 @@ git push origin <branch>
   }
 
 ## CASO API DÊ BUG
+NO PACKAGE.JSON
+trocar: "whatsapp-web.js": "^1.23.0"
 "whatsapp-web.js": "https://github.com/Julzk/whatsapp-web.js/tarball/jkr_hotfix_8"
 
 ## DATAS
@@ -65,3 +67,9 @@ mysqldump(connectionOptions, dumpOptions)
   });
 
   # ###########################################################################
+
+colocar dentro de util da pasta whattsapp
+webVersionCache: {
+      type: 'remote',
+        remotePath:"https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html",
+      },

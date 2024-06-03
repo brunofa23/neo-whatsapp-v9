@@ -411,13 +411,13 @@ export default class ShippingcampaignsController {
         .sumDistinct('absoluteresp as note')
         .count('* as total')
         .where('chats.interaction_id', 2)
-        .andWhereBetween('absoluteresp', [0, 10])
+        .andWhereBetween('absoluteresp', [0, 10000])
+        //.andWhere('absoluteresp','>=','9')
         .whereBetween('chats.created_at', [initialdate, finaldate])
-        //.andWhereRaw('(excluded not in (1) or excluded is null)')
         .whereRaw(query)
         .groupBy('absoluteresp')
 
-      let resultAcumulatedList = []
+      let resultAcumulatedList = resultAcumulated
       let totalEvaluations = 0
       let totalDetractors = 0
       let totalPromoters = 0
@@ -430,7 +430,8 @@ export default class ShippingcampaignsController {
              totalPromoters = totalPromoters + result.total
         }
       //calcula o percentual do NPS
-      const npsResult = ((totalPromoters * 100) / totalEvaluations) - ((totalDetractors * 100) / totalEvaluations)
+      const nps = ((totalPromoters * 100) / totalEvaluations) - ((totalDetractors * 100) / totalEvaluations)
+      const npsResult =nps<0?0:nps 
       //UNIDADES****************************************************************** */
       const unitResult = await Database
         .from('chats')

@@ -6,6 +6,7 @@ import { DateTime } from 'luxon'
 const dayBefore5 = DateTime.local().minus({ days: 5 }).toFormat('yyyy-MM-dd 00:00')
 async function verifyNumber(client, cellphone) {
 
+
   if (await !ValidatePhone(cellphone))
     return null
   if (types.isNull(cellphone) || cellphone == undefined || !cellphone)

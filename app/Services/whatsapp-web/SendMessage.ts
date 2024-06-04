@@ -24,6 +24,7 @@ export default async (client: Client, agent: Agent) => {
       .whereNotExists((query) => {
         query.select('*').from('chats').whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id');
       }).orderBy('prioritysend',"desc").first()
+
   }
 
   async function verifyContSend() {
@@ -90,7 +91,7 @@ export default async (client: Client, agent: Agent) => {
         return
       }
     }
-
+    //console.log("SHIPPING>>", shippingCampaign)
     if (shippingCampaign) {
       if (global.contSend < 3) {
         if (global.contSend < 0)
@@ -98,11 +99,13 @@ export default async (client: Client, agent: Agent) => {
         try {
           //verificar o numero
           const validationCellPhone = await verifyNumber(client, shippingCampaign?.cellphone)
+
           if (validationCellPhone) {
             verifyChat = await Chat.query()
               .where('interaction_id', shippingCampaign?.interaction_id)
               .andWhere('interaction_seq', shippingCampaign?.interaction_seq)
               .andWhere('shippingcampaigns_id', shippingCampaign?.id).first()
+
 
             if (verifyChat == undefined) {
               await client.sendMessage(validationCellPhone, shippingCampaign.message)

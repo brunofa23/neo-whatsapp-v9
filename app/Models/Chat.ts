@@ -31,6 +31,7 @@ export default class Chat extends BaseModel {
       'absoluteresp',
       'externalstatus',
       'chatnumber',
+      'chat_finished'
     ]
   }
 
@@ -85,6 +86,9 @@ export default class Chat extends BaseModel {
 
   @column()
   public chatnumber: string
+
+  @column()
+  public chat_finished:boolean
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime

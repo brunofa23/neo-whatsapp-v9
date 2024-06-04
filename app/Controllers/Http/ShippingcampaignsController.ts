@@ -78,7 +78,7 @@ export default class ShippingcampaignsController {
 
 
   public async resend({ auth, request, params, response }: HttpContextContract) {
-    console.log("reenviando mensagem...")
+
     const data = await Shippingcampaign.query().where('id', params.id).update({ 'excluded': true })
     const message = await Shippingcampaign.find(params.id)
     if (message) {
@@ -164,7 +164,6 @@ export default class ShippingcampaignsController {
     const query = `update agm set AGM_CONFIRM_STAT = 'C' where agm_id = ${id}` //`update agm set agm_confirm_stat = 'C' where agm_id=:id`
     //const query = "select top 10 * from agm order by agm_hini desc"
     try {
-      console.log("EXECUTANDO UPDATE NO SMART...", query)
       //const result = await Database.connection('mssql').rawQuery(query)
       await Database.connection('mssql').rawQuery(query).then((result) => {
         return `executado com sucesso:: ${result}`
@@ -284,7 +283,7 @@ export default class ShippingcampaignsController {
   public async listShippingCampaigns({ request, response }: HttpContextContract) {
 
     const { initialdate, finaldate, phonevalid, invalidresponse, absoluteresp } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp'])
-    console.log("phonevalid", phonevalid)
+    
     let query = "1=1"
     if (phonevalid && phonevalid !== undefined) {
       query += ` and phonevalid=${phonevalid == 1 ? 1 : 0}`
@@ -403,6 +402,7 @@ export default class ShippingcampaignsController {
           'unit',
           'attendant',
           Database.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed'),
+          'chat_finished'
         )
         .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
         .whereBetween('chats.created_at', [initialdate, finaldate])
@@ -492,6 +492,7 @@ export default class ShippingcampaignsController {
         promotor: parseInt(result.promotor, 10)
       }))
       //******************************************************************* */
+
       return response.status(201).send({ result, resultAcumulatedList, resultByStation, resultByMedic, resultByAttendant, npsResult })
     } catch (error) {
       throw new Error(error)

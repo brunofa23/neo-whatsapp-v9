@@ -5,7 +5,6 @@ export default class ChatsController {
 
 
   public async index({ response }: HttpContextContract) {
-    console.log("passei aqui...")
     try {
       const data = await Chat.query()
       return response.status(200).send(data)
@@ -15,7 +14,6 @@ export default class ChatsController {
   }
 
   public async show({ params, response }: HttpContextContract) {
-    console.log("passei aqui...")
     try {
       const data = await Chat.query().where('id', params.id)
       return response.status(200).send(data)
@@ -26,7 +24,6 @@ export default class ChatsController {
 
 
   public async update({ params, request, response }: HttpContextContract) {
-    console.log("passei aqui...")
     const body = request.only(Chat.fillable)
     try {
       const data = await Chat.query().where('id', params.id)

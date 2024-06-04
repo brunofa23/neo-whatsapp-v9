@@ -283,7 +283,7 @@ export default class ShippingcampaignsController {
   public async listShippingCampaigns({ request, response }: HttpContextContract) {
 
     const { initialdate, finaldate, phonevalid, invalidresponse, absoluteresp } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp'])
-    
+
     let query = "1=1"
     if (phonevalid && phonevalid !== undefined) {
       query += ` and phonevalid=${phonevalid == 1 ? 1 : 0}`
@@ -330,9 +330,9 @@ export default class ShippingcampaignsController {
 
   public async serviceEvaluationDashboard({ request, response }: HttpContextContract) {
 
-    const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name, attendant, doctor, unit, excluded, cellphone }
+    const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name, attendant, doctor, unit, excluded, cellphone, chat_finished }
       = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp',
-        'interactions', 'returned', 'reg', 'name', 'attendant', 'doctor', 'unit', 'excluded', 'cellphone'])
+        'interactions', 'returned', 'reg', 'name', 'attendant', 'doctor', 'unit', 'excluded', 'cellphone', 'chat_finished'])
 
     let query = "1=1"
     if (returned)//clientes que enviaram mensagem dentro do sistema
@@ -371,6 +371,11 @@ export default class ShippingcampaignsController {
     if (excluded)
       query += ` and excluded=1 `
     else query += ` and (excluded not in (1) or excluded is null) `
+
+    if (chat_finished)
+      query += ` and chat_finished=1 `
+    else query += ` and (chat_finished not in (1) or chat_finished is null) `
+
 
     if (!DateTime.fromISO(initialdate).isValid || !DateTime.fromISO(finaldate).isValid) {
       throw new Error("Datas inválidas.")

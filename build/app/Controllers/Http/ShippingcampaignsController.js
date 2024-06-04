@@ -61,7 +61,6 @@ class ShippingcampaignsController {
         }
     }
     async resend({ auth, request, params, response }) {
-        console.log("reenviando mensagem...");
         const data = await Shippingcampaign_1.default.query().where('id', params.id).update({ 'excluded': true });
         const message = await Shippingcampaign_1.default.find(params.id);
         if (message) {
@@ -134,7 +133,6 @@ class ShippingcampaignsController {
         const id = 567508;
         const query = `update agm set AGM_CONFIRM_STAT = 'C' where agm_id = ${id}`;
         try {
-            console.log("EXECUTANDO UPDATE NO SMART...", query);
             await Database_1.default.connection('mssql').rawQuery(query).then((result) => {
                 return `executado com sucesso:: ${result}`;
             }).catch((error) => {
@@ -230,7 +228,6 @@ class ShippingcampaignsController {
     }
     async listShippingCampaigns({ request, response }) {
         const { initialdate, finaldate, phonevalid, invalidresponse, absoluteresp } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp']);
-        console.log("phonevalid", phonevalid);
         let query = "1=1";
         if (phonevalid && phonevalid !== undefined) {
             query += ` and phonevalid=${phonevalid == 1 ? 1 : 0}`;
@@ -259,8 +256,8 @@ class ShippingcampaignsController {
         }
     }
     async serviceEvaluationDashboard({ request, response }) {
-        const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name, attendant, doctor, unit, excluded } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp',
-            'interactions', 'returned', 'reg', 'name', 'attendant', 'doctor', 'unit', 'excluded']);
+        const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name, attendant, doctor, unit, excluded, cellphone, chat_finished } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp',
+            'interactions', 'returned', 'reg', 'name', 'attendant', 'doctor', 'unit', 'excluded', 'cellphone', 'chat_finished']);
         let query = "1=1";
         if (returned)
             query += ` and chats.id in (select chats_id from customchats) `;
@@ -273,6 +270,8 @@ class ShippingcampaignsController {
         }
         if (interactions)
             query += ` and response is not null `;
+        if (cellphone)
+            query += ` and shippingcampaigns.cellphone like '%${cellphone}%' `;
         if (absoluteresp == 1)
             query += ` and absoluteresp < 7 `;
         else if (absoluteresp == 2)
@@ -289,13 +288,17 @@ class ShippingcampaignsController {
             query += ` and excluded=1 `;
         else
             query += ` and (excluded not in (1) or excluded is null) `;
+        if (chat_finished)
+            query += ` and chat_finished=1 `;
+        else
+            query += ` and (chat_finished not in (1) or chat_finished is null) `;
         if (!luxon_1.DateTime.fromISO(initialdate).isValid || !luxon_1.DateTime.fromISO(finaldate).isValid) {
             throw new Error("Datas inválidas.");
         }
         try {
             const result = await Database_1.default.connection(Env_1.default.get('DB_CONNECTION_MAIN')).query()
                 .from('shippingcampaigns')
-                .select('shippingcampaigns.id as idShipp', 'shippingcampaigns.interaction_id', 'shippingcampaigns.reg', 'shippingcampaigns.name', 'shippingcampaigns.cellphone', 'chats.id', 'otherfields', 'phonevalid', 'messagesent', 'chats.created_at', 'response', 'returned', 'invalidresponse', 'chatname', 'absoluteresp', 'prioritysend', 'excluded', 'doctor', 'unit', 'attendant', Database_1.default.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed'))
+                .select('shippingcampaigns.id as idShipp', 'shippingcampaigns.interaction_id', 'shippingcampaigns.reg', 'shippingcampaigns.name', 'shippingcampaigns.cellphone', 'chats.id', 'otherfields', 'phonevalid', 'messagesent', 'chats.created_at', 'response', 'returned', 'invalidresponse', 'chatname', 'absoluteresp', 'prioritysend', 'excluded', 'doctor', 'unit', 'attendant', Database_1.default.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed'), 'chat_finished')
                 .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
                 .whereBetween('chats.created_at', [initialdate, finaldate])
                 .where('shippingcampaigns.interaction_id', 2)
@@ -305,11 +308,11 @@ class ShippingcampaignsController {
                 .sumDistinct('absoluteresp as note')
                 .count('* as total')
                 .where('chats.interaction_id', 2)
-                .andWhereBetween('absoluteresp', [0, 10])
+                .andWhereBetween('absoluteresp', [0, 10000])
                 .whereBetween('chats.created_at', [initialdate, finaldate])
                 .whereRaw(query)
                 .groupBy('absoluteresp');
-            let resultAcumulatedList = [];
+            let resultAcumulatedList = resultAcumulated;
             let totalEvaluations = 0;
             let totalDetractors = 0;
             let totalPromoters = 0;
@@ -320,7 +323,8 @@ class ShippingcampaignsController {
                 if (result.note >= 9 && result.note <= 10)
                     totalPromoters = totalPromoters + result.total;
             }
-            const npsResult = ((totalPromoters * 100) / totalEvaluations) - ((totalDetractors * 100) / totalEvaluations);
+            const nps = ((totalPromoters * 100) / totalEvaluations) - ((totalDetractors * 100) / totalEvaluations);
+            const npsResult = nps < 0 ? 0 : nps;
             const unitResult = await Database_1.default
                 .from('chats')
                 .innerJoin('shippingcampaigns', 'chats.shippingcampaigns_id', 'shippingcampaigns.id')

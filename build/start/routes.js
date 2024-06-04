@@ -75,5 +75,6 @@ Route_1.default.group(() => {
     Route_1.default.get('/shippingcampaigns/:id', 'ShippingcampaignsController.show');
     Route_1.default.post('/shippingcampaigns', 'ShippingcampaignsController.store');
     Route_1.default.post('/resend/:id', 'ShippingcampaignsController.resend');
+    Route_1.default.resource('/chats', 'ChatsController').apiOnly();
 }).prefix('/api');
 //# sourceMappingURL=routes.js.map

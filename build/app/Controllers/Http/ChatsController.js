@@ -1,0 +1,39 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
+class ChatsController {
+    async index({ response }) {
+        try {
+            const data = await Chat_1.default.query();
+            return response.status(200).send(data);
+        }
+        catch (error) {
+            return error;
+        }
+    }
+    async show({ params, response }) {
+        try {
+            const data = await Chat_1.default.query().where('id', params.id);
+            return response.status(200).send(data);
+        }
+        catch (error) {
+            return error;
+        }
+    }
+    async update({ params, request, response }) {
+        const body = request.only(Chat_1.default.fillable);
+        try {
+            const data = await Chat_1.default.query().where('id', params.id)
+                .update(body);
+            return response.status(201).send(data);
+        }
+        catch (error) {
+            return error;
+        }
+    }
+}
+exports.default = ChatsController;
+//# sourceMappingURL=ChatsController.js.map

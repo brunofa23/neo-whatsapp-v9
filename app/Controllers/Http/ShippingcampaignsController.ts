@@ -78,7 +78,7 @@ export default class ShippingcampaignsController {
 
 
   public async resend({ auth, request, params, response }: HttpContextContract) {
-    console.log("reenviando mensagem...")
+
     const data = await Shippingcampaign.query().where('id', params.id).update({ 'excluded': true })
     const message = await Shippingcampaign.find(params.id)
     if (message) {
@@ -164,7 +164,6 @@ export default class ShippingcampaignsController {
     const query = `update agm set AGM_CONFIRM_STAT = 'C' where agm_id = ${id}` //`update agm set agm_confirm_stat = 'C' where agm_id=:id`
     //const query = "select top 10 * from agm order by agm_hini desc"
     try {
-      console.log("EXECUTANDO UPDATE NO SMART...", query)
       //const result = await Database.connection('mssql').rawQuery(query)
       await Database.connection('mssql').rawQuery(query).then((result) => {
         return `executado com sucesso:: ${result}`
@@ -284,7 +283,7 @@ export default class ShippingcampaignsController {
   public async listShippingCampaigns({ request, response }: HttpContextContract) {
 
     const { initialdate, finaldate, phonevalid, invalidresponse, absoluteresp } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp'])
-    console.log("phonevalid", phonevalid)
+
     let query = "1=1"
     if (phonevalid && phonevalid !== undefined) {
       query += ` and phonevalid=${phonevalid == 1 ? 1 : 0}`
@@ -331,9 +330,9 @@ export default class ShippingcampaignsController {
 
   public async serviceEvaluationDashboard({ request, response }: HttpContextContract) {
 
-    const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name, attendant, doctor, unit, excluded }
+    const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name, attendant, doctor, unit, excluded, cellphone, chat_finished }
       = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp',
-        'interactions', 'returned', 'reg', 'name', 'attendant', 'doctor', 'unit', 'excluded'])
+        'interactions', 'returned', 'reg', 'name', 'attendant', 'doctor', 'unit', 'excluded', 'cellphone', 'chat_finished'])
 
     let query = "1=1"
     if (returned)//clientes que enviaram mensagem dentro do sistema
@@ -350,6 +349,10 @@ export default class ShippingcampaignsController {
     }
     if (interactions)
       query += ` and response is not null `
+
+    if (cellphone)
+      query += ` and shippingcampaigns.cellphone like '%${cellphone}%' `
+
 
     if (absoluteresp == 1)
       query += ` and absoluteresp < 7 `
@@ -368,6 +371,11 @@ export default class ShippingcampaignsController {
     if (excluded)
       query += ` and excluded=1 `
     else query += ` and (excluded not in (1) or excluded is null) `
+
+    if (chat_finished)
+      query += ` and chat_finished=1 `
+    else query += ` and (chat_finished not in (1) or chat_finished is null) `
+
 
     if (!DateTime.fromISO(initialdate).isValid || !DateTime.fromISO(finaldate).isValid) {
       throw new Error("Datas inválidas.")
@@ -399,6 +407,7 @@ export default class ShippingcampaignsController {
           'unit',
           'attendant',
           Database.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed'),
+          'chat_finished'
         )
         .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
         .whereBetween('chats.created_at', [initialdate, finaldate])
@@ -411,13 +420,13 @@ export default class ShippingcampaignsController {
         .sumDistinct('absoluteresp as note')
         .count('* as total')
         .where('chats.interaction_id', 2)
-        .andWhereBetween('absoluteresp', [0, 10])
+        .andWhereBetween('absoluteresp', [0, 10000])
+        //.andWhere('absoluteresp','>=','9')
         .whereBetween('chats.created_at', [initialdate, finaldate])
-        //.andWhereRaw('(excluded not in (1) or excluded is null)')
         .whereRaw(query)
         .groupBy('absoluteresp')
 
-      let resultAcumulatedList = []
+      let resultAcumulatedList = resultAcumulated
       let totalEvaluations = 0
       let totalDetractors = 0
       let totalPromoters = 0
@@ -430,7 +439,8 @@ export default class ShippingcampaignsController {
              totalPromoters = totalPromoters + result.total
         }
       //calcula o percentual do NPS
-      const npsResult = ((totalPromoters * 100) / totalEvaluations) - ((totalDetractors * 100) / totalEvaluations)
+      const nps = ((totalPromoters * 100) / totalEvaluations) - ((totalDetractors * 100) / totalEvaluations)
+      const npsResult =nps<0?0:nps
       //UNIDADES****************************************************************** */
       const unitResult = await Database
         .from('chats')
@@ -487,6 +497,7 @@ export default class ShippingcampaignsController {
         promotor: parseInt(result.promotor, 10)
       }))
       //******************************************************************* */
+
       return response.status(201).send({ result, resultAcumulatedList, resultByStation, resultByMedic, resultByAttendant, npsResult })
     } catch (error) {
       throw new Error(error)

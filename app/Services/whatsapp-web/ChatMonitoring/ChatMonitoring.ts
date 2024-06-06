@@ -58,23 +58,20 @@ export default class Monitoring {
           return
         }
 
-        if(message.from==='553185228619@c.us'){
-          console.log("passei dentro do chat Bruno")
-          if (message.hasMedia) {
-            console.log("telefone::", message)
+        const customChat = await getCustomChat(message.from, client.info.wid.user)
+        let chat
+        if (customChat) {
+
+            if (message.hasMedia) {
+            console.log("PASSEI DENTRO DA MIDIA......")
             const media = await message.downloadMedia();
             //console.log("RECEBI UMA MEDIA...", media)
             const midias = new MidiasController
             await midias.teste(media)
             // do something with the media data here
           }
-        }
 
-        const customChat = await getCustomChat(message.from, client.info.wid.user)
-        let chat
-        if (customChat) {
-          //customChat.returned = true
-          //await customChat.save()
+
           const bodyResponse = {
             chats_id: customChat.chats_id,
             reg: customChat.reg,

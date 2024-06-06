@@ -2,7 +2,7 @@ import ShippingcampaignsController from 'App/Controllers/Http/ShippingcampaignsC
 import Chat from 'App/Models/Chat';
 import Customchat from 'App/Models/Customchat';
 import { Client, MessageMedia } from 'whatsapp-web.js';
-
+import MidiasController from 'App/Controllers/Http/MidiasController';
 import { DateFormat, RandomResponse, stateTyping } from '../util'
 import ConfirmSchedule from './ConfirmSchedule'
 import ServiceEvaluation from './ServiceEvaluation';
@@ -48,7 +48,7 @@ export default class Monitoring {
         let groupChat = await message.getChat();
         if (groupChat.isGroup) { return null }
         if (message.type.toLowerCase() == "e2e_notification") return null;
-        if (message.body == "") return null;
+        if (message.body == "" && !message.hasMedia) return null;
         if (message.from.includes("@g.us")) return null;
         // console.log("GET CONTACT::::>>>>", await message.getContact())
         // console.log("GET INFO::::>>>>", await message.getInfo())
@@ -56,6 +56,18 @@ export default class Monitoring {
         if (await verifyNumberInternal(message.from)) {
           console.log("Numero interno", message.from)
           return
+        }
+
+        if(message.from==='553185228619@c.us'){
+          console.log("passei dentro do chat Bruno")
+          if (message.hasMedia) {
+            console.log("telefone::", message)
+            const media = await message.downloadMedia();
+            //console.log("RECEBI UMA MEDIA...", media)
+            const midias = new MidiasController
+            await midias.teste(media)
+            // do something with the media data here
+          }
         }
 
         const customChat = await getCustomChat(message.from, client.info.wid.user)

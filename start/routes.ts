@@ -96,10 +96,12 @@ Route.group(() => {
   Route.post('/shippingcampaigns','ShippingcampaignsController.store')
   Route.post('/resend/:id','ShippingcampaignsController.resend')
 
-
   //chats
   Route.resource('/chats', 'ChatsController').apiOnly()
-  
+
+  //MIDIAS
+  Route.resource('/midias','MidiasController').apiOnly()
+
 
 
 }).prefix('/api')

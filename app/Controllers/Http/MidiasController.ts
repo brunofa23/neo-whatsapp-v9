@@ -15,23 +15,20 @@ export default class MidiasController {
 
 
 
-  public async teste(media) {
-    console.log("Passei pelo teste...", media)
+  public async storeMedia(media, fileName, folder) {
     try {
       const { mimetype, data } = media
-
       if (!mimetype.includes("audio/ogg"))
         return
       // Crie um buffer a partir do dado base64
       const buffer = Buffer.from(data, 'base64')
-
       // Gere um caminho para salvar o arquivo
-      const fileName = `audio_${Date.now()}.ogg`
-      const filePath = Application.makePath(`app/Medias/Customchats/${fileName}`)
+      const fileNameFull = `audio_${fileName}.ogg`
+      const filePath = Application.makePath(`Medias/${folder}/${fileNameFull}`)
       await fs.ensureDir(path.dirname(filePath))
       fs.writeFileSync(filePath, buffer);
       console.log("ARQUIVO SALVO COM SUCESSO")
-
+      return filePath
 
     } catch (error) {
       console.log("ERROR")

@@ -100,7 +100,8 @@ Route.group(() => {
   Route.resource('/chats', 'ChatsController').apiOnly()
 
   //MIDIAS
-  Route.resource('/midias','MidiasController').apiOnly()
+  Route.get('/midia/:filename','MidiasController.midia')
+  Route.get('/midiapath/:filename','MidiasController.midiapath')
 
 
 

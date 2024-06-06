@@ -27,8 +27,8 @@ export default class Customchat extends BaseModel {
       'read',
       'viewed',
       'phonevalid',
-      'ack'
-
+      'ack',
+      'path_media'
     ]
   }
 
@@ -70,6 +70,8 @@ export default class Customchat extends BaseModel {
   public phonevalid: boolean
   @column()
   public ack:number
+  @column()
+  public path_media:string
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime

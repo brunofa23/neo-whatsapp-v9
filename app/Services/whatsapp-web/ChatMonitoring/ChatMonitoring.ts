@@ -62,16 +62,16 @@ export default class Monitoring {
         let chat
         if (customChat) {
 
+          let path_media: string|undefined = "";
+
             if (message.hasMedia) {
             console.log("PASSEI DENTRO DA MIDIA......")
             const media = await message.downloadMedia();
-            //console.log("RECEBI UMA MEDIA...", media)
             const midias = new MidiasController
-            await midias.teste(media)
+            const fileName = `${customChat.chats_id}_${Date.now()}`
+            path_media= await midias.storeMedia(media,fileName, "Customchats")
             // do something with the media data here
           }
-
-
           const bodyResponse = {
             chats_id: customChat.chats_id,
             reg: customChat.reg,
@@ -81,6 +81,7 @@ export default class Monitoring {
             returned: true,
             viewed: false,
             response: message.body,
+            path_media:path_media
           }
           await Customchat.create(bodyResponse)
           //chamar gravação

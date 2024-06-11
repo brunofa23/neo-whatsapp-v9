@@ -5,7 +5,8 @@
     PASSWORD="Cartorio@12345"
     DATABASE="easytalk"
     BACKUP_DIR="/home/bruno/projetos/easytalk/neo-whatsapp-v9/backups"
-    DATE=$(date +\%Y-\%m-\%d)
+    DATE=$(date +\%Y-\%m-\%d_\%H-\%M)
+
 
     # Criar diretório de backup se não existir
     mkdir -p ${BACKUP_DIR}

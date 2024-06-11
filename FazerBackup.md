@@ -7,11 +7,13 @@ Primeiro, crie um script que realizará o backup. Vamos supor que o script se ch
 1. Abra o terminal e crie o diretório de scripts se ele ainda não existir:
     ```sh
     mkdir -p /home/usuario/scripts
+    mkdir -p /home/root/scripts
     ```
 
 2. Crie o script `backup_mysql.sh`:
     ```sh
     nano /home/usuario/scripts/backup_mysql.sh
+    nano /home/bruno/scripts/backup_mysql.sh
     ```
 
 3. Adicione o seguinte conteúdo ao script:
@@ -19,10 +21,10 @@ Primeiro, crie um script que realizará o backup. Vamos supor que o script se ch
     #!/bin/bash
 
     # Configurações
-    USER="seu_usuario_mysql"
-    PASSWORD="sua_senha_mysql"
-    DATABASE="chatbot"
-    BACKUP_DIR="/home/usuario/backups"
+    USER="root"
+    PASSWORD="Cartorio@12345"
+    DATABASE="easytalk"
+    BACKUP_DIR="/home/bruno/projetos/easytalk/neo-whatsapp-v9/backups"
     DATE=$(date +\%Y-\%m-\%d)
 
     # Criar diretório de backup se não existir
@@ -30,6 +32,10 @@ Primeiro, crie um script que realizará o backup. Vamos supor que o script se ch
 
     # Comando de backup
     mysqldump -u ${USER} -p${PASSWORD} ${DATABASE} > ${BACKUP_DIR}/${DATABASE}_${DATE}.sql
+
+    # Comando de backup dentro do contêiner Docker
+docker exec nome_do_seu_container mysqldump -u ${USER} -p${PASSWORD} ${DATABASE} > ${BACKUP_DIR}/${DATABASE}_${DATE}.sql
+
 
     # Verificação do sucesso do backup
     if [ $? -eq 0 ]; then
@@ -44,6 +50,7 @@ Primeiro, crie um script que realizará o backup. Vamos supor que o script se ch
 5. Torne o script executável:
     ```sh
     chmod +x /home/usuario/scripts/backup_mysql.sh
+    chmod +x /home/bruno/scripts/backup_mysql.sh
     ```
 
 ### 2. Configurar a Cronjob
@@ -84,6 +91,11 @@ Você deve ver a linha que você adicionou:
 Antes de confiar completamente na cronjob, é uma boa prática executar manualmente o script para verificar se ele funciona conforme esperado:
 ```sh
 /home/usuario/scripts/backup_mysql.sh
+/home/bruno/scripts/backup_mysql.sh
 ```
 
 Se tudo estiver configurado corretamente, você terá um backup diário da sua base de dados `chatbot` no diretório `/home/usuario/backups`.
+
+
+#para acessar a pasta do backup:
+sudo bash -c 'cd /home/bruno && exec bash'

@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const ShippingcampaignsController_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Controllers/Http/ShippingcampaignsController"));
 const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
 const Customchat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Customchat"));
+const MidiasController_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Controllers/Http/MidiasController"));
 const util_1 = require("../util");
 const ConfirmSchedule_1 = __importDefault(require("./ConfirmSchedule"));
 const ServiceEvaluation_1 = __importDefault(require("./ServiceEvaluation"));
@@ -45,7 +46,7 @@ class Monitoring {
                 }
                 if (message.type.toLowerCase() == "e2e_notification")
                     return null;
-                if (message.body == "")
+                if (message.body == "" && !message.hasMedia)
                     return null;
                 if (message.from.includes("@g.us"))
                     return null;
@@ -56,6 +57,14 @@ class Monitoring {
                 const customChat = await getCustomChat(message.from, client.info.wid.user);
                 let chat;
                 if (customChat) {
+                    let path_media = "";
+                    if (message.hasMedia) {
+                        console.log("PASSEI DENTRO DA MIDIA......");
+                        const media = await message.downloadMedia();
+                        const midias = new MidiasController_1.default;
+                        const fileName = `${customChat.chats_id}_${Date.now()}`;
+                        path_media = await midias.storeMedia(media, fileName, "Customchats");
+                    }
                     const bodyResponse = {
                         chats_id: customChat.chats_id,
                         reg: customChat.reg,
@@ -65,6 +74,7 @@ class Monitoring {
                         returned: true,
                         viewed: false,
                         response: message.body,
+                        path_media: path_media
                     };
                     await Customchat_1.default.create(bodyResponse);
                     return;

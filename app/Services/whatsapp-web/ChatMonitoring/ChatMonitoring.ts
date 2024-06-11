@@ -2,7 +2,7 @@ import ShippingcampaignsController from 'App/Controllers/Http/ShippingcampaignsC
 import Chat from 'App/Models/Chat';
 import Customchat from 'App/Models/Customchat';
 import { Client, MessageMedia } from 'whatsapp-web.js';
-
+import MidiasController from 'App/Controllers/Http/MidiasController';
 import { DateFormat, RandomResponse, stateTyping } from '../util'
 import ConfirmSchedule from './ConfirmSchedule'
 import ServiceEvaluation from './ServiceEvaluation';
@@ -48,7 +48,7 @@ export default class Monitoring {
         let groupChat = await message.getChat();
         if (groupChat.isGroup) { return null }
         if (message.type.toLowerCase() == "e2e_notification") return null;
-        if (message.body == "") return null;
+        if (message.body == "" && !message.hasMedia) return null;
         if (message.from.includes("@g.us")) return null;
         // console.log("GET CONTACT::::>>>>", await message.getContact())
         // console.log("GET INFO::::>>>>", await message.getInfo())
@@ -61,8 +61,17 @@ export default class Monitoring {
         const customChat = await getCustomChat(message.from, client.info.wid.user)
         let chat
         if (customChat) {
-          //customChat.returned = true
-          //await customChat.save()
+
+          let path_media: string|undefined = "";
+
+            if (message.hasMedia) {
+            console.log("PASSEI DENTRO DA MIDIA......")
+            const media = await message.downloadMedia();
+            const midias = new MidiasController
+            const fileName = `${customChat.chats_id}_${Date.now()}`
+            path_media= await midias.storeMedia(media,fileName, "Customchats")
+            // do something with the media data here
+          }
           const bodyResponse = {
             chats_id: customChat.chats_id,
             reg: customChat.reg,
@@ -72,6 +81,7 @@ export default class Monitoring {
             returned: true,
             viewed: false,
             response: message.body,
+            path_media:path_media
           }
           await Customchat.create(bodyResponse)
           //chamar gravação

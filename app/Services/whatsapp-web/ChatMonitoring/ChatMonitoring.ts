@@ -72,6 +72,7 @@ export default class Monitoring {
             const midias = new MidiasController
             const fileName = `${customChat.chats_id}_${Date.now()}`
             path_media= await midias.storeMedia(media,fileName, "Customchats")
+            message.body = " "
             // do something with the media data here
           }
           const bodyResponse = {

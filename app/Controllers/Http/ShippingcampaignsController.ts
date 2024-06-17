@@ -415,44 +415,6 @@ export default class ShippingcampaignsController {
         .where('shippingcampaigns.interaction_id', 2)
         .whereRaw(query)
 
-
-        const teste =Database.connection(Env.get('DB_CONNECTION_MAIN')).query()
-        .from('shippingcampaigns')
-        .select(
-          'shippingcampaigns.id as idShipp',
-          'shippingcampaigns.interaction_id',
-          'shippingcampaigns.reg',
-          'shippingcampaigns.name',
-          'shippingcampaigns.cellphone',
-          'chats.id',
-          'otherfields',
-          'phonevalid',
-          'messagesent',
-          'chats.created_at',
-          'response',
-          'returned',
-          'invalidresponse',
-          'chatname',
-          'absoluteresp',
-          'prioritysend',
-          'excluded',
-          'doctor',
-          'unit',
-          'attendant',
-          Database.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed'),
-          'chat_finished'
-        )
-        .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
-        .whereBetween('chats.created_at', [initialdate, finaldate])
-        //.whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
-        .where('shippingcampaigns.interaction_id', 2)
-        .whereRaw(query)
-
-        console.log("teste>>>",teste.toQuery())
-
-
-
-
       const resultAcumulated = await Database.from('chats')
         .innerJoin('shippingcampaigns', 'chats.shippingcampaigns_id', 'shippingcampaigns.id')
         .sumDistinct('absoluteresp as note')

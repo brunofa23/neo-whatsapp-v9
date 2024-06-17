@@ -27,10 +27,7 @@ export default class UsersController {
   }
 
   public async update({ params, request, response }: HttpContextContract) {
-
-    console.log('user update:', params.id)
     const body = request.only(User.fillable)
-
     try {
       const data = await User.query().where('id', params.id)
         .update(body)

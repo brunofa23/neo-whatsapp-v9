@@ -33,12 +33,12 @@ console.log("passo 1")
 
   async function verifyClientSend(client, cellphone){
 
-    const teste = Chat.query()
-    .where('cellphone', cellphone)
-    .andWhere('created_at', '>', dayBefore5)
-    .andWhere('chatnumber', client.info.wid.user)
+    // const teste = Chat.query()
+    // .where('cellphone', cellphone)
+    // .andWhere('created_at', '>', dayBefore5)
+    // .andWhere('chatnumber', client.info.wid.user)
 
-    console.log("passo 7", teste.toQuery())
+    // console.log("passo 7", teste.toQuery())
 
     return await Chat.query()
        .where('cellphone', cellphone)
@@ -101,13 +101,13 @@ console.log("passo 1")
 
 //********************************************************************* */
 async function sendMessages() {
-  console.log("passo 2")
+    //console.log("passo 2")
     const totMessageSend = await countLimitSendMessage()
-    console.log("passo 3", totMessageSend)
+    //console.log("passo 3", totMessageSend)
     const maxLimitSendAgent = await maxLimitSendMessageAgent(agent.id)
-    console.log("passo 4", maxLimitSendAgent)
+    //console.log("passo 4", maxLimitSendAgent)
     const shippingCampaign = await shippingcampaignsController.patientToSend()
-    console.log("passo 5", shippingCampaign)
+    //console.log("passo 5", shippingCampaign)
     let verifyChat
     let verifycontsend
     //let verifycontsend
@@ -120,7 +120,16 @@ async function sendMessages() {
     //   return
     // }
 
-    if (totMessageSend >= maxLimitSendAgent) {
+    //console.log("se é nulo>>>>>>", shippingCampaign)
+
+    // if(shippingCampaign?.prioritysend==null || shippingCampaign?.prioritysend==undefined)
+    //   console.log("entra no limite e não é para enviar")
+    // if(!shippingCampaign?.prioritysend)
+    //   console.log("não é")
+
+
+
+    if (totMessageSend >= maxLimitSendAgent && (shippingCampaign?.prioritysend==null || shippingCampaign?.prioritysend==undefined)) {
       console.log(`LIMITE DIÁRIO ATINGIDO, Agent: ${agent.name} Enviados:${totMessageSend} - Limite Máximo:${maxLimitSendAgent}`)
       return
     }
@@ -138,7 +147,7 @@ async function sendMessages() {
     // }
     //console.log("SHIPPING>>", shippingCampaign)
     if (shippingCampaign) {
-      console.log("passo 6")
+      //console.log("passo 6")
       if (global.contSend < 3) {
         if (global.contSend < 0)
           global.contSend = 0

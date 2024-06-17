@@ -26,7 +26,9 @@ async function getCustomChat(cellphone: String, chatnumber: String) {
   const customChat = await Customchat.query()
     .where('cellphoneserialized', cellphone)
     .andWhere('chatnumber', chatnumber)
-    .andWhereNull('returned').first()
+    .andWhereNull('returned')
+    .orderBy('chats_id','desc')
+    .first()
   return customChat
 
 }
@@ -83,6 +85,7 @@ export default class Monitoring {
             response: message.body,
             path_media:path_media
           }
+          console.log("viewed 4444>>", bodyResponse)
           await Customchat.create(bodyResponse)
           //chamar gravação
           return

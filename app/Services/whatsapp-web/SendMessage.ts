@@ -74,6 +74,7 @@ export default async (client: Client, agent: Agent) => {
   async function sendMessages() {
     const totMessageSend = await countLimitSendMessage()
     const maxLimitSendAgent = await maxLimitSendMessageAgent(agent.id)
+    
     let verifyChat
     if (totMessageSend >= maxLimitSendAgent) {
       console.log(`LIMITE DIÁRIO ATINGIDO, Agent: ${agent.name} Enviados:${totMessageSend} - Limite Máximo:${maxLimitSendAgent}`)

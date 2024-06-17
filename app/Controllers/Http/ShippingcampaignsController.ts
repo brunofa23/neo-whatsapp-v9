@@ -329,7 +329,7 @@ export default class ShippingcampaignsController {
   }
 
   public async serviceEvaluationDashboard({ request, response }: HttpContextContract) {
-console.log("busca...8888")
+
     const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name, attendant, doctor, unit, excluded, cellphone, chat_finished }
       = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp',
         'interactions', 'returned', 'reg', 'name', 'attendant', 'doctor', 'unit', 'excluded', 'cellphone', 'chat_finished'])
@@ -374,7 +374,7 @@ console.log("busca...8888")
 
     if (chat_finished)
       query += ` and chat_finished=1 `
-    else query += ` and (chat_finished not in (1) or chat_finished is null) `
+    //else query += ` and (chat_finished not in (1) or chat_finished is null) `
 
 
     if (!DateTime.fromISO(initialdate).isValid || !DateTime.fromISO(finaldate).isValid) {

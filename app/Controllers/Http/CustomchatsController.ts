@@ -38,7 +38,7 @@ export default class CustomchatsController {
   }
 
 
-  public async viewedConfirm({ params, response }: HttpContextContract) {
+  public async viewedConfirmed({ params, response }: HttpContextContract) {
     try {
       console.log("passei no viewed.........",params)
 

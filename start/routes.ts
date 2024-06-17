@@ -62,7 +62,7 @@ Route.group(() => {
   //CUSTOM CHATS
   Route.post("/customchat/sendmessage", "CustomchatsController.sendMessage")
   Route.get("/customchat/:id", "CustomchatsController.show")
-  Route.post("/customchat/viewedconfirm/:chats_id", "CustomchatsController.viewedConfirm")
+  Route.post("/customchat/viewedconfirmed/:chats_id", "CustomchatsController.viewedConfirmed")
 
   //CONFIG
   Route.resource("/config", "ConfigsController").apiOnly()

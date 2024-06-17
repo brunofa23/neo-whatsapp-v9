@@ -329,7 +329,7 @@ export default class ShippingcampaignsController {
   }
 
   public async serviceEvaluationDashboard({ request, response }: HttpContextContract) {
-
+console.log("busca...8888")
     const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name, attendant, doctor, unit, excluded, cellphone, chat_finished }
       = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp',
         'interactions', 'returned', 'reg', 'name', 'attendant', 'doctor', 'unit', 'excluded', 'cellphone', 'chat_finished'])
@@ -414,6 +414,44 @@ export default class ShippingcampaignsController {
         //.whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
         .where('shippingcampaigns.interaction_id', 2)
         .whereRaw(query)
+
+
+        const teste =Database.connection(Env.get('DB_CONNECTION_MAIN')).query()
+        .from('shippingcampaigns')
+        .select(
+          'shippingcampaigns.id as idShipp',
+          'shippingcampaigns.interaction_id',
+          'shippingcampaigns.reg',
+          'shippingcampaigns.name',
+          'shippingcampaigns.cellphone',
+          'chats.id',
+          'otherfields',
+          'phonevalid',
+          'messagesent',
+          'chats.created_at',
+          'response',
+          'returned',
+          'invalidresponse',
+          'chatname',
+          'absoluteresp',
+          'prioritysend',
+          'excluded',
+          'doctor',
+          'unit',
+          'attendant',
+          Database.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed'),
+          'chat_finished'
+        )
+        .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
+        .whereBetween('chats.created_at', [initialdate, finaldate])
+        //.whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
+        .where('shippingcampaigns.interaction_id', 2)
+        .whereRaw(query)
+
+        console.log("teste>>>",teste.toQuery())
+
+
+
 
       const resultAcumulated = await Database.from('chats')
         .innerJoin('shippingcampaigns', 'chats.shippingcampaigns_id', 'shippingcampaigns.id')
@@ -563,6 +601,19 @@ export default class ShippingcampaignsController {
     }
 
   }
+
+
+  public async patientToSend(){
+    const yesterday = DateTime.local().toFormat('yyyy-MM-dd 00:00')
+    return await Shippingcampaign.query()
+        .whereNull('phonevalid')
+        .andWhere('messagesent', 0)
+        .andWhere('created_at', '>', yesterday) // Certifique-se de usar a data correta aqui
+        .whereNotExists((query) => {
+          query.select('*').from('chats').whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id');
+        }).orderBy('prioritysend',"desc").first()
+  }
+
 
 
 }

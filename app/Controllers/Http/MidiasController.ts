@@ -37,7 +37,8 @@ export default class MidiasController {
       fs.writeFileSync(filePath, buffer);
       console.log("ARQUIVO SALVO COM SUCESSO")
 
-      return `Medias/${folder}/${fileNameFull}`
+      //return `Medias/${folder}/${fileNameFull}`
+      return `${fileNameFull}`
 
 
     } catch (error) {

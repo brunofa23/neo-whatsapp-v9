@@ -15,10 +15,10 @@ export default class MidiasController {
 
 
   public async midiapath({ params}: HttpContextContract) {
+    //console.log("passei no midiapath", params)
     const fileName = params.filename
-    //const baseUrl ='http://localhost:3334/api/midia'
-    const baseUrl ='http://localhost:3334/api/Medias/Customchats'
-
+    const baseUrl ='http://localhost:3334/api/midia'
+    //const baseUrl ='http://localhost:3334/api/Medias/Customchats'
     return {url: `${baseUrl}/${fileName}`}
   }
 

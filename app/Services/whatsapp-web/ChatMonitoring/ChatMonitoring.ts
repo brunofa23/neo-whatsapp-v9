@@ -7,6 +7,7 @@ import { DateFormat, RandomResponse, stateTyping } from '../util'
 import ConfirmSchedule from './ConfirmSchedule'
 import ServiceEvaluation from './ServiceEvaluation';
 
+
 async function verifyNumberInternal(phoneVerify: String) {
   const list_phone_talking = process.env.LIST_PHONES_TALK
   const list_phones = list_phone_talking?.split(",")
@@ -64,14 +65,14 @@ export default class Monitoring {
         let chat
         if (customChat) {
 
-          let fileName: string|undefined = "";
+          let path_media: string|undefined = "";
 
             if (message.hasMedia) {
             console.log("PASSEI DENTRO DA MIDIA......")
             const media = await message.downloadMedia();
             const midias = new MidiasController
-            fileName = `${customChat.chats_id}_${Date.now()}`
-            await midias.storeMedia(media,fileName, "Customchats")
+            const fileName = `${customChat.chats_id}_${Date.now()}`
+            path_media = await midias.storeMedia(media,fileName, "Customchats")
             message.body = " "
             // do something with the media data here
           }
@@ -84,7 +85,7 @@ export default class Monitoring {
             returned: true,
             viewed: false,
             response: message.body,
-            path_media:fileName
+            path_media:path_media
           }
           console.log("viewed 4444>>", bodyResponse)
           await Customchat.create(bodyResponse)

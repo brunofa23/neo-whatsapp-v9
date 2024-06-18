@@ -87,7 +87,7 @@ export default class Monitoring {
             response: message.body,
             path_media:path_media
           }
-          console.log("viewed 4444>>", bodyResponse)
+          //console.log("viewed 4444>>", bodyResponse)
           await Customchat.create(bodyResponse)
           //chamar gravação
           return

@@ -22,6 +22,7 @@ export default class User extends BaseModel {
       'email',
       'password',
       'remember_me_token',
+      'superuser'
     ]
   }
 
@@ -42,6 +43,9 @@ export default class User extends BaseModel {
 
   @column()
   public rememberMeToken: string | null
+
+  @column()
+  public superuser:boolean|null
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime

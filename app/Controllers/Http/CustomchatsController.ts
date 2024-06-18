@@ -29,7 +29,6 @@ export default class CustomchatsController {
   }
 
   public async sendMessage({ request, response }: HttpContextContract) {
-    console.log("passei no sendMessage.........8888888")
     const body = request.only(Customchat.fillable)
     body.messagesent = false
     //console.log("Passei aqui 45888", body)

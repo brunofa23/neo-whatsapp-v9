@@ -69,7 +69,7 @@ export default class UsersController {
     })
 
     //return { token, user }
-    console.log("acessei o login...", token, user)
+    //console.log("acessei o login...", token, user)
     return response.status(200).send({ token, user })
 
   }

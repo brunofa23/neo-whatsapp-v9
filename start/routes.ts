@@ -66,7 +66,8 @@ Route.group(() => {
 
   //CONFIG
   Route.resource("/config", "ConfigsController").apiOnly()
-  Route.post("/config/restartsystem", "ConfigsController.restartSystem")
+  //Route.get("/config/:id","ConfigsController.show")
+  Route.get("/configs/restartsystem", "ConfigsController.restartSystem")
 
 
   Route.get("/smart", "DatasourcesController.scheduledPatients")

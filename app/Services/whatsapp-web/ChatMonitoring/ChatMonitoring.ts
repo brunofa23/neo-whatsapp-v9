@@ -64,14 +64,14 @@ export default class Monitoring {
         let chat
         if (customChat) {
 
-          let path_media: string|undefined = "";
+          let fileName: string|undefined = "";
 
             if (message.hasMedia) {
             console.log("PASSEI DENTRO DA MIDIA......")
             const media = await message.downloadMedia();
             const midias = new MidiasController
-            const fileName = `${customChat.chats_id}_${Date.now()}`
-            path_media= await midias.storeMedia(media,fileName, "Customchats")
+            fileName = `${customChat.chats_id}_${Date.now()}`
+            await midias.storeMedia(media,fileName, "Customchats")
             message.body = " "
             // do something with the media data here
           }
@@ -84,7 +84,7 @@ export default class Monitoring {
             returned: true,
             viewed: false,
             response: message.body,
-            path_media:path_media
+            path_media:fileName
           }
           console.log("viewed 4444>>", bodyResponse)
           await Customchat.create(bodyResponse)

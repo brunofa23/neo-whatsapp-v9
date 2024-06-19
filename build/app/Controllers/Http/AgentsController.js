@@ -12,7 +12,7 @@ const whatsapp_1 = require("../../Services/whatsapp-web/whatsapp");
 const Config_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Config"));
 const fs = require('fs');
 class AgentsController {
-    async index({ response }) {
+    async index({ auth, response }) {
         const dateStart = await (0, util_1.DateFormat)("yyyy-MM-dd 00:00:00", luxon_1.DateTime.local());
         const dateEnd = await (0, util_1.DateFormat)("yyyy-MM-dd 23:59:00", luxon_1.DateTime.local());
         try {
@@ -46,7 +46,7 @@ class AgentsController {
             return error;
         }
     }
-    async store({ request, response }) {
+    async store({ auth, request, response }) {
         const body = request.only(Agent_1.default.fillable);
         body.interval_init_query = 1;
         body.interval_final_query = 1;
@@ -59,7 +59,8 @@ class AgentsController {
             return error;
         }
     }
-    async update({ params, request, response }) {
+    async update({ auth, params, request, response }) {
+        console.log("alterado....");
         const body = request.only(Agent_1.default.fillable);
         try {
             const data = await Agent_1.default.query().where('id', params.id)
@@ -70,7 +71,7 @@ class AgentsController {
             return error;
         }
     }
-    async connection({ params, request, response }) {
+    async connection({ auth, params, request, response }) {
         try {
             const valuedatetime = luxon_1.DateTime.local().toFormat('yyyy-MM-dd HH:mm:ss');
             await Config_1.default.query().where('id', 'statusSendMessage').update({ valuedatetime: valuedatetime });
@@ -123,7 +124,7 @@ class AgentsController {
             error;
         }
     }
-    async destroy({ params, request, response }) {
+    async destroy({ auth, params, response }) {
         console.log("passei no destroy....");
         const data = await Agent_1.default.query().where('id', params.id)
             .update({ deleted: true, active: null, status: null, number_phone: null, qrcode: null });

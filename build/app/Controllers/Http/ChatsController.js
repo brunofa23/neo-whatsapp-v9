@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
 class ChatsController {
-    async index({ response }) {
+    async index({ auth, response }) {
         try {
             const data = await Chat_1.default.query();
             return response.status(200).send(data);
@@ -14,7 +14,7 @@ class ChatsController {
             return error;
         }
     }
-    async show({ params, response }) {
+    async show({ auth, params, response }) {
         try {
             const data = await Chat_1.default.query().where('id', params.id);
             return response.status(200).send(data);
@@ -23,7 +23,7 @@ class ChatsController {
             return error;
         }
     }
-    async update({ params, request, response }) {
+    async update({ auth, params, request, response }) {
         const body = request.only(Chat_1.default.fillable);
         try {
             const data = await Chat_1.default.query().where('id', params.id)

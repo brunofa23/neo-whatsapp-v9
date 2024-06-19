@@ -13,7 +13,6 @@ class MidiasController {
         return response.download(filePath);
     }
     async midiapath({ params }) {
-        console.log("Index Midias path...");
         const fileName = params.filename;
         const baseUrl = 'http://localhost:3334/api/midia';
         return { url: `${baseUrl}/${fileName}` };
@@ -29,7 +28,7 @@ class MidiasController {
             await fs.ensureDir(path.dirname(filePath));
             fs.writeFileSync(filePath, buffer);
             console.log("ARQUIVO SALVO COM SUCESSO");
-            return `Medias/${folder}/${fileNameFull}`;
+            return `${fileNameFull}`;
         }
         catch (error) {
             console.log("ERROR");

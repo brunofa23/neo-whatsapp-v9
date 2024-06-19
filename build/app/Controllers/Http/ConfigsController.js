@@ -6,7 +6,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const Config_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Config"));
 const { exec } = require('child_process');
 class ConfigsController {
-    async index({ response }) {
+    async index({ auth, response }) {
+        console.log("passei pelo index");
         try {
             const data = await Config_1.default.query();
             return response.status(200).send(data);
@@ -31,7 +32,6 @@ class ConfigsController {
         }
     }
     async restartSystem({ auth, response }) {
-        console.log("Executando restart system....");
         try {
             exec('pm2 restart easytalk', (error, stdout, stderr) => {
                 if (error) {

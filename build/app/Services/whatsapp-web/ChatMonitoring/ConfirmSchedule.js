@@ -6,6 +6,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const util_1 = require("../util");
 const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
 exports.default = async (client, message, chat) => {
+    if (message.hasMedia) {
+        await (0, util_1.stateTyping)(message);
+        client.sendMessage(message.from, 'Por favor não envie áudio, imagens ou vídeos, apenas digite \n*1* para Confirmar o agendamento. \n*2* para Reagendamento ou Cancelamento.');
+        return;
+    }
     if (chat.interaction_seq == 1) {
         const chatOtherFields = JSON.parse(chat.shippingcampaign.otherfields);
         if (await (0, util_1.PositiveResponse)(message.body)) {

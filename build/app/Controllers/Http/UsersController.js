@@ -27,7 +27,6 @@ class UsersController {
         }
     }
     async update({ params, request, response }) {
-        console.log('user update:', params.id);
         const body = request.only(User_1.default.fillable);
         try {
             const data = await User_1.default.query().where('id', params.id)
@@ -54,7 +53,6 @@ class UsersController {
             expiresIn: '7 days',
             name: user.username
         });
-        console.log("acessei o login...", token, user);
         return response.status(200).send({ token, user });
     }
 }

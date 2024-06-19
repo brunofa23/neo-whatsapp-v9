@@ -6,24 +6,20 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const ShippingcampaignsController_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Controllers/Http/ShippingcampaignsController"));
 const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
 const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
-const Interaction_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Interaction"));
-const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Shippingcampaign"));
 const VerifyNumber_1 = global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/VerifyNumber");
 const luxon_1 = require("luxon");
 const util_1 = require("./util");
 global.contSend = 0;
-const yesterday = luxon_1.DateTime.local().toFormat('yyyy-MM-dd 00:00');
+const dayBefore5 = luxon_1.DateTime.local().minus({ days: 5 }).toFormat('yyyy-MM-dd 00:00');
 let resetContSend = luxon_1.DateTime.local();
 let resetContSendBool = false;
+const shippingcampaignsController = new ShippingcampaignsController_1.default();
 exports.default = async (client, agent) => {
-    async function _shippingCampaignList() {
-        return await Shippingcampaign_1.default.query()
-            .whereNull('phonevalid')
-            .andWhere('messagesent', 0)
-            .andWhere('created_at', '>', yesterday)
-            .whereNotExists((query) => {
-            query.select('*').from('chats').whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id');
-        }).orderBy('prioritysend', "desc").first();
+    async function verifyClientSend(client, cellphone) {
+        return await Chat_1.default.query()
+            .where('cellphone', cellphone)
+            .andWhere('created_at', '>', dayBefore5)
+            .andWhere('chatnumber', client.info.wid.user).first();
     }
     async function verifyContSend() {
         if (global.contSend >= 3) {
@@ -38,7 +34,6 @@ exports.default = async (client, agent) => {
         }
     }
     async function countLimitSendMessage() {
-        const shippingcampaignsController = new ShippingcampaignsController_1.default();
         const value = await shippingcampaignsController.maxLimitSendMessage(agent);
         return value;
     }
@@ -48,29 +43,13 @@ exports.default = async (client, agent) => {
             return 0;
         return agentMaxLimitSend?.max_limit_message;
     }
-    async function totalInteractionSend(id) {
-        const dateStart = await (0, util_1.DateFormat)("yyyy-MM-dd 00:00:00", luxon_1.DateTime.local());
-        const dateEnd = await (0, util_1.DateFormat)("yyyy-MM-dd 23:59:00", luxon_1.DateTime.local());
-        try {
-            const maxsendlimit = await Interaction_1.default.query().select('maxsendlimit').where("id", id).first();
-            const totalSend = await Chat_1.default.query()
-                .where('interaction_id', id)
-                .andWhereBetween('created_at', [dateStart, dateEnd])
-                .count('* as total').first();
-            if (totalSend?.$extras.total < maxsendlimit.maxsendlimit || maxsendlimit == null)
-                return false;
-            else
-                return true;
-        }
-        catch (error) {
-            throw error;
-        }
-    }
     async function sendMessages() {
         const totMessageSend = await countLimitSendMessage();
         const maxLimitSendAgent = await maxLimitSendMessageAgent(agent.id);
+        const shippingCampaign = await shippingcampaignsController.patientToSend();
         let verifyChat;
-        if (totMessageSend >= maxLimitSendAgent) {
+        let verifycontsend;
+        if (totMessageSend >= maxLimitSendAgent && (shippingCampaign?.prioritysend == null || shippingCampaign?.prioritysend == undefined)) {
             console.log(`LIMITE DIÁRIO ATINGIDO, Agent: ${agent.name} Enviados:${totMessageSend} - Limite Máximo:${maxLimitSendAgent}`);
             return;
         }
@@ -78,18 +57,15 @@ exports.default = async (client, agent) => {
             return;
         }
         await verifyContSend();
-        const shippingCampaign = await _shippingCampaignList();
-        if (shippingCampaign?.interaction_id) {
-            if (await totalInteractionSend(shippingCampaign?.interaction_id)) {
-                console.log("Limite de Interação atingida...");
-                return;
-            }
-        }
         if (shippingCampaign) {
             if (global.contSend < 3) {
                 if (global.contSend < 0)
                     global.contSend = 0;
                 try {
+                    if (!shippingCampaign.prioritysend)
+                        verifycontsend = await verifyClientSend(client, shippingCampaign?.cellphone);
+                    if (verifycontsend)
+                        return;
                     const validationCellPhone = await (0, VerifyNumber_1.verifyNumber)(client, shippingCampaign?.cellphone);
                     if (validationCellPhone) {
                         verifyChat = await Chat_1.default.query()
@@ -132,7 +108,7 @@ exports.default = async (client, agent) => {
                     }
                 }
                 catch (error) {
-                    console.log("ERRO 1555555:::", error);
+                    console.log("ERRO 1500:::", error);
                 }
             }
         }

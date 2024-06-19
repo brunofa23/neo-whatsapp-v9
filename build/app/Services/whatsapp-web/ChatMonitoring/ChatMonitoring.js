@@ -25,7 +25,9 @@ async function getCustomChat(cellphone, chatnumber) {
     const customChat = await Customchat_1.default.query()
         .where('cellphoneserialized', cellphone)
         .andWhere('chatnumber', chatnumber)
-        .andWhereNull('returned').first();
+        .andWhereNull('returned')
+        .orderBy('chats_id', 'desc')
+        .first();
     return customChat;
 }
 async function getChat(cellphone, agentPhone) {
@@ -59,11 +61,11 @@ class Monitoring {
                 if (customChat) {
                     let path_media = "";
                     if (message.hasMedia) {
-                        console.log("PASSEI DENTRO DA MIDIA......");
                         const media = await message.downloadMedia();
                         const midias = new MidiasController_1.default;
                         const fileName = `${customChat.chats_id}_${Date.now()}`;
                         path_media = await midias.storeMedia(media, fileName, "Customchats");
+                        message.body = " ";
                     }
                     const bodyResponse = {
                         chats_id: customChat.chats_id,
@@ -145,10 +147,10 @@ class Monitoring {
                     }
                     else {
                         const responseArray = [
-                            "Desculpe, mas esta conversa já foi encerrada. O Neo Agradece por sua compreensão, para maiores esclarecimentos ligue para 31-32350003.",
-                            "Infelizmente esta conversa já foi encerrada. O Neo Agradece por sua interação! Maiores esclarecimentos ligue para 31-32350003.",
+                            "Desculpe, mas esta conversa já foi finalizada. O Neo Agradece por sua compreensão, para maiores esclarecimentos ligue para 31-32350003.",
+                            "Infelizmente esta conversa já foi finalizada. O Neo Agradece por sua interação! Maiores esclarecimentos ligue para 31-32350003.",
                             "Olá, sou apenas uma atendente virtual, para maiores esclarecimentos ligue para 31-32350003.",
-                            "Olá, sou apenas uma atendente virtual, desculpe mas esta conversa já foi encerrada. Para maiores esclarecimentos ligue para 31-32350003. O Neo Agradece!"
+                            "Olá, sou apenas uma atendente virtual, desculpe mas esta conversa já foi finalizada. Para maiores esclarecimentos ligue para 31-32350003. O Neo Agradece!"
                         ];
                         const messageRandom = await (0, util_1.RandomResponse)(responseArray);
                         await (0, util_1.stateTyping)(message);

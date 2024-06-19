@@ -13,7 +13,7 @@ class ShippingcampaignsController {
     static get connection() {
         return 'mysql';
     }
-    async index({ response, request }) {
+    async index({ auth, response }) {
         try {
             const shippingCampaign = await Shippingcampaign_1.default.all();
             return response.status(200).send(shippingCampaign);
@@ -22,14 +22,13 @@ class ShippingcampaignsController {
             return error;
         }
     }
-    async store({ request, response }) {
+    async store({ auth, request, response }) {
         const body = request.only(Shippingcampaign_1.default.fillable);
         response.send(body);
         const data = await Shippingcampaign_1.default.create(body);
         return response.status(201).send(data);
     }
     async show({ auth, params, response }) {
-        const authenticate = await auth.use('api').authenticate();
         try {
             const payLoad = await Shippingcampaign_1.default.find(params.id);
             return response.status(200).send(payLoad);
@@ -60,7 +59,7 @@ class ShippingcampaignsController {
             return error;
         }
     }
-    async resend({ auth, request, params, response }) {
+    async resend({ auth, params, response }) {
         const data = await Shippingcampaign_1.default.query().where('id', params.id).update({ 'excluded': true });
         const message = await Shippingcampaign_1.default.find(params.id);
         if (message) {
@@ -84,7 +83,7 @@ class ShippingcampaignsController {
             return response.status(201).send(newData);
         }
     }
-    async doctorList({ response, request }) {
+    async doctorList({ response }) {
         try {
             const shippingCampaign = await Shippingcampaign_1.default.query()
                 .distinct('doctor')
@@ -95,7 +94,7 @@ class ShippingcampaignsController {
             return error;
         }
     }
-    async unitList({ response, request }) {
+    async unitList({ response }) {
         try {
             const shippingCampaign = await Shippingcampaign_1.default.query()
                 .distinct('unit')
@@ -106,7 +105,7 @@ class ShippingcampaignsController {
             return error;
         }
     }
-    async attendantList({ response, request }) {
+    async attendantList({ response }) {
         try {
             const shippingCampaign = await Shippingcampaign_1.default.query()
                 .distinct('attendant')
@@ -129,7 +128,7 @@ class ShippingcampaignsController {
             return 0;
         return parseInt(countMessage.$extras.tot);
     }
-    async chat({ response, request }) {
+    async chat() {
         const id = 567508;
         const query = `update agm set AGM_CONFIRM_STAT = 'C' where agm_id = ${id}`;
         try {
@@ -290,8 +289,6 @@ class ShippingcampaignsController {
             query += ` and (excluded not in (1) or excluded is null) `;
         if (chat_finished)
             query += ` and chat_finished=1 `;
-        else
-            query += ` and (chat_finished not in (1) or chat_finished is null) `;
         if (!luxon_1.DateTime.fromISO(initialdate).isValid || !luxon_1.DateTime.fromISO(finaldate).isValid) {
             throw new Error("Datas inválidas.");
         }
@@ -417,6 +414,16 @@ class ShippingcampaignsController {
         catch (error) {
             throw new Error(error);
         }
+    }
+    async patientToSend() {
+        const yesterday = luxon_1.DateTime.local().toFormat('yyyy-MM-dd 00:00');
+        return await Shippingcampaign_1.default.query()
+            .whereNull('phonevalid')
+            .andWhere('messagesent', 0)
+            .andWhere('created_at', '>', yesterday)
+            .whereNotExists((query) => {
+            query.select('*').from('chats').whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id');
+        }).orderBy('prioritysend', "desc").first();
     }
 }
 exports.default = ShippingcampaignsController;

@@ -3,6 +3,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const Helpers_1 = global[Symbol.for('ioc.use')]("Adonis/Core/Helpers");
 const util_1 = require("../util");
 exports.default = async (client, message, chat) => {
+    if (message.hasMedia) {
+        await (0, util_1.stateTyping)(message);
+        client.sendMessage(message.from, 'Por favor não envie áudio, imagens ou vídeos, apenas digite uma nota de 0 a 10.');
+        return;
+    }
     if (chat.interaction_seq == 1) {
         const notes = message.body.match(/\d+/g);
         let invalidNote = notes.some(note => parseInt(note) > 10);

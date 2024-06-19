@@ -28,7 +28,7 @@ async function getCustomChat(cellphone: String, chatnumber: String) {
     .where('cellphoneserialized', cellphone)
     .andWhere('chatnumber', chatnumber)
     .andWhereNull('returned')
-    .orderBy('chats_id', 'desc')
+    .orderBy('created_at', 'desc')
     .first()
   return customChat
 

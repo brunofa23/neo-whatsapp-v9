@@ -16,7 +16,8 @@ export default class ShippingcampaignsController {
   }
 
 
-  public async index({ response, request }) {
+  public async index({auth, response }) {
+    //await auth.use('api').authenticate()
     try {
       const shippingCampaign = await Shippingcampaign.all()
       return response.status(200).send(shippingCampaign)
@@ -27,7 +28,8 @@ export default class ShippingcampaignsController {
   }
 
 
-  public async store({ request, response }: HttpContextContract) {
+  public async store({auth, request, response }: HttpContextContract) {
+    //await auth.use('api').authenticate()
     const body = request.only(Shippingcampaign.fillable)
     response.send(body)
     const data = await Shippingcampaign.create(body)
@@ -37,7 +39,7 @@ export default class ShippingcampaignsController {
 
 
   public async show({ auth, params, response }: HttpContextContract) {
-    const authenticate = await auth.use('api').authenticate()
+    //await auth.use('api').authenticate()
     try {
       const payLoad = await Shippingcampaign.find(params.id)
       return response.status(200).send(payLoad)
@@ -49,7 +51,7 @@ export default class ShippingcampaignsController {
 
 
   public async update({ auth, request, params, response }: HttpContextContract) {
-    //const authenticate = await auth.use('api').authenticate()
+    //await auth.use('api').authenticate()
     const body = request.only(Shippingcampaign.fillable)
     body.id = params.id
     try {
@@ -77,8 +79,8 @@ export default class ShippingcampaignsController {
   }
 
 
-  public async resend({ auth, request, params, response }: HttpContextContract) {
-
+  public async resend({ auth,  params, response }: HttpContextContract) {
+    //await auth.use('api').authenticate()
     const data = await Shippingcampaign.query().where('id', params.id).update({ 'excluded': true })
     const message = await Shippingcampaign.find(params.id)
     if (message) {
@@ -106,7 +108,7 @@ export default class ShippingcampaignsController {
   }
 
 
-  public async doctorList({ response, request }) {
+  public async doctorList({ response }) {
     try {
       const shippingCampaign = await Shippingcampaign.query()
         .distinct('doctor')
@@ -118,7 +120,7 @@ export default class ShippingcampaignsController {
     }
   }
 
-  public async unitList({ response, request }) {
+  public async unitList({ response }) {
     try {
       const shippingCampaign = await Shippingcampaign.query()
         .distinct('unit')
@@ -130,7 +132,7 @@ export default class ShippingcampaignsController {
     }
   }
 
-  public async attendantList({ response, request }) {
+  public async attendantList({ response }) {
     try {
       const shippingCampaign = await Shippingcampaign.query()
         .distinct('attendant')
@@ -158,7 +160,7 @@ export default class ShippingcampaignsController {
   }
 
 
-  public async chat({ response, request }) {
+  public async chat() {
 
     const id = 567508
     const query = `update agm set AGM_CONFIRM_STAT = 'C' where agm_id = ${id}` //`update agm set agm_confirm_stat = 'C' where agm_id=:id`
@@ -374,7 +376,7 @@ export default class ShippingcampaignsController {
 
     if (chat_finished)
       query += ` and chat_finished=1 `
-    else query += ` and (chat_finished not in (1) or chat_finished is null) `
+    //else query += ` and (chat_finished not in (1) or chat_finished is null) `
 
 
     if (!DateTime.fromISO(initialdate).isValid || !DateTime.fromISO(finaldate).isValid) {
@@ -563,6 +565,18 @@ export default class ShippingcampaignsController {
     }
 
   }
+
+  public async patientToSend(){
+    const yesterday = DateTime.local().toFormat('yyyy-MM-dd 00:00')
+    return await Shippingcampaign.query()
+        .whereNull('phonevalid')
+        .andWhere('messagesent', 0)
+        .andWhere('created_at', '>', yesterday) // Certifique-se de usar a data correta aqui
+        .whereNotExists((query) => {
+          query.select('*').from('chats').whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id');
+        }).orderBy('prioritysend',"desc").first()
+  }
+
 
 
 }

@@ -6,6 +6,11 @@ import { NegativeResponse, PositiveResponse, stateTyping } from '../util'
 
 export default async (client: Client, message: Message, chat: Chat) => {
 
+  if (message.hasMedia) {
+    await stateTyping(message)
+    client.sendMessage(message.from, 'Por favor não envie áudio, imagens ou vídeos, apenas digite uma nota de 0 a 10.')
+    return
+  }
   //PERGUNTA 1 - AVALIAÇÃO DE ATENDIMENTO
   if (chat.interaction_seq == 1) {
     const notes = message.body.match(/\d+/g);

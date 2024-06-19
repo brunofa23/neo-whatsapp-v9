@@ -7,6 +7,7 @@ import { DateFormat, RandomResponse, stateTyping } from '../util'
 import ConfirmSchedule from './ConfirmSchedule'
 import ServiceEvaluation from './ServiceEvaluation';
 
+
 async function verifyNumberInternal(phoneVerify: String) {
   const list_phone_talking = process.env.LIST_PHONES_TALK
   const list_phones = list_phone_talking?.split(",")
@@ -26,7 +27,9 @@ async function getCustomChat(cellphone: String, chatnumber: String) {
   const customChat = await Customchat.query()
     .where('cellphoneserialized', cellphone)
     .andWhere('chatnumber', chatnumber)
-    .andWhereNull('returned').first()
+    .andWhereNull('returned')
+    .orderBy('chats_id', 'desc')
+    .first()
   return customChat
 
 }
@@ -62,14 +65,15 @@ export default class Monitoring {
         let chat
         if (customChat) {
 
-          let path_media: string|undefined = "";
+          let path_media: string | undefined = "";
 
-            if (message.hasMedia) {
-            console.log("PASSEI DENTRO DA MIDIA......")
+          if (message.hasMedia) {
+            //console.log("PASSEI DENTRO DA MIDIA......")
             const media = await message.downloadMedia();
             const midias = new MidiasController
             const fileName = `${customChat.chats_id}_${Date.now()}`
-            path_media= await midias.storeMedia(media,fileName, "Customchats")
+            path_media = await midias.storeMedia(media, fileName, "Customchats")
+            message.body = " "
             // do something with the media data here
           }
           const bodyResponse = {
@@ -81,8 +85,9 @@ export default class Monitoring {
             returned: true,
             viewed: false,
             response: message.body,
-            path_media:path_media
+            path_media: path_media
           }
+          //console.log("viewed 4444>>", bodyResponse)
           await Customchat.create(bodyResponse)
           //chamar gravação
           return
@@ -157,19 +162,6 @@ export default class Monitoring {
             await client.destroy();
             console.log("DESTRUIDO...")
 
-            //client.destroy()
-            // client.logout()
-            //   .then(() => {
-            //     console.log('Conversa encerrada com sucesso.');
-            //   })
-            //   .catch((error) => {
-            //     console.error('Erro ao encerrar a conversa:', error);
-            //   });
-            // return
-
-
-
-
           }
 
           else if (message.body === 'PinChat') {
@@ -178,21 +170,11 @@ export default class Monitoring {
 
           else {
 
-            // await stateTyping(message)
-            // const message2 = `Entendi 😉, sabemos que nosso dia está muito atarefado! Sua consulta foi desmarcada, se deseja reagendar, clique no link que estou enviando para conversar com uma de nossas atendentes e podermos agendar novo horário mais conveniente para você.`
-            // client.sendMessage(message.from, message2)
-
-            // const messageLink = `Olá, sou ${chat.name} e gostaria de reagendar uma consulta com ${chatOtherFields.medic}.`
-            // const phoneNumber = "553132350003"
-            // const encodedMessage = encodeURIComponent(messageLink);
-            // const linkRedirect = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodedMessage}`;
-            // client.sendMessage(message.from, linkRedirect)
-
             const responseArray = [
-              "Desculpe, mas esta conversa já foi encerrada. O Neo Agradece por sua compreensão, para maiores esclarecimentos ligue para 31-32350003.",
-              "Infelizmente esta conversa já foi encerrada. O Neo Agradece por sua interação! Maiores esclarecimentos ligue para 31-32350003.",
+              "Desculpe, mas esta conversa já foi finalizada. O Neo Agradece por sua compreensão, para maiores esclarecimentos ligue para 31-32350003.",
+              "Infelizmente esta conversa já foi finalizada. O Neo Agradece por sua interação! Maiores esclarecimentos ligue para 31-32350003.",
               "Olá, sou apenas uma atendente virtual, para maiores esclarecimentos ligue para 31-32350003.",
-              "Olá, sou apenas uma atendente virtual, desculpe mas esta conversa já foi encerrada. Para maiores esclarecimentos ligue para 31-32350003. O Neo Agradece!"
+              "Olá, sou apenas uma atendente virtual, desculpe mas esta conversa já foi finalizada. Para maiores esclarecimentos ligue para 31-32350003. O Neo Agradece!"
             ]
             const messageRandom = await RandomResponse(responseArray)
             await stateTyping(message)

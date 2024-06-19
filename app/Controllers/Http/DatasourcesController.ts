@@ -42,7 +42,7 @@ export default class DatasourcesController {
   }
 
   async scheduledPatients() {
-    console.log
+    
     async function greeting(message: String) {
       const greeting = ['Olá!😀', 'Oi tudo bem?😀', 'Saudações!😀', 'Oi como vai?😀']
       const presentation = ['Eu me chamo Iris', 'Eu sou a Iris', 'Aqui é a Iris']

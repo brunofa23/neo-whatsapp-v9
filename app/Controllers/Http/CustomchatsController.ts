@@ -10,22 +10,25 @@ export default class CustomchatsController {
     // union
     // select id,chats_id,reg,cellphone,cellphoneserialized,message,response,returned,chatname,messagesent,chatnumber,phonevalid, \`read\`, viewed,ack from customchats where chats_id=43406`
 
-    const data = await Database.from('chats')
-    .select('id','reg', 'cellphone', 'cellphoneserialized','message',
-    'response','returned','chatname',
+    const query = Database.from('chats')
+    .select('id','reg', 'cellphone', 'cellphoneserialized','message','response','returned','chatname',
     Database.raw('0 messagesent'),'chatnumber',Database.raw('0  phonevalid'),Database.raw('0 `read`'),Database.raw('0 viewed'),
-    Database.raw('0 ack')).where('id', params.id)
+    Database.raw('0 ack'),
+    Database.raw('0 path_media')
+  )
+    .where('id', params.id)
     .union(query=>{
       query.from('customchats')
-     .select('id','reg', 'cellphone', 'cellphoneserialized','message','response','returned','chatname','messagesent','chatnumber','phonevalid', 'read', 'viewed','ack')
+     .select('id','reg', 'cellphone', 'cellphoneserialized','message','response','returned','chatname','messagesent','chatnumber','phonevalid', 'read', 'viewed','ack','path_media')
      .where('chats_id',params.id)
     })
 
+    //console.log(query.toQuery())
+    const data = await query
     return response.status(200).send(data)
   }
 
   public async sendMessage({ request, response }: HttpContextContract) {
-
     const body = request.only(Customchat.fillable)
     body.messagesent = false
     //console.log("Passei aqui 45888", body)
@@ -38,12 +41,11 @@ export default class CustomchatsController {
   }
 
 
-  public async viewedConfirm({ params, response }: HttpContextContract) {
+  public async viewedConfirmed({ params, response }: HttpContextContract) {
     try {
       const data = await Customchat.query()
         .where('chats_id', params.chats_id)
         .update({ viewed: true })
-
       return response.status(201).send(data)
     } catch (error) {
       return error

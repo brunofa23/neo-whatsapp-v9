@@ -6,6 +6,11 @@ import { Client, Message } from 'whatsapp-web.js';
 export default async (client: Client, message: Message, chat: Chat) => {
 
   //PERGUNTA 1 - GOSTARIA DE AGENDAR A CONSULTA
+  if (message.hasMedia) {
+    await stateTyping(message)
+    client.sendMessage(message.from, 'Por favor não envie áudio, imagens ou vídeos, apenas digite \n*1* para Confirmar o agendamento. \n*2* para Reagendamento ou Cancelamento.')
+    return
+  }
   if (chat.interaction_seq == 1) {
 
     const chatOtherFields = JSON.parse(chat.shippingcampaign.otherfields)

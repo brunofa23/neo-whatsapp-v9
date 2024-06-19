@@ -11,9 +11,8 @@ const fs = require('fs');
 
 
 export default class AgentsController {
-  public async index({ response }: HttpContextContract) {
-    //const authenticate = await auth.use('api').authenticate()
-
+  public async index({auth, response }: HttpContextContract) {
+    //await auth.use('api').authenticate()
 
     const dateStart = await DateFormat("yyyy-MM-dd 00:00:00", DateTime.local())
     const dateEnd = await DateFormat("yyyy-MM-dd 23:59:00", DateTime.local())
@@ -51,7 +50,9 @@ export default class AgentsController {
     }
 
   }
-  public async store({ request, response }: HttpContextContract) {
+
+  public async store({auth, request, response }: HttpContextContract) {
+    //await auth.use('api').authenticate()
     const body = request.only(Agent.fillable)
     body.interval_init_query = 1
     body.interval_final_query = 1
@@ -65,7 +66,9 @@ export default class AgentsController {
 
   }
 
-  public async update({ params, request, response }: HttpContextContract) {
+  public async update({auth, params, request, response }: HttpContextContract) {
+    //await auth.use('api').authenticate()
+    console.log("alterado....")
     const body = request.only(Agent.fillable)
     try {
       const data = await Agent.query().where('id', params.id)
@@ -76,7 +79,8 @@ export default class AgentsController {
     }
   }
 
-  public async connection({ params, request, response }: HttpContextContract) {
+  public async connection({auth, params, request, response }: HttpContextContract) {
+    //await auth.use('api').authenticate()
     try {
 
       const valuedatetime = DateTime.local().toFormat('yyyy-MM-dd HH:mm:ss')
@@ -134,7 +138,8 @@ export default class AgentsController {
     }
   }
 
-  public async destroy({ params, request, response }: HttpContextContract) {
+  public async destroy({auth, params, response }: HttpContextContract) {
+    //await auth.use('api').authenticate()
     console.log("passei no destroy....")
     const data = await Agent.query().where('id', params.id)
       .update({ deleted: true, active: null, status: null, number_phone: null, qrcode: null })

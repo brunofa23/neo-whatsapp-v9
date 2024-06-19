@@ -1,15 +1,10 @@
 import type { CorsConfig } from '@ioc:Adonis/Core/Cors'
 
 const corsConfig: CorsConfig = {
-
   enabled: true,
-
   origin: '*',
-
   methods: ['GET', 'HEAD', 'POST', 'PUT','PATCH', 'DELETE'],
-
   headers: true,
-
   exposeHeaders: [
     'cache-control',
     'content-language',
@@ -18,9 +13,7 @@ const corsConfig: CorsConfig = {
     'last-modified',
     'pragma',
   ],
-
   credentials: true,
-
   maxAge: 90,
 }
 

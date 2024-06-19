@@ -1,6 +1,7 @@
 
 import Application from '@ioc:Adonis/Core/Application'
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
+import Env from '@ioc:Adonis/Core/Env'
 
 const fs = require('fs-extra')
 const path = require('path')
@@ -15,10 +16,8 @@ export default class MidiasController {
 
 
   public async midiapath({ params}: HttpContextContract) {
-    //console.log("passei no midiapath", params)
     const fileName = params.filename
-    const baseUrl ='http://localhost:3334/api/midia'
-    //const baseUrl ='http://localhost:3334/api/Medias/Customchats'
+    const baseUrl =`${Env.get('APP_URL')}/api/midia`
     return {url: `${baseUrl}/${fileName}`}
   }
 

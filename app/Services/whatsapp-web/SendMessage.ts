@@ -2,9 +2,9 @@
 import ShippingcampaignsController from 'App/Controllers/Http/ShippingcampaignsController';
 import Agent from 'App/Models/Agent';
 import Chat from "App/Models/Chat"
-import Interaction from 'App/Models/Interaction';
+//import Interaction from 'App/Models/Interaction';
 //import Shippingcampaign from 'App/Models/Shippingcampaign';
-import ShippingcampaignsController from 'App/Controllers/Http/ShippingcampaignsController';
+//import ShippingcampaignsController from 'App/Controllers/Http/ShippingcampaignsController';
 import { verifyNumber } from 'App/Services/whatsapp-web/VerifyNumber';
 import { DateTime, VERSION } from 'luxon';
 import { Client } from "whatsapp-web.js"
@@ -125,7 +125,7 @@ async function sendMessages() {
           }
         }
         catch (error) {
-          console.log("ERRO 1555555:::", error)
+          console.log("ERRO 1500:::", error)
         }
       }
     }

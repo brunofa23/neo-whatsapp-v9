@@ -4,8 +4,9 @@ import Config from 'App/Models/Config'
 const { exec } = require('child_process')
 export default class ConfigsController {
 
-  public async index({ response }: HttpContextContract) {
-
+  public async index({ auth, response }: HttpContextContract) {
+    //await auth.use('api').authenticate()
+    console.log("passei pelo index")
     //const dateStart = await DateFormat("yyyy-MM-dd 00:00:00", DateTime.local())
     //const dateEnd = await DateFormat("yyyy-MM-dd 23:59:00", DateTime.local())
     try {
@@ -41,9 +42,11 @@ export default class ConfigsController {
 
 
   public async restartSystem({ auth, response }: HttpContextContract) {
-
     //const authenticate = await auth.use('api').authenticate()
-    console.log("Executando restart system....")
+
+    // if (!authenticate.superuser) {
+    //   return response.status(400).send("Não é superusuário")
+    // }
     try {
       exec('pm2 restart easytalk', (error, stdout, stderr) => {
         if (error) {
@@ -64,5 +67,25 @@ export default class ConfigsController {
       return error
     }
   }
+
+
+
+  // public async restartSystem() {
+  //   //await auth.use('api').authenticate()
+  //   console.log("passei pelo index")
+  //   return "OK"
+  //   //const dateStart = await DateFormat("yyyy-MM-dd 00:00:00", DateTime.local())
+  //   //const dateEnd = await DateFormat("yyyy-MM-dd 23:59:00", DateTime.local())
+  //   try {
+  //     const data = await Config.query()
+  //     return response.status(200).send(data)
+
+  //   } catch (error) {
+  //     return error
+  //   }
+
+  // }
+
+
 
 }

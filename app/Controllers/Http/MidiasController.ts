@@ -15,9 +15,10 @@ export default class MidiasController {
 
 
   public async midiapath({ params}: HttpContextContract) {
-    console.log("Index Midias path...")
+    //console.log("passei no midiapath", params)
     const fileName = params.filename
     const baseUrl ='http://localhost:3334/api/midia'
+    //const baseUrl ='http://localhost:3334/api/Medias/Customchats'
     return {url: `${baseUrl}/${fileName}`}
   }
 
@@ -36,7 +37,8 @@ export default class MidiasController {
       fs.writeFileSync(filePath, buffer);
       console.log("ARQUIVO SALVO COM SUCESSO")
 
-      return `Medias/${folder}/${fileNameFull}`
+      //return `Medias/${folder}/${fileNameFull}`
+      return `${fileNameFull}`
 
 
     } catch (error) {

@@ -4,7 +4,8 @@ import Chat from 'App/Models/Chat'
 export default class ChatsController {
 
 
-  public async index({ response }: HttpContextContract) {
+  public async index({auth, response }: HttpContextContract) {
+    //await auth.use('api').authenticate()
     try {
       const data = await Chat.query()
       return response.status(200).send(data)
@@ -13,7 +14,8 @@ export default class ChatsController {
     }
   }
 
-  public async show({ params, response }: HttpContextContract) {
+  public async show({auth, params, response }: HttpContextContract) {
+    //await auth.use('api').authenticate()
     try {
       const data = await Chat.query().where('id', params.id)
       return response.status(200).send(data)
@@ -23,7 +25,8 @@ export default class ChatsController {
   }
 
 
-  public async update({ params, request, response }: HttpContextContract) {
+  public async update({auth, params, request, response }: HttpContextContract) {
+    //await auth.use('api').authenticate()
     const body = request.only(Chat.fillable)
     try {
       const data = await Chat.query().where('id', params.id)

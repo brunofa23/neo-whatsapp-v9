@@ -27,10 +27,7 @@ export default class UsersController {
   }
 
   public async update({ params, request, response }: HttpContextContract) {
-
-    console.log('user update:', params.id)
     const body = request.only(User.fillable)
-
     try {
       const data = await User.query().where('id', params.id)
         .update(body)
@@ -72,7 +69,7 @@ export default class UsersController {
     })
 
     //return { token, user }
-    console.log("acessei o login...", token, user)
+    //console.log("acessei o login...", token, user)
     return response.status(200).send({ token, user })
 
   }

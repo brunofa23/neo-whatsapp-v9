@@ -19,7 +19,6 @@ async function destroyFullAgents() {
 }
 
 async function connectionAll() {
-
   try {
     console.log("connection all acionado...")
     await Agent.query().update({ statusconnected: false, qrcode: null })
@@ -45,6 +44,7 @@ async function connectionAll() {
 }
 
 async function sendRepeatedMessage() {
+
   //console.log("EXECUTANDO BUSCA SMART")
   const executingSendMessage = await Config.find('executingSendMessage')
   setInterval(async () => {
@@ -60,16 +60,12 @@ async function sendRepeatedMessage() {
       }
     }
   }, await GenerateRandomTime(300, 400, '****Send Message Repeated'))
-  
+
 
 }
 async function resetStatusConnected() {
   await Agent.query().update({ status: null, statusconnected: false })
 }
-
-
-
-
 
 module.exports = { connectionAll, sendRepeatedMessage, resetStatusConnected, destroyFullAgents }
 

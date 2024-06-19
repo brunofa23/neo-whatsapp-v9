@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const Application_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Application"));
+const Env_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Env"));
 const fs = require('fs-extra');
 const path = require('path');
 class MidiasController {
@@ -14,7 +15,7 @@ class MidiasController {
     }
     async midiapath({ params }) {
         const fileName = params.filename;
-        const baseUrl = 'http://localhost:3334/api/midia';
+        const baseUrl = `${Env_1.default.get('APP_URL')}/api/midia`;
         return { url: `${baseUrl}/${fileName}` };
     }
     async storeMedia(media, fileName, folder) {

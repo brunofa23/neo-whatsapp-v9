@@ -78,6 +78,11 @@ colocar dentro Constants.js da pasta util em node_modules -> whattsapp
         remotePath:"https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html",
       },
 
+webVersionCache: {
+      type: 'remote',
+        remotePath:"https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2413.51-beta.html",
+      },
+
 # Nome do servidor PM2 na web
 PM2 start server.js --name easytalk
 

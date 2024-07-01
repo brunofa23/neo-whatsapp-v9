@@ -69,19 +69,14 @@ mysqldump(connectionOptions, dumpOptions)
   # ###########################################################################
 
 colocar dentro Constants.js da pasta util em node_modules -> whattsapp
- webVersion: '2.2346.52',
-    // webVersionCache: {
-    //     type: 'local',
-    // },
-    webVersionCache: {
-      type: 'remote',
-        remotePath:"https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html",
-      },
+ 
+https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2413.51-beta.html
+https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html
+https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2403.2.html
+https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2410.1.html
+https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2409.0.html
+https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2402.5-beta.html
 
-webVersionCache: {
-      type: 'remote',
-        remotePath:"https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2413.51-beta.html",
-      },
 
 # Nome do servidor PM2 na web
 PM2 start server.js --name easytalk

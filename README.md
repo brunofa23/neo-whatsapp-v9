@@ -34,6 +34,9 @@ NO PACKAGE.JSON
 trocar: "whatsapp-web.js": "^1.23.0"
 "whatsapp-web.js": "https://github.com/Julzk/whatsapp-web.js/tarball/jkr_hotfix_8"
 
+Ou tente esse 
+"whatsapp-web.js": "github:pedroslopez/whatsapp-web.js#webpack-exodus"
+
 ## DATAS
 const yesterday = DateTime.local().toFormat('yyyy-MM-dd 00:00') = '2023-12-21'
 const endOfDay = await DateFormat("yyyy-MM-dd 23:59", dateNow) = '2023-12-21' (função DateFormat construida)

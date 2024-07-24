@@ -85,3 +85,4 @@ https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2402.5-
 PM2 start server.js --name easytalk
 nome do docker: easytalk
 
+.

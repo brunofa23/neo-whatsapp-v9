@@ -12,8 +12,6 @@ const fs = require('fs');
 
 export default class AgentsController {
   public async index({auth, response }: HttpContextContract) {
-    //await auth.use('api').authenticate()
-
     const dateStart = await DateFormat("yyyy-MM-dd 00:00:00", DateTime.local())
     const dateEnd = await DateFormat("yyyy-MM-dd 23:59:00", DateTime.local())
     try {
@@ -40,6 +38,8 @@ export default class AgentsController {
           active: agent.active,
           default_chat: agent.default_chat,
           qrcode: agent.qrcode,
+          company_id: agent.company_id,
+          obs:agent.obs,
           totMessage: totMessage?.$extras.totMessage
         })
       }
@@ -50,6 +50,8 @@ export default class AgentsController {
     }
 
   }
+
+
 
   public async store({auth, request, response }: HttpContextContract) {
     //await auth.use('api').authenticate()
@@ -82,10 +84,8 @@ export default class AgentsController {
   public async connection({auth, params, request, response }: HttpContextContract) {
     //await auth.use('api').authenticate()
     try {
-
       const valuedatetime = DateTime.local().toFormat('yyyy-MM-dd HH:mm:ss')
       await Config.query().where('id', 'statusSendMessage').update({ valuedatetime: valuedatetime })
-
       await Agent.query()
         .where('id', params.id)
         .andWhereNull('deleted')

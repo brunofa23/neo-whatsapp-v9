@@ -27,8 +27,6 @@ export default async (client: Client, message: Message, chat: Chat) => {
         console.log("Erro 454:", error)
       }
       //Salvar no Smart e marcar presença
-      //const datasourcesController = new DatasourcesController
-      //await datasourcesController.confirmSchedule(chat, chatOtherFields)
     } else
       //CANCELAR AGENDAMENTO
       if (await NegativeResponse(message.body)) {

@@ -1,14 +1,9 @@
-//import { typeServerConfig } from '@ioc:Adonis/Core/Server';
 import ShippingcampaignsController from 'App/Controllers/Http/ShippingcampaignsController';
 import Agent from 'App/Models/Agent';
 import Chat from "App/Models/Chat"
-//import Interaction from 'App/Models/Interaction';
-//import Shippingcampaign from 'App/Models/Shippingcampaign';
-//import ShippingcampaignsController from 'App/Controllers/Http/ShippingcampaignsController';
 import { verifyNumber } from 'App/Services/whatsapp-web/VerifyNumber';
 import { DateTime, VERSION } from 'luxon';
 import { Client } from "whatsapp-web.js"
-
 import { DateFormat, ExecutingSendMessage, GenerateRandomTime, TimeSchedule } from './util'
 
 global.contSend = 0
@@ -57,6 +52,7 @@ async function sendMessages() {
     const totMessageSend = await countLimitSendMessage()
     const maxLimitSendAgent = await maxLimitSendMessageAgent(agent.id)
     const shippingCampaign = await shippingcampaignsController.patientToSend(agent)
+    console.log("PASSO 1>>>>", shippingCampaign)
 
     let verifyChat
     let verifycontsend

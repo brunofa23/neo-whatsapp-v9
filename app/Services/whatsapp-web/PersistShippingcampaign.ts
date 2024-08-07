@@ -21,7 +21,7 @@ export default async () => {
   }
   for (const data of dataSourceList) {
     try {
-      const yesterday = moment().subtract(1, 'day').format('YYYY-MM-DD');
+
       const shipping = new Shippingcampaign()
       shipping.interaction_id = data.interaction_id
       shipping.interaction_seq = data.interaction_seq
@@ -41,15 +41,15 @@ export default async () => {
       shipping.covenant = ''
       shipping.dateservice = data.dateservice
 
-
+      const yesterday = moment().subtract(10, 'day').format('YYYY-MM-DD');
       const verifyExist = await Shippingcampaign.query()
         .where('reg', '=', data.reg)
+        .andWhere('idexternal', data.idexternal)
         .andWhere('created_at', '>=', yesterday)
         .andWhere('interaction_id', '=', data.interaction_id)
         .first()
 
       if (!verifyExist) {
-        //console.log("Adicionado>>>", shipping)
         await Shippingcampaign.create(shipping)
       }
 

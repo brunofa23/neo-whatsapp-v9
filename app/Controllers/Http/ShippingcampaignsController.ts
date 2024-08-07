@@ -579,25 +579,23 @@ export default class ShippingcampaignsController {
   //       }).orderBy('prioritysend',"desc").first()
   // }
 
-  public async patientToSend(agent:Agent) {
-
-    console.log('COMPANY ID>>>>', agent.company_id)
+  public async patientToSend(agent: Agent) {
+    const agentCompany = await Agent.query().where('id', agent.id).first()
     const yesterday = DateTime.local().toFormat('yyyy-MM-dd 00:00')
     const query = Shippingcampaign.query()
-    .whereNull('phonevalid')
-    .andWhere('messagesent', 0)
-    .andWhere('created_at', '>', yesterday)
+      .whereNull('phonevalid')
+      .andWhere('messagesent', 0)
+      .andWhere('created_at', '>', yesterday)
 
-     if(agent?.company_id)
-       query.andWhere('company_id', agent.company_id)
-      else query.whereNull('company_id')
+    if (agentCompany?.company_id) {
+      query.andWhere('company_id', agentCompany?.company_id)
+    }
+    else query.whereNull('company_id')
 
     query.whereNotExists((subquery) => {
       subquery.select('*').from('chats').whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id');
     }).orderBy('prioritysend', "desc")
 
-
-    console.log('QUERY>>>>', query.toQuery())
     const shippingCampaign = await query.first()
     return shippingCampaign
 

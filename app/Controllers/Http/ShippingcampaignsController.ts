@@ -16,7 +16,7 @@ export default class ShippingcampaignsController {
   }
 
 
-  public async index({auth, response }) {
+  public async index({ auth, response }) {
     //await auth.use('api').authenticate()
     try {
       const shippingCampaign = await Shippingcampaign.all()
@@ -28,7 +28,7 @@ export default class ShippingcampaignsController {
   }
 
 
-  public async store({auth, request, response }: HttpContextContract) {
+  public async store({ auth, request, response }: HttpContextContract) {
     //await auth.use('api').authenticate()
     const body = request.only(Shippingcampaign.fillable)
     response.send(body)
@@ -79,7 +79,7 @@ export default class ShippingcampaignsController {
   }
 
 
-  public async resend({ auth,  params, response }: HttpContextContract) {
+  public async resend({ auth, params, response }: HttpContextContract) {
     //await auth.use('api').authenticate()
     const data = await Shippingcampaign.query().where('id', params.id).update({ 'excluded': true })
     const message = await Shippingcampaign.find(params.id)
@@ -434,15 +434,15 @@ export default class ShippingcampaignsController {
       let totalPromoters = 0
 
       for (const result of resultAcumulated) {
-           totalEvaluations = totalEvaluations + result.total
-          if (result.note <= 6)
-             totalDetractors = totalDetractors + result.total
-          if (result.note >= 9 && result.note <= 10)
-             totalPromoters = totalPromoters + result.total
-        }
+        totalEvaluations = totalEvaluations + result.total
+        if (result.note <= 6)
+          totalDetractors = totalDetractors + result.total
+        if (result.note >= 9 && result.note <= 10)
+          totalPromoters = totalPromoters + result.total
+      }
       //calcula o percentual do NPS
       const nps = ((totalPromoters * 100) / totalEvaluations) - ((totalDetractors * 100) / totalEvaluations)
-      const npsResult =nps<0?0:nps
+      const npsResult = nps < 0 ? 0 : nps
       //UNIDADES****************************************************************** */
       const unitResult = await Database
         .from('chats')
@@ -566,19 +566,37 @@ export default class ShippingcampaignsController {
 
   }
 
-  public async patientToSend(agent:Agent){
-    console.log("companyid:", agent)
+  // public async patientToSend(agent:Agent){
+  //   console.log("companyid:", agent)
+
+  //   const yesterday = DateTime.local().toFormat('yyyy-MM-dd 00:00')
+  //   return await Shippingcampaign.query()
+  //       .whereNull('phonevalid')
+  //       .andWhere('messagesent', 0)
+  //       .andWhere('created_at', '>', yesterday) // Certifique-se de usar a data correta aqui
+  //       .whereNotExists((query) => {
+  //         query.select('*').from('chats').whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id');
+  //       }).orderBy('prioritysend',"desc").first()
+  // }
+
+  public async patientToSend(agent: Agent) {
+    //console.log("companyid:", agent)
 
     const yesterday = DateTime.local().toFormat('yyyy-MM-dd 00:00')
-    return await Shippingcampaign.query()
-        .whereNull('phonevalid')
-        .andWhere('messagesent', 0)
-        .andWhere('created_at', '>', yesterday) // Certifique-se de usar a data correta aqui
-        .whereNotExists((query) => {
-          query.select('*').from('chats').whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id');
-        }).orderBy('prioritysend',"desc").first()
-  }
+    const query = Shippingcampaign.query()
+    .whereNull('phonevalid')
+    .andWhere('messagesent', 0)
+    .andWhere('created_at', '>=', yesterday) // Certifique-se de usar a data correta aqui
+    .whereNotExists((query) => {
+      query.select('*').from('chats').whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id');
+    }).orderBy('prioritysend', "desc")
 
+    console.log("QUERY>>>>>>>>", query.toQuery())
+    const shippingCampaign = await query.first()
+    return shippingCampaign
+
+
+  }
 
 
 }

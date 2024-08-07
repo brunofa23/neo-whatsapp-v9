@@ -33,7 +33,8 @@ export default class Shippingcampaign extends BaseModel {
       'covenant',
       'dateservice',
       'prioritysend',
-      'excluded'
+      'excluded',
+      'company_id'
     ]
   }
 
@@ -100,6 +101,9 @@ export default class Shippingcampaign extends BaseModel {
 
   @column()
   public excluded: boolean
+
+  @column()
+  public company_id:number
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime

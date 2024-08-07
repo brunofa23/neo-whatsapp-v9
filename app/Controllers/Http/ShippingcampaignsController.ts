@@ -566,7 +566,9 @@ export default class ShippingcampaignsController {
 
   }
 
-  public async patientToSend(){
+  public async patientToSend(agent:Agent){
+    console.log("companyid:", agent)
+
     const yesterday = DateTime.local().toFormat('yyyy-MM-dd 00:00')
     return await Shippingcampaign.query()
         .whereNull('phonevalid')

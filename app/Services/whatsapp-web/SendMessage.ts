@@ -56,7 +56,8 @@ export default async (client: Client, agent: Agent) => {
 async function sendMessages() {
     const totMessageSend = await countLimitSendMessage()
     const maxLimitSendAgent = await maxLimitSendMessageAgent(agent.id)
-    const shippingCampaign = await shippingcampaignsController.patientToSend()
+    const shippingCampaign = await shippingcampaignsController.patientToSend(agent)
+
     let verifyChat
     let verifycontsend
 

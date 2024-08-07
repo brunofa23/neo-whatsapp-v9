@@ -27,6 +27,8 @@ export default class Agent extends BaseModel {
       'statusconnected',
       'default_chat',
       'deleted',
+      'company_id',
+      'obs',
       'createdAt',
       'updatedAt',
     ]
@@ -75,6 +77,12 @@ export default class Agent extends BaseModel {
 
   @column()
   public deleted: boolean
+
+  @column()
+  public company_id:number
+
+  @column()
+  public obs:string
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime

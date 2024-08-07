@@ -26,6 +26,7 @@ async function getStatusSendMessage() {
 
 
 async function startAgent(_agent: Agent) {
+  console.log("whatsappConnections.....")
   const agent = await Agent.findOrFail(_agent.id)
   if (!_agent) {
     console.log("CHATNAME INVÁLIDO - Verifique o .env Chatname está igual ao name tabela Agents")
@@ -57,8 +58,10 @@ async function startAgent(_agent: Agent) {
   client.on('loading_screen', (percent, message) => {
     console.log(`LOADING SCREEN: ${_agent.name}`, percent, message);
     agent.status = `Carregando: ${_agent.name} - ${percent} - ${message}`
-    agent.save()
+    //agent.save()
   });
+
+
   client.on('qr', async (qr) => {
     agent.status = "Qrcode require"
     agent.statusconnected = false
@@ -76,7 +79,7 @@ async function startAgent(_agent: Agent) {
     qrcodeTerminal.generate(qr, { small: true });
   });
 
-  client.on('authenticated', async () => {
+  await client.on('authenticated', async () => {
     console.log(`AUTHENTICATED ${agent.name}`);
     agent.status = 'Authentication'
     agent.save()

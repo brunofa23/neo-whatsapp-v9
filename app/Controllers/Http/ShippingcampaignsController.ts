@@ -581,17 +581,15 @@ export default class ShippingcampaignsController {
 
   public async patientToSend(agent: Agent) {
     //console.log("companyid:", agent)
-
     const yesterday = DateTime.local().toFormat('yyyy-MM-dd 00:00')
     const query = Shippingcampaign.query()
     .whereNull('phonevalid')
     .andWhere('messagesent', 0)
-    .andWhere('created_at', '>=', yesterday) // Certifique-se de usar a data correta aqui
+    .andWhere('created_at', '>', yesterday) // Certifique-se de usar a data correta aqui
     .whereNotExists((query) => {
       query.select('*').from('chats').whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id');
     }).orderBy('prioritysend', "desc")
 
-    console.log("QUERY>>>>>>>>", query.toQuery())
     const shippingCampaign = await query.first()
     return shippingCampaign
 

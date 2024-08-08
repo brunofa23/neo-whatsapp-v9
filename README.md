@@ -86,3 +86,5 @@ PM2 start server.js --name easytalk
 nome do docker: easytalk
 
 .
+# EXECUTAR SEED
+node ace db:seed -i

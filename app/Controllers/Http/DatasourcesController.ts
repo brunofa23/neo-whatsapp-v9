@@ -1,15 +1,13 @@
 import { Env } from '@ioc:Adonis/Core/Env';
-// import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Database from '@ioc:Adonis/Lucid/Database'
 import Chat from 'App/Models/Chat';
 import Interaction from 'App/Models/Interaction';
-import Shippingcampaign from 'App/Models/Shippingcampaign';
+import Response from 'App/Models/Response';
 import { DateTime, DatetTime } from 'luxon';
 import moment from 'moment';
-
 import { cancelSchedule, session } from '../../Services/requestExternal/request'
 import { DateFormat, InvalidResponse } from '../../Services/whatsapp-web/util'
-
+import ResponsesController from './ResponsesController';
 export default class DatasourcesController {
 
 
@@ -44,14 +42,13 @@ export default class DatasourcesController {
   async scheduledPatients() {
 
     async function greeting(message: String) {
-      const greeting = ['Olá!😀', 'Oi tudo bem?😀', 'Saudações!😀', 'Oi como vai?😀']
-      const presentation = ['Eu me chamo Iris', 'Eu sou a Iris', 'Aqui é a Iris']
+      const responseList = new ResponsesController()
+      const greeting = await responseList.index({local:'greeting'}) //['Olá!😀', 'Oi tudo bem?😀', 'Saudações!😀', 'Oi como vai?😀']
+      const presentation = await responseList.index({local:'presentation'})//['Eu me chamo Iris', 'Eu sou a Iris', 'Aqui é a Iris']
       return message.replace('{greeting}', greeting[Math.floor(Math.random() * greeting.length)]).replace('{presentation}', presentation[Math.floor(Math.random() * presentation.length)])
     }
-    //const pacQueryModel = await Interaction.find(1)
     const pacQueryModel = await Interaction.query().where('id', 1).first()
     //console.log("PACQUERY>>>>>", pacQueryModel?.query)
-
     const env = process.env.NODE_ENV
     let pacQuery
     if (env === 'development') {

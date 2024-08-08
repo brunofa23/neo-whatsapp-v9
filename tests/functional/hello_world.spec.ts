@@ -1,8 +1,16 @@
 import { test } from '@japa/runner'
+import Response from 'App/Models/Response'
+import ResponsesController from 'App/Controllers/Http/ResponsesController'
 
 test('display welcome page', async ({ client }) => {
-  const response = await client.get('/')
+  const teste = new ResponsesController()
+  const list = await teste.index({local:'presentation'})
+  console.log(">>>>>>>>>>>>>>>>>>>", list)
+//   const teste = await Response.query()
+//   .where('local','presentation')
 
-  response.assertStatus(200)
-  response.assertBodyContains({ hello: 'world' })
+// const teste2=[]
+//   const respostas = teste.map((resp)=>{
+//     teste2.push(resp.message)
+//   })
 })

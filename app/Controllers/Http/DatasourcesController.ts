@@ -87,8 +87,8 @@ export default class DatasourcesController {
         .whereNotIn('agm_confirm_stat', ['C'])
         .update({
           AGM_CONFIRM_STAT: 'C',
-          AGM_CONFIRM_OBS: `NEO CONFIRMA by CONFIRMA ou CANCELA - WhatsApp em ${dateNow}`,
-          AGM_CONFIRM_USR: 'NEOCONFIRM'
+          AGM_CONFIRM_OBS: `CONFIRMA by CONFIRMA ou CANCELA - WhatsApp em ${dateNow}`,
+          AGM_CONFIRM_USR: process.env.SERVER_API_USER
         })
       await Database.manager.close('mssql')
       //console.log("QUERY CONFIRMAÇÃO", query)
@@ -111,6 +111,7 @@ export default class DatasourcesController {
       .andWhere('externalstatus', 'A')
       .andWhere('absoluteresp', 1)
       .andWhere('interaction_id', 1)
+
     try {
       for (const chat of returnChats) {
         const momentDate = moment(chat.shippingcampaign.dateshedule)
@@ -125,7 +126,7 @@ export default class DatasourcesController {
           .update({
             AGM_CONFIRM_STAT: 'C',
             AGM_CONFIRM_OBS: `NEO CONFIRMA by CONFIRMA ou CANCELA - WhatsApp em ${dateNow}`,
-            AGM_CONFIRM_USR: 'NEOCONFIRM'
+            AGM_CONFIRM_USR: 'DIGI3'
           })
 
         if (query > 0) {

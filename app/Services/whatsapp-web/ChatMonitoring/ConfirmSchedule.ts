@@ -18,7 +18,7 @@ export default async (client: Client, message: Message, chat: Chat) => {
     if (await PositiveResponse(message.body)) {//presença confirmada
       await stateTyping(message)//status de digitando...
       try {
-        client.sendMessage(message.from, `Muito obrigada 😀, seu agendamento foi confirmado, o endereço da sua consulta é ${chatOtherFields.address}. Esperamos por você. Ótimo dia. Lembrando que para qualquer dúvida, estamos disponíveis pelo whatsapp 3132350003.`)
+        client.sendMessage(message.from, `Muito obrigada 😀, seu agendamento foi confirmado, o endereço da sua consulta é ${chatOtherFields.address}. Esperamos por você. Ótimo dia. Lembrando que para qualquer dúvida, estamos disponíveis pelo whatsapp ${chat.shippingcampaign.phone_unit}.`)
         chat.response = message.body.slice(0, 500)
         chat.returned = true
         chat.absoluteresp = 1
@@ -51,10 +51,9 @@ export default async (client: Client, message: Message, chat: Chat) => {
         const message2 = `Entendi 😉, sabemos que nosso dia está muito atarefado! Sua consulta foi desmarcada, se deseja reagendar, clique no link que estou enviando para conversar com uma de nossas atendentes e podermos agendar novo horário mais conveniente para você.`
         client.sendMessage(message.from, message2)
 
-        const messageLink = `Olá, sou ${chat.name} e gostaria de reagendar uma consulta com ${chatOtherFields.medic}.`
-        const phoneNumber = "553132350003"
+        const messageLink = `Olá, sou ${chat.name} e gostara de reagendar uma consulta com ${chatOtherFields.medic}.`
         const encodedMessage = encodeURIComponent(messageLink);
-        const linkRedirect = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodedMessage}`;
+        const linkRedirect = `https://api.whatsapp.com/send?phone=${chat.shippingcampaign.phone_unit}&text=${encodedMessage}`;
         client.sendMessage(message.from, linkRedirect)
 
         const chat2 = new Chat()

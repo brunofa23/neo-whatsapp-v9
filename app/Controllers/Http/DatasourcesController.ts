@@ -125,8 +125,8 @@ export default class DatasourcesController {
           .whereNotIn('agm_confirm_stat', ['C'])
           .update({
             AGM_CONFIRM_STAT: 'C',
-            AGM_CONFIRM_OBS: `NEO CONFIRMA by CONFIRMA ou CANCELA - WhatsApp em ${dateNow}`,
-            AGM_CONFIRM_USR: 'DIGI3'
+            AGM_CONFIRM_OBS: `DIGI3: CONFIRMA ou CANCELA - WhatsApp em ${dateNow}`,
+            AGM_CONFIRM_USR: process.env.SERVER_API_USER
           })
 
         if (query > 0) {

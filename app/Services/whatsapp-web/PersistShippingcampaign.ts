@@ -42,6 +42,8 @@ export default async () => {
       shipping.covenant = ''
       shipping.dateservice = data.dateservice
       shipping.company_id = data.company_id
+      shipping.phone_unit = data.phone_unit
+
 
       const yesterday = moment().subtract(10, 'day').format('YYYY-MM-DD');
       const verifyExist = await Shippingcampaign.query()

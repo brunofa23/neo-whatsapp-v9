@@ -6,6 +6,7 @@ import { Client, Message } from 'whatsapp-web.js';
 export default async (client: Client, message: Message, chat: Chat) => {
 
   //PERGUNTA 1 - GOSTARIA DE AGENDAR A CONSULTA
+  console.log(">>>>>>>CONFIRMAR AGENDA...", chat)
   if (message.hasMedia) {
     await stateTyping(message)
     client.sendMessage(message.from, 'Por favor não envie áudio, imagens ou vídeos, apenas digite \n*1* para Confirmar o agendamento. \n*2* para Reagendamento ou Cancelamento.')
@@ -22,6 +23,8 @@ export default async (client: Client, message: Message, chat: Chat) => {
         chat.returned = true
         chat.absoluteresp = 1
         chat.externalstatus = 'A'
+        chat.company_id = chat.shippingcampaign.company_id
+
         await chat.save()
       } catch (error) {
         console.log("Erro 454:", error)
@@ -33,6 +36,7 @@ export default async (client: Client, message: Message, chat: Chat) => {
         chat.response = message.body
         chat.absoluteresp = 2
         chat.externalstatus = 'A'
+        chat.company_id = chat.shippingcampaign.company_id
 
         try {
           await chat.save()
@@ -65,6 +69,8 @@ export default async (client: Client, message: Message, chat: Chat) => {
         chat2.message = message2.slice(0, 348)
         chat2.response = "Reagendada"
         chat2.returned = true
+        chat2.company_id = chat.shippingcampaign.company_id
+
         try {
           Chat.create(chat2)
         } catch (error) {

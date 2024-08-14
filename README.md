@@ -88,3 +88,13 @@ nome do docker: easytalk
 .
 # EXECUTAR SEED
 node ace db:seed -i
+
+
+# CÓDIGO BATH
+@echo off
+:: Navegar para o diretório do projeto
+cd c:\EasyTalk\neo-whatsapp-v9\build
+pm2 start server.js --name easytalk
+pm2 monit
+
+

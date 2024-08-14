@@ -1,14 +1,9 @@
-//import { typeServerConfig } from '@ioc:Adonis/Core/Server';
 import ShippingcampaignsController from 'App/Controllers/Http/ShippingcampaignsController';
 import Agent from 'App/Models/Agent';
 import Chat from "App/Models/Chat"
-//import Interaction from 'App/Models/Interaction';
-//import Shippingcampaign from 'App/Models/Shippingcampaign';
-//import ShippingcampaignsController from 'App/Controllers/Http/ShippingcampaignsController';
 import { verifyNumber } from 'App/Services/whatsapp-web/VerifyNumber';
 import { DateTime, VERSION } from 'luxon';
 import { Client } from "whatsapp-web.js"
-
 import { DateFormat, ExecutingSendMessage, GenerateRandomTime, TimeSchedule } from './util'
 
 global.contSend = 0
@@ -20,13 +15,19 @@ const shippingcampaignsController = new ShippingcampaignsController()
 
 export default async (client: Client, agent: Agent) => {
 
-  async function verifyClientSend(client, cellphone){
-    return await Chat.query()
-       .where('cellphone', cellphone)
-       .andWhere('created_at', '>', dayBefore5)
-       .andWhere('chatnumber', client.info.wid.user).first()
-
+  async function verifyClientSend(client, cellphone) {
+    if (client?.info?.wid) {
+      return await Chat.query()
+        .where('cellphone', cellphone)
+        .andWhere('created_at', '>', dayBefore5)
+        .andWhere('chatnumber', client.info.wid.user).first()
+    }
+    else {
+      console.log("cliente não conectado")
+      return
+    }
   }
+
   async function verifyContSend() {
     if (global.contSend >= 3) {
       if (resetContSendBool == false) {
@@ -52,15 +53,15 @@ export default async (client: Client, agent: Agent) => {
     return agentMaxLimitSend?.max_limit_message
   }
 
-//********************************************************************* */
-async function sendMessages() {
+  //********************************************************************* */
+  async function sendMessages() {
     const totMessageSend = await countLimitSendMessage()
     const maxLimitSendAgent = await maxLimitSendMessageAgent(agent.id)
-    const shippingCampaign = await shippingcampaignsController.patientToSend()
+    const shippingCampaign = await shippingcampaignsController.patientToSend(agent)
     let verifyChat
     let verifycontsend
 
-    if (totMessageSend >= maxLimitSendAgent && (shippingCampaign?.prioritysend==null || shippingCampaign?.prioritysend==undefined)) {
+    if (totMessageSend >= maxLimitSendAgent && (shippingCampaign?.prioritysend == null || shippingCampaign?.prioritysend == undefined)) {
       console.log(`LIMITE DIÁRIO ATINGIDO, Agent: ${agent.name} Enviados:${totMessageSend} - Limite Máximo:${maxLimitSendAgent}`)
       return
     }
@@ -75,10 +76,10 @@ async function sendMessages() {
           global.contSend = 0
         try {
           //verificar o numero
-          if(!shippingCampaign.prioritysend)
+          if (!shippingCampaign.prioritysend)
             verifycontsend = await verifyClientSend(client, shippingCampaign?.cellphone)
-          if(verifycontsend)
-              return
+          if (verifycontsend)
+            return
           const validationCellPhone = await verifyNumber(client, shippingCampaign?.cellphone)
           if (validationCellPhone) {
             verifyChat = await Chat.query()

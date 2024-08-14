@@ -15,6 +15,7 @@ function isIterable(obj) {
 export default async () => {
   const dataSource = new DatasourcesController
   const dataSourceList = await dataSource.DataSource()
+  //console.log("datasource LISR::", dataSourceList)
   if (!isIterable(dataSourceList)) {
     console.log("Algum erro ocorrido, não é iterable", dataSourceList)
     return
@@ -40,6 +41,9 @@ export default async () => {
       shipping.attendant = String(data.attendant).trim()
       shipping.covenant = ''
       shipping.dateservice = data.dateservice
+      shipping.company_id = data.company_id
+      shipping.phone_unit = data.phone_unit
+
 
       const yesterday = moment().subtract(10, 'day').format('YYYY-MM-DD');
       const verifyExist = await Shippingcampaign.query()

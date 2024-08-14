@@ -16,11 +16,12 @@ exports.default = async (client, message, chat) => {
         if (await (0, util_1.PositiveResponse)(message.body)) {
             await (0, util_1.stateTyping)(message);
             try {
-                client.sendMessage(message.from, `Muito obrigada 😀, seu agendamento foi confirmado, o endereço da sua consulta é ${chatOtherFields.address}. Esperamos por você. Ótimo dia. Lembrando que para qualquer dúvida, estamos disponíveis pelo whatsapp 3132350003.`);
+                client.sendMessage(message.from, `Muito obrigada 😀, seu agendamento foi confirmado, o endereço da sua consulta é ${chatOtherFields.address}. Esperamos por você. Ótimo dia. Lembrando que para qualquer dúvida, estamos disponíveis pelo whatsapp ${chat.shippingcampaign.phone_unit}.`);
                 chat.response = message.body.slice(0, 500);
                 chat.returned = true;
                 chat.absoluteresp = 1;
                 chat.externalstatus = 'A';
+                chat.company_id = chat.shippingcampaign.company_id;
                 await chat.save();
             }
             catch (error) {
@@ -31,6 +32,7 @@ exports.default = async (client, message, chat) => {
             chat.response = message.body;
             chat.absoluteresp = 2;
             chat.externalstatus = 'A';
+            chat.company_id = chat.shippingcampaign.company_id;
             try {
                 await chat.save();
             }
@@ -41,9 +43,8 @@ exports.default = async (client, message, chat) => {
             const message2 = `Entendi 😉, sabemos que nosso dia está muito atarefado! Sua consulta foi desmarcada, se deseja reagendar, clique no link que estou enviando para conversar com uma de nossas atendentes e podermos agendar novo horário mais conveniente para você.`;
             client.sendMessage(message.from, message2);
             const messageLink = `Olá, sou ${chat.name} e gostaria de reagendar uma consulta com ${chatOtherFields.medic}.`;
-            const phoneNumber = "553132350003";
             const encodedMessage = encodeURIComponent(messageLink);
-            const linkRedirect = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodedMessage}`;
+            const linkRedirect = `https://api.whatsapp.com/send?phone=${chat.shippingcampaign.phone_unit}&text=${encodedMessage}`;
             client.sendMessage(message.from, linkRedirect);
             const chat2 = new Chat_1.default();
             chat2.interaction_id = chat.interaction_id;
@@ -57,6 +58,7 @@ exports.default = async (client, message, chat) => {
             chat2.message = message2.slice(0, 348);
             chat2.response = "Reagendada";
             chat2.returned = true;
+            chat2.company_id = chat.shippingcampaign.company_id;
             try {
                 Chat_1.default.create(chat2);
             }

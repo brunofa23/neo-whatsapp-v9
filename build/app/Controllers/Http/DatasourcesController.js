@@ -10,6 +10,7 @@ const luxon_1 = require("luxon");
 const moment_1 = __importDefault(require("moment"));
 const request_1 = require("../../Services/requestExternal/request");
 const util_1 = require("../../Services/whatsapp-web/util");
+const ResponsesController_1 = __importDefault(require("./ResponsesController"));
 class DatasourcesController {
     async DataSource() {
         const interactionList = await Interaction_1.default.query().where('status', '=', 1);
@@ -38,8 +39,9 @@ class DatasourcesController {
     }
     async scheduledPatients() {
         async function greeting(message) {
-            const greeting = ['Olá!😀', 'Oi tudo bem?😀', 'Saudações!😀', 'Oi como vai?😀'];
-            const presentation = ['Eu me chamo Iris', 'Eu sou a Iris', 'Aqui é a Iris'];
+            const responseList = new ResponsesController_1.default();
+            const greeting = await responseList.index({ local: 'greeting' });
+            const presentation = await responseList.index({ local: 'presentation' });
             return message.replace('{greeting}', greeting[Math.floor(Math.random() * greeting.length)]).replace('{presentation}', presentation[Math.floor(Math.random() * presentation.length)]);
         }
         const pacQueryModel = await Interaction_1.default.query().where('id', 1).first();
@@ -78,8 +80,8 @@ class DatasourcesController {
                 .whereNotIn('agm_confirm_stat', ['C'])
                 .update({
                 AGM_CONFIRM_STAT: 'C',
-                AGM_CONFIRM_OBS: `NEO CONFIRMA by CONFIRMA ou CANCELA - WhatsApp em ${dateNow}`,
-                AGM_CONFIRM_USR: 'NEOCONFIRM'
+                AGM_CONFIRM_OBS: `CONFIRMA by CONFIRMA ou CANCELA - WhatsApp em ${dateNow}`,
+                AGM_CONFIRM_USR: process.env.SERVER_API_USER
             });
             await Database_1.default.manager.close('mssql');
             return query;
@@ -112,8 +114,8 @@ class DatasourcesController {
                     .whereNotIn('agm_confirm_stat', ['C'])
                     .update({
                     AGM_CONFIRM_STAT: 'C',
-                    AGM_CONFIRM_OBS: `NEO CONFIRMA by CONFIRMA ou CANCELA - WhatsApp em ${dateNow}`,
-                    AGM_CONFIRM_USR: 'NEOCONFIRM'
+                    AGM_CONFIRM_OBS: `DIGI3: CONFIRMA ou CANCELA - WhatsApp em ${dateNow}`,
+                    AGM_CONFIRM_USR: process.env.SERVER_API_USER
                 });
                 if (query > 0) {
                     console.log("update realizado sucesso");

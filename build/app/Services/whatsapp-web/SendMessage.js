@@ -16,10 +16,16 @@ let resetContSendBool = false;
 const shippingcampaignsController = new ShippingcampaignsController_1.default();
 exports.default = async (client, agent) => {
     async function verifyClientSend(client, cellphone) {
-        return await Chat_1.default.query()
-            .where('cellphone', cellphone)
-            .andWhere('created_at', '>', dayBefore5)
-            .andWhere('chatnumber', client.info.wid.user).first();
+        if (client?.info?.wid) {
+            return await Chat_1.default.query()
+                .where('cellphone', cellphone)
+                .andWhere('created_at', '>', dayBefore5)
+                .andWhere('chatnumber', client.info.wid.user).first();
+        }
+        else {
+            console.log("cliente não conectado");
+            return;
+        }
     }
     async function verifyContSend() {
         if (global.contSend >= 3) {
@@ -46,7 +52,7 @@ exports.default = async (client, agent) => {
     async function sendMessages() {
         const totMessageSend = await countLimitSendMessage();
         const maxLimitSendAgent = await maxLimitSendMessageAgent(agent.id);
-        const shippingCampaign = await shippingcampaignsController.patientToSend();
+        const shippingCampaign = await shippingcampaignsController.patientToSend(agent);
         let verifyChat;
         let verifycontsend;
         if (totMessageSend >= maxLimitSendAgent && (shippingCampaign?.prioritysend == null || shippingCampaign?.prioritysend == undefined)) {

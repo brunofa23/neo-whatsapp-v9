@@ -9,6 +9,7 @@ const Database_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Lucid/D
 const Env_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Env"));
 const util_1 = require("../../Services/whatsapp-web/util");
 const luxon_1 = require("luxon");
+const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
 class ShippingcampaignsController {
     static get connection() {
         return 'mysql';
@@ -415,15 +416,23 @@ class ShippingcampaignsController {
             throw new Error(error);
         }
     }
-    async patientToSend() {
+    async patientToSend(agent) {
+        const agentCompany = await Agent_1.default.query().where('id', agent.id).first();
         const yesterday = luxon_1.DateTime.local().toFormat('yyyy-MM-dd 00:00');
-        return await Shippingcampaign_1.default.query()
+        const query = Shippingcampaign_1.default.query()
             .whereNull('phonevalid')
             .andWhere('messagesent', 0)
-            .andWhere('created_at', '>', yesterday)
-            .whereNotExists((query) => {
-            query.select('*').from('chats').whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id');
-        }).orderBy('prioritysend', "desc").first();
+            .andWhere('created_at', '>', yesterday);
+        if (agentCompany?.company_id) {
+            query.andWhere('company_id', agentCompany?.company_id);
+        }
+        else
+            query.whereNull('company_id');
+        query.whereNotExists((subquery) => {
+            subquery.select('*').from('chats').whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id');
+        }).orderBy('prioritysend', "desc");
+        const shippingCampaign = await query.first();
+        return shippingCampaign;
     }
 }
 exports.default = ShippingcampaignsController;

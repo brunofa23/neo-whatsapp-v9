@@ -42,6 +42,8 @@ exports.default = async () => {
             shipping.attendant = String(data.attendant).trim();
             shipping.covenant = '';
             shipping.dateservice = data.dateservice;
+            shipping.company_id = data.company_id;
+            shipping.phone_unit = data.phone_unit;
             const yesterday = moment().subtract(10, 'day').format('YYYY-MM-DD');
             const verifyExist = await Shippingcampaign_1.default.query()
                 .where('reg', '=', data.reg)

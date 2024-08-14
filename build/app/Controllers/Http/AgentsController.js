@@ -37,6 +37,8 @@ class AgentsController {
                     active: agent.active,
                     default_chat: agent.default_chat,
                     qrcode: agent.qrcode,
+                    company_id: agent.company_id,
+                    obs: agent.obs,
                     totMessage: totMessage?.$extras.totMessage
                 });
             }

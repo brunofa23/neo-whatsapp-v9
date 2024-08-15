@@ -48,8 +48,8 @@ async function startAgentChat(_agent: Agent) {
   clientChat.initialize();
   clientChat.on('loading_screen', (percent, message) => {
     console.log(`LOADING SCREEN: ${_agent.name}`, percent, message);
-    agent.status = `Carregando: ${_agent.name} - ${percent} - ${message}`
-    agent.save()
+    // agent.status = `Carregando: ${_agent.name} - ${percent} - ${message}`
+    // agent.save()
   });
 
 

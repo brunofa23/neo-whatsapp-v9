@@ -32,6 +32,7 @@ export default class DatasourcesController {
         }
       }
       const data = [...schedulePatientsArray, ...serviceEvaluationArray]
+      //console.log(">>>",schedulePatientsArray)
       return data
     }
     catch (error) {
@@ -237,6 +238,9 @@ export default class DatasourcesController {
       return message.replace('{greeting}', greeting[Math.floor(Math.random() * greeting.length)]).replace('{question}', question[Math.floor(Math.random() * question.length)])
     }
     const pacQueryModel = await Interaction.find(2)
+
+    console.log(pacQueryModel)
+
     const env = process.env.NODE_ENV
     let pacQuery
 

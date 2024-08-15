@@ -217,6 +217,7 @@ class DatasourcesController {
             return message.replace('{greeting}', greeting[Math.floor(Math.random() * greeting.length)]).replace('{question}', question[Math.floor(Math.random() * question.length)]);
         }
         const pacQueryModel = await Interaction_1.default.find(2);
+        console.log(pacQueryModel);
         const env = process.env.NODE_ENV;
         let pacQuery;
         if (env === 'development')

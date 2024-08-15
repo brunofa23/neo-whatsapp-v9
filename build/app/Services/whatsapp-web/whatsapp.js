@@ -38,8 +38,6 @@ async function startAgentChat(_agent) {
     clientChat.initialize();
     clientChat.on('loading_screen', (percent, message) => {
         console.log(`LOADING SCREEN: ${_agent.name}`, percent, message);
-        agent.status = `Carregando: ${_agent.name} - ${percent} - ${message}`;
-        agent.save();
     });
     clientChat.on('qr', async (qr) => {
         agent.status = "Qrcode require";

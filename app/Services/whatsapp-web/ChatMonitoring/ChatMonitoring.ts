@@ -64,9 +64,7 @@ export default class Monitoring {
         const customChat = await getCustomChat(message.from, client.info.wid.user)
         let chat
         if (customChat) {
-
           let path_media: string | undefined = "";
-
           if (message.hasMedia) {
             //console.log("PASSEI DENTRO DA MIDIA......")
             const media = await message.downloadMedia();
@@ -119,6 +117,7 @@ export default class Monitoring {
             client.sendMessage(message.from, "Olá, sou a Iris, atendente virtual do Neo.")
             return
           }
+
           else if (message.body.startsWith("verificar")) {
             const string = message.body;
             const numbers = string.match(/\d/g).join("");
@@ -141,19 +140,7 @@ export default class Monitoring {
             }
             return
           }
-          else if (message.body.toUpperCase() === "#PD") {//posição diária
-            const pd = new ShippingcampaignsController()
-            const result = await pd.dayPosition()
-            const sendResponse = `*Total diário:* ${result.totalDiario}\n*Telefones válidos:* ${result.telefonesValidos}\n*Mensagens Enviadas:* ${result.mensagensEnviadas}\n*Mensagens Retornadas:* ${result.mensagensRetornadas}\n*Confirmações:* ${result.confirmacoes}\n*Reagendamentos:* ${result.reagendamentos}`
-            await stateTyping(message)
-            client.sendMessage(message.from, `*Posição diária até o momento:*`)
-            client.sendMessage(message.from, sendResponse)
-
-
-          }
-
           else if (message.body === "destroy") {
-
             console.log("EXECUTANDO DISCONECT")
             console.log("mandei destruir...")
             // agent.status = 'Disconnected'
@@ -161,15 +148,12 @@ export default class Monitoring {
             // Destroy and reinitialize the client when disconnected
             await client.destroy();
             console.log("DESTRUIDO...")
-
           }
 
           else if (message.body === 'PinChat') {
             console.log("CLIENTE", message)
           }
-
           else {
-
             const responseArray = [
               "Desculpe, mas esta conversa já foi finalizada. O Neo Agradece por sua compreensão, para maiores esclarecimentos ligue para 31-32350003.",
               "Infelizmente esta conversa já foi finalizada. O Neo Agradece por sua interação! Maiores esclarecimentos ligue para 31-32350003.",
@@ -181,7 +165,6 @@ export default class Monitoring {
             await stateTyping(message)
             client.sendMessage(message.from, messageRandom)
             return
-
           }
 
         }
@@ -189,9 +172,7 @@ export default class Monitoring {
       });
 
     } catch (error) {
-
       console.log("ERRO>>>>", error)
-
     }
 
 

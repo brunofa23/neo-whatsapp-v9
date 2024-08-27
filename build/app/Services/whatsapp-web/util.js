@@ -9,7 +9,7 @@ const fs = require('fs');
 async function stateTyping(message) {
     const chatTyping = await message.getChat();
     chatTyping.sendStateTyping();
-    return await new Promise(resolve => setTimeout(resolve, 3000));
+    return await new Promise(resolve => setTimeout(resolve, 2000));
 }
 async function DateFormat(format, date = luxon_1.DateTime.local()) {
     if (!(date instanceof luxon_1.DateTime)) {

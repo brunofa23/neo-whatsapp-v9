@@ -43,7 +43,8 @@ class Shippingcampaign extends Orm_1.BaseModel {
             'prioritysend',
             'excluded',
             'company_id',
-            'phone_unit'
+            'phone_unit',
+            'type_service'
         ];
     }
 }
@@ -135,6 +136,10 @@ __decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", String)
 ], Shippingcampaign.prototype, "phone_unit", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", String)
+], Shippingcampaign.prototype, "type_service", void 0);
 __decorate([
     Orm_1.column.dateTime({ autoCreate: true }),
     __metadata("design:type", luxon_1.DateTime)

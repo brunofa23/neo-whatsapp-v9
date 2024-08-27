@@ -3,13 +3,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const ShippingcampaignsController_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Controllers/Http/ShippingcampaignsController"));
 const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
 const Customchat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Customchat"));
 const MidiasController_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Controllers/Http/MidiasController"));
 const util_1 = require("../util");
 const ConfirmSchedule_1 = __importDefault(require("./ConfirmSchedule"));
 const ServiceEvaluation_1 = __importDefault(require("./ServiceEvaluation"));
+const AutomaticResponses_1 = __importDefault(require("../AutomaticResponses"));
 async function verifyNumberInternal(phoneVerify) {
     const list_phone_talking = process.env.LIST_PHONES_TALK;
     const list_phones = list_phone_talking?.split(",");
@@ -107,7 +107,7 @@ class Monitoring {
                         client.sendMessage(message.from, "Olá, sou a Iris, atendente virtual do Neo.");
                         return;
                     }
-                    else if (message.body.startsWith("verificar")) {
+                    else if (message.body.toUpperCase().startsWith("VERIFICAR")) {
                         const string = message.body;
                         const numbers = string.match(/\d/g).join("");
                         await (0, util_1.stateTyping)(message);
@@ -128,34 +128,23 @@ class Monitoring {
                         }
                         return;
                     }
-                    else if (message.body.toUpperCase() === "#PD") {
-                        const pd = new ShippingcampaignsController_1.default();
-                        const result = await pd.dayPosition();
-                        const sendResponse = `*Total diário:* ${result.totalDiario}\n*Telefones válidos:* ${result.telefonesValidos}\n*Mensagens Enviadas:* ${result.mensagensEnviadas}\n*Mensagens Retornadas:* ${result.mensagensRetornadas}\n*Confirmações:* ${result.confirmacoes}\n*Reagendamentos:* ${result.reagendamentos}`;
-                        await (0, util_1.stateTyping)(message);
-                        client.sendMessage(message.from, `*Posição diária até o momento:*`);
-                        client.sendMessage(message.from, sendResponse);
-                    }
-                    else if (message.body === "destroy") {
-                        console.log("EXECUTANDO DISCONECT");
-                        console.log("mandei destruir...");
-                        await client.destroy();
-                        console.log("DESTRUIDO...");
-                    }
-                    else if (message.body === 'PinChat') {
-                        console.log("CLIENTE", message);
-                    }
                     else {
-                        const responseArray = [
-                            "Desculpe, mas esta conversa já foi finalizada. O Neo Agradece por sua compreensão, para maiores esclarecimentos ligue para 31-32350003.",
-                            "Infelizmente esta conversa já foi finalizada. O Neo Agradece por sua interação! Maiores esclarecimentos ligue para 31-32350003.",
-                            "Olá, sou apenas uma atendente virtual, para maiores esclarecimentos ligue para 31-32350003.",
-                            "Olá, sou apenas uma atendente virtual, desculpe mas esta conversa já foi finalizada. Para maiores esclarecimentos ligue para 31-32350003. O Neo Agradece!"
-                        ];
-                        const messageRandom = await (0, util_1.RandomResponse)(responseArray);
+                        const resp = await (0, AutomaticResponses_1.default)(message.body);
                         await (0, util_1.stateTyping)(message);
-                        await (0, util_1.stateTyping)(message);
-                        client.sendMessage(message.from, messageRandom);
+                        if (resp)
+                            client.sendMessage(message.from, resp);
+                        else {
+                            const responseArray = [
+                                "Desculpe, mas esta conversa já foi finalizada. O Neo Agradece por sua compreensão, para maiores esclarecimentos ligue para 31-32350003.",
+                                "Infelizmente esta conversa já foi finalizada. O Neo Agradece por sua interação! Maiores esclarecimentos ligue para 31-32350003.",
+                                "Olá, sou apenas uma atendente virtual, para maiores esclarecimentos ligue para 31-32350003.",
+                                "Olá, sou apenas uma atendente virtual, desculpe mas esta conversa já foi finalizada. Para maiores esclarecimentos ligue para 31-32350003. O Neo Agradece!"
+                            ];
+                            const messageRandom = await (0, util_1.RandomResponse)(responseArray);
+                            await (0, util_1.stateTyping)(message);
+                            await (0, util_1.stateTyping)(message);
+                            client.sendMessage(message.from, messageRandom);
+                        }
                         return;
                     }
                 }

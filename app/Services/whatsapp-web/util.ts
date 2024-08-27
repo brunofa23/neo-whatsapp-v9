@@ -8,7 +8,7 @@ async function stateTyping(message: Message) {
   //console.log("passei pelo STATETYPING...")
   const chatTyping = await message.getChat();
   chatTyping.sendStateTyping();
-  return await new Promise(resolve => setTimeout(resolve, 3000));
+  return await new Promise(resolve => setTimeout(resolve, 2000));
 }
 
 async function DateFormat(format, date = DateTime.local()) {

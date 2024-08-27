@@ -2,7 +2,7 @@ import ShippingcampaignsController from 'App/Controllers/Http/ShippingcampaignsC
 import Agent from 'App/Models/Agent';
 import Chat from "App/Models/Chat"
 import { verifyNumber } from 'App/Services/whatsapp-web/VerifyNumber';
-import { DateTime, VERSION } from 'luxon';
+import { DateTime } from 'luxon';
 import { Client } from "whatsapp-web.js"
 import { DateFormat, ExecutingSendMessage, GenerateRandomTime, TimeSchedule } from './util'
 

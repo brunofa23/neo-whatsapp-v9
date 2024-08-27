@@ -10,24 +10,5 @@ export default async (message: string) => {
 
 
 
-  // async function sendMessages() {
-  //   if (await TimeSchedule() == false) {
-  //     return
-  //   }
-  //   //const groupChat = client.getChatById('120363170786645695');
-  //   //groupChat.sendMessage("teste......");
-  //   const phrase = await ListInternalPhrases()
 
-  //   try {
-  //       await client.sendMessage('120363170786645695@g.us', phrase)
-  //       .then(async (response) => {
-  //       }).catch(async (error) => {
-  //         console.log("ERRRRO:::", error)
-  //       })
-  //   }
-  //   catch (error) {
-  //     console.log("ERRO:::", error)
-  //   }
-  // }
-  // await sendMessages()
 }

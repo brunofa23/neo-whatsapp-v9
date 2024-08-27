@@ -1,8 +1,7 @@
 import { types } from '@ioc:Adonis/Core/Helpers'
 import Chat from 'App/Models/Chat';
 import { Client, Message } from 'whatsapp-web.js';
-
-import { NegativeResponse, PositiveResponse, stateTyping } from '../util'
+import { stateTyping } from '../util'
 
 export default async (client: Client, message: Message, chat: Chat) => {
 

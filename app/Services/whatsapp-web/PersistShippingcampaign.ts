@@ -43,12 +43,13 @@ export default async () => {
       shipping.dateservice = data.dateservice
       shipping.company_id = data.company_id
       shipping.phone_unit = data.phone_unit
+      shipping.type_service = data.type_service
 
 
-      const yesterday = moment().subtract(10, 'day').format('YYYY-MM-DD');
+      const yesterday = moment().subtract(5, 'day').format('YYYY-MM-DD');
       const verifyExist = await Shippingcampaign.query()
         .where('reg', '=', data.reg)
-        .andWhere('idexternal', data.idexternal)
+        //.andWhere('idexternal', data.idexternal)
         .andWhere('created_at', '>=', yesterday)
         .andWhere('interaction_id', '=', data.interaction_id)
         .first()

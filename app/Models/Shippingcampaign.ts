@@ -35,7 +35,8 @@ export default class Shippingcampaign extends BaseModel {
       'prioritysend',
       'excluded',
       'company_id',
-      'phone_unit'
+      'phone_unit',
+      'type_service'
     ]
   }
 
@@ -108,6 +109,9 @@ export default class Shippingcampaign extends BaseModel {
 
   @column()
   public phone_unit:string
+
+  @column()
+  public type_service:string
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime

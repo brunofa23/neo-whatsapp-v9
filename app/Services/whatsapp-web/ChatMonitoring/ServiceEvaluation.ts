@@ -1,8 +1,7 @@
 import { types } from '@ioc:Adonis/Core/Helpers'
 import Chat from 'App/Models/Chat';
 import { Client, Message } from 'whatsapp-web.js';
-
-import { NegativeResponse, PositiveResponse, stateTyping } from '../util'
+import { stateTyping } from '../util'
 
 export default async (client: Client, message: Message, chat: Chat) => {
 
@@ -13,9 +12,13 @@ export default async (client: Client, message: Message, chat: Chat) => {
   }
   //PERGUNTA 1 - AVALIAÇÃO DE ATENDIMENTO
   if (chat.interaction_seq == 1) {
-    const notes = message.body.match(/\d+/g);
-    let invalidNote = notes.some(note => parseInt(note) > 10);
-    let invalidNoteNegative = notes.some(note => parseInt(note) < 0);
+    const notes = message.body.replace('1o','10').match(/\d+/g);
+    let invalidNote
+    let invalidNoteNegative
+    if (notes) {
+      invalidNote = notes.some(note => parseInt(note) > 10);
+      invalidNoteNegative = notes.some(note => parseInt(note) < 0);
+    }
     if (notes === null || notes.length == 0 || notes == undefined || invalidNote || invalidNoteNegative) {
       await stateTyping(message)//status de digitando...
       client.sendMessage(message.from, `Desculpe,😔 não consegui identificar sua nota. Por favor poderia responder uma nota entre 0 a 10?`)

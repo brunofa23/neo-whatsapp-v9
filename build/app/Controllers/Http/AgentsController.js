@@ -62,7 +62,6 @@ class AgentsController {
         }
     }
     async update({ auth, params, request, response }) {
-        console.log("alterado....");
         const body = request.only(Agent_1.default.fillable);
         try {
             const data = await Agent_1.default.query().where('id', params.id)

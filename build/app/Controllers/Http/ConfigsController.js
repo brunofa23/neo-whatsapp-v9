@@ -7,7 +7,6 @@ const Config_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Confi
 const { exec } = require('child_process');
 class ConfigsController {
     async index({ auth, response }) {
-        console.log("passei pelo index");
         try {
             const data = await Config_1.default.query();
             return response.status(200).send(data);

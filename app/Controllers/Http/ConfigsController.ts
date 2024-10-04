@@ -6,7 +6,6 @@ export default class ConfigsController {
 
   public async index({ auth, response }: HttpContextContract) {
     //await auth.use('api').authenticate()
-    console.log("passei pelo index")
     //const dateStart = await DateFormat("yyyy-MM-dd 00:00:00", DateTime.local())
     //const dateEnd = await DateFormat("yyyy-MM-dd 23:59:00", DateTime.local())
     try {

@@ -70,7 +70,7 @@ export default class AgentsController {
 
   public async update({auth, params, request, response }: HttpContextContract) {
     //await auth.use('api').authenticate()
-    console.log("alterado....")
+    
     const body = request.only(Agent.fillable)
     try {
       const data = await Agent.query().where('id', params.id)

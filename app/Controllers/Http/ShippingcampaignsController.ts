@@ -332,9 +332,9 @@ export default class ShippingcampaignsController {
 
   public async serviceEvaluationDashboard({ request, response }: HttpContextContract) {
 
-    const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name, attendant, doctor, unit, excluded, cellphone, chat_finished }
+    const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name, attendant, doctor, unit, excluded, cellphone, chat_finished, type_service }
       = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp',
-        'interactions', 'returned', 'reg', 'name', 'attendant', 'doctor', 'unit', 'excluded', 'cellphone', 'chat_finished'])
+        'interactions', 'returned', 'reg', 'name', 'attendant', 'doctor', 'unit', 'excluded', 'cellphone', 'chat_finished', 'type_service'])
 
     let query = "1=1"
     if (returned)//clientes que enviaram mensagem dentro do sistema
@@ -378,10 +378,13 @@ export default class ShippingcampaignsController {
       query += ` and chat_finished=1 `
     //else query += ` and (chat_finished not in (1) or chat_finished is null) `
 
+    if (type_service)
+      query +=` and type_service = '${type_service}'`
+    
 
-    if (!DateTime.fromISO(initialdate).isValid || !DateTime.fromISO(finaldate).isValid) {
-      throw new Error("Datas inválidas.")
-    }
+      if (!DateTime.fromISO(initialdate).isValid || !DateTime.fromISO(finaldate).isValid) {
+        throw new Error("Datas inválidas.")
+      }
 
 
     try {
@@ -596,7 +599,7 @@ export default class ShippingcampaignsController {
       subquery.select('*').from('chats').whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id');
     }).orderBy('prioritysend', "desc")
 
-    
+
     const shippingCampaign = await query.first()
     return shippingCampaign
 

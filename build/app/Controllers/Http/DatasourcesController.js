@@ -159,7 +159,6 @@ class DatasourcesController {
                     console.log("cancelamento realizado sucesso");
                     await Chat_1.default.query().where('reg', chat.reg).andWhere('idexternal', chat.idexternal).update({ externalstatus: 'B' });
                 }
-                console.log(query);
             }
         }
         catch (error) {
@@ -217,7 +216,6 @@ class DatasourcesController {
             return message.replace('{greeting}', greeting[Math.floor(Math.random() * greeting.length)]).replace('{question}', question[Math.floor(Math.random() * question.length)]);
         }
         const pacQueryModel = await Interaction_1.default.find(2);
-        console.log(pacQueryModel);
         const env = process.env.NODE_ENV;
         let pacQuery;
         if (env === 'development')

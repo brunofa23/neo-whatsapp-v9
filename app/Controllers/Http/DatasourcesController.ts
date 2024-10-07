@@ -175,7 +175,7 @@ export default class DatasourcesController {
           console.log("cancelamento realizado sucesso")
           await Chat.query().where('reg', chat.reg).andWhere('idexternal', chat.idexternal).update({ externalstatus: 'B' })
         }
-        console.log(query)
+        
         //await Database.manager.close('mssql')
 
         //return query
@@ -238,8 +238,6 @@ export default class DatasourcesController {
       return message.replace('{greeting}', greeting[Math.floor(Math.random() * greeting.length)]).replace('{question}', question[Math.floor(Math.random() * question.length)])
     }
     const pacQueryModel = await Interaction.find(2)
-
-    console.log(pacQueryModel)
 
     const env = process.env.NODE_ENV
     let pacQuery

@@ -28,7 +28,8 @@ class User extends Orm_1.BaseModel {
             'email',
             'password',
             'remember_me_token',
-            'superuser'
+            'superuser',
+            'level'
         ];
     }
     static async hashPassword(user) {
@@ -65,6 +66,10 @@ __decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", Object)
 ], User.prototype, "superuser", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", Number)
+], User.prototype, "level", void 0);
 __decorate([
     Orm_1.column.dateTime({ autoCreate: true }),
     __metadata("design:type", luxon_1.DateTime)

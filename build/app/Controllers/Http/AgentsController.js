@@ -13,6 +13,7 @@ const Config_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Confi
 const fs = require('fs');
 class AgentsController {
     async index({ auth, response }) {
+        await auth.use('api').authenticate();
         const dateStart = await (0, util_1.DateFormat)("yyyy-MM-dd 00:00:00", luxon_1.DateTime.local());
         const dateEnd = await (0, util_1.DateFormat)("yyyy-MM-dd 23:59:00", luxon_1.DateTime.local());
         try {
@@ -49,6 +50,7 @@ class AgentsController {
         }
     }
     async store({ auth, request, response }) {
+        await auth.use('api').authenticate();
         const body = request.only(Agent_1.default.fillable);
         body.interval_init_query = 1;
         body.interval_final_query = 1;
@@ -62,6 +64,7 @@ class AgentsController {
         }
     }
     async update({ auth, params, request, response }) {
+        await auth.use('api').authenticate();
         const body = request.only(Agent_1.default.fillable);
         try {
             const data = await Agent_1.default.query().where('id', params.id)
@@ -73,6 +76,7 @@ class AgentsController {
         }
     }
     async connection({ auth, params, request, response }) {
+        await auth.use('api').authenticate();
         try {
             const valuedatetime = luxon_1.DateTime.local().toFormat('yyyy-MM-dd HH:mm:ss');
             await Config_1.default.query().where('id', 'statusSendMessage').update({ valuedatetime: valuedatetime });
@@ -126,6 +130,7 @@ class AgentsController {
         }
     }
     async destroy({ auth, params, response }) {
+        await auth.use('api').authenticate();
         console.log("passei no destroy....");
         const data = await Agent_1.default.query().where('id', params.id)
             .update({ deleted: true, active: null, status: null, number_phone: null, qrcode: null });

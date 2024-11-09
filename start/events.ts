@@ -44,7 +44,6 @@ async function connectionAll() {
 }
 
 async function sendRepeatedMessage() {
-
   //console.log("EXECUTANDO BUSCA SMART")
   const executingSendMessage = await Config.find('executingSendMessage')
   setInterval(async () => {

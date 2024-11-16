@@ -5,6 +5,7 @@ import { verifyNumber } from 'App/Services/whatsapp-web/VerifyNumber';
 import { DateTime } from 'luxon';
 import { Client } from "whatsapp-web.js"
 import { DateFormat, ExecutingSendMessage, GenerateRandomTime, TimeSchedule } from './util'
+import Log from "App/Models/Log"
 
 global.contSend = 0
 //const yesterday = DateTime.local().toFormat('yyyy-MM-dd 00:00')
@@ -88,7 +89,7 @@ export default async (client: Client, agent: Agent) => {
               .andWhere('shippingcampaigns_id', shippingCampaign?.id).first()
 
             if (verifyChat == undefined) {
-              await client.sendMessage(validationCellPhone, shippingCampaign.message)
+               await client.sendMessage(validationCellPhone, shippingCampaign.message)
                 .then(async (response) => {
                   global.contSend++
                   shippingCampaign.messagesent = true
@@ -115,9 +116,9 @@ export default async (client: Client, agent: Agent) => {
                   if (agent.statusconnected == false)
                     await Agent.query().where('id', agent.id).update({ statusconnected: true })
                 }).catch(async (error) => {
-                  console.log("ERRO 1452:::", error)
+                  console.log("Mensage:::", error)
+                  await Log.create({name:'sendMessage', message:error,description:"SendMessage.ts. linha:120" })
                 })
-
             }
 
           } else {//número é inválido
@@ -127,6 +128,7 @@ export default async (client: Client, agent: Agent) => {
         }
         catch (error) {
           console.log("ERRO 1500:::", error)
+          await Log.create({name:'sendMessageGeneral', message:error,description:"SendMessage.ts. linha:131" })
         }
       }
     }

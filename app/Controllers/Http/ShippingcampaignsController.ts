@@ -16,11 +16,33 @@ export default class ShippingcampaignsController {
   }
 
 
-  public async index({ auth, response }) {
-    //await auth.use('api').authenticate()
+  public async index({ auth, request, response }) {
+    await auth.use('api').authenticate()
+    const { created_atStart, created_atEnd, summary } = request.only(['created_atStart', 'created_atEnd', 'summary'])
     try {
-      const shippingCampaign = await Shippingcampaign.all()
-      return response.status(200).send(shippingCampaign)
+
+      if (summary) {
+        const query = Database.rawQuery(`
+          SELECT
+            (SELECT COUNT(*)
+             FROM shippingcampaigns
+             WHERE created_at >= ? AND created_at <= ? AND phonevalid IS NULL) AS tot,
+            (SELECT COUNT(*)
+             FROM shippingcampaigns
+             WHERE created_at >= ? AND created_at <= ? AND messagesent = 1) AS totSend
+        `, [created_atStart, created_atEnd, created_atStart, created_atEnd]);
+        const result = await query
+        return response.status(200).send(result[0][0])
+      } else {
+        const query= Shippingcampaign.query()
+        if (created_atStart && created_atEnd) {
+          query.where('created_at', '>=', created_atStart)
+          query.where('created_at', '<=', created_atEnd)
+        }
+        const result = await query
+        return response.status(200).send(result)
+      }
+
     } catch (error) {
       return error
       //throw new BadRequest('Bad Request', 401, 'erro')
@@ -369,11 +391,11 @@ export default class ShippingcampaignsController {
       query += ` and chat_finished=1 `
     //else query += ` and (chat_finished not in (1) or chat_finished is null) `
     if (type_service)
-      query +=` and type_service = '${type_service}'`
+      query += ` and type_service = '${type_service}'`
 
-      if (!DateTime.fromISO(initialdate).isValid || !DateTime.fromISO(finaldate).isValid) {
-        throw new Error("Datas inválidas.")
-      }
+    if (!DateTime.fromISO(initialdate).isValid || !DateTime.fromISO(finaldate).isValid) {
+      throw new Error("Datas inválidas.")
+    }
 
     try {
       const queryResult = Database.connection(Env.get('DB_CONNECTION_MAIN')).query()
@@ -407,9 +429,7 @@ export default class ShippingcampaignsController {
         //.whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
         .where('shippingcampaigns.interaction_id', 2)
         .whereRaw(query)
-
-        console.log(queryResult.toQuery())
-        const result = await queryResult
+      const result = await queryResult
 
       const resultAcumulated = await Database.from('chats')
         .innerJoin('shippingcampaigns', 'chats.shippingcampaigns_id', 'shippingcampaigns.id')

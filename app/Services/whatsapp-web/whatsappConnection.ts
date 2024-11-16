@@ -1,13 +1,14 @@
 import Agent from 'App/Models/Agent';
+import Shippingcampaign from 'App/Models/Shippingcampaign';
 import Config from 'App/Models/Config';
 import SendMessage from 'App/Services/whatsapp-web/SendMessage'
-import { logout, sendRepeatedMessage } from 'App/Services/whatsapp-web/SendRepeatedMessage';
-import { DateTime, DatetTime } from 'luxon';
-
+import { sendRepeatedMessage } from 'App/Services/whatsapp-web/SendRepeatedMessage';
+import { DateTime } from 'luxon';
 import ChatMonitoring from './ChatMonitoring/ChatMonitoring'
 import ChatMonitoringInternal from './ChatMonitoring/ChatMonitoringInternal'
 import SendMessageInternal from './SendMessageInternal';
-import { ClearFolder, DateFormat, ExecutingSendMessage, GenerateRandomTime, RandomResponse, TimeSchedule, validAgent, ValidatePhone } from './util'
+import { GenerateRandomTime } from './util'
+
 
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcodeTerminal = require('qrcode-terminal');
@@ -65,7 +66,6 @@ async function startAgent(_agent: Agent) {
     agent.status = "Qrcode require"
     agent.statusconnected = false
     await agent.save()
-
     qrcode.toDataURL(qr, (err, url) => {
       if (err) {
         console.error('Ocorreu um erro ao gerar o URL de dados:', err);
@@ -82,7 +82,6 @@ async function startAgent(_agent: Agent) {
     console.log(`AUTHENTICATED ${agent.name}`);
     agent.status = 'Authentication'
     agent.save()
-
   });
 
 
@@ -109,7 +108,7 @@ async function startAgent(_agent: Agent) {
 
   const startTimeSendMessage = agent.interval_init_message
   const endTimeSendMessage = agent.interval_final_message
-  const sendMessage = setInterval(async () => {
+  setInterval(async () => {
     const statusSendMessage = await getStatusSendMessage()//await Config.query().select('valuebool', 'valuedatetime').where('id', 'statusSendMessage').first()
     if (statusSendMessage) {
       SendMessage(client, agent)
@@ -117,7 +116,7 @@ async function startAgent(_agent: Agent) {
   }, await GenerateRandomTime(startTimeSendMessage, endTimeSendMessage, '----Time Send Message'))
 
 
-  const sendMessageInternal = setInterval(async () => {
+  setInterval(async () => {
     const statusSendMessage = await getStatusSendMessage() //Config.query().select('valuebool', 'valuedatetime').where('id', 'statusSendMessage').first()
     if (statusSendMessage) {
       if (process.env.SELF_CONVERSATION?.toLocaleLowerCase() === "true") {
@@ -144,6 +143,16 @@ async function startAgent(_agent: Agent) {
     agent.status = 'Disconnected'
     agent.statusconnected = false
     await agent.save()
+
+    await Shippingcampaign.create({
+      interaction_id:2,
+      interaction_seq:1,
+      message:`O agente ${agent.number_phone} foi desconectado!`,
+      cellphone:'31985228619',
+      reg:1,
+      name: 'Bruno',
+      prioritysend:true
+    })
     console.log("EXECUTANDO DISCONECT")
     console.log("REASON>>>", reason)
   });
@@ -155,13 +164,6 @@ async function startAgent(_agent: Agent) {
     if (rejectCalls) await call.reject();
     await client.sendMessage(call.from, `[${call.fromMe ? 'Outgoing' : 'Incoming'}] Olá tudo Bem? Sou uma atendente virtual e por isso não consigo receber chamadas. Desculpe!!☺️`);
   });
-
   return client
-
 }
-
-
-
-
-
 module.exports = { startAgent }

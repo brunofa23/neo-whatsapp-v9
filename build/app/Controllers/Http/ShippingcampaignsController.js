@@ -296,13 +296,15 @@ class ShippingcampaignsController {
             throw new Error("Datas inválidas.");
         }
         try {
-            const result = await Database_1.default.connection(Env_1.default.get('DB_CONNECTION_MAIN')).query()
+            const queryResult = Database_1.default.connection(Env_1.default.get('DB_CONNECTION_MAIN')).query()
                 .from('shippingcampaigns')
                 .select('shippingcampaigns.id as idShipp', 'shippingcampaigns.interaction_id', 'shippingcampaigns.reg', 'shippingcampaigns.name', 'shippingcampaigns.cellphone', 'chats.id', 'otherfields', 'phonevalid', 'messagesent', 'chats.created_at', 'response', 'returned', 'invalidresponse', 'chatname', 'absoluteresp', 'prioritysend', 'excluded', 'doctor', 'unit', 'attendant', Database_1.default.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed'), 'chat_finished')
                 .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
                 .whereBetween('chats.created_at', [initialdate, finaldate])
                 .where('shippingcampaigns.interaction_id', 2)
                 .whereRaw(query);
+            console.log(queryResult.toQuery());
+            const result = await queryResult;
             const resultAcumulated = await Database_1.default.from('chats')
                 .innerJoin('shippingcampaigns', 'chats.shippingcampaigns_id', 'shippingcampaigns.id')
                 .sumDistinct('absoluteresp as note')

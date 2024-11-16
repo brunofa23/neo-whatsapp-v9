@@ -339,56 +339,44 @@ export default class ShippingcampaignsController {
     let query = "1=1"
     if (returned)//clientes que enviaram mensagem dentro do sistema
       query += ` and chats.id in (select chats_id from customchats) `
-
     if (reg)
       query += ` and shippingcampaigns.reg=${reg} `
-
     if (name)
       query += ` and shippingcampaigns.name like '%${name}%' `
-
     if (phonevalid && phonevalid !== undefined) {
       query += ` and phonevalid=${phonevalid == 1 ? 1 : 0}`
     }
     if (interactions)
       query += ` and response is not null `
-
     if (cellphone)
       query += ` and shippingcampaigns.cellphone like '%${cellphone}%' `
-
-
     if (absoluteresp == 1)
       query += ` and absoluteresp < 7 `
     else if (absoluteresp == 2)
       query += ` and absoluteresp >= 7 and absoluteresp <9 `
     else if (absoluteresp == 3)
       query += ` and absoluteresp >= 9 `
-
     if (attendant)
       query += ` and attendant ='${attendant}'`
     if (doctor)
       query += ` and doctor ='${doctor}' `
     if (unit)
       query += ` and unit='${unit}'`
-
     if (excluded)
       query += ` and excluded=1 `
     else query += ` and (excluded not in (1) or excluded is null) `
-
     if (chat_finished)
       query += ` and chat_finished=1 `
     //else query += ` and (chat_finished not in (1) or chat_finished is null) `
-
     if (type_service)
       query +=` and type_service = '${type_service}'`
-
 
       if (!DateTime.fromISO(initialdate).isValid || !DateTime.fromISO(finaldate).isValid) {
         throw new Error("Datas inválidas.")
       }
 
-
     try {
-      const result = await Database.connection(Env.get('DB_CONNECTION_MAIN')).query()
+      const queryResult = Database.connection(Env.get('DB_CONNECTION_MAIN')).query()
         .from('shippingcampaigns')
         .select(
           'shippingcampaigns.id as idShipp',
@@ -419,6 +407,9 @@ export default class ShippingcampaignsController {
         //.whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
         .where('shippingcampaigns.interaction_id', 2)
         .whereRaw(query)
+
+        console.log(queryResult.toQuery())
+        const result = await queryResult
 
       const resultAcumulated = await Database.from('chats')
         .innerJoin('shippingcampaigns', 'chats.shippingcampaigns_id', 'shippingcampaigns.id')

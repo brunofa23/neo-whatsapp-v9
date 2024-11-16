@@ -79,8 +79,7 @@ export default class AgentsController {
     }
   }
 
-  public async connection({ auth, params, request, response }: HttpContextContract) {
-    await auth.use('api').authenticate()
+  public async connection({params, response }: HttpContextContract) {
     try {
       const valuedatetime = DateTime.local().toFormat('yyyy-MM-dd HH:mm:ss')
       await Config.query().where('id', 'statusSendMessage').update({ valuedatetime: valuedatetime })

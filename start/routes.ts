@@ -95,6 +95,7 @@ Route.group(() => {
   //shippingcampaigns
   Route.patch('/shippingcampaigns/:id','ShippingcampaignsController.update')
   Route.get('/shippingcampaigns/:id','ShippingcampaignsController.show')
+  Route.get('/shippingcampaigns','ShippingcampaignsController.index')
   Route.post('/shippingcampaigns','ShippingcampaignsController.store')
   Route.post('/resend/:id','ShippingcampaignsController.resend')
 

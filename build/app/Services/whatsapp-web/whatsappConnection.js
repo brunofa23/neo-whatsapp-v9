@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
+const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Shippingcampaign"));
 const Config_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Config"));
 const SendMessage_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/SendMessage"));
 const SendRepeatedMessage_1 = global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/SendRepeatedMessage");
@@ -90,13 +91,13 @@ async function startAgent(_agent) {
     });
     const startTimeSendMessage = agent.interval_init_message;
     const endTimeSendMessage = agent.interval_final_message;
-    const sendMessage = setInterval(async () => {
+    setInterval(async () => {
         const statusSendMessage = await getStatusSendMessage();
         if (statusSendMessage) {
             (0, SendMessage_1.default)(client, agent);
         }
     }, await (0, util_1.GenerateRandomTime)(startTimeSendMessage, endTimeSendMessage, '----Time Send Message'));
-    const sendMessageInternal = setInterval(async () => {
+    setInterval(async () => {
         const statusSendMessage = await getStatusSendMessage();
         if (statusSendMessage) {
             if (process.env.SELF_CONVERSATION?.toLocaleLowerCase() === "true") {
@@ -117,8 +118,18 @@ async function startAgent(_agent) {
         agent.status = 'Disconnected';
         agent.statusconnected = false;
         await agent.save();
+        await Shippingcampaign_1.default.create({
+            interaction_id: 3,
+            interaction_seq: 1,
+            message: `O agente ${agent.number_phone} foi desconectado!`,
+            cellphone: '31985228619',
+            reg: 1,
+            name: 'Bruno',
+            prioritysend: true
+        });
         console.log("EXECUTANDO DISCONECT");
         console.log("REASON>>>", reason);
+        return;
     });
     let rejectCalls = true;
     client.on('call', async (call) => {

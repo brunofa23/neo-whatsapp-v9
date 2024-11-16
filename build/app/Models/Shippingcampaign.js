@@ -44,7 +44,8 @@ class Shippingcampaign extends Orm_1.BaseModel {
             'excluded',
             'company_id',
             'phone_unit',
-            'type_service'
+            'type_service',
+            'created_at'
         ];
     }
 }

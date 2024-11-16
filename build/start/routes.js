@@ -74,6 +74,7 @@ Route_1.default.group(() => {
     Route_1.default.get('/attendantlist', 'ShippingcampaignsController.attendantList');
     Route_1.default.patch('/shippingcampaigns/:id', 'ShippingcampaignsController.update');
     Route_1.default.get('/shippingcampaigns/:id', 'ShippingcampaignsController.show');
+    Route_1.default.get('/shippingcampaigns', 'ShippingcampaignsController.index');
     Route_1.default.post('/shippingcampaigns', 'ShippingcampaignsController.store');
     Route_1.default.post('/resend/:id', 'ShippingcampaignsController.resend');
     Route_1.default.resource('/chats', 'ChatsController').apiOnly();

@@ -14,10 +14,32 @@ class ShippingcampaignsController {
     static get connection() {
         return 'mysql';
     }
-    async index({ auth, response }) {
+    async index({ auth, request, response }) {
+        await auth.use('api').authenticate();
+        const { created_atStart, created_atEnd, summary } = request.only(['created_atStart', 'created_atEnd', 'summary']);
         try {
-            const shippingCampaign = await Shippingcampaign_1.default.all();
-            return response.status(200).send(shippingCampaign);
+            if (summary) {
+                const query = Database_1.default.rawQuery(`
+          SELECT
+            (SELECT COUNT(*)
+             FROM shippingcampaigns
+             WHERE created_at >= ? AND created_at <= ? AND phonevalid IS NULL) AS tot,
+            (SELECT COUNT(*)
+             FROM shippingcampaigns
+             WHERE created_at >= ? AND created_at <= ? AND messagesent = 1) AS totSend
+        `, [created_atStart, created_atEnd, created_atStart, created_atEnd]);
+                const result = await query;
+                return response.status(200).send(result[0][0]);
+            }
+            else {
+                const query = Shippingcampaign_1.default.query();
+                if (created_atStart && created_atEnd) {
+                    query.where('created_at', '>=', created_atStart);
+                    query.where('created_at', '<=', created_atEnd);
+                }
+                const result = await query;
+                return response.status(200).send(result);
+            }
         }
         catch (error) {
             return error;
@@ -303,7 +325,6 @@ class ShippingcampaignsController {
                 .whereBetween('chats.created_at', [initialdate, finaldate])
                 .where('shippingcampaigns.interaction_id', 2)
                 .whereRaw(query);
-            console.log(queryResult.toQuery());
             const result = await queryResult;
             const resultAcumulated = await Database_1.default.from('chats')
                 .innerJoin('shippingcampaigns', 'chats.shippingcampaigns_id', 'shippingcampaigns.id')

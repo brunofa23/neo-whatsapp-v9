@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
+const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Shippingcampaign"));
 const ChatMonitoring_1 = __importDefault(require("./ChatMonitoring/ChatMonitoring"));
 const ChatMonitoringInternal_1 = __importDefault(require("./ChatMonitoring/ChatMonitoringInternal"));
 const SendMessageAgentDefault_1 = __importDefault(require("./SendMessageAgentDefault"));
@@ -86,11 +87,21 @@ async function startAgentChat(_agent) {
         await chatMonitoringInternal.monitoring(clientChat);
     }
     clientChat.on('disconnected', async (reason) => {
-        console.log("EXECUTANDO DISCONECT");
-        console.log("REASON>>>", reason);
         agent.status = 'Disconnected';
         agent.statusconnected = false;
         await agent.save();
+        await Shippingcampaign_1.default.create({
+            interaction_id: 3,
+            interaction_seq: 1,
+            message: `O agente ${agent.number_phone} foi desconectado!`,
+            cellphone: '31985228619',
+            reg: 1,
+            name: 'Bruno',
+            prioritysend: true
+        });
+        console.log("EXECUTANDO DISCONECT");
+        console.log("REASON>>>", reason);
+        return;
     });
     let rejectCalls = true;
     clientChat.on('call', async (call) => {

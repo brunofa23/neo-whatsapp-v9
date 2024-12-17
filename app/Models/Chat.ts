@@ -32,7 +32,8 @@ export default class Chat extends BaseModel {
       'externalstatus',
       'chatnumber',
       'chat_finished',
-      'company_id'
+      'company_id',
+      'closed'
     ]
   }
 
@@ -93,6 +94,9 @@ export default class Chat extends BaseModel {
 
   @column()
   public company_id:number
+
+  @column()
+  public closed:boolean
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime

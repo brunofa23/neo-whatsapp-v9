@@ -38,5 +38,23 @@ export default class ChatsController {
   }
 
 
+  //Fechamento de datas
+  public async closed({auth, request, response }: HttpContextContract) {
+    const {start_date,end_date} = request.only(['start_date','end_date'])
+    console.log("passei no closed",start_date,end_date )
+    //return
+    //await auth.use('api').authenticate()
+    try {
+      const data = await Chat.query()
+      .where('created_at','>=', start_date)
+      .andWhere('created_at','<=', end_date)
+        .update({closed:true})
+      return response.status(201).send(data)
+    } catch (error) {
+      return error
+    }
+  }
+
+
 
 }

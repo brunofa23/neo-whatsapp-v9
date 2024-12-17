@@ -108,7 +108,7 @@ Route.group(() => {
   Route.get('/midiapath/:filename','MidiasController.midiapath')
 
   //DATECLOSED
-  Route.resource('/dateclosed','DateclosedsController').apiOnly()
+  Route.resource('/datecloseds','DateclosedsController').apiOnly()
 
 
 }).prefix('/api')

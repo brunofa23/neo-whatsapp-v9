@@ -76,11 +76,15 @@ export default class ShippingcampaignsController {
     //await auth.use('api').authenticate()
     const body = request.only(Shippingcampaign.fillable)
     body.id = params.id
+    delete body.created_at
     try {
       const data = await Shippingcampaign.query().where('id', params.id)
-        .update(body)
+      .update(body)
+      const retorno = await Shippingcampaign.query().where('id', params.id).first()
+      console.log(retorno)
       return response.status(201).send(data)
     } catch (error) {
+      console.log(error)
       return error
       //throw new BadRequest('Bad Request', 401)
     }

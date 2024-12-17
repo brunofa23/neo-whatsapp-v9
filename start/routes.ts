@@ -101,11 +101,14 @@ Route.group(() => {
 
   //chats
   Route.resource('/chats', 'ChatsController').apiOnly()
+  Route.post('/closed', 'ChatsController.closed')
 
   //MIDIAS
   Route.get('/midia/:filename','MidiasController.midia')
   Route.get('/midiapath/:filename','MidiasController.midiapath')
 
+  //DATECLOSED
+  Route.resource('/dateclosed','DateclosedsController').apiOnly()
 
 
 }).prefix('/api')

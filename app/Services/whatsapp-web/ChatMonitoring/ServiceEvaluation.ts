@@ -26,10 +26,11 @@ export default async (client: Client, message: Message, chat: Chat) => {
     }
 
     if (types.isInteger(parseInt(notes[0]))) {
-      const chatOtherFields = JSON.parse(chat.shippingcampaign.otherfields)
+      //const chatOtherFields = JSON.parse(chat.shippingcampaign.otherfields)
       chat.returned = true
       chat.absoluteresp = parseInt(notes[0])
       chat.interaction_seq = 2
+      chat.closed=false
       await chat.save()
       await stateTyping(message)//status de digitando...
       client.sendMessage(message.from, `Consegue nos dizer o que motivou a sua nota ${notes[0]}? Tudo bem se não quiser responder, digite 9 para finalizar essa etapa.`)
@@ -46,6 +47,7 @@ export default async (client: Client, message: Message, chat: Chat) => {
 
       await stateTyping(message)//status de digitando...
       chat.response = message.body.slice(0, 599)
+      chat.closed=false
       await chat.save()
       client.sendMessage(message.from, `Obrigado pela sua resposta!😀 Agradecemos sua avaliação.🙏`)
     }

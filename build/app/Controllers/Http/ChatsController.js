@@ -34,6 +34,20 @@ class ChatsController {
             return error;
         }
     }
+    async closed({ auth, request, response }) {
+        const { start_date, end_date } = request.only(['start_date', 'end_date']);
+        console.log("passei no closed", start_date, end_date);
+        try {
+            const data = await Chat_1.default.query()
+                .where('created_at', '>=', start_date)
+                .andWhere('created_at', '<=', end_date)
+                .update({ closed: true });
+            return response.status(201).send(data);
+        }
+        catch (error) {
+            return error;
+        }
+    }
 }
 exports.default = ChatsController;
 //# sourceMappingURL=ChatsController.js.map

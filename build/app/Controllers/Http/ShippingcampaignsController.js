@@ -63,9 +63,11 @@ class ShippingcampaignsController {
     async update({ auth, request, params, response }) {
         const body = request.only(Shippingcampaign_1.default.fillable);
         body.id = params.id;
+        delete body.created_at;
         try {
             const data = await Shippingcampaign_1.default.query().where('id', params.id)
                 .update(body);
+            await Shippingcampaign_1.default.query().where('id', params.id).first();
             return response.status(201).send(data);
         }
         catch (error) {
@@ -264,13 +266,14 @@ class ShippingcampaignsController {
             throw new Error("Datas inválidas.");
         }
         try {
-            const result = await Database_1.default.connection('mssql2').query()
+            const queryValue = Database_1.default.connection('mssql2').query()
                 .from('shippingcampaigns')
                 .select('shippingcampaigns.interaction_id', 'shippingcampaigns.reg', 'shippingcampaigns.name', 'shippingcampaigns.cellphone', 'otherfields', 'phonevalid', 'messagesent', 'chats.created_at', 'response', 'returned', 'invalidresponse', 'chatname', 'absoluteresp')
                 .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
                 .whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
                 .where('shippingcampaigns.interaction_id', 1)
                 .whereRaw(query);
+            const result = await queryValue;
             return response.status(201).send(result);
         }
         catch (error) {
@@ -278,8 +281,8 @@ class ShippingcampaignsController {
         }
     }
     async serviceEvaluationDashboard({ request, response }) {
-        const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name, attendant, doctor, unit, excluded, cellphone, chat_finished, type_service } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp',
-            'interactions', 'returned', 'reg', 'name', 'attendant', 'doctor', 'unit', 'excluded', 'cellphone', 'chat_finished', 'type_service']);
+        const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name, attendant, doctor, unit, excluded, cellphone, chat_finished, type_service, closed } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp',
+            'interactions', 'returned', 'reg', 'name', 'attendant', 'doctor', 'unit', 'excluded', 'cellphone', 'chat_finished', 'type_service', 'closed']);
         let query = "1=1";
         if (returned)
             query += ` and chats.id in (select chats_id from customchats) `;
@@ -319,9 +322,14 @@ class ShippingcampaignsController {
         }
         try {
             const queryResult = Database_1.default.connection(Env_1.default.get('DB_CONNECTION_MAIN')).query()
-                .from('shippingcampaigns')
-                .select('shippingcampaigns.id as idShipp', 'shippingcampaigns.interaction_id', 'shippingcampaigns.reg', 'shippingcampaigns.name', 'shippingcampaigns.cellphone', 'chats.id', 'otherfields', 'phonevalid', 'messagesent', 'chats.created_at', 'response', 'returned', 'invalidresponse', 'chatname', 'absoluteresp', 'prioritysend', 'excluded', 'doctor', 'unit', 'attendant', Database_1.default.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed'), 'chat_finished')
-                .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
+                .from('shippingcampaigns');
+            if (!closed) {
+                queryResult.select('shippingcampaigns.id as idShipp', 'shippingcampaigns.interaction_id', 'shippingcampaigns.reg', 'shippingcampaigns.name', 'shippingcampaigns.cellphone', 'chats.id', 'otherfields', 'phonevalid', 'messagesent', 'chats.created_at', 'response', 'returned', 'invalidresponse', 'chatname', 'absoluteresp', 'prioritysend', 'excluded', 'doctor', 'unit', 'attendant', Database_1.default.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed'), 'chat_finished');
+            }
+            if (closed) {
+                queryResult.select('shippingcampaigns.id as idShipp', 'shippingcampaigns.interaction_id', 'shippingcampaigns.reg', 'shippingcampaigns.name', 'shippingcampaigns.cellphone', 'chats.id', 'otherfields', 'phonevalid', 'messagesent', 'chats.created_at', 'response', 'returned', 'invalidresponse', 'chatname', Database_1.default.raw('CASE WHEN closed = 0 THEN NULL ELSE absoluteresp END AS absoluteresp'), 'prioritysend', 'excluded', 'doctor', 'unit', 'attendant', Database_1.default.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed'), 'chat_finished');
+            }
+            queryResult.leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
                 .whereBetween('chats.created_at', [initialdate, finaldate])
                 .where('shippingcampaigns.interaction_id', 2)
                 .whereRaw(query);

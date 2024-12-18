@@ -22,10 +22,10 @@ exports.default = async (client, message, chat) => {
             return;
         }
         if (Helpers_1.types.isInteger(parseInt(notes[0]))) {
-            const chatOtherFields = JSON.parse(chat.shippingcampaign.otherfields);
             chat.returned = true;
             chat.absoluteresp = parseInt(notes[0]);
             chat.interaction_seq = 2;
+            chat.closed = false;
             await chat.save();
             await (0, util_1.stateTyping)(message);
             client.sendMessage(message.from, `Consegue nos dizer o que motivou a sua nota ${notes[0]}? Tudo bem se não quiser responder, digite 9 para finalizar essa etapa.`);
@@ -39,6 +39,7 @@ exports.default = async (client, message, chat) => {
         }
         await (0, util_1.stateTyping)(message);
         chat.response = message.body.slice(0, 599);
+        chat.closed = false;
         await chat.save();
         client.sendMessage(message.from, `Obrigado pela sua resposta!😀 Agradecemos sua avaliação.🙏`);
     }

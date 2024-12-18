@@ -78,7 +78,9 @@ Route_1.default.group(() => {
     Route_1.default.post('/shippingcampaigns', 'ShippingcampaignsController.store');
     Route_1.default.post('/resend/:id', 'ShippingcampaignsController.resend');
     Route_1.default.resource('/chats', 'ChatsController').apiOnly();
+    Route_1.default.post('/closed', 'ChatsController.closed');
     Route_1.default.get('/midia/:filename', 'MidiasController.midia');
     Route_1.default.get('/midiapath/:filename', 'MidiasController.midiapath');
+    Route_1.default.resource('/datecloseds', 'DateclosedsController').apiOnly();
 }).prefix('/api');
 //# sourceMappingURL=routes.js.map

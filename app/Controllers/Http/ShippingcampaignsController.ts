@@ -34,7 +34,7 @@ export default class ShippingcampaignsController {
         const result = await query
         return response.status(200).send(result[0][0])
       } else {
-        const query= Shippingcampaign.query()
+        const query = Shippingcampaign.query()
         if (created_atStart && created_atEnd) {
           query.where('created_at', '>=', created_atStart)
           query.where('created_at', '<=', created_atEnd)
@@ -76,9 +76,11 @@ export default class ShippingcampaignsController {
     //await auth.use('api').authenticate()
     const body = request.only(Shippingcampaign.fillable)
     body.id = params.id
+    delete body.created_at
     try {
       const data = await Shippingcampaign.query().where('id', params.id)
         .update(body)
+      await Shippingcampaign.query().where('id', params.id).first()
       return response.status(201).send(data)
     } catch (error) {
       return error
@@ -307,7 +309,6 @@ export default class ShippingcampaignsController {
   public async listShippingCampaigns({ request, response }: HttpContextContract) {
 
     const { initialdate, finaldate, phonevalid, invalidresponse, absoluteresp } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp'])
-
     let query = "1=1"
     if (phonevalid && phonevalid !== undefined) {
       query += ` and phonevalid=${phonevalid == 1 ? 1 : 0}`
@@ -323,7 +324,7 @@ export default class ShippingcampaignsController {
       throw new Error("Datas inválidas.")
     }
     try {
-      const result = await Database.connection('mssql2').query()
+      const queryValue = Database.connection('mssql2').query()
         .from('shippingcampaigns')
         .select(
           'shippingcampaigns.interaction_id',
@@ -344,6 +345,7 @@ export default class ShippingcampaignsController {
         .whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
         .where('shippingcampaigns.interaction_id', 1)
         .whereRaw(query)
+      const result = await queryValue
 
       return response.status(201).send(result)
     } catch (error) {
@@ -354,9 +356,9 @@ export default class ShippingcampaignsController {
 
   public async serviceEvaluationDashboard({ request, response }: HttpContextContract) {
 
-    const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name, attendant, doctor, unit, excluded, cellphone, chat_finished, type_service }
+    const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name, attendant, doctor, unit, excluded, cellphone, chat_finished, type_service, closed }
       = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp',
-        'interactions', 'returned', 'reg', 'name', 'attendant', 'doctor', 'unit', 'excluded', 'cellphone', 'chat_finished', 'type_service'])
+        'interactions', 'returned', 'reg', 'name', 'attendant', 'doctor', 'unit', 'excluded', 'cellphone', 'chat_finished', 'type_service', 'closed'])
 
     let query = "1=1"
     if (returned)//clientes que enviaram mensagem dentro do sistema
@@ -400,35 +402,65 @@ export default class ShippingcampaignsController {
     try {
       const queryResult = Database.connection(Env.get('DB_CONNECTION_MAIN')).query()
         .from('shippingcampaigns')
-        .select(
-          'shippingcampaigns.id as idShipp',
-          'shippingcampaigns.interaction_id',
-          'shippingcampaigns.reg',
-          'shippingcampaigns.name',
-          'shippingcampaigns.cellphone',
-          'chats.id',
-          'otherfields',
-          'phonevalid',
-          'messagesent',
-          'chats.created_at',
-          'response',
-          'returned',
-          'invalidresponse',
-          'chatname',
-          'absoluteresp',
-          'prioritysend',
-          'excluded',
-          'doctor',
-          'unit',
-          'attendant',
-          Database.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed'),
-          'chat_finished'
-        )
-        .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
+        if(!closed){
+          queryResult.select(
+            'shippingcampaigns.id as idShipp',
+            'shippingcampaigns.interaction_id',
+            'shippingcampaigns.reg',
+            'shippingcampaigns.name',
+            'shippingcampaigns.cellphone',
+            'chats.id',
+            'otherfields',
+            'phonevalid',
+            'messagesent',
+            'chats.created_at',
+            'response',
+            'returned',
+            'invalidresponse',
+            'chatname',
+            'absoluteresp',
+            'prioritysend',
+            'excluded',
+            'doctor',
+            'unit',
+            'attendant',
+            Database.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed'),
+            'chat_finished'
+          )
+        }
+        if(closed){
+          queryResult.select(
+            'shippingcampaigns.id as idShipp',
+            'shippingcampaigns.interaction_id',
+            'shippingcampaigns.reg',
+            'shippingcampaigns.name',
+            'shippingcampaigns.cellphone',
+            'chats.id',
+            'otherfields',
+            'phonevalid',
+            'messagesent',
+            'chats.created_at',
+            'response',
+            'returned',
+            'invalidresponse',
+            'chatname',
+            Database.raw('CASE WHEN closed = 0 THEN NULL ELSE absoluteresp END AS absoluteresp'),
+            'prioritysend',
+            'excluded',
+            'doctor',
+            'unit',
+            'attendant',
+            Database.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed'),
+            'chat_finished'
+          )
+        }
+
+        queryResult.leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
         .whereBetween('chats.created_at', [initialdate, finaldate])
         //.whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
         .where('shippingcampaigns.interaction_id', 2)
         .whereRaw(query)
+
       const result = await queryResult
 
       const resultAcumulated = await Database.from('chats')
@@ -521,177 +553,6 @@ export default class ShippingcampaignsController {
 
   }
 
-  // public async serviceEvaluationDashboard({ request, response }: HttpContextContract) {
-
-  //   const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name, attendant, doctor, unit, excluded, cellphone, chat_finished, type_service }
-  //     = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp',
-  //       'interactions', 'returned', 'reg', 'name', 'attendant', 'doctor', 'unit', 'excluded', 'cellphone', 'chat_finished', 'type_service'])
-
-  //   let query = "1=1"
-  //   if (returned)//clientes que enviaram mensagem dentro do sistema
-  //     query += ` and chats.id in (select chats_id from customchats) `
-
-  //   if (phonevalid && phonevalid !== undefined) {
-  //     query += ` and phonevalid=${phonevalid == 1 ? 1 : 0}`
-  //   }
-  //   if (excluded)
-  //     query += ` and excluded=1 `
-  //   else query += ` and (excluded not in (1) or excluded is null) `
-  //   //else query += ` and (chat_finished not in (1) or chat_finished is null) `
-  //   if (!DateTime.fromISO(initialdate).isValid || !DateTime.fromISO(finaldate).isValid) {
-  //     throw new Error("Datas inválidas.")
-  //   }
-  //   try {
-  //     const queryReturn = Database.connection(Env.get('DB_CONNECTION_MAIN')).query()
-  //       .from('shippingcampaigns')
-  //       .select(
-  //         'shippingcampaigns.id as idShipp',
-  //         'shippingcampaigns.interaction_id',
-  //         'shippingcampaigns.reg',
-  //         'shippingcampaigns.name',
-  //         'shippingcampaigns.cellphone',
-  //         'chats.id',
-  //         'otherfields',
-  //         'phonevalid',
-  //         'messagesent',
-  //         'chats.created_at',
-  //         'response',
-  //         'returned',
-  //         'invalidresponse',
-  //         'chatname',
-  //         'absoluteresp',
-  //         'prioritysend',
-  //         'excluded',
-  //         'doctor',
-  //         'unit',
-  //         'attendant',
-  //         Database.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed'),
-  //         'chat_finished'
-  //       )
-  //       .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
-  //       .whereBetween('chats.created_at', [initialdate, finaldate])
-  //       //.whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
-  //       .where('shippingcampaigns.interaction_id', 2)
-  //       .whereRaw(query)
-
-  //     if (reg)
-  //       queryReturn.where('shippingcampaigns.reg', reg)
-  //     if (name)
-  //       queryReturn.where('shippingcampaigns.name', 'like', `%${name}%`)
-  //     if (type_service)
-  //       queryReturn.where('type_service', type_service)
-  //     if (chat_finished)
-  //       queryReturn.where('chat_finished', 1)
-  //     if (interactions)
-  //       queryReturn.whereNotNull('response')
-  //     if (cellphone)
-  //       queryReturn.where('shippingcampaigns.cellphone', 'like', `%${cellphone}%`)
-  //     if (attendant)
-  //       queryReturn.where('attendant', attendant)
-  //     if (doctor)
-  //       queryReturn.where('doctor', doctor)
-  //     if (unit)
-  //       queryReturn.where('unit', unit)
-  //     if (absoluteresp == 1)
-  //       queryReturn.where('absoluteresp', '<', 7)
-  //     else if (absoluteresp == 2) {
-  //       queryReturn.where('absoluteresp', '>=', 7)
-  //       queryReturn.where('absoluteresp', '<', 9)
-  //     }
-  //     else if (absoluteresp == 3)
-  //       queryReturn.where('absoluteresp', '>=', 9)
-
-  //     const result = await queryReturn
-
-  //     const resultAcumulated = await Database.from('chats')
-  //       .innerJoin('shippingcampaigns', 'chats.shippingcampaigns_id', 'shippingcampaigns.id')
-  //       .sumDistinct('absoluteresp as note')
-  //       .count('* as total')
-  //       .where('chats.interaction_id', 2)
-  //       .andWhereBetween('absoluteresp', [0, 10000])
-  //       //.andWhere('absoluteresp','>=','9')
-  //       .whereBetween('chats.created_at', [initialdate, finaldate])
-  //       .whereRaw(query)
-  //       .groupBy('absoluteresp')
-
-  //     let resultAcumulatedList = resultAcumulated
-  //     let totalEvaluations = 0
-  //     let totalDetractors = 0
-  //     let totalPromoters = 0
-
-  //     for (const result of resultAcumulated) {
-  //       totalEvaluations = totalEvaluations + result.total
-  //       if (result.note <= 6)
-  //         totalDetractors = totalDetractors + result.total
-  //       if (result.note >= 9 && result.note <= 10)
-  //         totalPromoters = totalPromoters + result.total
-  //     }
-  //     //calcula o percentual do NPS
-  //     const nps = ((totalPromoters * 100) / totalEvaluations) - ((totalDetractors * 100) / totalEvaluations)
-  //     const npsResult = nps < 0 ? 0 : nps
-  //     //UNIDADES****************************************************************** */
-  //     const unitResult = await Database
-  //       .from('chats')
-  //       .innerJoin('shippingcampaigns', 'chats.shippingcampaigns_id', 'shippingcampaigns.id')
-  //       .where('chats.interaction_id', 2)
-  //       .whereBetween('chats.created_at', [initialdate, finaldate])
-  //       .andWhereRaw('(excluded not in (1) or excluded is null)')
-  //       .select('unit as station')
-  //       .sum(Database.raw(`CASE WHEN absoluteresp < 7 THEN 1 ELSE 0 END`), 'detrator')
-  //       .sum(Database.raw(`CASE WHEN absoluteresp BETWEEN 7 AND 8 THEN 1 ELSE 0 END`), 'passivo')
-  //       .sum(Database.raw(`CASE WHEN absoluteresp >= 9 THEN 1 ELSE 0 END`), 'promotor')
-  //       .groupBy('unit')
-  //     const resultByStation = unitResult.map(result => ({
-  //       station: result.station,
-  //       detrator: parseInt(result.detrator, 10),
-  //       passivo: parseInt(result.passivo, 10),
-  //       promotor: parseInt(result.promotor, 10)
-  //     }))
-  //     //MEDICO****************************************************************** */
-  //     const doctorResult = await Database
-  //       .from('chats')
-  //       .innerJoin('shippingcampaigns', 'chats.shippingcampaigns_id', 'shippingcampaigns.id')
-  //       .where('chats.interaction_id', 2)
-  //       .whereBetween('chats.created_at', [initialdate, finaldate])
-  //       .andWhereRaw('(excluded not in (1) or excluded is null)')
-  //       .select('doctor as medic')
-  //       .sum(Database.raw(`CASE WHEN absoluteresp < 7 THEN 1 ELSE 0 END`), 'detrator')
-  //       .sum(Database.raw(`CASE WHEN absoluteresp BETWEEN 7 AND 8 THEN 1 ELSE 0 END`), 'passivo')
-  //       .sum(Database.raw(`CASE WHEN absoluteresp >= 9 THEN 1 ELSE 0 END`), 'promotor')
-  //       .groupBy('doctor')
-  //     const resultByMedic = doctorResult.map(result => ({
-  //       medic: result.medic,
-  //       detrator: parseInt(result.detrator, 10),
-  //       passivo: parseInt(result.passivo, 10),
-  //       promotor: parseInt(result.promotor, 10)
-  //     }))
-
-  //     //ATENDENTE****************************************************************** */
-  //     const attendantResult = await Database
-  //       .from('chats')
-  //       .innerJoin('shippingcampaigns', 'chats.shippingcampaigns_id', 'shippingcampaigns.id')
-  //       .where('chats.interaction_id', 2)
-  //       .whereBetween('chats.created_at', [initialdate, finaldate])
-  //       .andWhereRaw('(excluded not in (1) or excluded is null)')
-  //       .select('attendant')
-  //       .sum(Database.raw(`CASE WHEN absoluteresp < 7 THEN 1 ELSE 0 END`), 'detrator')
-  //       .sum(Database.raw(`CASE WHEN absoluteresp BETWEEN 7 AND 8 THEN 1 ELSE 0 END`), 'passivo')
-  //       .sum(Database.raw(`CASE WHEN absoluteresp >= 9 THEN 1 ELSE 0 END`), 'promotor')
-  //       .groupBy('attendant')
-  //     const resultByAttendant = attendantResult.map(result => ({
-  //       attendant: result.attendant,
-  //       detrator: parseInt(result.detrator, 10),
-  //       passivo: parseInt(result.passivo, 10),
-  //       promotor: parseInt(result.promotor, 10)
-  //     }))
-  //     //******************************************************************* */
-
-  //     return response.status(201).send({ result, resultAcumulatedList, resultByStation, resultByMedic, resultByAttendant, npsResult })
-  //   } catch (error) {
-  //     throw new Error(error)
-  //   }
-
-  // }
 
   public async scheduleConfirmationDashboard({ request, response }: HttpContextContract) {
 

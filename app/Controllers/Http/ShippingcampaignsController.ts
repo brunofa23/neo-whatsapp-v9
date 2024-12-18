@@ -80,11 +80,9 @@ export default class ShippingcampaignsController {
     try {
       const data = await Shippingcampaign.query().where('id', params.id)
         .update(body)
-      const retorno = await Shippingcampaign.query().where('id', params.id).first()
-      console.log(retorno)
+      await Shippingcampaign.query().where('id', params.id).first()
       return response.status(201).send(data)
     } catch (error) {
-      console.log(error)
       return error
       //throw new BadRequest('Bad Request', 401)
     }
@@ -309,9 +307,8 @@ export default class ShippingcampaignsController {
 
 
   public async listShippingCampaigns({ request, response }: HttpContextContract) {
-    console.log("passei aqui....")
-    const { initialdate, finaldate, phonevalid, invalidresponse, absoluteresp } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp'])
 
+    const { initialdate, finaldate, phonevalid, invalidresponse, absoluteresp } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp'])
     let query = "1=1"
     if (phonevalid && phonevalid !== undefined) {
       query += ` and phonevalid=${phonevalid == 1 ? 1 : 0}`

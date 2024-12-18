@@ -8,8 +8,7 @@ export default class DateclosedsController {
 
   public async index({ auth, request, response }: HttpContextContract) {
     await auth.use('api').authenticate()
-    const { month, year, limit } = request.only(['month', 'year', 'limit'])
-    console.log("passei index 555", month, year)
+    const { month, year } = request.only(['month', 'year'])
     try {
       const query = Dateclosed.query()
       if (month && year) {
@@ -17,11 +16,10 @@ export default class DateclosedsController {
         query.andWhere('year', year)
       }
       // if (limit) {
-        //query.limit(10)
-        query.orderBy('year','desc')
-        query.orderBy('month','desc')
+      //query.limit(10)
+      query.orderBy('year', 'desc')
+      query.orderBy('month', 'desc')
       // }
-      console.log(query.toQuery())
       const data = await query
       return response.status(200).send(data)
     } catch (error) {
@@ -36,16 +34,14 @@ export default class DateclosedsController {
     if (body.month == null || body.year == null) {
       return response.status(401).send('values nulls')
     }
-    console.log("passo 1")
+
     const startOfMonth = DateTime.local(parseInt(body.year), parseInt(body.month)).startOf("month").toFormat("yyyy-MM-dd");
     const endOfMonth = DateTime.local(parseInt(body.year), parseInt(body.month)).endOf("month").toFormat("yyyy-MM-dd");;
 
     const trx = await Database.transaction()
     try {
-      console.log("passo 2")
       const data = await Dateclosed.create(body, { client: trx })
-      console.log("passo 3", data)
-      const dataChat = await Chat.query()
+      await Chat.query()
         .where('created_at', '>=', startOfMonth)
         .andWhere('created_at', '<=', endOfMonth)
         .andWhere('interaction_id', 2)
@@ -56,7 +52,6 @@ export default class DateclosedsController {
       return response.status(201).send(data)
     } catch (error) {
       await trx.rollback()
-      console.log("passo 4erro", error)
       return response.status(409).send(error)
     }
   }

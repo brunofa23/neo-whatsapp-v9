@@ -9,6 +9,7 @@ export default class extends BaseSchema {
       table.integer('month')
       table.integer('year')
       table.boolean('status').defaultTo(false)
+      table.unique(['month', 'year']) 
       /**
        * Uses timestamptz for PostgreSQL and DATETIME2 for MSSQL
        */

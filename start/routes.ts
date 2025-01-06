@@ -119,7 +119,7 @@ Route.group(() => {
 
   //ROUTES FOR KLINGO / APIS
   Route.get('/getschedules','DatasourceApisController.getSchedules')
-
+  Route.post('/confirmorcancelscheduleapi','DatasourceApisController.confirmOrCancelScheduleApi')
 
 
 }).prefix('/api')

@@ -36,7 +36,9 @@ async function cancelSchedule(body) {
   }
 }
 
-async function getPatients(){
+
+//BUSCA PACIENTES AGENDADOS NO KLINGO
+async function getSchedulesApi(date:string){
   try {
     console.log("API KLINGO!!")
     const server_header_key:string|undefined = process.env.SERVER_HEADER_KEY
@@ -44,11 +46,11 @@ async function getPatients(){
     const headers = {
       [server_header_key]: server_token
     }
-    const response = await axios.get(process.env.SERVER_GET_PATIENTS,{headers})
+    const response = await axios.get(`${process.env.SERVER_GET_PATIENTS}/${date}`,{headers})
     return response.data
   } catch (error) {
 
   }
 }
 
-export { cancelSchedule, session, getPatients }
+export { cancelSchedule, session, getSchedulesApi }

@@ -18,6 +18,12 @@ function operacaoAssincrona(callback) {
     connectionAll()
     return
   }
+
+  if(process.env.SERVER ==="Klingo"){
+    //FAZ INTEGRAÇÃO COM O SISTEMA KLINGO
+    console.log("KLINGO....")
+  }
+
 }
 
 operacaoAssincrona(function (erro, resultado) {
@@ -109,6 +115,11 @@ Route.group(() => {
 
   //DATECLOSED
   Route.resource('/datecloseds','DateclosedsController').apiOnly()
+
+
+  //ROUTES FOR KLINGO / APIS
+  Route.get('/datasourceapis','DatasourceApisController.getPatients')
+
 
 
 }).prefix('/api')

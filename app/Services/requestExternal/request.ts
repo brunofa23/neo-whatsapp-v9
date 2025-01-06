@@ -1,5 +1,6 @@
 import axios from 'axios'
 
+//PARA O SISTEMA SMART
 async function session() {
   try {
 
@@ -16,8 +17,6 @@ async function session() {
   }
 
 }
-
-
 
 async function cancelSchedule(body) {
   try {
@@ -37,4 +36,19 @@ async function cancelSchedule(body) {
   }
 }
 
-export { cancelSchedule, session }
+async function getPatients(){
+  try {
+    console.log("API KLINGO!!")
+    const server_header_key:string|undefined = process.env.SERVER_HEADER_KEY
+    const server_token = process.env.SERVER_TOKEN
+    const headers = {
+      [server_header_key]: server_token
+    }
+    const response = await axios.get(process.env.SERVER_GET_PATIENTS,{headers})
+    return response.data
+  } catch (error) {
+
+  }
+}
+
+export { cancelSchedule, session, getPatients }

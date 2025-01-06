@@ -118,7 +118,7 @@ Route.group(() => {
 
 
   //ROUTES FOR KLINGO / APIS
-  Route.get('/datasourceapis','DatasourceApisController.getPatients')
+  Route.get('/getschedules','DatasourceApisController.getSchedules')
 
 
 

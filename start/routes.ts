@@ -22,6 +22,7 @@ function operacaoAssincrona(callback) {
   if(process.env.SERVER ==="Klingo"){
     //FAZ INTEGRAÇÃO COM O SISTEMA KLINGO
     console.log("KLINGO....")
+    
   }
 
 }
@@ -119,7 +120,7 @@ Route.group(() => {
 
   //ROUTES FOR KLINGO / APIS
   Route.get('/getschedules','DatasourceApisController.getSchedules')
-  Route.post('/confirmorcancelscheduleapi','DatasourceApisController.confirmOrCancelScheduleApi')
+  Route.post('/confirmorcancelschedule','DatasourceApisController.confirmOrCancelSchedule')
 
 
 }).prefix('/api')

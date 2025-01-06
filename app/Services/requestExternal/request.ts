@@ -54,7 +54,7 @@ async function getSchedulesApi(date:string){
 }
 
 //CONFIRMA OU CANCELA AGENDAMENTO
-async function confirmOrCancelSchedule(id:number, status:string, obs:string){
+async function confirmOrCancelScheduleApi(id:number, status:string, obs:string){
   try {
     console.log("API KLINGO CONFIRMA OU CANCELA!!")
     const server_header_key:string|undefined = process.env.SERVER_HEADER_KEY
@@ -69,4 +69,4 @@ async function confirmOrCancelSchedule(id:number, status:string, obs:string){
   }
 }
 
-export { cancelSchedule, session, getSchedulesApi }
+export { cancelSchedule, session, getSchedulesApi, confirmOrCancelScheduleApi }

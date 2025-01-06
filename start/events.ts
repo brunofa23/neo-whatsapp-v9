@@ -1,5 +1,6 @@
 import AgentsController from "App/Controllers/Http/AgentsController";
 import DatasourcesController from "App/Controllers/Http/DatasourcesController";
+import DatasourceApisController from "App/Controllers/Http/DatasourceApisController";
 import Agent from "App/Models/Agent"
 import Config from "App/Models/Config"
 import PersistShippingcampaign from "App/Services/whatsapp-web/PersistShippingcampaign"
@@ -59,9 +60,24 @@ async function sendRepeatedMessage() {
       }
     }
   }, await GenerateRandomTime(300, 400, '****Send Message Repeated'))
-
-
 }
+
+
+async function sendRepeatedMessageKlingo() {
+  //console.log("EXECUTANDO BUSCA KLINGO")
+  const executingSendMessage = await Config.find('executingSendMessage')
+  setInterval(async () => {
+    const date = await DateFormat("dd/MM/yyyy HH:mm:ss", DateTime.local())
+    if (!executingSendMessage?.valuebool) {
+      if (await TimeSchedule()) {
+        console.log(`Buscando dados no Klingo: ${date}`)
+        
+
+      }
+    }
+  }, await GenerateRandomTime(300, 400, '****Send Message Repeated'))
+}
+
 async function resetStatusConnected() {
   await Agent.query().update({ status: null, statusconnected: false })
 }

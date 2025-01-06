@@ -13,10 +13,12 @@ async function sendRepeatedMessage(agent: Agent) {
       if (await TimeSchedule()) {
         console.log(`Buscando dados no Smart: ${date}`)
         await PersistShippingcampaign()
-
       }
     }
   }, await GenerateRandomTime(500, 800, '****Send Message Repeated'))
 
 }
+
+
+
 module.exports = { sendRepeatedMessage }

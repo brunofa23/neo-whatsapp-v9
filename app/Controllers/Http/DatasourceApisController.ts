@@ -1,5 +1,6 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Shippingcampaign from 'App/Models/Shippingcampaign'
+import Chat from 'App/Models/Chat'
 import { getSchedulesApi } from 'App/Services/requestExternal/request'
 import { ValidatePhone } from 'App/Services/whatsapp-web/util'
 import ResponsesController from './ResponsesController'
@@ -12,9 +13,6 @@ async function greeting(message: String) {
 }
 
 export default class DatasourceApisController {
-
-
-
 
   //BUSCAR OS PACIENTES DE AGENDAMENTO NO KLINGO
   public async getSchedules({ auth, response }: HttpContextContract) {
@@ -29,7 +27,6 @@ export default class DatasourceApisController {
         const gender = data.sexo=="M"?"Sr.":"Sra."
         const name_message=String(data.nome).trim().split(' ')[0]
         const date_schedule_message = DateTime.fromFormat(data.datahora,"yyyy-MM-dd HH:mm").toFormat("dd/MM/yyyy HH:mm")
-        console.log(date_schedule_message)
         const shipping = new Shippingcampaign()
         shipping.interaction_id = 1
         shipping.interaction_seq = 1
@@ -47,11 +44,9 @@ export default class DatasourceApisController {
         shipping.unit = String(data.unidade).trim()
         shipping.covenant = ''
 
-        console.log("passo 3.1")
         const verifyExist = await Shippingcampaign.query().where('reg', reg)
           .andWhere('dateshedule', data.datahora).first()
         if (!verifyExist) {
-          console.log("passo 4")
           await Shippingcampaign.create(shipping)
         }
       } catch (error) {
@@ -64,5 +59,42 @@ export default class DatasourceApisController {
     // const data = await Chat.query()
     //return response.status(200).send(data)
   }
+
+  //FAZ A CONFIRMAÇÃO NO KLINGO
+  public async confirmOrCancelScheduleApi({ auth, response }: HttpContextContract) {
+    //await auth.use('api').authenticate()
+    //chmamar a API DO KLINGO
+    const date_start = DateTime.now().startOf('day').toFormat("yyyy-MM-dd HH:mm")
+    const date_end = DateTime.now().endOf('day').toFormat("yyyy-MM-dd HH:mm")
+    try {
+      const confirmCancel = await Chat.query()
+      .whereBetween('created_at',[date_start,date_end])
+      .andWhere('externalstatus', 'A')
+
+      for (const data of confirmCancel) {
+
+      }
+
+      console.log(">>", confirmCancel)
+
+    } catch (error) {
+
+    }
+
+  //   for (const data of schedule_list) {
+  //     try {
+
+  //     } catch (error) {
+  //       console.log("Erro 44454>>>>", error)
+  //     }
+
+  //   }
+
+  //   return response.status(200).send("OK")
+  // }
+
+
+
 }
-//BUSCAR OS PACIENTES ATENDIDOS NO KLINGO
+
+

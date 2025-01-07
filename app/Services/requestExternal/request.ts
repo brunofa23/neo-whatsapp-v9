@@ -62,7 +62,7 @@ async function confirmOrCancelScheduleApi(id:number, status:string, obs:string){
     const headers = {
       [server_header_key]: server_token
     }
-    const response = await axios.post(`${process.env.SERVER_URL_API_KLINGO}/telefonia/confirmar`,{id, status,obs },{headers})
+    //const response = await axios.post(`${process.env.SERVER_URL_API_KLINGO}/telefonia/confirmar`,{id, status,obs },{headers})
     return response.data
   } catch (error) {
 

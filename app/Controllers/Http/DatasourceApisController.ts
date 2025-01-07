@@ -6,6 +6,8 @@ import { ValidatePhone } from 'App/Services/whatsapp-web/util'
 import ResponsesController from './ResponsesController'
 import { DateTime } from 'luxon'
 
+
+
 async function greeting(message: String) {
   const responseList = new ResponsesController()
   const greeting = await responseList.index({ local: 'greeting' }) //['Olá!😀', 'Oi tudo bem?😀', 'Saudações!😀', 'Oi como vai?😀']
@@ -17,6 +19,8 @@ export default class DatasourceApisController {
 
   //FUNÇÃO PARA BUSCAR OS PACIENTES AGENDADOS NO KLINGO
   public async getSchedulesInternal(date: string) {
+
+
     const schedule_list = await getSchedulesApi(date)
     console.log(schedule_list.length)
     for (const data of schedule_list) {
@@ -67,14 +71,14 @@ export default class DatasourceApisController {
         .andWhere('externalstatus', 'A')
         .andWhere('interaction_id', 1)
 
-       console.log("Executando confirm cancel:", confirmCancel)
+      console.log("Executando confirm cancel:", confirmCancel)
 
       for (const data of confirmCancel) {
         if (data.absoluteresp === 1) {
           //FAZ A CONFIRMAÇÃO - STATUS C
           console.log(confirmCancel)
           //await confirmOrCancelScheduleApi()
-        } else if(data.absoluteresp===2){
+        } else if (data.absoluteresp === 2) {
           //FAZ O CANCELAMENTO - STATUS N
           //await confirmOrCancelScheduleApi()
         }

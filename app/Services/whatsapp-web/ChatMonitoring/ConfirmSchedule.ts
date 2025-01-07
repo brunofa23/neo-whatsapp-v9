@@ -1,6 +1,6 @@
 import { NegativeResponse, PositiveResponse, stateTyping } from '../util'
-import DatasourcesController from 'App/Controllers/Http/DatasourcesController';
 import Chat from 'App/Models/Chat';
+import Response from 'App/Models/Response';
 import { Client, Message } from 'whatsapp-web.js';
 
 export default async (client: Client, message: Message, chat: Chat) => {
@@ -17,7 +17,16 @@ export default async (client: Client, message: Message, chat: Chat) => {
     if (await PositiveResponse(message.body)) {//presença confirmada
       await stateTyping(message)//status de digitando...
       try {
-        client.sendMessage(message.from, `Muito obrigada 😀, seu agendamento foi confirmado, o endereço da sua consulta é ${chatOtherFields.address}. Esperamos por você. Ótimo dia. Lembrando que para qualquer dúvida, estamos disponíveis pelo whatsapp ${chat.shippingcampaign.phone_unit}.`)
+
+        //BUSCA MENSAGEM DA TABELA RESPONSE SE NÃO TIVER USA DA NEO
+        const response1shcedule = await Response.query().select('message').where('local', 'response1shcedule').first()
+        let response1message
+        if (response1shcedule) {
+          response1message = response1shcedule.message
+        } else response1message = `Muito obrigada 😀, seu agendamento foi confirmado, o endereço da sua consulta é ${chatOtherFields.address}. Esperamos por você. Ótimo dia. Lembrando que para qualquer dúvida, estamos disponíveis pelo whatsapp ${chat.shippingcampaign.phone_unit}.`
+
+        client.sendMessage(message.from, response1message)
+        //client.sendMessage(message.from, response1shcedule)
         chat.response = message.body.slice(0, 500)
         chat.returned = true
         chat.absoluteresp = 1

@@ -1,7 +1,7 @@
 import Route from '@ioc:Adonis/Core/Route'
 import PersistShippingcampaign from "App/Services/whatsapp-web/PersistShippingcampaign"
 
-import { connectionAll, destroyFullAgents, resetStatusConnected, sendRepeatedMessage } from './events'
+import { connectionAll, destroyFullAgents, resetStatusConnected, sendRepeatedMessage, sendRepeatedMessageKlingo } from './events'
 
 console.log("***CHAT BOT V-125***04/10/2024")
 function operacaoAssincrona(callback) {
@@ -22,7 +22,8 @@ function operacaoAssincrona(callback) {
   if(process.env.SERVER ==="Klingo"){
     //FAZ INTEGRAÇÃO COM O SISTEMA KLINGO
     console.log("KLINGO....")
-    
+    sendRepeatedMessageKlingo()
+
   }
 
 }

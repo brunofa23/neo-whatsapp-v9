@@ -5,6 +5,7 @@ import { getSchedulesApi, confirmOrCancelScheduleApi } from 'App/Services/reques
 import { ValidatePhone } from 'App/Services/whatsapp-web/util'
 import ResponsesController from './ResponsesController'
 import { DateTime } from 'luxon'
+
 async function greeting(message: String) {
   const responseList = new ResponsesController()
   const greeting = await responseList.index({ local: 'greeting' }) //['Olá!😀', 'Oi tudo bem?😀', 'Saudações!😀', 'Oi como vai?😀']
@@ -14,15 +15,12 @@ async function greeting(message: String) {
 
 export default class DatasourceApisController {
 
-  //BUSCAR OS PACIENTES DE AGENDAMENTO NO KLINGO
-  public async getSchedules({ auth, response }: HttpContextContract) {
-    //await auth.use('api').authenticate()
-    //chmamar a API DO KLINGO
-    const schedule_list = await getSchedulesApi("2025-01-07")
-
+  //FUNÇÃO PARA BUSCAR OS PACIENTES AGENDADOS NO KLINGO
+  public async getSchedulesInternal(date: string) {
+    const schedule_list = await getSchedulesApi(date)
+    console.log(schedule_list.length)
     for (const data of schedule_list) {
       try {
-        //console.log(data)
         const reg = String(data.id_paciente).replace(/[^0-9.-]/g, "")
         const gender = data.sexo == "M" ? "Sr." : "Sra."
         const name_message = String(data.nome).trim().split(' ')[0]
@@ -34,7 +32,7 @@ export default class DatasourceApisController {
         shipping.dateshedule = data.datahora
         shipping.idexternal = data.id_marcacao
         shipping.name = String(data.nome).trim()
-        shipping.cellphone = String(data.celular).replace(/[^0-9]+/g, ''); //data.cellphone.replace("(", "").replace("-", "")
+        shipping.cellphone = '31985228619'//String(data.celular).replace(/[^0-9]+/g, ''); //data.cellphone.replace("(", "").replace("-", "")
         if (!await ValidatePhone(data.cellphone))
           shipping.phonevalid = false
         shipping.messagesent = false
@@ -51,13 +49,55 @@ export default class DatasourceApisController {
         }
       } catch (error) {
         console.log("Erro 44454>>>>", error)
+        return false
       }
+    }
+    return true
+  }
+
+
+  public async confirmOrCancelScheduleInternal() {
+    //await auth.use('api').authenticate()
+    //chmamar a API DO KLINGO
+    const date_start = DateTime.now().startOf('day').toFormat("yyyy-MM-dd HH:mm")
+    const date_end = DateTime.now().endOf('day').toFormat("yyyy-MM-dd HH:mm")
+    try {
+      const confirmCancel = await Chat.query()
+        .whereBetween('created_at', [date_start, date_end])
+        .andWhere('externalstatus', 'A')
+        .andWhere('interaction_id', 1)
+
+       console.log("Executando confirm cancel:", confirmCancel)
+
+      for (const data of confirmCancel) {
+        if (data.absoluteresp === 1) {
+          //FAZ A CONFIRMAÇÃO - STATUS C
+          //await confirmOrCancelScheduleApi()
+        } else {
+          //FAZ O CANCELAMENTO - STATUS N
+          //await confirmOrCancelScheduleApi()
+        }
+
+      }
+
+      console.log(">>", confirmCancel)
+
+    } catch (error) {
 
     }
 
+  }
+
+
+
+
+  //END POINT BUSCAR OS PACIENTES DE AGENDAMENTO NO KLINGO
+  public async getSchedules({ auth, response }: HttpContextContract) {
+    //chmamar a API DO KLINGO
+    const date = DateTime.now().toFormat("yyyy-MM-dd")
+    console.log(date)
+    await this.getSchedulesInternal(date)
     return response.status(200).send("OK")
-    // const data = await Chat.query()
-    //return response.status(200).send(data)
   }
 
   //FAZ A CONFIRMAÇÃO NO KLINGO

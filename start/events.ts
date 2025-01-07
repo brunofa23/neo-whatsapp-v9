@@ -68,15 +68,16 @@ async function sendRepeatedMessageKlingo() {
   //const executingSendMessage = await Config.find('executingSendMessage')
 
   setInterval(async () => {
-    const date = DateTime.now().toFormat("yyyy-MM-dd")
+    const date = DateTime.now().plus({days:2}).toFormat("yyyy-MM-dd")
       if (await TimeSchedule()) {
         console.log(`Buscando dados no Klingo: ${date}`)
         const datasourceApisController = new DatasourceApisController
+        //
         datasourceApisController.getSchedulesInternal(date)
         datasourceApisController.confirmOrCancelScheduleInternal()
       }
 
-  }, await GenerateRandomTime(30, 40, '****Send Message Repeated'))
+  }, await GenerateRandomTime(300, 400, '****Send Message Repeated'))
 }
 
 async function resetStatusConnected() {

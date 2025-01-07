@@ -33,10 +33,10 @@ export default class DatasourceApisController {
         shipping.idexternal = data.id_marcacao
         shipping.name = String(data.nome).trim()
         shipping.cellphone = '31985228619'//String(data.celular).replace(/[^0-9]+/g, ''); //data.cellphone.replace("(", "").replace("-", "")
-        if (!await ValidatePhone(data.cellphone))
+        if (!await ValidatePhone(shipping.cellphone))
           shipping.phonevalid = false
         shipping.messagesent = false
-        shipping.message = await greeting(String(`{greeting},{presentation}, atendente virtual do Cob, o motivo do meu contato ${gender} ${name_message} é para confirmar o horário conosco, agendado para o dia *${date_schedule_message}* na unidade ${data.unidade} com Dr(a). ${data.medico} podemos confirmar? *1* para Sim *2* para Desmarcar ou Reagendar.`).replace(/@p[0-9]/g, '?'))
+        shipping.message = await greeting(String(`{greeting},{presentation}, atendente virtual do Cob, o motivo do meu contato ${gender} ${name_message} é para confirmar o horário conosco, agendado para o dia *${date_schedule_message}* na unidade ${data.unidade} com Dr(a). ${data.medico} podemos confirmar? *1* para Sim *2* para Desmarcar.`).replace(/@p[0-9]/g, '?'))
         //shipping.otherfields = data.otherfields
         shipping.doctor = String(data.medico).trim()
         shipping.unit = String(data.unidade).trim()
@@ -72,8 +72,9 @@ export default class DatasourceApisController {
       for (const data of confirmCancel) {
         if (data.absoluteresp === 1) {
           //FAZ A CONFIRMAÇÃO - STATUS C
+          console.log(confirmCancel)
           //await confirmOrCancelScheduleApi()
-        } else {
+        } else if(data.absoluteresp===2){
           //FAZ O CANCELAMENTO - STATUS N
           //await confirmOrCancelScheduleApi()
         }

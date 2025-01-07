@@ -21,8 +21,12 @@ function operacaoAssincrona(callback) {
 
   if(process.env.SERVER ==="Klingo"){
     //FAZ INTEGRAÇÃO COM O SISTEMA KLINGO
-    console.log("KLINGO....")
+    console.log("INICIALIZANDO EASYTALK KLINGO....")
     sendRepeatedMessageKlingo()
+    resetStatusConnected()
+    destroyFullAgents()
+    connectionAll()
+    return
 
   }
 

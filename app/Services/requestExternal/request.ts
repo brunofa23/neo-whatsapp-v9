@@ -64,7 +64,7 @@ async function confirmOrCancelScheduleApi(id_marcacao:number, status:string, obs
     }
     const response = await axios.post(`${process.env.SERVER_URL_API_KLINGO}/telefonia/confirmar`,{id_marcacao, status,obs },{headers})
     console.log("RESPONSE:", response.data)
-    if(response.status===200){
+    if(response.status===200 && response.data=='OK'){
       return true
     }
     return response.data

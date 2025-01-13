@@ -109,10 +109,8 @@ export default class DatasourceApisController {
 
   //FAZ A CONFIRMAÇÃO NO KLINGO
   public async confirmOrCancelSchedule({ auth, response }: HttpContextContract) {
-    console.log("PASSEI 15555")
     //await auth.use('api').authenticate()
     //chmamar a API DO KLINGO
-
     const date_start = DateTime.now().startOf('day').toFormat("yyyy-MM-dd HH:mm")
     const date_end = DateTime.now().endOf('day').toFormat("yyyy-MM-dd HH:mm")
     try {
@@ -121,23 +119,23 @@ export default class DatasourceApisController {
         .andWhere('externalstatus', 'A')
         .andWhere('interaction_id', 1)
 
+      let result
       for (const data of confirmCancel) {
         if (data.absoluteresp === 1) {
           //FAZ A CONFIRMAÇÃO - STATUS C
-          console.log("FAZ CONFIRMAÇÃO")
-          await confirmOrCancelScheduleApi(data.idexternal,"C", "Confirmado.")
+          result = await confirmOrCancelScheduleApi(data.idexternal, "C", "Confirmado.")
         } else {
           //FAZ O CANCELAMENTO - STATUS N
-          await confirmOrCancelScheduleApi(data.idexternal,"N", "Não Confirmado.")
-          //console.log("FAZ CANCELAMENTO", data)
+          result = await confirmOrCancelScheduleApi(data.idexternal, "N", "Não Confirmado.")
         }
+
+        if (result)
+          await Chat.query().where("id", data.id).update({ externalstatus: 'B' })
 
       }
 
-      //console.log(">>", confirmCancel)
-
     } catch (error) {
-
+      return error
     }
 
   }

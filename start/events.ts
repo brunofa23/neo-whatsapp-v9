@@ -64,15 +64,13 @@ async function sendRepeatedMessage() {
 
 
 async function sendRepeatedMessageKlingo() {
-  //console.log("EXECUTANDO BUSCA KLINGO")
+  console.log("EXECUTANDO BUSCA KLINGO")
   //const executingSendMessage = await Config.find('executingSendMessage')
-
   setInterval(async () => {
     const date = DateTime.now().plus({days:2}).toFormat("yyyy-MM-dd")
       if (await TimeSchedule()) {
         console.log(`Buscando dados no Klingo: ${date}`)
         const datasourceApisController = new DatasourceApisController
-        //
         datasourceApisController.getSchedulesInternal(date)
         datasourceApisController.confirmOrCancelScheduleInternal()
       }

@@ -54,7 +54,7 @@ async function getSchedulesApi(date:string){
 }
 
 //CONFIRMA OU CANCELA AGENDAMENTO
-async function confirmOrCancelScheduleApi(id:number, status:string, obs:string){
+async function confirmOrCancelScheduleApi(id_marcacao:number, status:string, obs:string){
   try {
     console.log("API KLINGO CONFIRMA OU CANCELA!!")
     const server_header_key:string|undefined = process.env.SERVER_HEADER_KEY
@@ -62,10 +62,16 @@ async function confirmOrCancelScheduleApi(id:number, status:string, obs:string){
     const headers = {
       [server_header_key]: server_token
     }
-    //const response = await axios.post(`${process.env.SERVER_URL_API_KLINGO}/telefonia/confirmar`,{id, status,obs },{headers})
+    const response = await axios.post(`${process.env.SERVER_URL_API_KLINGO}/telefonia/confirmar`,{id_marcacao, status,obs },{headers})
+    console.log("RESPONSE:", response.data)
+    if(response.status===200){
+      return true
+    }
     return response.data
   } catch (error) {
 
+    console.log("error:",error)
+    return error
   }
 }
 

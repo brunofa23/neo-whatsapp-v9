@@ -6,8 +6,7 @@ import { ValidatePhone } from 'App/Services/whatsapp-web/util'
 import ResponsesController from './ResponsesController'
 import { DateTime } from 'luxon'
 
-
-
+//FUNÇÃO PARA GERAR A MENSAGEM
 async function greeting(message: String, schedule: Object) {
   const responseList = new ResponsesController()
   const greeting = await responseList.index({ local: 'greeting' }) //['Olá!😀', 'Oi tudo bem?😀', 'Saudações!😀', 'Oi como vai?😀']
@@ -25,7 +24,15 @@ async function greeting(message: String, schedule: Object) {
     .replace('{name_message}', name_message)
     .replace('{medic}', medic)
     .replace('{date_schedule_message}', date_schedule_message)).replace(/@p[0-9]/g, '?')
-  
+}
+
+//FUNÇÃO PARA GERAR O OTHERFIELDS
+async function otherFields(schedule: Object) {
+  const addres = "Av. Marechal Castelo Branco"
+  const unit = "31985228619"
+  const value = `{"address":"${addres}","medic":"${String(schedule.medico).trim()}","schedule":"${schedule.datahora}","phone_unit":"${unit}"}`
+
+  return value
 }
 
 export default class DatasourceApisController {
@@ -49,8 +56,8 @@ export default class DatasourceApisController {
           if (!await ValidatePhone(shipping.cellphone))
             shipping.phonevalid = false
           shipping.messagesent = false
-          shipping.message = await greeting(String(`{greeting},{presentation},{askschedule} `), data)
-          shipping.otherfields = `{"address":"RUA TESTE","medic":"${String(data.medico).trim()}","schedule":"${data.datahora}","phone_unit":"31222233331"}`
+          shipping.message = await greeting(String(`{greeting},{presentation},{askschedule}`), data)
+          shipping.otherfields = await otherFields(data)
           shipping.doctor = String(data.medico).trim()
           shipping.unit = String(data.unidade).trim()
           shipping.covenant = ''

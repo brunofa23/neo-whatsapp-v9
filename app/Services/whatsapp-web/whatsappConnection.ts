@@ -109,6 +109,7 @@ async function startAgent(_agent: Agent) {
   const startTimeSendMessage = agent.interval_init_message
   const endTimeSendMessage = agent.interval_final_message
   setInterval(async () => {
+    console.log("passo 5 16")
     const statusSendMessage = await getStatusSendMessage()//await Config.query().select('valuebool', 'valuedatetime').where('id', 'statusSendMessage').first()
     if (statusSendMessage) {
       SendMessage(client, agent)

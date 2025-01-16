@@ -63,6 +63,7 @@ async function sendRepeatedMessage() {
 }
 
 
+//BUSCANDO NO KLINGO
 async function sendRepeatedMessageKlingo() {
   console.log("EXECUTANDO BUSCA KLINGO")
   //const executingSendMessage = await Config.find('executingSendMessage')

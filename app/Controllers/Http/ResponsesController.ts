@@ -12,7 +12,7 @@ export default class ResponsesController {
     data.map((resp) => {
       responseList.push(resp.message)
     })
-    return responseList
+    return responseList[Math.floor(Math.random() * responseList.length)]
 
   }
 

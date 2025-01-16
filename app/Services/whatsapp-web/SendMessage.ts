@@ -15,26 +15,19 @@ let resetContSendBool = false
 const shippingcampaignsController = new ShippingcampaignsController()
 
 export default async (client: Client, agent: Agent) => {
-console.log("passo 1 dia 16")
   async function verifyClientSend(client, cellphone) {
-    console.log("passo 3 dia 16")
     if (client?.info?.wid) {
       const query= Chat.query()
         .where('cellphone', cellphone)
         .andWhere('created_at', '>', dayBefore5)
         .andWhere('chatnumber', client.info.wid.user)
-
-        console.log(query.toQuery())
-
       return await query.first()
-
     }
     else {
       console.log("cliente não conectado")
       return
     }
   }
-  console.log("passo 2 dia 16")
   async function verifyContSend() {
     if (global.contSend >= 3) {
       if (resetContSendBool == false) {
@@ -62,7 +55,7 @@ console.log("passo 1 dia 16")
 
   //********************************************************************* */
   async function sendMessages() {
-    console.log("passo 7 dia 16")
+
     const totMessageSend = await countLimitSendMessage()
     const maxLimitSendAgent = await maxLimitSendMessageAgent(agent.id)
     const shippingCampaign = await shippingcampaignsController.patientToSend(agent)
@@ -77,7 +70,6 @@ console.log("passo 1 dia 16")
       return
     }
     await verifyContSend()
-    console.log("passo 8 dia 16")
     if (shippingCampaign) {
       //console.log("passo 6")
       if (global.contSend < 3) {

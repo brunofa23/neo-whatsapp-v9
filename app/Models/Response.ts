@@ -11,6 +11,7 @@ export default class Response extends BaseModel {
       'local',
       'company_id',
       'interaction_id',
+      'inactive',
       'created_at',
       'updated_at'
     ]
@@ -33,6 +34,9 @@ export default class Response extends BaseModel {
 
   @column()
   public interaction_id:number
+
+  @column()
+  public inactive:boolean
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime

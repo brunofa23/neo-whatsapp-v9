@@ -8,11 +8,24 @@ import { DateTime } from 'luxon'
 
 
 
-async function greeting(message: String) {
+async function greeting(message: String, schedule: Object) {
   const responseList = new ResponsesController()
   const greeting = await responseList.index({ local: 'greeting' }) //['Olá!😀', 'Oi tudo bem?😀', 'Saudações!😀', 'Oi como vai?😀']
   const presentation = await responseList.index({ local: 'presentation' })//['Eu me chamo Iris', 'Eu sou a Iris', 'Aqui é a Iris']
-  return message.replace('{greeting}', greeting[Math.floor(Math.random() * greeting.length)]).replace('{presentation}', presentation[Math.floor(Math.random() * presentation.length)])
+  const askschedule = await responseList.index({ local: 'askschedule' })
+  const gender = schedule.sexo == "M" ? "Sr." : "Sra."
+  const date_schedule_message = DateTime.fromFormat(schedule.datahora, "yyyy-MM-dd HH:mm").toFormat("dd/MM/yyyy HH:mm")
+  const name_message = String(schedule.nome).trim().split(' ')[0]
+  const medic = String(schedule.medico).trim().split(' ')[0]
+
+  return String(message.replace('{greeting}', greeting)
+    .replace('{presentation}', presentation)
+    .replace('{askschedule}', askschedule)
+    .replace('{gender}', gender)
+    .replace('{name_message}', name_message)
+    .replace('{medic}', medic)
+    .replace('{date_schedule_message}', date_schedule_message)).replace(/@p[0-9]/g, '?')
+  
 }
 
 export default class DatasourceApisController {
@@ -24,9 +37,7 @@ export default class DatasourceApisController {
       if (data.id_paciente == 5144) {
         try {
           const reg = String(data.id_paciente).replace(/[^0-9.-]/g, "")
-          const gender = data.sexo == "M" ? "Sr." : "Sra."
-          const name_message = String(data.nome).trim().split(' ')[0]
-          const date_schedule_message = DateTime.fromFormat(data.datahora, "yyyy-MM-dd HH:mm").toFormat("dd/MM/yyyy HH:mm")
+
           const shipping = new Shippingcampaign()
           shipping.interaction_id = 1
           shipping.interaction_seq = 1
@@ -38,7 +49,7 @@ export default class DatasourceApisController {
           if (!await ValidatePhone(shipping.cellphone))
             shipping.phonevalid = false
           shipping.messagesent = false
-          shipping.message = await greeting(String(`{greeting},{presentation}, atendente virtual do Cob, o motivo do meu contato ${gender} ${name_message} é para confirmar o horário conosco, agendado para o dia *${date_schedule_message}* na unidade ${data.unidade} com Dr(a). ${data.medico} podemos confirmar? *1* para Sim *2* para Desmarcar.`).replace(/@p[0-9]/g, '?'))
+          shipping.message = await greeting(String(`{greeting},{presentation},{askschedule} `), data)
           shipping.otherfields = `{"address":"RUA TESTE","medic":"${String(data.medico).trim()}","schedule":"${data.datahora}","phone_unit":"31222233331"}`
           shipping.doctor = String(data.medico).trim()
           shipping.unit = String(data.unidade).trim()

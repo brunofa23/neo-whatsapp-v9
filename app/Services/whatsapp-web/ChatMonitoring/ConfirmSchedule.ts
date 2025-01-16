@@ -13,6 +13,13 @@ export default async (client: Client, message: Message, chat: Chat) => {
       .replace('${chatOtherFields.phone_unit}', fields.phone_unit || 'Contato indisponível');
   };
 
+  //FUNÇÃO RETORNA O LINK DE REDIRECIONAMENTO DO WHATSAPP PARA REAGENDAMENTO
+  const messageLink = (message: any, phone_unit: any) => {
+    const messageLink = message
+    const encodedMessage = encodeURIComponent(messageLink);
+    return `https://api.whatsapp.com/send?phone=${phone_unit}&text=${encodedMessage}`;
+  }
+
   //PERGUNTA 1 - GOSTARIA DE AGENDAR A CONSULTA
   if (message.hasMedia) {
     await stateTyping(message)
@@ -24,14 +31,12 @@ export default async (client: Client, message: Message, chat: Chat) => {
     if (await PositiveResponse(message.body)) {//presença confirmada
       await stateTyping(message)//status de digitando...
       try {
-
-
         // Busca a mensagem personalizada ou usa a mensagem padrão
         const response1schedule = await Response.query()
           .select('message')
-          .where('local', 'response1shcedule')
+          .where('local', 'response1schedule')
+          .andWhere('inactive', false)
           .first();
-
 
         const defaultMessage = `Muito obrigada 😀, seu agendamento foi confirmado, o endereço da sua consulta é ${chat.shippingcampaign.address}. Esperamos por você. Ótimo dia. Lembrando que para qualquer dúvida, estamos disponíveis pelo whatsapp ${chat.shippingcampaign.phone_unit}.`;
 
@@ -82,20 +87,32 @@ export default async (client: Client, message: Message, chat: Chat) => {
           // Busca a mensagem personalizada ou usa a mensagem padrão
           const response2schedule = await Response.query()
             .select('message')
-            .where('local', 'response2shcedule')
+            .where('local', 'response2schedule')
+            .andWhere('inactive', false)
             .first();
 
           const default2Message = `Entendi 😉, sabemos que nosso dia está muito atarefado! Sua consulta foi desmarcada, se deseja reagendar, clique no link que estou enviando para conversar com uma de nossas atendentes e podermos agendar novo horário mais conveniente para você.`
           const message2 = response2schedule ? formatMessage(response2schedule.message, chatOtherFields) : default2Message
-
           await client.sendMessage(message.from, message2)
 
-          if (response2schedule) {
-            const messageLink = `Olá, sou ${chat.name} e gostaria de reagendar uma consulta com ${chatOtherFields.medic}.`
-            const encodedMessage = encodeURIComponent(messageLink);
-            const linkRedirect = `https://api.whatsapp.com/send?phone=${chat.shippingcampaign.phone_unit}&text=${encodedMessage}`;
-            await client.sendMessage(message.from, linkRedirect)
+          //MANDA UMA SEGUNDA MENSAGEM CONTENDO O LINK
+          const response2schedule2 = await Response.query()
+            .where('local', 'response2schedule2')
+            //.andWhere('inactive', false)
+            .first();
+          if (response2schedule2) {
+            if (response2schedule2.inactive===false) {
+              const linkRedirect = messageLink(response2schedule2.message, chatOtherFields.phone_unit)
+              await client.sendMessage(message.from, linkRedirect)
+            }
           }
+          else
+            if (!response2schedule2) {//ENVIA PADRÃO DA NEO
+              const messageLink = `Olá, sou ${chat.name} e gostaria de reagendar uma consulta com ${chatOtherFields.medic}.`
+              const encodedMessage = encodeURIComponent(messageLink);
+              const linkRedirect = `https://api.whatsapp.com/send?phone=${chat.shippingcampaign.phone_unit}&text=${encodedMessage}`;
+              await client.sendMessage(message.from, linkRedirect)
+            }
 
           const chat2 = new Chat()
           Object.assign(chat2, {

@@ -12,30 +12,67 @@ export default async (client: Client, message: Message, chat: Chat) => {
     return
   }
   if (chat.interaction_seq == 1) {
-
     const chatOtherFields = JSON.parse(chat.shippingcampaign.otherfields)
     if (await PositiveResponse(message.body)) {//presença confirmada
       await stateTyping(message)//status de digitando...
+      // try {
+      //   //BUSCA MENSAGEM DA TABELA RESPONSE SE NÃO TIVER USA DA NEO
+      //   const response1schedule = await Response.query().select('message').where('local', 'response1shcedule').first()
+      //   let response1message
+      //   if (response1schedule) {//Substitui os campos pelo da tabela responses
+      //     const personalizedMessage = response1schedule.message
+      //       .replace('${chatOtherFields.address}', chatOtherFields.address)
+      //       .replace('${chatOtherFields.medic}', chatOtherFields.medic)
+      //       .replace('${chatOtherFields.phone_unit}', chatOtherFields.phone_unit);
+      //     response1message = personalizedMessage
+      //   } else response1message = `Muito obrigada 😀, seu agendamento foi confirmado, o endereço da sua consulta é ${chatOtherFields.address}. Esperamos por você. Ótimo dia. Lembrando que para qualquer dúvida, estamos disponíveis pelo whatsapp ${chat.shippingcampaign.phone_unit}.`
+
+      //   client.sendMessage(message.from, response1message)
+      //   chat.response = message.body.slice(0, 500)
+      //   chat.returned = true
+      //   chat.absoluteresp = 1
+      //   chat.externalstatus = 'A'
+      //   chat.company_id = chat.shippingcampaign.company_id
+
+      //   await chat.save()
+      // } catch (error) {
+      //   console.log("Erro 454:", error)
+      // }
       try {
+        // Função para substituir os placeholders na mensagem
+        const formatMessage = (template, fields) => {
+          return template
+            .replace('${chatOtherFields.address}', fields.address || 'Endereço indisponível')
+            .replace('${chatOtherFields.medic}', fields.medic || 'Médico não informado')
+            .replace('${chatOtherFields.phone_unit}', fields.phone_unit || 'Contato indisponível');
+        };
 
-        //BUSCA MENSAGEM DA TABELA RESPONSE SE NÃO TIVER USA DA NEO
-        const response1shcedule = await Response.query().select('message').where('local', 'response1shcedule').first()
-        let response1message
-        if (response1shcedule) {
-          response1message = response1shcedule.message
-        } else response1message = `Muito obrigada 😀, seu agendamento foi confirmado, o endereço da sua consulta é ${chatOtherFields.address}. Esperamos por você. Ótimo dia. Lembrando que para qualquer dúvida, estamos disponíveis pelo whatsapp ${chat.shippingcampaign.phone_unit}.`
+        // Busca a mensagem personalizada ou usa a mensagem padrão
+        const response1schedule = await Response.query()
+          .select('message')
+          .where('local', 'response1shcedule')
+          .first();
 
-        client.sendMessage(message.from, response1message)
-        //client.sendMessage(message.from, response1shcedule)
-        chat.response = message.body.slice(0, 500)
-        chat.returned = true
-        chat.absoluteresp = 1
-        chat.externalstatus = 'A'
-        chat.company_id = chat.shippingcampaign.company_id
+        const defaultMessage = `Muito obrigada 😀, seu agendamento foi confirmado, o endereço da sua consulta é ${chat.shippingcampaign.address}. Esperamos por você. Ótimo dia. Lembrando que para qualquer dúvida, estamos disponíveis pelo whatsapp ${chat.shippingcampaign.phone_unit}.`;
 
-        await chat.save()
+        const response1message = response1schedule
+          ? formatMessage(response1schedule.message, chatOtherFields)
+          : defaultMessage;
+
+        // Envia a mensagem ao cliente
+        await client.sendMessage(message.from, response1message);
+
+        // Atualiza o chat com os dados de resposta
+        Object.assign(chat, {
+          response: message.body.slice(0, 500),
+          returned: true,
+          absoluteresp: 1,
+          externalstatus: 'A',
+          company_id: chat.shippingcampaign.company_id,
+        });
+        await chat.save();
       } catch (error) {
-        console.log("Erro 454:", error)
+        console.error("Erro ao enviar a mensagem de agendamento:", error.message, error.stack);
       }
       //Salvar no Smart e marcar presença
     } else
@@ -51,29 +88,30 @@ export default async (client: Client, message: Message, chat: Chat) => {
         } catch (error) {
           console.log("Erro 121:", error)
         }
-        //CANCELA MARCAÇÃO NO SMART
+        //CANCELA MARCAÇÃO NO SMART NEO
         await stateTyping(message)
         const message2 = `Entendi 😉, sabemos que nosso dia está muito atarefado! Sua consulta foi desmarcada, se deseja reagendar, clique no link que estou enviando para conversar com uma de nossas atendentes e podermos agendar novo horário mais conveniente para você.`
         client.sendMessage(message.from, message2)
-
         const messageLink = `Olá, sou ${chat.name} e gostaria de reagendar uma consulta com ${chatOtherFields.medic}.`
         const encodedMessage = encodeURIComponent(messageLink);
         const linkRedirect = `https://api.whatsapp.com/send?phone=${chat.shippingcampaign.phone_unit}&text=${encodedMessage}`;
         client.sendMessage(message.from, linkRedirect)
 
         const chat2 = new Chat()
-        chat2.interaction_id = chat.interaction_id
-        chat2.interaction_seq = 2
-        chat2.idexternal = chat.idexternal
-        chat2.reg = chat.reg
-        chat2.name = chat.name
-        chat2.cellphone = chat.cellphone
-        chat2.cellphoneserialized = message.from
-        chat2.shippingcampaigns_id = chat.shippingcampaigns_id
-        chat2.message = message2.slice(0, 348)
-        chat2.response = "Reagendada"
-        chat2.returned = true
-        chat2.company_id = chat.shippingcampaign.company_id
+        Object.assign(chat2, {
+          interaction_id: chat.interaction_id,
+          interaction_seq: 2,
+          idexternal: chat.idexternal,
+          reg: chat.reg,
+          name: chat.name,
+          cellphone: chat.cellphone,
+          cellphoneserialized: message.from,
+          shippingcampaigns_id: chat.shippingcampaigns_id,
+          message: message2.slice(0, 348),
+          response: "Reagendada",
+          returned: true,
+          company_id: chat.shippingcampaign.company_id
+        });
 
         try {
           Chat.create(chat2)

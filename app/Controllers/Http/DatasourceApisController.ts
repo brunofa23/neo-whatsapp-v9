@@ -20,7 +20,6 @@ export default class DatasourceApisController {
   //FUNÇÃO PARA BUSCAR OS PACIENTES AGENDADOS NO KLINGO
   public async getSchedulesInternal(date: string) {
     const schedule_list = await getSchedulesApi(date)
-    console.log(schedule_list)
     for (const data of schedule_list) {
       if (data.id_paciente == 5144) {
         try {
@@ -40,7 +39,7 @@ export default class DatasourceApisController {
             shipping.phonevalid = false
           shipping.messagesent = false
           shipping.message = await greeting(String(`{greeting},{presentation}, atendente virtual do Cob, o motivo do meu contato ${gender} ${name_message} é para confirmar o horário conosco, agendado para o dia *${date_schedule_message}* na unidade ${data.unidade} com Dr(a). ${data.medico} podemos confirmar? *1* para Sim *2* para Desmarcar.`).replace(/@p[0-9]/g, '?'))
-          //shipping.otherfields = data.otherfields
+          shipping.otherfields = `{"address":"RUA TESTE","medic":"${String(data.medico).trim()}","schedule":"${data.datahora}","phone_unit":"31222233331"}`
           shipping.doctor = String(data.medico).trim()
           shipping.unit = String(data.unidade).trim()
           shipping.covenant = ''

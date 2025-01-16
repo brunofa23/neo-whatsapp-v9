@@ -20,7 +20,7 @@ export default class DatasourceApisController {
   //FUNÇÃO PARA BUSCAR OS PACIENTES AGENDADOS NO KLINGO
   public async getSchedulesInternal(date: string) {
     const schedule_list = await getSchedulesApi(date)
-    console.log(schedule_list.length)
+    console.log(schedule_list)
     for (const data of schedule_list) {
       if (data.id_paciente == 5144) {
         try {

@@ -47,7 +47,8 @@ async function getSchedulesApi(date:string){
       [server_header_key]: server_token
     }
     const response = await axios.get(`${process.env.SERVER_URL_API_KLINGO}/telefonia/lista/${date}`,{headers})
-    return response.data
+    const responseFilter = response.data.filter(item => item.status_confirmacao === "A Confirmar");
+    return responseFilter
   } catch (error) {
 
   }

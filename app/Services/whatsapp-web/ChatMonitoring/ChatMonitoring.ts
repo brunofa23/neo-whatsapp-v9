@@ -7,20 +7,48 @@ import { DateFormat, RandomResponse, stateTyping } from '../util'
 import ConfirmSchedule from './ConfirmSchedule'
 import ServiceEvaluation from './ServiceEvaluation';
 import AutomaticResponses from '../AutomaticResponses';
+import Agent from 'App/Models/Agent';
+
+// async function verifyNumberInternal(phoneVerify: String) {
+//   const list_phone_talking = process.env.LIST_PHONES_TALK
+//   const list_phones = list_phone_talking?.split(",")
+//    // Verifica se o telefone está na lista do ambiente
+//    if (listPhonesFromEnv.includes(phoneVerify)) {
+//     return true;
+//   }
+//   const list_agents =await Agent.query()
+//   .select('number_phone')
+//   .whereNull('deleted')
+//   .andWhere('status','CONNECTED')
+
+//   for (const agent of list_agents) {
+//     if(agent.number_phone===phoneVerify)
+//       return
+//   }
 
 
-async function verifyNumberInternal(phoneVerify: String) {
-  const list_phone_talking = process.env.LIST_PHONES_TALK
-  const list_phones = list_phone_talking?.split(",")
-  if (list_phones) {
-    for (const phone of list_phones) {
-      //console.log("passei no verify internals", phoneVerify, "Listphones:", list_phones)
-      if (phoneVerify === phone)
-        return true
-    }
+// }
+async function verifyNumberInternal(phoneVerify: string): Promise<boolean> {
+  // Lista de telefones em formato de array
+  const listPhonesFromEnv = process.env.LIST_PHONES_TALK?.split(",") || [];
+
+  // Verifica se o telefone está na lista do ambiente
+  if (listPhonesFromEnv.includes(phoneVerify)) {
+    return true;
   }
 
+  // Busca números de telefone dos agentes conectados
+  const connectedAgents = await Agent.query()
+    .select('number_phone')
+    .whereNull('deleted')
+    .andWhere('status', 'CONNECTED');
+
+  // Verifica se o telefone está na lista de agentes
+  const isPhoneInAgents = connectedAgents.some(agent => agent.number_phone === phoneVerify);
+
+  return isPhoneInAgents;
 }
+
 
 
 async function getCustomChat(cellphone: String, chatnumber: String) {

@@ -15,6 +15,7 @@ let resetContSendBool = false
 const shippingcampaignsController = new ShippingcampaignsController()
 
 export default async (client: Client, agent: Agent) => {
+
   async function verifyClientSend(client, cellphone) {
     if (client?.info?.wid) {
       const query= Chat.query()
@@ -28,6 +29,7 @@ export default async (client: Client, agent: Agent) => {
       return
     }
   }
+
   async function verifyContSend() {
     if (global.contSend >= 3) {
       if (resetContSendBool == false) {
@@ -90,14 +92,15 @@ export default async (client: Client, agent: Agent) => {
               .andWhere('shippingcampaigns_id', shippingCampaign?.id).first()
 
             if (verifyChat == undefined) {
-               await client.sendMessage(validationCellPhone, shippingCampaign.message)
+                let returnResponse:any={}
+                await client.sendMessage(validationCellPhone, shippingCampaign.message)
                 .then(async (response) => {
+                  returnResponse = response
                   global.contSend++
                   shippingCampaign.messagesent = true
                   shippingCampaign.phonevalid = true
                   shippingCampaign.cellphoneserialized = validationCellPhone
                   await shippingCampaign.save()
-
                   const bodyChat = {
                     interaction_id: shippingCampaign.interaction_id,
                     interaction_seq: shippingCampaign.interaction_seq,
@@ -117,9 +120,14 @@ export default async (client: Client, agent: Agent) => {
                   if (agent.statusconnected == false)
                     await Agent.query().where('id', agent.id).update({ statusconnected: true })
                 }).catch(async (error) => {
-                  console.log("Mensage:::", error)
-                  await Log.create({name:'sendMessage', message:error,description:"SendMessage.ts. linha:120" })
+                  await Agent.query().where('id', agent.id).update({ statusconnected: false })
+                  await Log.create({name:'sendMessage', message:error,description:"SendMessage.ts. linha:120 - Whatsapp Bugado catch" })
                 })
+                if(Object.keys(returnResponse).length===0){
+                  await Log.create({name:'sendMessage', message:error,description:"SendMessage.ts. linha:120 - Whatsapp Bugado depois deo catch" })
+                  await Agent.query().where('id', agent.id).update({ statusconnected: false })
+                }
+
             }
 
           } else {//número é inválido

@@ -5,37 +5,30 @@ import Log from 'App/Models/Log'
 import Agent from 'App/Models/Agent'
 
 test('display welcome page', async ({ client }) => {
-console.log("executando teste.....bRUNO")
 
-const list_agents =await Agent.query()
-   .select('number_phone')
-   .whereNull('deleted')
-   .andWhere('status','CONNECTED')
+  const formatMessage = (template, fields) => {
+    return template
+   .replace('${chatOtherFields.address}', fields.address || 'Endereço indisponível')
+   .replace('${chatOtherFields.medic}', fields.medic || 'Médico não informado')
+   .replace('${chatOtherFields.phone_unit}', fields.phone_unit || 'Contato indisponível');
+};
 
-  let retorno
-  for (const element of list_agents) {
-      if(element.number_phone=='553190753880')
-        retorno= true
-  }
-
-  console.log(retorno)
-
-
-  //await Log.create({name:'ValidatePhone', message:'erro 12211: número não validado',description:"Verificar na função ValidatePhone" })
-  // const cellphone = '31991927066'
-  // const regexTelefoneCelular = /^(\+55|55)?\s?(?:\(?0?[1-9]{2}\)?)?\s?(?:9\s?)?[6789]\d{3}[-\s]?\d{4}$/;
-  // const retorno = regexTelefoneCelular.test(cellphone);
-  // console.log("RESULTADO", retorno)
+  const response1schedule = await Response.query()
+          .select('message')
+          .where('local', 'response1schedule')
+          .andWhere('inactive', false)
+          .first();
 
 
-  // const teste = new ResponsesController()
-  // const list = await teste.index({local:'presentation'})
-  // console.log(">>>>>>>>>>>>>>>>>>>", list)
-//   const teste = await Response.query()
-//   .where('local','presentation')
+    const teste = formatMessage(response1schedule?.message,
+      'Muito obrigada 😀, seu agendamento foi confirmado, o endereço da sua consulta é ${chatOtherFields.address}. Esperamos por você. Ótimo dia. Lembrando que para qualquer dúvida, estamos disponíveis pelo whatsapp ${chatOtherFields.phone_unit}.')
 
-// const teste2=[]
-//   const respostas = teste.map((resp)=>{
-//     teste2.push(resp.message)
-//   })
+          console.log(teste)
+
+  //      const defaultMessage = `Muito obrigada 😀, seu agendamento foi confirmado, o endereço da sua consulta é ${chat.shippingcampaign.address}. Esperamos por você. Ótimo dia. Lembrando que para qualquer dúvida, estamos disponíveis pelo whatsapp ${chat.shippingcampaign.phone_unit}.`;
+
+        // const response1message = response1schedule
+        //   ? formatMessage(response1schedule.message, chatOtherFields)
+        //   : defaultMessage;
+
 })

@@ -139,6 +139,27 @@ async function startAgent(_agent: Agent) {
     await chatMonitoringInternal.monitoring(client)
   }
 
+
+  client.on('message_ack', async (msg, ack) => {
+      /*
+          == ACK VALUES ==
+          ACK_ERROR: -1
+          ACK_PENDING: 0
+          ACK_SERVER: 1
+          ACK_DEVICE: 2
+          ACK_READ: 3
+          ACK_PLAYED: 4
+      */
+      // const returnAck = await Customchat.query()
+      //   .where('message', msg.body)
+      //   .andWhere('cellphoneserialized', msg.to)
+      //   .update({ ack: msg.ack })
+      //console.log("Mensagem:",msg)
+      //console.log("ack:",ack)
+    });
+
+
+
   //************************************************ */
   client.on('disconnected', async (reason) => {
     agent.status = 'Disconnected'

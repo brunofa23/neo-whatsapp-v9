@@ -58,7 +58,6 @@ async function getSchedulesApi(date:string){
 //CONFIRMA OU CANCELA AGENDAMENTO
 async function confirmOrCancelScheduleApi(id_marcacao:number, status:string, obs:string){
   try {
-    console.log("API KLINGO CONFIRMA OU CANCELA!!")
     const server_header_key:string|undefined = process.env.SERVER_HEADER_KEY
     const server_token = process.env.SERVER_TOKEN
     const headers = {

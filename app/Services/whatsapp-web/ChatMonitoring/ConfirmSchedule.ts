@@ -7,7 +7,7 @@ export default async (client: Client, message: Message, chat: Chat) => {
 
   // Função para substituir os placeholders na mensagem
   const formatMessage = (template, fields) => {
-    return template
+       return template
       .replace('${chatOtherFields.address}', fields.address || 'Endereço indisponível')
       .replace('${chatOtherFields.medic}', fields.medic || 'Médico não informado')
       .replace('${chatOtherFields.phone_unit}', fields.phone_unit || 'Contato indisponível');
@@ -63,12 +63,6 @@ export default async (client: Client, message: Message, chat: Chat) => {
     } else
       //CANCELAR AGENDAMENTO******************************************************************
       if (await NegativeResponse(message.body)) {
-
-        // chat.response = message.body
-        // chat.absoluteresp = 2
-        // chat.externalstatus = 'A'
-        // chat.company_id = chat.shippingcampaign.company_id
-
         try {
           Object.assign(chat, {
             response: message.body,
@@ -80,7 +74,6 @@ export default async (client: Client, message: Message, chat: Chat) => {
         } catch (error) {
           console.log("Erro 121:", error)
         }
-
         //CANCELA MARCAÇÃO NO SMART NEO
         await stateTyping(message)
         try {

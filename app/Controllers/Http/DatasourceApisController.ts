@@ -28,6 +28,9 @@ async function greeting(message: String, schedule: Object) {
 
 //FUNÇÃO PARA GERAR O OTHERFIELDS
 async function otherFields(schedule: Object) {
+
+  console.log(schedule)
+
   const addres = "Av. Marechal Castelo Branco"
   const unit = "31985228619"
   const value = `{"address":"${addres}","medic":"${String(schedule.medico).trim()}","schedule":"${schedule.datahora}","phone_unit":"${unit}"}`

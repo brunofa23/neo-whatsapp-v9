@@ -72,12 +72,12 @@ async function sendRepeatedMessageKlingo() {
       if (await TimeSchedule()) {
         console.log(`Buscando dados no Klingo: ${date}`)
         const datasourceApisController = new DatasourceApisController
-        datasourceApisController.getSchedulesInternal(date)
-        datasourceApisController.confirmOrCancelScheduleInternal()
+         datasourceApisController.getSchedulesInternal(date)
+         datasourceApisController.confirmOrCancelScheduleInternal()
       }
 
-  }, await GenerateRandomTime(300, 400, '****Send Message Repeated'))
-}
+  },await GenerateRandomTime(300, 400, '****Send Message Repeated')
+  )}
 
 async function resetStatusConnected() {
   await Agent.query().update({ status: null, statusconnected: false })

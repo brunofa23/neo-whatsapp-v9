@@ -111,7 +111,7 @@ async function startAgent(_agent: Agent) {
         console.log(`Chat encontrado: ${chat.name || chat.id.user}`);
 
         // Obtém as últimas 5 mensagens do chat
-        const messages = await chat.fetchMessages({ limit: 3 });
+        const messages = await chat.fetchMessages({ limit: 1 });
 
         console.log(`Mensagens do chat "${chat.name || chat.id.user}":`);
         for (const message of messages) {

@@ -38,39 +38,59 @@ async function TimeSchedule() {
   return timeSchedule
 }
 
-async function PositiveResponse(inputString) {
-  const regex = /(1|sim|ok|pode sim|confirma)/i;
-  if (regex.test(inputString)) {
-    return true
-  } else {
-    return false
-  }
-
+// async function PositiveResponse(inputString) {
+//   const regex = /(1|sim|ok|pode sim|confirma)/i;
+//   if (regex.test(inputString)) {
+//     return true
+//   } else {
+//     return false
+//   }
+// }
+async function PositiveResponse(inputString: string): Promise<boolean> {
+  const positiveResponses = [
+    "1", "sim", "ok", "pode sim", "confirma", "claro", "com certeza",
+    "afirmativo", "beleza", "sim claro", "está certo", "correto"
+  ];
+  // Normaliza o texto de entrada para evitar problemas com capitalização
+  const normalizedInput = inputString.trim().toLowerCase();
+  // Verifica se alguma das respostas positivas está contida no texto de entrada
+  return positiveResponses.some(response => normalizedInput.includes(response));
 }
 
-async function NegativeResponse(stringResp) {
-  const positive = /(2|não|nao|cancelar|reagenda|desmarcar)/i;
-  if (positive.test(stringResp)) {
-    return true
-  } else {
-    return false
-  }
+// async function NegativeResponse(stringResp) {
+//   const positive = /(2|não|nao|cancelar|reagenda|desmarcar)/i;
+//   if (positive.test(stringResp)) {
+//     return true
+//   } else {
+//     return false
+//   }
 
+// }
+async function NegativeResponse(stringResp: string): Promise<boolean> {
+  const negativeResponses = [
+    "2", "não", "nao", "cancelar", "reagenda", "desmarcar", "não pode",
+    "não quero", "não consigo", "negativo", "nunca", "recusar", "não aceito"
+  ];
+  // Normaliza o texto de entrada para evitar problemas com capitalização
+  const normalizedInput = stringResp.trim().toLowerCase();
+  // Verifica se alguma das respostas negativas está contida no texto de entrada
+  return negativeResponses.some(response => normalizedInput.includes(response));
 }
 
-async function InvalidResponse(stringResp) {
 
-  //console.log("DENTRO DO INVALID RESPONSE>>", stringResp)
-  const positive = /sim|não|1|2|pode confirmar|confirmada/ig;
-  if (positive.test(stringResp)) {
-    //console.log("RETORNOU TRUE")
-    return true
-  } else {
-    //console.log("RETORNOU FALSE")
-    return false
-  }
+// async function InvalidResponse(stringResp) {
 
-}
+//   //console.log("DENTRO DO INVALID RESPONSE>>", stringResp)
+//   const positive = /sim|não|1|2|pode confirmar|confirmada/ig;
+//   if (positive.test(stringResp)) {
+//     //console.log("RETORNOU TRUE")
+//     return true
+//   } else {
+//     //console.log("RETORNOU FALSE")
+//     return false
+//   }
+
+// }
 
 
 async function RandomResponse(arrayResponse: String[]) {
@@ -100,11 +120,20 @@ async function ClearFolder(folderPath) {
 }
 
 
-async function ValidatePhone(cellphone) {
-  // Expressão regular para validar o formato de um número de celular no Brasil
-  const regexTelefoneCelular = /^(\+55|55)?\s?(?:\(?0?[1-9]{2}\)?)?\s?(?:9\s?)?[6789]\d{3}[-\s]?\d{4}$/;
-  return regexTelefoneCelular.test(cellphone);
+// async function ValidatePhone(cellphone) {
+//   // Expressão regular para validar o formato de um número de celular no Brasil
+//   const regexTelefoneCelular = /^(\+55|55)?\s?(?:\(?0?[1-9]{2}\)?)?\s?(?:9\s?)?[6789]\d{3}[-\s]?\d{4}$/;
+//   return regexTelefoneCelular.test(cellphone);
+// }
+async function ValidatePhone(cellphone: string): Promise<boolean> {
+  // Remove espaços e normaliza a entrada
+  const sanitizedCellphone = cellphone.trim();
+  // Expressão regular para validar números de celular brasileiros
+  const brazilianPhoneRegex = /^(\+55|55)?\s?(?:\(?0?[1-9]{2}\)?)?\s?(?:9\s?)?[6789]\d{3}[-\s]?\d{4}$/;
+  // Testa o número de telefone contra o regex
+  return brazilianPhoneRegex.test(sanitizedCellphone);
 }
+
 
 async function validAgent(agent) {
   console.log("Rodando valid agent...")
@@ -113,4 +142,4 @@ async function validAgent(agent) {
     .update({ statusconnected: false })
 }
 
-export { stateTyping, DateFormat, GenerateRandomTime, TimeSchedule, PositiveResponse, NegativeResponse, ClearFolder, ValidatePhone, RandomResponse, InvalidResponse, validAgent }
+export { stateTyping, DateFormat, GenerateRandomTime, TimeSchedule, PositiveResponse, NegativeResponse, ClearFolder, ValidatePhone, RandomResponse, validAgent }

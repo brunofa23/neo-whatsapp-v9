@@ -6,7 +6,7 @@ import Response from 'App/Models/Response';
 import { DateTime, DatetTime } from 'luxon';
 import moment from 'moment';
 import { cancelSchedule, session } from '../../Services/requestExternal/request'
-import { DateFormat, InvalidResponse } from '../../Services/whatsapp-web/util'
+import { DateFormat } from '../../Services/whatsapp-web/util'
 import ResponsesController from './ResponsesController';
 export default class DatasourcesController {
 

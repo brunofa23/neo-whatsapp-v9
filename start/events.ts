@@ -68,20 +68,34 @@ async function sendRepeatedMessageKlingo() {
   console.log("EXECUTANDO BUSCA KLINGO")
   //const executingSendMessage = await Config.find('executingSendMessage')
   setInterval(async () => {
-    const date = DateTime.now().plus({days:2}).toFormat("yyyy-MM-dd")
+    const date = DateTime.now().plus({days:3}).toFormat("yyyy-MM-dd")
       if (await TimeSchedule()) {
         console.log(`Buscando dados no Klingo: ${date}`)
         const datasourceApisController = new DatasourceApisController
          datasourceApisController.getSchedulesInternal(date)
-         datasourceApisController.confirmOrCancelScheduleInternal()
       }
 
   },await GenerateRandomTime(300, 400, '****Send Message Repeated')
-  )}
+  )
+
+  //Atualiza os confirmados e cancelados
+  setInterval(async () => {
+      if (await TimeSchedule()) {
+        console.log(`Atualizando confirmações no Klingo: ${DateTime.now().toFormat("dd/MM/yyyy HH:mm")}`)
+        const datasourceApisController = new DatasourceApisController
+         datasourceApisController.confirmOrCancelScheduleInternal()
+      }
+
+  },await GenerateRandomTime(80, 85, '****Send Message Repeated')
+  )
+
+
+
+}
 
 async function resetStatusConnected() {
   await Agent.query().update({ status: null, statusconnected: false })
 }
 
-module.exports = { connectionAll, sendRepeatedMessage, resetStatusConnected, destroyFullAgents, sendRepeatedMessageKlingo }
+export { connectionAll, sendRepeatedMessage, resetStatusConnected, destroyFullAgents, sendRepeatedMessageKlingo }
 

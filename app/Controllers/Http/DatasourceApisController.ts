@@ -35,7 +35,7 @@ async function otherFields(schedule: Object) {
   let value: string | null
   if (schedule && schedule.unidade_id) {
     payLoad = await Unit.query().where('id_unit', schedule.unidade_id).first()
-    return value = `{"address":"${payLoad?.address}","medic":"${String(schedule.medico).trim()}","schedule":"${schedule.datahora}","phone_unit":"${payLoad?.phone}","name_unit":"${payLoad?.name}"}`
+    return value = `{"address_unit":"${payLoad?.address}","medic":"${String(schedule.medico).trim()}","schedule":"${schedule.datahora}","phone_unit":"${payLoad?.phone}","name_unit":"${payLoad?.name}"}`
   }
   return null
 }
@@ -62,7 +62,7 @@ export default class DatasourceApisController {
             shipping.phonevalid = false
           shipping.messagesent = false
           shipping.message = await greeting(String(`{greeting},{presentation},{askschedule}`), data)
-          shipping.otherfields = await otherFields(data)
+          shipping.otherfields = String(await otherFields(data))
           shipping.doctor = String(data.medico).trim()
           shipping.unit = String(data.unidade).trim()
           shipping.covenant = ''
@@ -129,35 +129,6 @@ export default class DatasourceApisController {
   public async confirmOrCancelSchedule({ auth, response }: HttpContextContract) {
     console.log("passei aqui...")
     await this.confirmOrCancelScheduleInternal()
-    //await auth.use('api').authenticate()
-    //chmamar a API DO KLINGO
-    // const date_start = DateTime.now().startOf('day').toFormat("yyyy-MM-dd HH:mm")
-    // const date_end = DateTime.now().endOf('day').toFormat("yyyy-MM-dd HH:mm")
-    // try {
-    //   const confirmCancel = await Chat.query()
-    //     .whereBetween('created_at', [date_start, date_end])
-    //     .andWhere('externalstatus', 'A')
-    //     .andWhere('interaction_id', 1)
-
-    //   if (!confirmCancel) return
-    //   let result
-    //   for (const data of confirmCancel) {
-    //     if (data.absoluteresp === 1) {
-    //       //FAZ A CONFIRMAÇÃO - STATUS C
-    //       result = await confirmOrCancelScheduleApi(data.idexternal, "C", "Confirmado.")
-    //     } else {
-    //       //FAZ O CANCELAMENTO - STATUS N
-    //       result = await confirmOrCancelScheduleApi(data.idexternal, "N", "Não Confirmado.")
-    //     }
-
-    //     if (result)
-    //       await Chat.query().where("id", data.id).update({ externalstatus: 'B' })
-
-    //   }
-
-    // } catch (error) {
-    //   return error
-    // }
 
   }
 }

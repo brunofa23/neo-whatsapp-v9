@@ -21,4 +21,4 @@ async function sendRepeatedMessage(agent: Agent) {
 
 
 
-module.exports = { sendRepeatedMessage }
+export { sendRepeatedMessage }

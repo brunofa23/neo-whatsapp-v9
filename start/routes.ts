@@ -6,26 +6,26 @@ import { connectionAll, destroyFullAgents, resetStatusConnected, sendRepeatedMes
 console.log("***CHAT BOT V-125***04/10/2024")
 function operacaoAssincrona(callback) {
   if (process.env.SERVER === 'true') {
-    console.log("SERVER DATAS")
+    console.log("INICIALIZANDO EASYTALK SERVIDOR")
     sendRepeatedMessage()
     return
   }
 
   if (process.env.SERVER === 'false') {
-    resetStatusConnected()
+    console.log("INICIALIZANDO EASYTALK SMART")
     destroyFullAgents()
-    console.log("Chat Monitoring")
+    resetStatusConnected()
     connectionAll()
     return
   }
 
-  if(process.env.SERVER ==="Klingo"){
+  if (process.env.SERVER === "Klingo") {
     //FAZ INTEGRAÇÃO COM O SISTEMA KLINGO
     console.log("INICIALIZANDO EASYTALK KLINGO....")
     destroyFullAgents()
     sendRepeatedMessageKlingo()
-     resetStatusConnected()
-     connectionAll()
+    resetStatusConnected()
+    connectionAll()
     return
 
   }
@@ -100,32 +100,32 @@ Route.group(() => {
   Route.get('/confirmschedule', 'DatasourcesController.confirmSchedule')
   Route.get('/serviceevaluation', 'DatasourcesController.serviceEvaluation')
 
-  Route.get('/doctorlist','ShippingcampaignsController.doctorList')
-  Route.get('/unitlist','ShippingcampaignsController.unitList')
-  Route.get('/attendantlist','ShippingcampaignsController.attendantList')
+  Route.get('/doctorlist', 'ShippingcampaignsController.doctorList')
+  Route.get('/unitlist', 'ShippingcampaignsController.unitList')
+  Route.get('/attendantlist', 'ShippingcampaignsController.attendantList')
 
   //shippingcampaigns
-  Route.patch('/shippingcampaigns/:id','ShippingcampaignsController.update')
-  Route.get('/shippingcampaigns/:id','ShippingcampaignsController.show')
-  Route.get('/shippingcampaigns','ShippingcampaignsController.index')
-  Route.post('/shippingcampaigns','ShippingcampaignsController.store')
-  Route.post('/resend/:id','ShippingcampaignsController.resend')
+  Route.patch('/shippingcampaigns/:id', 'ShippingcampaignsController.update')
+  Route.get('/shippingcampaigns/:id', 'ShippingcampaignsController.show')
+  Route.get('/shippingcampaigns', 'ShippingcampaignsController.index')
+  Route.post('/shippingcampaigns', 'ShippingcampaignsController.store')
+  Route.post('/resend/:id', 'ShippingcampaignsController.resend')
 
   //chats
   Route.resource('/chats', 'ChatsController').apiOnly()
   Route.post('/closed', 'ChatsController.closed')
 
   //MIDIAS
-  Route.get('/midia/:filename','MidiasController.midia')
-  Route.get('/midiapath/:filename','MidiasController.midiapath')
+  Route.get('/midia/:filename', 'MidiasController.midia')
+  Route.get('/midiapath/:filename', 'MidiasController.midiapath')
 
   //DATECLOSED
-  Route.resource('/datecloseds','DateclosedsController').apiOnly()
+  Route.resource('/datecloseds', 'DateclosedsController').apiOnly()
 
 
   //ROUTES FOR KLINGO / APIS
-  Route.get('/getschedules','DatasourceApisController.getSchedules')
-  Route.post('/confirmorcancelscheduleapi','DatasourceApisController.confirmOrCancelSchedule')
+  Route.get('/getschedules', 'DatasourceApisController.getSchedules')
+  Route.post('/confirmorcancelscheduleapi', 'DatasourceApisController.confirmOrCancelSchedule')
 
 
 }).prefix('/api')

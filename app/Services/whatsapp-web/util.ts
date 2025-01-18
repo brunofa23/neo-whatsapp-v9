@@ -113,9 +113,4 @@ async function validAgent(agent) {
     .update({ statusconnected: false })
 }
 
-
-
-
-
-
-module.exports = { stateTyping, DateFormat, GenerateRandomTime, TimeSchedule, PositiveResponse, NegativeResponse, ClearFolder, ValidatePhone, RandomResponse, InvalidResponse, validAgent }
+export { stateTyping, DateFormat, GenerateRandomTime, TimeSchedule, PositiveResponse, NegativeResponse, ClearFolder, ValidatePhone, RandomResponse, InvalidResponse, validAgent }

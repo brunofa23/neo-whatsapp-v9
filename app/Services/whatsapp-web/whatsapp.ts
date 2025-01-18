@@ -135,4 +135,4 @@ async function startAgentChat(_agent: Agent) {
   });
   return clientChat
 }
-module.exports = { startAgentChat }
+export { startAgentChat }

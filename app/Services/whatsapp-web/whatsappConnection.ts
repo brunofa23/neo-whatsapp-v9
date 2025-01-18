@@ -103,13 +103,31 @@ async function startAgent(_agent: Agent) {
     agent.qrcode = null
     await agent.save()
 
-  });
+    try {
+      // Obtém todos os chats
+      const chats = await client.getChats();
 
+      for (const chat of chats) {
+        console.log(`Chat encontrado: ${chat.name || chat.id.user}`);
+
+        // Obtém as últimas 5 mensagens do chat
+        const messages = await chat.fetchMessages({ limit: 3 });
+
+        console.log(`Mensagens do chat "${chat.name || chat.id.user}":`);
+        for (const message of messages) {
+          console.log(`- ${message.fromMe ? 'Você' : 'Contato'}: ${message.body}`);
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao acessar chats ou mensagens:', error);
+    }
+
+
+  });
 
   const startTimeSendMessage = agent.interval_init_message
   const endTimeSendMessage = agent.interval_final_message
   setInterval(async () => {
-    console.log("passo 5 16")
     const statusSendMessage = await getStatusSendMessage()//await Config.query().select('valuebool', 'valuedatetime').where('id', 'statusSendMessage').first()
     if (statusSendMessage) {
       SendMessage(client, agent)
@@ -141,22 +159,22 @@ async function startAgent(_agent: Agent) {
 
 
   client.on('message_ack', async (msg, ack) => {
-      /*
-          == ACK VALUES ==
-          ACK_ERROR: -1
-          ACK_PENDING: 0
-          ACK_SERVER: 1
-          ACK_DEVICE: 2
-          ACK_READ: 3
-          ACK_PLAYED: 4
-      */
-      // const returnAck = await Customchat.query()
-      //   .where('message', msg.body)
-      //   .andWhere('cellphoneserialized', msg.to)
-      //   .update({ ack: msg.ack })
-      //console.log("Mensagem:",msg)
-      //console.log("ack:",ack)
-    });
+    /*
+        == ACK VALUES ==
+        ACK_ERROR: -1
+        ACK_PENDING: 0
+        ACK_SERVER: 1
+        ACK_DEVICE: 2
+        ACK_READ: 3
+        ACK_PLAYED: 4
+    */
+    // const returnAck = await Customchat.query()
+    //   .where('message', msg.body)
+    //   .andWhere('cellphoneserialized', msg.to)
+    //   .update({ ack: msg.ack })
+    //console.log("Mensagem:",msg)
+    //console.log("ack:",ack)
+  });
 
 
 
@@ -166,13 +184,13 @@ async function startAgent(_agent: Agent) {
     agent.statusconnected = false
     await agent.save()
     await Shippingcampaign.create({
-      interaction_id:3,
-      interaction_seq:1,
-      message:`O agente ${agent.number_phone} foi desconectado!`,
-      cellphone:'31985228619',
-      reg:1,
+      interaction_id: 3,
+      interaction_seq: 1,
+      message: `O agente ${agent.number_phone} foi desconectado!`,
+      cellphone: '31985228619',
+      reg: 1,
       name: 'Bruno',
-      prioritysend:true
+      prioritysend: true
     })
     console.log("EXECUTANDO DISCONECT")
     console.log("REASON>>>", reason)
@@ -188,4 +206,4 @@ async function startAgent(_agent: Agent) {
   });
   return client
 }
-module.exports = { startAgent }
+export { startAgent }

@@ -5,7 +5,7 @@ const { exec } = require('child_process')
 export default class ConfigsController {
 
   public async index({ auth, response }: HttpContextContract) {
-    //await auth.use('api').authenticate()
+    await auth.use('api').authenticate()
     //const dateStart = await DateFormat("yyyy-MM-dd 00:00:00", DateTime.local())
     //const dateEnd = await DateFormat("yyyy-MM-dd 23:59:00", DateTime.local())
     try {
@@ -20,14 +20,15 @@ export default class ConfigsController {
 
 
   public async show({ auth, params, response }: HttpContextContract) {
-    //const authenticate = await auth.use('api').authenticate()
+    await auth.use('api').authenticate()
     const data = await Config.query().where('id', params.id).first()
     return response.status(200).send(data)
   }
 
 
 
-  public async update({ params, request, response }: HttpContextContract) {
+  public async update({auth, params, request, response }: HttpContextContract) {
+    await auth.use('api').authenticate()
     const body = request.only(Config.fillable)
     //body.valuedatetime = DateTime.local().toFormat('yyyy-MM-dd HH:mm:ss')
     try {
@@ -41,7 +42,7 @@ export default class ConfigsController {
 
 
   public async restartSystem({ auth, response }: HttpContextContract) {
-    //const authenticate = await auth.use('api').authenticate()
+    await auth.use('api').authenticate()
 
     // if (!authenticate.superuser) {
     //   return response.status(400).send("Não é superusuário")
@@ -67,23 +68,6 @@ export default class ConfigsController {
     }
   }
 
-
-
-  // public async restartSystem() {
-  //   //await auth.use('api').authenticate()
-  //   console.log("passei pelo index")
-  //   return "OK"
-  //   //const dateStart = await DateFormat("yyyy-MM-dd 00:00:00", DateTime.local())
-  //   //const dateEnd = await DateFormat("yyyy-MM-dd 23:59:00", DateTime.local())
-  //   try {
-  //     const data = await Config.query()
-  //     return response.status(200).send(data)
-
-  //   } catch (error) {
-  //     return error
-  //   }
-
-  // }
 
 
 

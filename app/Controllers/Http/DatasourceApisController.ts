@@ -46,7 +46,7 @@ export default class DatasourceApisController {
   public async getSchedulesInternal(date: string) {
     const schedule_list = await getSchedulesApi(date)
     for (const data of schedule_list) {
-      if (data.id_paciente == 5144) {
+      if (data.id_paciente == 5144 || data.id_paciente == 28724 || data.id_paciente == 5845 || data.id_paciente == 5178) {
         try {
           const reg = String(data.id_paciente).replace(/[^0-9.-]/g, "")
 
@@ -119,6 +119,7 @@ export default class DatasourceApisController {
 
   //END POINT BUSCAR OS PACIENTES DE AGENDAMENTO NO KLINGO
   public async getSchedules({ auth, request, response }: HttpContextContract) {
+    await auth.use('api').authenticate()
     //chmamar a API DO KLINGO
     const { date } = request.requestData//DateTime.now().toFormat("yyyy-MM-dd")
     await this.getSchedulesInternal(date)
@@ -126,8 +127,8 @@ export default class DatasourceApisController {
   }
 
   //FAZ A CONFIRMAÇÃO NO KLINGO
-  public async confirmOrCancelSchedule({ auth, response }: HttpContextContract) {
-    console.log("passei aqui...")
+  public async confirmOrCancelSchedule({ auth }: HttpContextContract) {
+    await auth.use('api').authenticate()
     await this.confirmOrCancelScheduleInternal()
 
   }

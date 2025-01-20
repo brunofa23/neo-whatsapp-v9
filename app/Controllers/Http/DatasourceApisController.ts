@@ -46,7 +46,7 @@ export default class DatasourceApisController {
   public async getSchedulesInternal(date: string) {
     const schedule_list = await getSchedulesApi(date)
     for (const data of schedule_list) {
-      if (data.id_paciente == 5144 || data.id_paciente == 28724 || data.id_paciente == 5845 || data.id_paciente == 5178) {
+      //if (data.id_paciente == 5144 || data.id_paciente == 28724 || data.id_paciente == 5845 || data.id_paciente == 5178) {
         try {
           const reg = String(data.id_paciente).replace(/[^0-9.-]/g, "")
 
@@ -76,7 +76,7 @@ export default class DatasourceApisController {
           console.log("Erro 44454>>>>", error)
           return false
         }
-      }
+
 
     }
     return true

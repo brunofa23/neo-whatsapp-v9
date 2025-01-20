@@ -5,8 +5,8 @@ import Hash from "@ioc:Adonis/Core/Hash"
 
 export default class UsersController {
 
-  public async index({ response }: HttpContextContract) {
-
+  public async index({auth, response }: HttpContextContract) {
+    await auth.use('api').authenticate()
     try {
       const data = await User.query()
       return response.status(200).send(data)
@@ -15,7 +15,8 @@ export default class UsersController {
     }
 
   }
-  public async store({ request, response }: HttpContextContract) {
+  public async store({auth, request, response }: HttpContextContract) {
+    await auth.use('api').authenticate()
     const body = request.only(User.fillable)
     try {
       const data = await User.create(body)
@@ -26,7 +27,8 @@ export default class UsersController {
 
   }
 
-  public async update({ params, request, response }: HttpContextContract) {
+  public async update({auth, params, request, response }: HttpContextContract) {
+    await auth.use('api').authenticate()
     const body = request.only(User.fillable)
     try {
       const data = await User.query().where('id', params.id)
@@ -40,8 +42,6 @@ export default class UsersController {
 
 
   public async login({ auth, request, response }: HttpContextContract) {
-
-
     //const authenticate = await auth.use('api').authenticate()
     const body = request.only(User.fillable)
 

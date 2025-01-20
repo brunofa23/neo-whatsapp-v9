@@ -5,7 +5,7 @@ export default class ChatsController {
 
 
   public async index({auth, response }: HttpContextContract) {
-    //await auth.use('api').authenticate()
+    await auth.use('api').authenticate()
     try {
       const data = await Chat.query()
       return response.status(200).send(data)
@@ -15,7 +15,7 @@ export default class ChatsController {
   }
 
   public async show({auth, params, response }: HttpContextContract) {
-    //await auth.use('api').authenticate()
+    await auth.use('api').authenticate()
     try {
       const data = await Chat.query().where('id', params.id)
       return response.status(200).send(data)
@@ -26,7 +26,7 @@ export default class ChatsController {
 
 
   public async update({auth, params, request, response }: HttpContextContract) {
-    //await auth.use('api').authenticate()
+    await auth.use('api').authenticate()
     const body = request.only(Chat.fillable)
     try {
       const data = await Chat.query().where('id', params.id)
@@ -40,6 +40,7 @@ export default class ChatsController {
 
   //Fechamento de datas
   public async closed({auth, request, response }: HttpContextContract) {
+    await auth.use('api').authenticate()
     const {start_date,end_date} = request.only(['start_date','end_date'])
     console.log("passei no closed",start_date,end_date )
     //return

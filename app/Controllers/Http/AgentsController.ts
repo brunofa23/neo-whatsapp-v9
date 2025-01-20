@@ -79,7 +79,8 @@ export default class AgentsController {
     }
   }
 
-  public async connection({params, response }: HttpContextContract) {
+  public async connection({auth,params, response }: HttpContextContract) {
+    await auth.use('api').authenticate()
     try {
       const valuedatetime = DateTime.local().toFormat('yyyy-MM-dd HH:mm:ss')
       await Config.query().where('id', 'statusSendMessage').update({ valuedatetime: valuedatetime })
@@ -106,7 +107,8 @@ export default class AgentsController {
     }
   }
 
-  public async connectionAll({ params, request, response }: HttpContextContract) {
+  public async connectionAll({auth, params, request, response }: HttpContextContract) {
+    await auth.use('api').authenticate()
     try {
       console.log("connection all acionado...")
 

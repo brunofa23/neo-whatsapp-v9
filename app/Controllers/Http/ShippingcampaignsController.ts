@@ -51,7 +51,7 @@ export default class ShippingcampaignsController {
 
 
   public async store({ auth, request, response }: HttpContextContract) {
-    //await auth.use('api').authenticate()
+    await auth.use('api').authenticate()
     const body = request.only(Shippingcampaign.fillable)
     response.send(body)
     const data = await Shippingcampaign.create(body)
@@ -61,7 +61,7 @@ export default class ShippingcampaignsController {
 
 
   public async show({ auth, params, response }: HttpContextContract) {
-    //await auth.use('api').authenticate()
+    await auth.use('api').authenticate()
     try {
       const payLoad = await Shippingcampaign.find(params.id)
       return response.status(200).send(payLoad)
@@ -73,7 +73,7 @@ export default class ShippingcampaignsController {
 
 
   public async update({ auth, request, params, response }: HttpContextContract) {
-    //await auth.use('api').authenticate()
+    await auth.use('api').authenticate()
     const body = request.only(Shippingcampaign.fillable)
     body.id = params.id
     delete body.created_at
@@ -104,7 +104,7 @@ export default class ShippingcampaignsController {
 
 
   public async resend({ auth, params, response }: HttpContextContract) {
-    //await auth.use('api').authenticate()
+    await auth.use('api').authenticate()
     const data = await Shippingcampaign.query().where('id', params.id).update({ 'excluded': true })
     const message = await Shippingcampaign.find(params.id)
     if (message) {

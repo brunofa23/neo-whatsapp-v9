@@ -12,11 +12,12 @@ const whatsapp_1 = require("../../Services/whatsapp-web/whatsapp");
 const Config_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Config"));
 const fs = require('fs');
 class AgentsController {
-    async index({ response }) {
+    async index({ auth, response }) {
+        await auth.use('api').authenticate();
         const dateStart = await (0, util_1.DateFormat)("yyyy-MM-dd 00:00:00", luxon_1.DateTime.local());
         const dateEnd = await (0, util_1.DateFormat)("yyyy-MM-dd 23:59:00", luxon_1.DateTime.local());
         try {
-            const data = await Agent_1.default.query();
+            const data = await Agent_1.default.query().whereNull('deleted');
             const agents = [];
             for (const agent of data) {
                 const totMessage = await Chat_1.default.query()
@@ -37,6 +38,8 @@ class AgentsController {
                     active: agent.active,
                     default_chat: agent.default_chat,
                     qrcode: agent.qrcode,
+                    company_id: agent.company_id,
+                    obs: agent.obs,
                     totMessage: totMessage?.$extras.totMessage
                 });
             }
@@ -46,10 +49,12 @@ class AgentsController {
             return error;
         }
     }
-    async store({ request, response }) {
+    async store({ auth, request, response }) {
+        await auth.use('api').authenticate();
         const body = request.only(Agent_1.default.fillable);
         body.interval_init_query = 1;
         body.interval_final_query = 1;
+        body.active = 1;
         try {
             const data = await Agent_1.default.create(body);
             return response.status(201).send(data);
@@ -58,7 +63,10 @@ class AgentsController {
             return error;
         }
     }
-    async update({ params, request, response }) {
+    async update({ auth, params, request, response }) {
+        console.log("conections.....", auth);
+        await auth.use('api').authenticate();
+        console.log("conections.....UPDATE");
         const body = request.only(Agent_1.default.fillable);
         try {
             const data = await Agent_1.default.query().where('id', params.id)
@@ -69,12 +77,14 @@ class AgentsController {
             return error;
         }
     }
-    async connection({ params, request, response }) {
+    async connection({ auth, params, response }) {
+        await auth.use('api').authenticate();
         try {
             const valuedatetime = luxon_1.DateTime.local().toFormat('yyyy-MM-dd HH:mm:ss');
             await Config_1.default.query().where('id', 'statusSendMessage').update({ valuedatetime: valuedatetime });
             await Agent_1.default.query()
                 .where('id', params.id)
+                .andWhereNull('deleted')
                 .update({ statusconnected: false, qrcode: null });
             const agent = await Agent_1.default.query().where('id', params.id).first();
             let client;
@@ -94,12 +104,15 @@ class AgentsController {
             error;
         }
     }
-    async connectionAll({ params, request, response }) {
+    async connectionAll({ auth, params, request, response }) {
+        await auth.use('api').authenticate();
         try {
             console.log("connection all acionado...");
             const valuedatetime = luxon_1.DateTime.local().toFormat('yyyy-MM-dd HH:mm:ss');
             await Config_1.default.query().where('id', 'statusSendMessage').update({ valuedatetime: valuedatetime });
-            await Agent_1.default.query().update({ statusconnected: false, qrcode: null });
+            await Agent_1.default.query()
+                .whereNull('deleted')
+                .update({ statusconnected: false, qrcode: null });
             const agents = await Agent_1.default.query()
                 .where('active', true);
             for (const agent of agents) {
@@ -119,25 +132,31 @@ class AgentsController {
             error;
         }
     }
-    async destroy({ params, request, response }) {
-        const id = params.id;
-        const pathFolder = `.wwebjs_auth/session-${id}`;
-        if (fs.existsSync(pathFolder)) {
-            fs.rm(pathFolder, { recursive: true }, (err) => {
-                if (err) {
-                    console.error(err);
+    async destroy({ auth, params, response }) {
+        await auth.use('api').authenticate();
+        console.log("passei no destroy....");
+        const data = await Agent_1.default.query().where('id', params.id)
+            .update({ deleted: true, active: null, status: null, number_phone: null, qrcode: null });
+        return response.status(201).send(data);
+    }
+    async destroyFullAgents() {
+        const agents = await Agent_1.default.query().where('deleted', true);
+        for (const agent of agents) {
+            setTimeout(() => {
+                console.log("Excluindo pasta...");
+                const pathFolder = `.wwebjs_auth/session-${agent.id}`;
+                if (fs.existsSync(pathFolder)) {
+                    fs.rm(pathFolder, { recursive: true }, (err) => {
+                        if (err) {
+                            console.error(err);
+                        }
+                        else {
+                            console.log(`DIRETORIO DELETADO: session-${agent.id}`);
+                        }
+                    });
                 }
-                else {
-                    console.log("DIRETORIO DELETADO");
-                }
-            });
+            }, 10000);
         }
-        const data = await Agent_1.default.findOrFail(id);
-        await data.delete();
-        return {
-            message: "Agente excluido com sucesso!!",
-            data: data
-        };
     }
 }
 exports.default = AgentsController;

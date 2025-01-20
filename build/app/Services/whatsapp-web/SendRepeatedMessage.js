@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.sendRepeatedMessage = void 0;
 const Config_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Config"));
 const luxon_1 = require("luxon");
 const PersistShippingcampaign_1 = __importDefault(require("./PersistShippingcampaign"));
@@ -19,5 +20,5 @@ async function sendRepeatedMessage(agent) {
         }
     }, await (0, util_1.GenerateRandomTime)(500, 800, '****Send Message Repeated'));
 }
-module.exports = { sendRepeatedMessage };
+exports.sendRepeatedMessage = sendRepeatedMessage;
 //# sourceMappingURL=SendRepeatedMessage.js.map

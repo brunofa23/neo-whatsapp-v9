@@ -39,6 +39,9 @@ class Chat extends Orm_1.BaseModel {
             'absoluteresp',
             'externalstatus',
             'chatnumber',
+            'chat_finished',
+            'company_id',
+            'closed'
         ];
     }
 }
@@ -110,6 +113,18 @@ __decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", String)
 ], Chat.prototype, "chatnumber", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", Boolean)
+], Chat.prototype, "chat_finished", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", Number)
+], Chat.prototype, "company_id", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", Boolean)
+], Chat.prototype, "closed", void 0);
 __decorate([
     Orm_1.column.dateTime({ autoCreate: true }),
     __metadata("design:type", luxon_1.DateTime)

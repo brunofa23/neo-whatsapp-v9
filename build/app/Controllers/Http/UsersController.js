@@ -7,7 +7,8 @@ const User_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/User"))
 const BadRequestException_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Exceptions/BadRequestException"));
 const Hash_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Hash"));
 class UsersController {
-    async index({ response }) {
+    async index({ auth, response }) {
+        await auth.use('api').authenticate();
         try {
             const data = await User_1.default.query();
             return response.status(200).send(data);
@@ -16,7 +17,8 @@ class UsersController {
             return error;
         }
     }
-    async store({ request, response }) {
+    async store({ auth, request, response }) {
+        await auth.use('api').authenticate();
         const body = request.only(User_1.default.fillable);
         try {
             const data = await User_1.default.create(body);
@@ -26,8 +28,8 @@ class UsersController {
             return error;
         }
     }
-    async update({ params, request, response }) {
-        console.log('user update:', params.id);
+    async update({ auth, params, request, response }) {
+        await auth.use('api').authenticate();
         const body = request.only(User_1.default.fillable);
         try {
             const data = await User_1.default.query().where('id', params.id)
@@ -39,7 +41,6 @@ class UsersController {
         }
     }
     async login({ auth, request, response }) {
-        console.log("acessei o login...");
         const body = request.only(User_1.default.fillable);
         const user = await User_1.default
             .query()

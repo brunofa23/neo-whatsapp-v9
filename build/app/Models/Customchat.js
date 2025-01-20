@@ -35,7 +35,9 @@ class Customchat extends Orm_1.BaseModel {
             'messagesent',
             'read',
             'viewed',
-            'phonevalid'
+            'phonevalid',
+            'ack',
+            'path_media'
         ];
     }
 }
@@ -106,6 +108,14 @@ __decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", Boolean)
 ], Customchat.prototype, "phonevalid", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", Number)
+], Customchat.prototype, "ack", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", String)
+], Customchat.prototype, "path_media", void 0);
 __decorate([
     Orm_1.column.dateTime({ autoCreate: true }),
     __metadata("design:type", luxon_1.DateTime)

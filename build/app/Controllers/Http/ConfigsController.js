@@ -4,8 +4,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const Config_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Config"));
+const { exec } = require('child_process');
 class ConfigsController {
-    async index({ response }) {
+    async index({ auth, response }) {
+        await auth.use('api').authenticate();
         try {
             const data = await Config_1.default.query();
             return response.status(200).send(data);
@@ -15,15 +17,37 @@ class ConfigsController {
         }
     }
     async show({ auth, params, response }) {
+        await auth.use('api').authenticate();
         const data = await Config_1.default.query().where('id', params.id).first();
         return response.status(200).send(data);
     }
-    async update({ params, request, response }) {
+    async update({ auth, params, request, response }) {
+        await auth.use('api').authenticate();
         const body = request.only(Config_1.default.fillable);
         try {
             const data = await Config_1.default.query().where('id', params.id)
                 .update(body);
             return response.status(201).send(data);
+        }
+        catch (error) {
+            return error;
+        }
+    }
+    async restartSystem({ auth, response }) {
+        await auth.use('api').authenticate();
+        try {
+            exec('pm2 restart easytalk', (error, stdout, stderr) => {
+                if (error) {
+                    console.error(`error: ${error.message}`);
+                    return;
+                }
+                if (stderr) {
+                    console.error(`stderr: ${stderr}`);
+                    return;
+                }
+                console.log(`stdout:\n${stdout}`);
+                return response.status(200).send({ error, stderr, stdout });
+            });
         }
         catch (error) {
             return error;

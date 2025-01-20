@@ -1,10 +1,11 @@
 import { types } from '@ioc:Adonis/Core/Helpers'
 import { ValidatePhone } from '../whatsapp-web/util'
 import Log from 'App/Models/Log'
+//import { DateTime } from 'luxon'
 
 //const dayBefore5 = DateTime.local().minus({ days: 5 }).toFormat('yyyy-MM-dd 00:00')
-// async function verifyNumber(client, cellphone) {
 
+// async function verifyNumber(client, cellphone) {
 //   if (await !ValidatePhone(cellphone)) {
 //     await Log.create({ name: 'ValidatePhone', message: `erro 12211: número não validado:${cellphone}`, description: "Verificar na função ValidatePhone>> ARQUIVO:VerifyNumber.ts linha 9" })
 //     return null
@@ -33,7 +34,7 @@ import Log from 'App/Models/Log'
  // export {verifyNumber}
 
  async function verifyNumber(client, cellphone) {
-  if (!cellphone || !await ValidatePhone(cellphone)) {
+  if (!cellphone || types.isNull(cellphone) || cellphone == undefined || !await ValidatePhone(cellphone) ) {
     await Log.create({
       name: 'VerifyNumber',
       message: `Erro 12211: Número inválido ou não validado - ${cellphone}`,
@@ -47,7 +48,6 @@ import Log from 'App/Models/Log'
     if (verifiedPhone) {
       return verifiedPhone._serialized;
     }
-
     await Log.create({
       name: 'VerifyNumber',
       message: `Erro 568541: Número não identificado no WhatsApp - ${cellphone}`,

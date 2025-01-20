@@ -55,7 +55,7 @@ class DatasourceApisController {
                 if (!await (0, util_1.ValidatePhone)(shipping.cellphone))
                     shipping.phonevalid = false;
                 shipping.messagesent = false;
-                shipping.message = await greeting(String(`{greeting},{presentation},{askschedule}`), data);
+                shipping.message = await greeting(String(`{greeting} {presentation} {askschedule}`), data);
                 shipping.otherfields = String(await otherFields(data));
                 shipping.doctor = String(data.medico).trim();
                 shipping.unit = String(data.unidade).trim();

@@ -24,7 +24,6 @@ exports.default = async () => {
     }
     for (const data of dataSourceList) {
         try {
-            const yesterday = moment().subtract(1, 'day').format('YYYY-MM-DD');
             const shipping = new Shippingcampaign_1.default();
             shipping.interaction_id = data.interaction_id;
             shipping.interaction_seq = data.interaction_seq;
@@ -38,6 +37,15 @@ exports.default = async () => {
             shipping.messagesent = false;
             shipping.message = String(data.message).replace(/@p[0-9]/g, '?');
             shipping.otherfields = data.otherfields;
+            shipping.doctor = String(data.doctor).trim();
+            shipping.unit = String(data.unit).trim();
+            shipping.attendant = String(data.attendant).trim();
+            shipping.covenant = '';
+            shipping.dateservice = data.dateservice;
+            shipping.company_id = data.company_id;
+            shipping.phone_unit = data.phone_unit;
+            shipping.type_service = data.type_service;
+            const yesterday = moment().subtract(5, 'day').format('YYYY-MM-DD');
             const verifyExist = await Shippingcampaign_1.default.query()
                 .where('reg', '=', data.reg)
                 .andWhere('created_at', '>=', yesterday)

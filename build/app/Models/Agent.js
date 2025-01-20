@@ -34,6 +34,9 @@ class Agent extends Orm_1.BaseModel {
             'qrcode',
             'statusconnected',
             'default_chat',
+            'deleted',
+            'company_id',
+            'obs',
             'createdAt',
             'updatedAt',
         ];
@@ -91,6 +94,18 @@ __decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", Boolean)
 ], Agent.prototype, "default_chat", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", Boolean)
+], Agent.prototype, "deleted", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", Number)
+], Agent.prototype, "company_id", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", String)
+], Agent.prototype, "obs", void 0);
 __decorate([
     Orm_1.column.dateTime({ autoCreate: true }),
     __metadata("design:type", luxon_1.DateTime)

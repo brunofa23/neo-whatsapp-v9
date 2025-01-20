@@ -3,10 +3,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.startAgentChat = void 0;
 const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
+const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Shippingcampaign"));
 const ChatMonitoring_1 = __importDefault(require("./ChatMonitoring/ChatMonitoring"));
 const ChatMonitoringInternal_1 = __importDefault(require("./ChatMonitoring/ChatMonitoringInternal"));
 const SendMessageAgentDefault_1 = __importDefault(require("./SendMessageAgentDefault"));
+const Customchat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Customchat"));
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcodeTerminal = require('qrcode-terminal');
 const qrcode = require('qrcode');
@@ -37,8 +40,6 @@ async function startAgentChat(_agent) {
     clientChat.initialize();
     clientChat.on('loading_screen', (percent, message) => {
         console.log(`LOADING SCREEN: ${_agent.name}`, percent, message);
-        agent.status = `Carregando: ${_agent.name} - ${percent} - ${message}`;
-        agent.save();
     });
     clientChat.on('qr', async (qr) => {
         agent.status = "Qrcode require";
@@ -74,11 +75,11 @@ async function startAgentChat(_agent) {
         agent.qrcode = null;
         await agent.save();
     });
-    clientChat.on('message_ack', (msg, ack) => {
-        if (ack == 3) {
-            console.log("msg", msg.to, "fromMe", msg.fromMe);
-            console.log("ack", ack);
-        }
+    clientChat.on('message_ack', async (msg, ack) => {
+        const returnAck = await Customchat_1.default.query()
+            .where('message', msg.body)
+            .andWhere('cellphoneserialized', msg.to)
+            .update({ ack: msg.ack });
     });
     const chatMonitoring = new ChatMonitoring_1.default;
     await chatMonitoring.monitoring(clientChat);
@@ -87,11 +88,21 @@ async function startAgentChat(_agent) {
         await chatMonitoringInternal.monitoring(clientChat);
     }
     clientChat.on('disconnected', async (reason) => {
-        console.log("EXECUTANDO DISCONECT");
-        console.log("REASON>>>", reason);
         agent.status = 'Disconnected';
         agent.statusconnected = false;
         await agent.save();
+        await Shippingcampaign_1.default.create({
+            interaction_id: 3,
+            interaction_seq: 1,
+            message: `O agente ${agent.number_phone} foi desconectado!`,
+            cellphone: '31985228619',
+            reg: 1,
+            name: 'Bruno',
+            prioritysend: true
+        });
+        console.log("EXECUTANDO DISCONECT");
+        console.log("REASON>>>", reason);
+        return;
     });
     let rejectCalls = true;
     clientChat.on('call', async (call) => {
@@ -102,5 +113,5 @@ async function startAgentChat(_agent) {
     });
     return clientChat;
 }
-module.exports = { startAgentChat };
+exports.startAgentChat = startAgentChat;
 //# sourceMappingURL=whatsapp.js.map

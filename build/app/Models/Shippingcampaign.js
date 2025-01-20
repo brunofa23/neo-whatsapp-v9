@@ -20,6 +20,34 @@ class Shippingcampaign extends Orm_1.BaseModel {
     static get connection() {
         return Env_1.default.get('DB_CONNECTION_MAIN');
     }
+    static get fillable() {
+        return [
+            'id',
+            'interaction_id',
+            'interaction_seq',
+            'idexternal',
+            'reg',
+            'name',
+            'cellphone',
+            'cellphoneserialized',
+            'message',
+            'otherfields',
+            'phonevalid',
+            'messagesent',
+            'dateshedule',
+            'doctor',
+            'unit',
+            'attendant',
+            'covenant',
+            'dateservice',
+            'prioritysend',
+            'excluded',
+            'company_id',
+            'phone_unit',
+            'type_service',
+            'created_at'
+        ];
+    }
 }
 __decorate([
     (0, Orm_1.column)({ isPrimary: true }),
@@ -73,6 +101,46 @@ __decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", luxon_1.DateTime)
 ], Shippingcampaign.prototype, "dateshedule", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", String)
+], Shippingcampaign.prototype, "doctor", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", String)
+], Shippingcampaign.prototype, "unit", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", String)
+], Shippingcampaign.prototype, "attendant", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", String)
+], Shippingcampaign.prototype, "covenant", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", luxon_1.DateTime)
+], Shippingcampaign.prototype, "dateservice", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", Boolean)
+], Shippingcampaign.prototype, "prioritysend", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", Boolean)
+], Shippingcampaign.prototype, "excluded", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", Number)
+], Shippingcampaign.prototype, "company_id", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", String)
+], Shippingcampaign.prototype, "phone_unit", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", String)
+], Shippingcampaign.prototype, "type_service", void 0);
 __decorate([
     Orm_1.column.dateTime({ autoCreate: true }),
     __metadata("design:type", luxon_1.DateTime)

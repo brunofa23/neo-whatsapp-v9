@@ -3,28 +3,34 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const ShippingcampaignsController_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Controllers/Http/ShippingcampaignsController"));
 const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
+const Response_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Response"));
 const Customchat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Customchat"));
+const MidiasController_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Controllers/Http/MidiasController"));
 const util_1 = require("../util");
 const ConfirmSchedule_1 = __importDefault(require("./ConfirmSchedule"));
 const ServiceEvaluation_1 = __importDefault(require("./ServiceEvaluation"));
+const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
 async function verifyNumberInternal(phoneVerify) {
-    const list_phone_talking = process.env.LIST_PHONES_TALK;
-    const list_phones = list_phone_talking?.split(",");
-    if (list_phones) {
-        for (const phone of list_phones) {
-            if (phoneVerify === phone)
-                return true;
-        }
+    const listPhonesFromEnv = process.env.LIST_PHONES_TALK?.split(",") || [];
+    if (listPhonesFromEnv.includes(phoneVerify)) {
+        return true;
     }
+    const connectedAgents = await Agent_1.default.query()
+        .select('number_phone')
+        .whereNull('deleted')
+        .andWhere('status', 'CONNECTED');
+    const isPhoneInAgents = connectedAgents.some(agent => agent.number_phone === phoneVerify);
+    return isPhoneInAgents;
 }
 async function getCustomChat(cellphone, chatnumber) {
     chatnumber = chatnumber.replace(/@.*$/, '');
     const customChat = await Customchat_1.default.query()
         .where('cellphoneserialized', cellphone)
         .andWhere('chatnumber', chatnumber)
-        .andWhereNull('returned').first();
+        .andWhereNull('returned')
+        .orderBy('created_at', 'desc')
+        .first();
     return customChat;
 }
 async function getChat(cellphone, agentPhone) {
@@ -39,120 +45,144 @@ class Monitoring {
     async monitoring(client) {
         try {
             client.on('message', async (message) => {
-                let groupChat = await message.getChat();
-                if (groupChat.isGroup) {
-                    return null;
+                if (await shouldIgnoreMessage(message))
+                    return;
+                if (message.hasMedia) {
+                    await (0, util_1.stateTyping)(message);
+                    client.sendMessage(message.from, 'Por favor não envie áudio, imagens ou vídeos apenas textos. Obrigada!');
+                    return;
                 }
-                if (message.type.toLowerCase() == "e2e_notification")
-                    return null;
-                if (message.body == "")
-                    return null;
-                if (message.from.includes("@g.us"))
-                    return null;
-                if (await verifyNumberInternal(message.from)) {
-                    console.log("Numero interno", message.from);
+                const isInternalNumber = await verifyNumberInternal(message.from);
+                if (isInternalNumber) {
+                    console.log("Número interno:", message.from);
                     return;
                 }
                 const customChat = await getCustomChat(message.from, client.info.wid.user);
-                let chat;
                 if (customChat) {
-                    const bodyResponse = {
-                        chats_id: customChat.chats_id,
-                        reg: customChat.reg,
-                        cellphone: customChat.cellphone,
-                        cellphoneserialized: customChat.cellphoneserialized,
-                        chatnumber: customChat.chatnumber,
-                        returned: true,
-                        viewed: false,
-                        response: message.body,
-                    };
-                    await Customchat_1.default.create(bodyResponse);
+                    await handleCustomChatMessage(message, customChat);
                     return;
                 }
-                else {
-                    chat = await getChat(message.from, message.to);
-                }
-                if (chat && chat.returned == false) {
-                    chat.invalidresponse = message.body.slice(0, 348);
-                    chat.returned = true;
-                    await chat.save();
-                }
+                const chat = await getChat(message.from, message.to);
                 if (chat) {
-                    global.contSend--;
-                    if (chat.interaction_id == 1) {
-                        await (0, ConfirmSchedule_1.default)(client, message, chat);
-                        return;
-                    }
-                    else if (chat.interaction_id == 2) {
-                        await (0, ServiceEvaluation_1.default)(client, message, chat);
-                        return;
-                    }
+                    await handleChatMessage(client, message, chat);
+                    return;
                 }
-                else {
-                    if (message.body.toUpperCase() === 'OI' || message.body.toUpperCase() === 'OLÁ') {
-                        console.log("ENTREI NO OI...");
-                        await (0, util_1.stateTyping)(message);
-                        client.sendMessage(message.from, "Olá, sou a Iris, atendente virtual do Neo.");
-                        return;
-                    }
-                    else if (message.body.startsWith("verificar")) {
-                        const string = message.body;
-                        const numbers = string.match(/\d/g).join("");
-                        await (0, util_1.stateTyping)(message);
-                        console.log("Resultado do telefone:", numbers);
-                        try {
-                            client.getNumberId(numbers).then((result) => {
-                                console.log('Number ID:', result);
-                                if (result)
-                                    client.sendMessage(message.from, `Número de Whatsapp validado: ${result?._serialized}`);
-                                if (!result || result._serialized === undefined)
-                                    client.sendMessage(message.from, `Número não identificado para o Whatsapp.`);
-                            }).catch((error) => {
-                                console.error('Failed to get number ID:', error);
-                            });
-                        }
-                        catch (error) {
-                            console.log("ERRO:::", error);
-                        }
-                        return;
-                    }
-                    else if (message.body.toUpperCase() === "#PD") {
-                        const pd = new ShippingcampaignsController_1.default();
-                        const result = await pd.dayPosition();
-                        const sendResponse = `*Total diário:* ${result.totalDiario}\n*Telefones válidos:* ${result.telefonesValidos}\n*Mensagens Enviadas:* ${result.mensagensEnviadas}\n*Mensagens Retornadas:* ${result.mensagensRetornadas}\n*Confirmações:* ${result.confirmacoes}\n*Reagendamentos:* ${result.reagendamentos}`;
-                        await (0, util_1.stateTyping)(message);
-                        client.sendMessage(message.from, `*Posição diária até o momento:*`);
-                        client.sendMessage(message.from, sendResponse);
-                    }
-                    else if (message.body === "destroy") {
-                        console.log("EXECUTANDO DISCONECT");
-                        console.log("mandei destruir...");
-                        await client.destroy();
-                        console.log("DESTRUIDO...");
-                    }
-                    else if (message.body === 'PinChat') {
-                        console.log("CLIENTE", message);
-                    }
-                    else {
-                        const responseArray = [
-                            "Desculpe, mas esta conversa já foi encerrada. O Neo Agradece por sua compreensão, para maiores esclarecimentos ligue para 31-32350003.",
-                            "Infelizmente esta conversa já foi encerrada. O Neo Agradece por sua interação! Maiores esclarecimentos ligue para 31-32350003.",
-                            "Olá, sou apenas uma atendente virtual, para maiores esclarecimentos ligue para 31-32350003.",
-                            "Olá, sou apenas uma atendente virtual, desculpe mas esta conversa já foi encerrada. Para maiores esclarecimentos ligue para 31-32350003. O Neo Agradece!"
-                        ];
-                        const messageRandom = await (0, util_1.RandomResponse)(responseArray);
-                        await (0, util_1.stateTyping)(message);
-                        await (0, util_1.stateTyping)(message);
-                        client.sendMessage(message.from, messageRandom);
-                        return;
-                    }
-                }
+                await handleNewMessage(client, message);
             });
         }
         catch (error) {
-            console.log("ERRO>>>>", error);
+            console.error("Erro no monitoramento:", error);
         }
     }
 }
 exports.default = Monitoring;
+async function shouldIgnoreMessage(message) {
+    const isGroup = (await message.getChat()).isGroup;
+    const isE2ENotification = message.type.toLowerCase() === "e2e_notification";
+    const isEmptyMessage = message.body === "" && !message.hasMedia;
+    const isGroupMessage = message.from.includes("@g.us");
+    return isGroup || isE2ENotification || isEmptyMessage || isGroupMessage;
+}
+async function handleCustomChatMessage(message, customChat) {
+    let pathMedia = "";
+    if (message.hasMedia) {
+        const media = await message.downloadMedia();
+        const midias = new MidiasController_1.default();
+        const fileName = `${customChat.chats_id}_${Date.now()}`;
+        pathMedia = await midias.storeMedia(media, fileName, "Customchats");
+        message.body = " ";
+    }
+    const bodyResponse = {
+        chats_id: customChat.chats_id,
+        reg: customChat.reg,
+        cellphone: customChat.cellphone,
+        cellphoneserialized: customChat.cellphoneserialized,
+        chatnumber: customChat.chatnumber,
+        returned: true,
+        viewed: false,
+        response: message.body,
+        path_media: pathMedia,
+    };
+    await Customchat_1.default.create(bodyResponse);
+}
+async function handleChatMessage(client, message, chat) {
+    if (!chat.returned) {
+        chat.invalidresponse = message.body.slice(0, 348);
+        chat.returned = true;
+        await chat.save();
+    }
+    global.contSend--;
+    if (chat.interaction_id === 1) {
+        await (0, ConfirmSchedule_1.default)(client, message, chat);
+    }
+    else if (chat.interaction_id === 2) {
+        await (0, ServiceEvaluation_1.default)(client, message, chat);
+    }
+}
+async function handleNewMessage(client, message) {
+    const upperBody = message.body.toUpperCase();
+    if (upperBody === "OI" || upperBody === "OLÁ") {
+        await (0, util_1.stateTyping)(message);
+        client.sendMessage(message.from, "Olá, sou a Iris, uma atendente virtual.");
+        return;
+    }
+    if (upperBody.startsWith("VERIFICAR")) {
+        await handleVerification(client, message);
+        return;
+    }
+    const response = await AutomaticResponses(message.body);
+    if (response) {
+        await (0, util_1.stateTyping)(message);
+        client.sendMessage(message.from, response);
+    }
+    else {
+        await sendRandomFinalMessage(client, message);
+    }
+}
+async function handleVerification(client, message) {
+    const numbers = message.body.match(/\d/g)?.join("") || "";
+    await (0, util_1.stateTyping)(message);
+    try {
+        const result = await client.getNumberId(numbers);
+        const responseMessage = result
+            ? `Número de Whatsapp validado: ${result._serialized}`
+            : "Número não identificado para o Whatsapp.";
+        client.sendMessage(message.from, responseMessage);
+    }
+    catch (error) {
+        console.error("Erro ao verificar número:", error);
+    }
+}
+async function sendRandomFinalMessage(client, message) {
+    let responseArray;
+    const responsesChatfinish = await Response_1.default.query().select('message')
+        .where('local', 'chatfinish');
+    if (responsesChatfinish.length > 0)
+        responseArray = responsesChatfinish.map(response => response.message);
+    else
+        responseArray = [
+            "Desculpe, mas esta conversa já foi finalizada. O Neo Agradece por sua compreensão, para maiores esclarecimentos ligue para 31-32350003.",
+            "Infelizmente esta conversa já foi finalizada. O Neo Agradece por sua interação! Maiores esclarecimentos ligue para 31-32350003.",
+            "Olá, sou apenas uma atendente virtual, para maiores esclarecimentos ligue para 31-32350003.",
+            "Olá, sou apenas uma atendente virtual, desculpe mas esta conversa já foi finalizada. Para maiores esclarecimentos ligue para 31-32350003. O Neo Agradece!",
+        ];
+    const randomMessage = await (0, util_1.RandomResponse)(responseArray);
+    await (0, util_1.stateTyping)(message);
+    client.sendMessage(message.from, randomMessage);
+}
+async function AutomaticResponses(message) {
+    const words = message.toLowerCase().split(/\s+/);
+    let query = Response_1.default.query();
+    words.forEach((word, index) => {
+        if (index === 0) {
+            if (word)
+                query = query.where('local', 'like', `%${word}%`);
+        }
+        else {
+            query = query.orWhere('local', 'like', `%${word}%`);
+        }
+    });
+    const response = await query.first();
+    return response?.message;
+}
 //# sourceMappingURL=ChatMonitoring.js.map

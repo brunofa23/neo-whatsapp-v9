@@ -4,30 +4,74 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Shippingcampaign"));
-const whatsapp_1 = require("../../Services/whatsapp-web/whatsapp");
 const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
 const Database_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Lucid/Database"));
 const Env_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Env"));
 const util_1 = require("../../Services/whatsapp-web/util");
 const luxon_1 = require("luxon");
+const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
 class ShippingcampaignsController {
     static get connection() {
         return 'mysql';
     }
-    async index({ response, request }) {
+    async index({ auth, request, response }) {
+        await auth.use('api').authenticate();
+        const { created_atStart, created_atEnd, summary } = request.only(['created_atStart', 'created_atEnd', 'summary']);
         try {
-            const shippingCampaign = await Shippingcampaign_1.default.all();
-            return response.status(200).send(shippingCampaign);
+            if (summary) {
+                const query = Database_1.default.rawQuery(`
+          SELECT
+            (SELECT COUNT(*)
+             FROM shippingcampaigns
+             WHERE created_at >= ? AND created_at <= ? AND phonevalid IS NULL) AS tot,
+            (SELECT COUNT(*)
+             FROM shippingcampaigns
+             WHERE created_at >= ? AND created_at <= ? AND messagesent = 1) AS totSend
+        `, [created_atStart, created_atEnd, created_atStart, created_atEnd]);
+                const result = await query;
+                return response.status(200).send(result[0][0]);
+            }
+            else {
+                const query = Shippingcampaign_1.default.query();
+                if (created_atStart && created_atEnd) {
+                    query.where('created_at', '>=', created_atStart);
+                    query.where('created_at', '<=', created_atEnd);
+                }
+                const result = await query;
+                return response.status(200).send(result);
+            }
         }
         catch (error) {
             return error;
         }
     }
-    async store({ response, request }) {
+    async store({ auth, request, response }) {
+        await auth.use('api').authenticate();
+        const body = request.only(Shippingcampaign_1.default.fillable);
+        response.send(body);
+        const data = await Shippingcampaign_1.default.create(body);
+        return response.status(201).send(data);
+    }
+    async show({ auth, params, response }) {
+        await auth.use('api').authenticate();
         try {
-            const shippingCampaign = await Shippingcampaign_1.default
-                .query();
-            return response.status(200).send(shippingCampaign);
+            const payLoad = await Shippingcampaign_1.default.find(params.id);
+            return response.status(200).send(payLoad);
+        }
+        catch (error) {
+            return error;
+        }
+    }
+    async update({ auth, request, params, response }) {
+        await auth.use('api').authenticate();
+        const body = request.only(Shippingcampaign_1.default.fillable);
+        body.id = params.id;
+        delete body.created_at;
+        try {
+            const data = await Shippingcampaign_1.default.query().where('id', params.id)
+                .update(body);
+            await Shippingcampaign_1.default.query().where('id', params.id).first();
+            return response.status(201).send(data);
         }
         catch (error) {
             return error;
@@ -38,6 +82,64 @@ class ShippingcampaignsController {
             const maxLimitSendMessage = await Shippingcampaign_1.default.query()
                 .where('messagesent', '=', '1');
             return maxLimitSendMessage;
+        }
+        catch (error) {
+            return error;
+        }
+    }
+    async resend({ auth, params, response }) {
+        await auth.use('api').authenticate();
+        const data = await Shippingcampaign_1.default.query().where('id', params.id).update({ 'excluded': true });
+        const message = await Shippingcampaign_1.default.find(params.id);
+        if (message) {
+            const newData = await Shippingcampaign_1.default.create({
+                attendant: message?.attendant,
+                cellphone: message?.cellphone,
+                cellphoneserialized: message.cellphoneserialized,
+                doctor: message?.doctor,
+                idexternal: message?.idexternal,
+                interaction_id: message?.interaction_id,
+                interaction_seq: message?.interaction_seq,
+                message: message?.message,
+                messagesent: false,
+                name: message?.name,
+                otherfields: message?.otherfields,
+                prioritysend: true,
+                reg: message?.reg,
+                dateservice: message?.dateservice,
+                unit: message?.unit
+            });
+            return response.status(201).send(newData);
+        }
+    }
+    async doctorList({ response }) {
+        try {
+            const shippingCampaign = await Shippingcampaign_1.default.query()
+                .distinct('doctor')
+                .orderBy('doctor', 'asc');
+            return response.status(200).send(shippingCampaign);
+        }
+        catch (error) {
+            return error;
+        }
+    }
+    async unitList({ response }) {
+        try {
+            const shippingCampaign = await Shippingcampaign_1.default.query()
+                .distinct('unit')
+                .orderBy('unit', 'asc');
+            return response.status(200).send(shippingCampaign);
+        }
+        catch (error) {
+            return error;
+        }
+    }
+    async attendantList({ response }) {
+        try {
+            const shippingCampaign = await Shippingcampaign_1.default.query()
+                .distinct('attendant')
+                .orderBy('attendant', 'asc');
+            return response.status(200).send(shippingCampaign);
         }
         catch (error) {
             return error;
@@ -55,14 +157,10 @@ class ShippingcampaignsController {
             return 0;
         return parseInt(countMessage.$extras.tot);
     }
-    async resetWhatsapp() {
-        await whatsapp_1.executeWhatsapp;
-    }
-    async chat({ response, request }) {
+    async chat() {
         const id = 567508;
         const query = `update agm set AGM_CONFIRM_STAT = 'C' where agm_id = ${id}`;
         try {
-            console.log("EXECUTANDO UPDATE NO SMART...", query);
             await Database_1.default.connection('mssql').rawQuery(query).then((result) => {
                 return `executado com sucesso:: ${result}`;
             }).catch((error) => {
@@ -74,7 +172,6 @@ class ShippingcampaignsController {
         }
     }
     async dayPosition(period = "") {
-        console.log("ENTREI NO DAYPOSITION..");
         const startDate = await (0, util_1.DateFormat)("yyyy-MM-dd 00:00:00", luxon_1.DateTime.local());
         const endDate = await (0, util_1.DateFormat)("yyyy-MM-dd 23:59:00", luxon_1.DateTime.local());
         const totalDiario = await Shippingcampaign_1.default.query()
@@ -111,7 +208,6 @@ class ShippingcampaignsController {
         return result;
     }
     async datePosition({ request, response }) {
-        console.log("PASSEI DATEPOSITION");
         const { initialdate, finaldate } = request.only(['initialdate', 'finaldate']);
         if (!luxon_1.DateTime.fromISO(initialdate).isValid || !luxon_1.DateTime.fromISO(finaldate).isValid) {
             throw new Error("Datas inválidas.");
@@ -130,7 +226,6 @@ class ShippingcampaignsController {
                 .whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
                 .groupByRaw('CONVERT(date, shippingcampaigns.created_at)')
                 .orderByRaw(Database_1.default.raw('CONVERT(date, shippingcampaigns.created_at)')).toQuery();
-            console.log(">>>>>>>>>>", result);
             return response.status(201).send(result);
         }
         catch (error) {
@@ -138,7 +233,6 @@ class ShippingcampaignsController {
         }
     }
     async datePositionSynthetic({ request, response }) {
-        console.log("PASSEI DATEPOSITION");
         const { initialdate, finaldate } = request.only(['initialdate', 'finaldate']);
         if (!luxon_1.DateTime.fromISO(initialdate).isValid || !luxon_1.DateTime.fromISO(finaldate).isValid) {
             throw new Error("Datas inválidas.");
@@ -161,9 +255,7 @@ class ShippingcampaignsController {
         }
     }
     async listShippingCampaigns({ request, response }) {
-<<<<<<< HEAD
         const { initialdate, finaldate, phonevalid, invalidresponse, absoluteresp } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp']);
-        console.log("phonevalid", phonevalid);
         let query = "1=1";
         if (phonevalid && phonevalid !== undefined) {
             query += ` and phonevalid=${phonevalid == 1 ? 1 : 0}`;
@@ -174,21 +266,18 @@ class ShippingcampaignsController {
         if (absoluteresp) {
             query += ` and absoluteresp=${absoluteresp} `;
         }
-=======
-        const { initialdate, finaldate } = request.only(['initialdate', 'finaldate']);
->>>>>>> main-production
         if (!luxon_1.DateTime.fromISO(initialdate).isValid || !luxon_1.DateTime.fromISO(finaldate).isValid) {
             throw new Error("Datas inválidas.");
         }
         try {
-            const result = await Database_1.default.connection('mssql2').query()
+            const queryValue = Database_1.default.connection('mssql2').query()
                 .from('shippingcampaigns')
                 .select('shippingcampaigns.interaction_id', 'shippingcampaigns.reg', 'shippingcampaigns.name', 'shippingcampaigns.cellphone', 'otherfields', 'phonevalid', 'messagesent', 'chats.created_at', 'response', 'returned', 'invalidresponse', 'chatname', 'absoluteresp')
                 .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
                 .whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
-<<<<<<< HEAD
                 .where('shippingcampaigns.interaction_id', 1)
                 .whereRaw(query);
+            const result = await queryValue;
             return response.status(201).send(result);
         }
         catch (error) {
@@ -196,7 +285,8 @@ class ShippingcampaignsController {
         }
     }
     async serviceEvaluationDashboard({ request, response }) {
-        const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp', 'interactions', 'returned', 'reg', 'name']);
+        const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name, attendant, doctor, unit, excluded, cellphone, chat_finished, type_service, closed } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp',
+            'interactions', 'returned', 'reg', 'name', 'attendant', 'doctor', 'unit', 'excluded', 'cellphone', 'chat_finished', 'type_service', 'closed']);
         let query = "1=1";
         if (returned)
             query += ` and chats.id in (select chats_id from customchats) `;
@@ -209,115 +299,117 @@ class ShippingcampaignsController {
         }
         if (interactions)
             query += ` and response is not null `;
+        if (cellphone)
+            query += ` and shippingcampaigns.cellphone like '%${cellphone}%' `;
         if (absoluteresp == 1)
             query += ` and absoluteresp < 7 `;
         else if (absoluteresp == 2)
             query += ` and absoluteresp >= 7 and absoluteresp <9 `;
         else if (absoluteresp == 3)
             query += ` and absoluteresp >= 9 `;
+        if (attendant)
+            query += ` and attendant ='${attendant}'`;
+        if (doctor)
+            query += ` and doctor ='${doctor}' `;
+        if (unit)
+            query += ` and unit='${unit}'`;
+        if (excluded)
+            query += ` and excluded=1 `;
+        else
+            query += ` and (excluded not in (1) or excluded is null) `;
+        if (chat_finished)
+            query += ` and chat_finished=1 `;
+        if (type_service)
+            query += ` and type_service = '${type_service}'`;
         if (!luxon_1.DateTime.fromISO(initialdate).isValid || !luxon_1.DateTime.fromISO(finaldate).isValid) {
             throw new Error("Datas inválidas.");
         }
         try {
-            const result = await Database_1.default.connection(Env_1.default.get('DB_CONNECTION_MAIN')).query()
-                .from('shippingcampaigns')
-                .select('shippingcampaigns.interaction_id', 'shippingcampaigns.reg', 'shippingcampaigns.name', 'shippingcampaigns.cellphone', 'chats.id', 'otherfields', 'phonevalid', 'messagesent', 'chats.created_at', 'response', 'returned', 'invalidresponse', 'chatname', 'absoluteresp', Database_1.default.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed'))
-                .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
+            const queryResult = Database_1.default.connection(Env_1.default.get('DB_CONNECTION_MAIN')).query()
+                .from('shippingcampaigns');
+            if (!closed) {
+                queryResult.select('shippingcampaigns.id as idShipp', 'shippingcampaigns.interaction_id', 'shippingcampaigns.reg', 'shippingcampaigns.name', 'shippingcampaigns.cellphone', 'chats.id', 'otherfields', 'phonevalid', 'messagesent', 'chats.created_at', 'response', 'returned', 'invalidresponse', 'chatname', 'absoluteresp', 'prioritysend', 'excluded', 'doctor', 'unit', 'attendant', Database_1.default.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed'), 'chat_finished');
+            }
+            if (closed) {
+                queryResult.select('shippingcampaigns.id as idShipp', 'shippingcampaigns.interaction_id', 'shippingcampaigns.reg', 'shippingcampaigns.name', 'shippingcampaigns.cellphone', 'chats.id', 'otherfields', 'phonevalid', 'messagesent', 'chats.created_at', 'response', 'returned', 'invalidresponse', 'chatname', Database_1.default.raw('CASE WHEN closed = 0 THEN NULL ELSE absoluteresp END AS absoluteresp'), 'prioritysend', 'excluded', 'doctor', 'unit', 'attendant', Database_1.default.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed'), 'chat_finished');
+            }
+            queryResult.leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
                 .whereBetween('chats.created_at', [initialdate, finaldate])
-                .where('chats.interaction_id', 2)
+                .where('shippingcampaigns.interaction_id', 2)
                 .whereRaw(query);
-            const resultAcumulated = await Chat_1.default.query()
+            const result = await queryResult;
+            const resultAcumulated = await Database_1.default.from('chats')
+                .innerJoin('shippingcampaigns', 'chats.shippingcampaigns_id', 'shippingcampaigns.id')
                 .sumDistinct('absoluteresp as note')
                 .count('* as total')
-                .where('interaction_id', 2)
-                .andWhereBetween('absoluteresp', [0, 10])
-                .whereBetween('created_at', [initialdate, finaldate])
+                .where('chats.interaction_id', 2)
+                .andWhereBetween('absoluteresp', [0, 10000])
+                .whereBetween('chats.created_at', [initialdate, finaldate])
+                .whereRaw(query)
                 .groupBy('absoluteresp');
-            let resultAcumulatedList = [];
+            let resultAcumulatedList = resultAcumulated;
             let totalEvaluations = 0;
             let totalDetractors = 0;
             let totalPromoters = 0;
             for (const result of resultAcumulated) {
-                resultAcumulatedList.push(result.$extras);
-                totalEvaluations = totalEvaluations + result.$extras.total;
-                if (result.$extras.note <= 6)
-                    totalDetractors = totalDetractors + result.$extras.total;
-                if (result.$extras.note >= 9 && result.$extras.note <= 10)
-                    totalPromoters = totalPromoters + result.$extras.total;
+                totalEvaluations = totalEvaluations + result.total;
+                if (result.note <= 6)
+                    totalDetractors = totalDetractors + result.total;
+                if (result.note >= 9 && result.note <= 10)
+                    totalPromoters = totalPromoters + result.total;
             }
-            const npsResult = ((totalPromoters * 100) / totalEvaluations) - ((totalDetractors * 100) / totalEvaluations);
-            const otherfields = result.map(item => JSON.parse(item.otherfields));
-            const station = otherfields.map(item => item.station);
-            const medic = otherfields.map(item => item.medic);
-            let itemFilter;
-            const resultFinal = result.map(item => {
-                const otherfieldsObj = JSON.parse(item.otherfields);
-                return {
-                    ...item,
-                    station: otherfieldsObj.station,
-                    medic: otherfieldsObj.medic,
-                    attendant: otherfieldsObj.attendant
-                };
-            });
-            function getClassification(score) {
-                if (score <= 7) {
-                    return 'detrator';
-                }
-                else if (score > 7 && score <= 8) {
-                    return 'passivo';
-                }
-                else if (score > 8 && score <= 10) {
-                    return 'promotor';
-                }
-            }
-            const countsByStation = {};
-            const countsByMedic = {};
-            const countsByAttendant = {};
-            resultFinal.forEach(item => {
-                const { attendant, station, absoluteresp, medic } = item;
-                const classification = getClassification(absoluteresp);
-                if (item.messagesent && item.absoluteresp !== null) {
-                    if (!countsByStation[station]) {
-                        countsByStation[station] = {
-                            detrator: 0,
-                            passivo: 0,
-                            promotor: 0
-                        };
-                    }
-                    countsByStation[station][classification]++;
-                }
-                if (item.messagesent && item.absoluteresp !== null) {
-                    if (!countsByMedic[medic]) {
-                        countsByMedic[medic] = {
-                            detrator: 0,
-                            passivo: 0,
-                            promotor: 0
-                        };
-                    }
-                    countsByMedic[medic][classification]++;
-                }
-                if (item.messagesent && item.absoluteresp !== null) {
-                    if (!countsByAttendant[attendant]) {
-                        countsByAttendant[attendant] = {
-                            detrator: 0,
-                            passivo: 0,
-                            promotor: 0
-                        };
-                    }
-                    countsByAttendant[attendant][classification]++;
-                }
-            });
-            const resultByStation = Object.entries(countsByStation).map(([station, counts]) => ({
-                station,
-                ...counts
+            const nps = ((totalPromoters * 100) / totalEvaluations) - ((totalDetractors * 100) / totalEvaluations);
+            const npsResult = nps < 0 ? 0 : nps;
+            const unitResult = await Database_1.default
+                .from('chats')
+                .innerJoin('shippingcampaigns', 'chats.shippingcampaigns_id', 'shippingcampaigns.id')
+                .where('chats.interaction_id', 2)
+                .whereBetween('chats.created_at', [initialdate, finaldate])
+                .andWhereRaw('(excluded not in (1) or excluded is null)')
+                .select('unit as station')
+                .sum(Database_1.default.raw(`CASE WHEN absoluteresp < 7 THEN 1 ELSE 0 END`), 'detrator')
+                .sum(Database_1.default.raw(`CASE WHEN absoluteresp BETWEEN 7 AND 8 THEN 1 ELSE 0 END`), 'passivo')
+                .sum(Database_1.default.raw(`CASE WHEN absoluteresp >= 9 THEN 1 ELSE 0 END`), 'promotor')
+                .groupBy('unit');
+            const resultByStation = unitResult.map(result => ({
+                station: result.station,
+                detrator: parseInt(result.detrator, 10),
+                passivo: parseInt(result.passivo, 10),
+                promotor: parseInt(result.promotor, 10)
             }));
-            const resultByMedic = Object.entries(countsByMedic).map(([medic, counts]) => ({
-                medic,
-                ...counts
+            const doctorResult = await Database_1.default
+                .from('chats')
+                .innerJoin('shippingcampaigns', 'chats.shippingcampaigns_id', 'shippingcampaigns.id')
+                .where('chats.interaction_id', 2)
+                .whereBetween('chats.created_at', [initialdate, finaldate])
+                .andWhereRaw('(excluded not in (1) or excluded is null)')
+                .select('doctor as medic')
+                .sum(Database_1.default.raw(`CASE WHEN absoluteresp < 7 THEN 1 ELSE 0 END`), 'detrator')
+                .sum(Database_1.default.raw(`CASE WHEN absoluteresp BETWEEN 7 AND 8 THEN 1 ELSE 0 END`), 'passivo')
+                .sum(Database_1.default.raw(`CASE WHEN absoluteresp >= 9 THEN 1 ELSE 0 END`), 'promotor')
+                .groupBy('doctor');
+            const resultByMedic = doctorResult.map(result => ({
+                medic: result.medic,
+                detrator: parseInt(result.detrator, 10),
+                passivo: parseInt(result.passivo, 10),
+                promotor: parseInt(result.promotor, 10)
             }));
-            const resultByAttendant = Object.entries(countsByAttendant).map(([attendant, counts]) => ({
-                attendant,
-                ...counts
+            const attendantResult = await Database_1.default
+                .from('chats')
+                .innerJoin('shippingcampaigns', 'chats.shippingcampaigns_id', 'shippingcampaigns.id')
+                .where('chats.interaction_id', 2)
+                .whereBetween('chats.created_at', [initialdate, finaldate])
+                .andWhereRaw('(excluded not in (1) or excluded is null)')
+                .select('attendant')
+                .sum(Database_1.default.raw(`CASE WHEN absoluteresp < 7 THEN 1 ELSE 0 END`), 'detrator')
+                .sum(Database_1.default.raw(`CASE WHEN absoluteresp BETWEEN 7 AND 8 THEN 1 ELSE 0 END`), 'passivo')
+                .sum(Database_1.default.raw(`CASE WHEN absoluteresp >= 9 THEN 1 ELSE 0 END`), 'promotor')
+                .groupBy('attendant');
+            const resultByAttendant = attendantResult.map(result => ({
+                attendant: result.attendant,
+                detrator: parseInt(result.detrator, 10),
+                passivo: parseInt(result.passivo, 10),
+                promotor: parseInt(result.promotor, 10)
             }));
             return response.status(201).send({ result, resultAcumulatedList, resultByStation, resultByMedic, resultByAttendant, npsResult });
         }
@@ -355,14 +447,29 @@ class ShippingcampaignsController {
                 .whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
                 .where('shippingcampaigns.interaction_id', 1)
                 .whereRaw(query);
-=======
-                .where('shippingcampaigns.interaction_id', 1);
->>>>>>> main-production
             return response.status(201).send(result);
         }
         catch (error) {
             throw new Error(error);
         }
+    }
+    async patientToSend(agent) {
+        const agentCompany = await Agent_1.default.query().where('id', agent.id).first();
+        const yesterday = luxon_1.DateTime.local().toFormat('yyyy-MM-dd 00:00');
+        const query = Shippingcampaign_1.default.query()
+            .whereNull('phonevalid')
+            .andWhere('messagesent', 0)
+            .andWhere('created_at', '>', yesterday);
+        if (agentCompany?.company_id) {
+            query.andWhere('company_id', agentCompany?.company_id);
+        }
+        else
+            query.whereNull('company_id');
+        query.whereNotExists((subquery) => {
+            subquery.select('*').from('chats').whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id');
+        }).orderBy('prioritysend', "desc");
+        const shippingCampaign = await query.first();
+        return shippingCampaign;
     }
 }
 exports.default = ShippingcampaignsController;

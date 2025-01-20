@@ -3,7 +3,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.startAgent = void 0;
 const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
+const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Shippingcampaign"));
 const Config_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Config"));
 const SendMessage_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/SendMessage"));
 const SendRepeatedMessage_1 = global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/SendRepeatedMessage");
@@ -26,6 +28,7 @@ async function getStatusSendMessage() {
         return false;
 }
 async function startAgent(_agent) {
+    console.log("whatsappConnections.....");
     const agent = await Agent_1.default.findOrFail(_agent.id);
     if (!_agent) {
         console.log("CHATNAME INVÁLIDO - Verifique o .env Chatname está igual ao name tabela Agents");
@@ -52,8 +55,6 @@ async function startAgent(_agent) {
     client.initialize();
     client.on('loading_screen', (percent, message) => {
         console.log(`LOADING SCREEN: ${_agent.name}`, percent, message);
-        agent.status = `Carregando: ${_agent.name} - ${percent} - ${message}`;
-        agent.save();
     });
     client.on('qr', async (qr) => {
         agent.status = "Qrcode require";
@@ -69,7 +70,7 @@ async function startAgent(_agent) {
         });
         qrcodeTerminal.generate(qr, { small: true });
     });
-    client.on('authenticated', async () => {
+    await client.on('authenticated', async () => {
         console.log(`AUTHENTICATED ${agent.name}`);
         agent.status = 'Authentication';
         agent.save();
@@ -88,16 +89,30 @@ async function startAgent(_agent) {
         agent.number_phone = client.info.wid.user;
         agent.qrcode = null;
         await agent.save();
+        try {
+            const chats = await client.getChats();
+            for (const chat of chats) {
+                console.log(`Chat encontrado: ${chat.name || chat.id.user}`);
+                const messages = await chat.fetchMessages({ limit: 1 });
+                console.log(`Mensagens do chat "${chat.name || chat.id.user}":`);
+                for (const message of messages) {
+                    console.log(`- ${message.fromMe ? 'Você' : 'Contato'}: ${message.body}`);
+                }
+            }
+        }
+        catch (error) {
+            console.error('Erro ao acessar chats ou mensagens:', error);
+        }
     });
     const startTimeSendMessage = agent.interval_init_message;
     const endTimeSendMessage = agent.interval_final_message;
-    const sendMessage = setInterval(async () => {
+    setInterval(async () => {
         const statusSendMessage = await getStatusSendMessage();
         if (statusSendMessage) {
             (0, SendMessage_1.default)(client, agent);
         }
     }, await (0, util_1.GenerateRandomTime)(startTimeSendMessage, endTimeSendMessage, '----Time Send Message'));
-    const sendMessageInternal = setInterval(async () => {
+    setInterval(async () => {
         const statusSendMessage = await getStatusSendMessage();
         if (statusSendMessage) {
             if (process.env.SELF_CONVERSATION?.toLocaleLowerCase() === "true") {
@@ -114,12 +129,24 @@ async function startAgent(_agent) {
         const chatMonitoringInternal = new ChatMonitoringInternal_1.default;
         await chatMonitoringInternal.monitoring(client);
     }
+    client.on('message_ack', async (msg, ack) => {
+    });
     client.on('disconnected', async (reason) => {
         agent.status = 'Disconnected';
         agent.statusconnected = false;
         await agent.save();
+        await Shippingcampaign_1.default.create({
+            interaction_id: 3,
+            interaction_seq: 1,
+            message: `O agente ${agent.number_phone} foi desconectado!`,
+            cellphone: '31985228619',
+            reg: 1,
+            name: 'Bruno',
+            prioritysend: true
+        });
         console.log("EXECUTANDO DISCONECT");
         console.log("REASON>>>", reason);
+        return;
     });
     let rejectCalls = true;
     client.on('call', async (call) => {
@@ -130,5 +157,5 @@ async function startAgent(_agent) {
     });
     return client;
 }
-module.exports = { startAgent };
+exports.startAgent = startAgent;
 //# sourceMappingURL=whatsappConnection.js.map

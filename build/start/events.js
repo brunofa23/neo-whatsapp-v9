@@ -3,7 +3,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.sendRepeatedMessageKlingo = exports.destroyFullAgents = exports.resetStatusConnected = exports.sendRepeatedMessage = exports.connectionAll = void 0;
+const AgentsController_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Controllers/Http/AgentsController"));
 const DatasourcesController_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Controllers/Http/DatasourcesController"));
+const DatasourceApisController_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Controllers/Http/DatasourceApisController"));
 const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
 const Config_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Config"));
 const PersistShippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/PersistShippingcampaign"));
@@ -11,12 +14,20 @@ const luxon_1 = require("luxon");
 const util_1 = require("../app/Services/whatsapp-web/util");
 const whatsapp_1 = require("../app/Services/whatsapp-web/whatsapp");
 const whatsappConnection_1 = require("../app/Services/whatsapp-web/whatsappConnection");
+require("../app/Services/plugins/axios");
+async function destroyFullAgents() {
+    console.log("Passei no destroy agentes 1222");
+    const destroyAgents = new AgentsController_1.default;
+    await destroyAgents.destroyFullAgents();
+}
+exports.destroyFullAgents = destroyFullAgents;
 async function connectionAll() {
     try {
         console.log("connection all acionado...");
         await Agent_1.default.query().update({ statusconnected: false, qrcode: null });
         const agents = await Agent_1.default.query()
-            .where('active', true);
+            .where('active', true)
+            .andWhereNull('deleted');
         for (const agent of agents) {
             if (agent) {
                 if (agent.default_chat) {
@@ -34,6 +45,7 @@ async function connectionAll() {
         error;
     }
 }
+exports.connectionAll = connectionAll;
 async function sendRepeatedMessage() {
     const executingSendMessage = await Config_1.default.find('executingSendMessage');
     setInterval(async () => {
@@ -49,8 +61,28 @@ async function sendRepeatedMessage() {
         }
     }, await (0, util_1.GenerateRandomTime)(300, 400, '****Send Message Repeated'));
 }
+exports.sendRepeatedMessage = sendRepeatedMessage;
+async function sendRepeatedMessageKlingo() {
+    console.log("EXECUTANDO BUSCA KLINGO");
+    setInterval(async () => {
+        const date = luxon_1.DateTime.now().plus({ days: 3 }).toFormat("yyyy-MM-dd");
+        if (await (0, util_1.TimeSchedule)()) {
+            console.log(`Buscando dados no Klingo: ${date}`);
+            const datasourceApisController = new DatasourceApisController_1.default;
+            datasourceApisController.getSchedulesInternal(date);
+        }
+    }, await (0, util_1.GenerateRandomTime)(300, 400, '****Send Message Repeated'));
+    setInterval(async () => {
+        if (await (0, util_1.TimeSchedule)()) {
+            console.log(`Atualizando confirmações no Klingo: ${luxon_1.DateTime.now().toFormat("dd/MM/yyyy HH:mm")}`);
+            const datasourceApisController = new DatasourceApisController_1.default;
+            datasourceApisController.confirmOrCancelScheduleInternal();
+        }
+    }, await (0, util_1.GenerateRandomTime)(160, 170, '****Send Message Repeated'));
+}
+exports.sendRepeatedMessageKlingo = sendRepeatedMessageKlingo;
 async function resetStatusConnected() {
     await Agent_1.default.query().update({ status: null, statusconnected: false });
 }
-module.exports = { connectionAll, sendRepeatedMessage, resetStatusConnected };
+exports.resetStatusConnected = resetStatusConnected;
 //# sourceMappingURL=events.js.map

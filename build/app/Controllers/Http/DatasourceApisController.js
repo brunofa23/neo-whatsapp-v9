@@ -42,35 +42,33 @@ class DatasourceApisController {
     async getSchedulesInternal(date) {
         const schedule_list = await (0, request_1.getSchedulesApi)(date);
         for (const data of schedule_list) {
-            if (data.id_paciente == 5144 || data.id_paciente == 28724 || data.id_paciente == 5845 || data.id_paciente == 5178) {
-                try {
-                    const reg = String(data.id_paciente).replace(/[^0-9.-]/g, "");
-                    const shipping = new Shippingcampaign_1.default();
-                    shipping.interaction_id = 1;
-                    shipping.interaction_seq = 1;
-                    shipping.reg = parseInt(reg);
-                    shipping.dateshedule = data.datahora;
-                    shipping.idexternal = data.id_marcacao;
-                    shipping.name = String(data.nome).trim();
-                    shipping.cellphone = String(data.celular).replace(/[^0-9]+/g, '');
-                    if (!await (0, util_1.ValidatePhone)(shipping.cellphone))
-                        shipping.phonevalid = false;
-                    shipping.messagesent = false;
-                    shipping.message = await greeting(String(`{greeting},{presentation},{askschedule}`), data);
-                    shipping.otherfields = String(await otherFields(data));
-                    shipping.doctor = String(data.medico).trim();
-                    shipping.unit = String(data.unidade).trim();
-                    shipping.covenant = '';
-                    const verifyExist = await Shippingcampaign_1.default.query().where('reg', reg)
-                        .andWhere('dateshedule', data.datahora).first();
-                    if (!verifyExist) {
-                        await Shippingcampaign_1.default.create(shipping);
-                    }
+            try {
+                const reg = String(data.id_paciente).replace(/[^0-9.-]/g, "");
+                const shipping = new Shippingcampaign_1.default();
+                shipping.interaction_id = 1;
+                shipping.interaction_seq = 1;
+                shipping.reg = parseInt(reg);
+                shipping.dateshedule = data.datahora;
+                shipping.idexternal = data.id_marcacao;
+                shipping.name = String(data.nome).trim();
+                shipping.cellphone = String(data.celular).replace(/[^0-9]+/g, '');
+                if (!await (0, util_1.ValidatePhone)(shipping.cellphone))
+                    shipping.phonevalid = false;
+                shipping.messagesent = false;
+                shipping.message = await greeting(String(`{greeting},{presentation},{askschedule}`), data);
+                shipping.otherfields = String(await otherFields(data));
+                shipping.doctor = String(data.medico).trim();
+                shipping.unit = String(data.unidade).trim();
+                shipping.covenant = '';
+                const verifyExist = await Shippingcampaign_1.default.query().where('reg', reg)
+                    .andWhere('dateshedule', data.datahora).first();
+                if (!verifyExist) {
+                    await Shippingcampaign_1.default.create(shipping);
                 }
-                catch (error) {
-                    console.log("Erro 44454>>>>", error);
-                    return false;
-                }
+            }
+            catch (error) {
+                console.log("Erro 44454>>>>", error);
+                return false;
             }
         }
         return true;

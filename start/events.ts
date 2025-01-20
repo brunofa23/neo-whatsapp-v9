@@ -86,7 +86,7 @@ async function sendRepeatedMessageKlingo() {
          datasourceApisController.confirmOrCancelScheduleInternal()
       }
 
-  },await GenerateRandomTime(80, 85, '****Send Message Repeated')
+  },await GenerateRandomTime(160, 170, '****Send Message Repeated')
   )
 
 

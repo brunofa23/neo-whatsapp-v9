@@ -68,7 +68,9 @@ export default class AgentsController {
   }
 
   public async update({ auth, params, request, response }: HttpContextContract) {
+    console.log("conections.....", auth)
     await auth.use('api').authenticate()
+    console.log("conections.....UPDATE")
     const body = request.only(Agent.fillable)
     try {
       const data = await Agent.query().where('id', params.id)
@@ -106,6 +108,7 @@ export default class AgentsController {
       error
     }
   }
+
 
   public async connectionAll({auth, params, request, response }: HttpContextContract) {
     await auth.use('api').authenticate()

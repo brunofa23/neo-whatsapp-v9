@@ -27,6 +27,7 @@ export default class Chat extends BaseModel {
       'response',
       'invalidresponse',
       'returned',
+      'ack',
       'chatname',
       'absoluteresp',
       'externalstatus',
@@ -81,6 +82,9 @@ export default class Chat extends BaseModel {
 
   @column()
   public returned: boolean
+
+  @column()
+  public ack:number
 
   @column()
   public chatname: string

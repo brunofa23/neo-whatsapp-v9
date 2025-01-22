@@ -79,15 +79,16 @@ async function sendRepeatedMessageKlingo() {
   )
 
   //Atualiza os confirmados e cancelados
-  setInterval(async () => {
-      if (await TimeSchedule()) {
-        console.log(`Atualizando confirmações no Klingo: ${DateTime.now().toFormat("dd/MM/yyyy HH:mm")}`)
-        const datasourceApisController = new DatasourceApisController
-         datasourceApisController.confirmOrCancelScheduleInternal()
-      }
+  console.log("CONFIRM OR CANCEL DESABILITADO ****************")
+  // setInterval(async () => {
+  //     if (await TimeSchedule()) {
+  //       console.log(`Atualizando confirmações no Klingo: ${DateTime.now().toFormat("dd/MM/yyyy HH:mm")}`)
+  //       const datasourceApisController = new DatasourceApisController
+  //        datasourceApisController.confirmOrCancelScheduleInternal()
+  //     }
 
-  },await GenerateRandomTime(160, 170, '****Send Message Repeated')
-  )
+  // },await GenerateRandomTime(160, 170, '****Send Message Repeated')
+  // )
 
 
 

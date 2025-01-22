@@ -38,15 +38,15 @@ async function cancelSchedule(body) {
 
 
 //BUSCA PACIENTES AGENDADOS NO KLINGO
-async function getSchedulesApi(date:string){
+async function getSchedulesApi(date: string) {
   try {
     console.log("API KLINGO!!")
-    const server_header_key:string|undefined = process.env.SERVER_HEADER_KEY
+    const server_header_key: string | undefined = process.env.SERVER_HEADER_KEY
     const server_token = process.env.SERVER_TOKEN
     const headers = {
       [server_header_key]: server_token
     }
-    const response = await axios.get(`${process.env.SERVER_URL_API_KLINGO}/telefonia/lista/${date}`,{headers})
+    const response = await axios.get(`${process.env.SERVER_URL_API_KLINGO}/telefonia/lista/${date}`, { headers })
     const responseFilter = response.data.filter(item => item.status_confirmacao === "A Confirmar");
 
     return response.data
@@ -56,22 +56,21 @@ async function getSchedulesApi(date:string){
 }
 
 //CONFIRMA OU CANCELA AGENDAMENTO
-async function confirmOrCancelScheduleApi(id_marcacao:number, status:string, obs:string){
+async function confirmOrCancelScheduleApi(id_marcacao: number, status: string, obs: string) {
   try {
-    const server_header_key:string|undefined = process.env.SERVER_HEADER_KEY
+    const server_header_key: string | undefined = process.env.SERVER_HEADER_KEY
     const server_token = process.env.SERVER_TOKEN
     const headers = {
       [server_header_key]: server_token
     }
-    const response = await axios.post(`${process.env.SERVER_URL_API_KLINGO}/telefonia/confirmar`,{id_marcacao, status,obs },{headers})
-    console.log("RESPONSE:", response.data)
-    if(response.status===200 && response.data=='OK'){
+    const response = await axios.post(`${process.env.SERVER_URL_API_KLINGO}/telefonia/confirmar`, { id_marcacao, status, obs }, { headers })
+    console.log("RESPONSE 1924:", response.data)
+    if (response.status === 200 && response.data == 'OK') {
       return true
     }
     return response.data
   } catch (error) {
-
-    console.log("error:",error)
+    console.log("error:", error)
     return error
   }
 }

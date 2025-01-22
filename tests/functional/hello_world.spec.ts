@@ -11,43 +11,17 @@ import { DateTime } from 'luxon'
 test('display welcome page', async ({ client }) => {
 
   //chmamar a API DO KLINGO
-  const date_start = DateTime.now().startOf('day').toFormat("yyyy-MM-dd HH:mm")
-  const date_end = DateTime.now().endOf('day').toFormat("yyyy-MM-dd HH:mm")
-  try {
-    const confirmCancel = await Chat.query()
-    .preload('shippingcamapgn')
-      .whereBetween('created_at', [date_start, date_end])
-      .andWhere('externalstatus', 'A')
-      .andWhere('interaction_id', 1)
 
-      console.log("Executando Confirmação e Cancelamento no Klingo", confirmCancel[0].shippingcamapgn)
-return
+  const returnAck =  Chat.query()
+  .where('message', 'Saudações! Aqui é a Iris atendente virtual do Cob, o motivo do meu contato Sra. ROSINHA é para confirmar o horário conosco, agendado para o dia *03/02/2025 13:00* na unidade BH (BAIRRO SANTA EFIGÊNIA) - CENTRO DE OFTALMOLOGIA BRASIL com Dr(a). COB podemos confirmar? *1* para Sim *2* para Desmarcar.Caso não haja interação em até 12 horas, o agendamento será automaticamente cancelado.')
+  .andWhere('cellphoneserialized', '553185228619@c.us')
+  .andWhere('chatnumber', 'LIKE' , String('553196218275@c.us').replace(/\D/g, ''));
+
+  console.log(returnAck.toQuery())
+  const teste = await returnAck
 
 
-    if (!confirmCancel || confirmCancel.length === 0) return
-    let result
-    for (const data of confirmCancel) {
-      console.log("Executando Confirmação e Cancelamento no Klingo")
-      if (data.absoluteresp === 1) {
-        //   //FAZ A CONFIRMAÇÃO - STATUS C
-        //console.log("EXECUTAR CONFIRMAÇÃO", data.idexternal, data.idexternal_array)
-        //   result = await confirmOrCancelScheduleApi(data.idexternal, 'C', 'Confirmado')
-      } else if (data.absoluteresp === 2) {
-        //   //FAZ O CANCELAMENTO - STATUS N
-        //console.log("EXECUTAR CANCELAMENTO", data.idexternal, data.idexternal_array)
-        //   result = await confirmOrCancelScheduleApi(data.idexternal, 'N', 'Não Confirmada')
-      }
-      // if (result)
-      //   await Chat.query().where("id", data.id).update({ externalstatus: 'B' })
-    }
-
-  } catch (error) {
-    console.error("Erro ao processar confirmações ou cancelamentos:", error);
-  }
-
-
-
-
+  //console.log(returnAck)
 
 
 })

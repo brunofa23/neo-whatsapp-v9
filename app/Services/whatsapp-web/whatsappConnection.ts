@@ -8,6 +8,7 @@ import ChatMonitoring from './ChatMonitoring/ChatMonitoring'
 import ChatMonitoringInternal from './ChatMonitoring/ChatMonitoringInternal'
 import SendMessageInternal from './SendMessageInternal';
 import { GenerateRandomTime } from './util'
+import Chat from 'App/Models/Chat';
 
 
 const { Client, LocalAuth } = require('whatsapp-web.js');
@@ -103,24 +104,25 @@ async function startAgent(_agent: Agent) {
     agent.qrcode = null
     await agent.save()
 
-    try {
-      // Obtém todos os chats
-      const chats = await client.getChats();
+    //CÓDIGO QUE PEGA TODAS AS CONVERSAS QUANDO DESCONECTADO
+    // try {
+    //   // Obtém todos os chats
+    //   const chats = await client.getChats();
 
-      for (const chat of chats) {
-        console.log(`Chat encontrado: ${chat.name || chat.id.user}`);
+    //   for (const chat of chats) {
+    //     console.log(`Chat encontrado: ${chat.name || chat.id.user}`);
 
-        // Obtém as últimas 5 mensagens do chat
-        const messages = await chat.fetchMessages({ limit: 1 });
+    //     // Obtém as últimas 5 mensagens do chat
+    //     const messages = await chat.fetchMessages({ limit: 1 });
 
-        console.log(`Mensagens do chat "${chat.name || chat.id.user}":`);
-        for (const message of messages) {
-          console.log(`- ${message.fromMe ? 'Você' : 'Contato'}: ${message.body}`);
-        }
-      }
-    } catch (error) {
-      console.error('Erro ao acessar chats ou mensagens:', error);
-    }
+    //     console.log(`Mensagens do chat "${chat.name || chat.id.user}":`);
+    //     for (const message of messages) {
+    //       console.log(`- ${message.fromMe ? 'Você' : 'Contato'}: ${message.body}`);
+    //     }
+    //   }
+    // } catch (error) {
+    //   console.error('Erro ao acessar chats ou mensagens:', error);
+    // }
 
 
   });
@@ -168,12 +170,21 @@ async function startAgent(_agent: Agent) {
         ACK_READ: 3
         ACK_PLAYED: 4
     */
+    console.log("ack:",ack)
+    console.log("MENSAGEM>>>>>", msg)
+    if(ack>=2){
+      const returnAck = await Chat.query()
+    .where('message', msg.body)
+    .andWhere('cellphoneserialized', msg.to)
+    .andWhere('chatnumber','like', msg.from)
+
+    }
+
     // const returnAck = await Customchat.query()
     //   .where('message', msg.body)
     //   .andWhere('cellphoneserialized', msg.to)
     //   .update({ ack: msg.ack })
     //console.log("Mensagem:",msg)
-    //console.log("ack:",ack)
   });
 
 

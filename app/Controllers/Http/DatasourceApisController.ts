@@ -1,6 +1,7 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Shippingcampaign from 'App/Models/Shippingcampaign'
 import Chat from 'App/Models/Chat'
+import Log from 'App/Models/Log'
 import Unit from 'App/Models/Unit'
 import { getSchedulesApi, confirmOrCancelScheduleApi } from 'App/Services/requestExternal/request'
 import { ValidatePhone } from 'App/Services/whatsapp-web/util'
@@ -67,18 +68,28 @@ function prepareSchedules(records: object[]): object[] {
   return oldestRecords;
 }
 
+//FUNÇÃO QUE RETORNA O IDEXTERNO OU IDEXTERNO_ARRAY
+async function returnIdExternal(chatObject: object): Promise<number[]> {
+  if (chatObject?.shippingcamapgn?.idexternal_array) {
+    // Divide a string em partes e converte para números
+    return chatObject.shippingcamapgn.idexternal_array
+      .split(',')
+      .map(item => parseInt(item.trim(), 10)) // Remove espaços e converte para número
+      .filter(item => !isNaN(item)); // Remove valores inválidos
+  } else {
+    return [chatObject.idexternal]
+  }
+}
 
 export default class DatasourceApisController {
 
   //FUNÇÃO PARA BUSCAR OS PACIENTES AGENDADOS NO KLINGO
   public async getSchedulesInternal(date: string) {
-    const schedule_list =await prepareSchedules(await getSchedulesApi(date))
-    // console.log("FINAL FUNÇAÕ")
-    //return schedule_list
-    //const schedule_list =await getSchedulesApi(date)
-
+    const schedule_list = await prepareSchedules(await getSchedulesApi(date))
     for (const data of schedule_list) {
-      //if (data.id_paciente == 5144 || data.id_paciente == 28724 || data.id_paciente == 5845 || data.id_paciente == 5178) {
+
+      if (data.id_paciente !== 823) continue
+
         try {
           const reg = String(data.id_paciente).replace(/[^0-9.-]/g, "")
 
@@ -89,7 +100,7 @@ export default class DatasourceApisController {
           shipping.dateshedule = data.datahora
           shipping.idexternal = data.id_marcacao
           shipping.name = String(data.nome).trim()
-          shipping.cellphone = String(data.celular).replace(/[^0-9]+/g, ''); //data.cellphone.replace("(", "").replace("-", "")
+          shipping.cellphone ='31985228619' //String(data.celular).replace(/[^0-9]+/g, ''); //data.cellphone.replace("(", "").replace("-", "")
           if (!await ValidatePhone(shipping.cellphone))
             shipping.phonevalid = false
           shipping.messagesent = false
@@ -111,46 +122,103 @@ export default class DatasourceApisController {
         }
 
 
+
+
+
     }
     return true
   }
 
-
   public async confirmOrCancelScheduleInternal() {
-    //await auth.use('api').authenticate()
-    //chmamar a API DO KLINGO
-    const date_start = DateTime.now().startOf('day').toFormat("yyyy-MM-dd HH:mm")
-    const date_end = DateTime.now().endOf('day').toFormat("yyyy-MM-dd HH:mm")
+    const date_start = DateTime.now().startOf('day').toFormat("yyyy-MM-dd HH:mm");
+    const date_end = DateTime.now().endOf('day').toFormat("yyyy-MM-dd HH:mm");
+
     try {
       const confirmCancel = await Chat.query()
+        .preload('shippingcamapgn', (query) => {
+          query.select('idexternal_array')
+        })
         .whereBetween('created_at', [date_start, date_end])
         .andWhere('externalstatus', 'A')
-        .andWhere('interaction_id', 1)
+        .andWhere('interaction_id', 1);
 
-      if (!confirmCancel || confirmCancel.length === 0) return
-      let result
-      for (const data of confirmCancel) {
-        console.log("Executando Confirmação e Cancelamento no Klingo")
-        if (data.absoluteresp === 1) {
-          //FAZ A CONFIRMAÇÃO - STATUS C
-          
-          result = await confirmOrCancelScheduleApi(data.idexternal, 'C', 'Confirmado')
-        } else if (data.absoluteresp === 2) {
-          //FAZ O CANCELAMENTO - STATUS N
-          result = await confirmOrCancelScheduleApi(data.idexternal, 'N', 'Não Confirmada')
+      if (!confirmCancel || confirmCancel.length === 0) return;
+
+      // Função para processar confirmação ou cancelamento
+      const processSchedule = async (idExternal, status, message) => {
+        for (const id of idExternal) {
+          const result = await confirmOrCancelScheduleApi(id, status, message);
+          console.log(`${message} para ID - 2025442:`, id);
+          if (!result) {
+            console.error(`659569 - Falha ao processar ${message} para ID:`, id);
+          }
         }
-        if (result)
-          await Chat.query().where("id", data.id).update({ externalstatus: 'B' })
+        return true;
+      };
+
+      for (const data of confirmCancel) {
+        const idExternal = await returnIdExternal(data);
+        if (!idExternal || idExternal.length === 0) {
+          continue;
+        }
+        console.log("Executando Confirmação e Cancelamento no Klingo", data.name);
+        if (data.absoluteresp === 1) {
+          // Faz a confirmação - STATUS C
+          await processSchedule(idExternal, 'C', 'Confirmado');
+        } else if (data.absoluteresp === 2) {
+          // Faz o cancelamento - STATUS N
+          await processSchedule(idExternal, 'N', 'Não Confirmada');
+        } else {
+          //console.warn(`Resposta absoluta inválida para o registro:${data.id}`, data.id);
+          await Log.create({ name: 'DataSourceApiController', message: error, description: `Resposta absoluta inválida para o registro:${data.id}` })
+        }
+
+        // Atualiza o status externo após o processamento
+        await Chat.query().where("id", data.id).update({ externalstatus: 'B' });
+        //console.log(`Status externo atualizado para registro ID: ${data.id}`);
       }
-
     } catch (error) {
-      console.error("Erro ao processar confirmações ou cancelamentos:", error);
-
+      console.error("14778 - Erro ao processar confirmações ou cancelamentos:", error);
     }
-
   }
 
 
+
+  // public async confirmOrCancelScheduleInternal() {
+  //   //await auth.use('api').authenticate()
+  //   //chmamar a API DO KLINGO
+  //   const date_start = DateTime.now().startOf('day').toFormat("yyyy-MM-dd HH:mm")
+  //   const date_end = DateTime.now().endOf('day').toFormat("yyyy-MM-dd HH:mm")
+  //   try {
+  //     const confirmCancel = await Chat.query()
+  //       .whereBetween('created_at', [date_start, date_end])
+  //       .andWhere('externalstatus', 'A')
+  //       .andWhere('interaction_id', 1)
+
+  //     if (!confirmCancel || confirmCancel.length === 0) return
+  //     let result
+  //     for (const data of confirmCancel) {
+  //       console.log("Executando Confirmação e Cancelamento no Klingo")
+  //       if (data.absoluteresp === 1) {
+  //         //FAZ A CONFIRMAÇÃO - STATUS C
+
+  //         result = await confirmOrCancelScheduleApi(data.idexternal, 'C', 'Confirmado')
+  //       } else if (data.absoluteresp === 2) {
+  //         //FAZ O CANCELAMENTO - STATUS N
+  //         result = await confirmOrCancelScheduleApi(data.idexternal, 'N', 'Não Confirmada')
+  //       }
+  //       if (result)
+  //         await Chat.query().where("id", data.id).update({ externalstatus: 'B' })
+  //     }
+
+  //   } catch (error) {
+  //     console.error("Erro ao processar confirmações ou cancelamentos:", error);
+
+  //   }
+
+  // }
+
+  /****************************************************************** */
   //END POINT BUSCAR OS PACIENTES DE AGENDAMENTO NO KLINGO
   public async getSchedules({ auth, request, response }: HttpContextContract) {
     await auth.use('api').authenticate()

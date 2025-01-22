@@ -7,21 +7,37 @@ import { getSchedulesApi, confirmOrCancelScheduleApi } from 'App/Services/reques
 import { ValidatePhone } from 'App/Services/whatsapp-web/util'
 import ResponsesController from './ResponsesController'
 import { DateTime } from 'luxon'
-
+import Response from 'App/Models/Response'
 test('display welcome page', async ({ client }) => {
 
   //chmamar a API DO KLINGO
+  const formatMessage = (template, fields) => {
+    return template
+   .replace('{name_unit}', fields.name_unit)
+   .replace('{address_unit}', fields.address_unit || 'Endereço indisponível')
+   .replace('{medic}', fields.medic || 'Médico não informado')
+   .replace('{phone_unit}', fields.phone_unit || 'Contato indisponível')
+   .replace('{schedule}', fields.schedule)
+};
 
-  const returnAck =  Chat.query()
-  .where('message', 'Saudações! Aqui é a Iris atendente virtual do Cob, o motivo do meu contato Sra. ROSINHA é para confirmar o horário conosco, agendado para o dia *03/02/2025 13:00* na unidade BH (BAIRRO SANTA EFIGÊNIA) - CENTRO DE OFTALMOLOGIA BRASIL com Dr(a). COB podemos confirmar? *1* para Sim *2* para Desmarcar.Caso não haja interação em até 12 horas, o agendamento será automaticamente cancelado.')
-  .andWhere('cellphoneserialized', '553185228619@c.us')
-  .andWhere('chatnumber', 'LIKE' , String('553196218275@c.us').replace(/\D/g, ''));
+  const chatOtherFields = JSON.parse(`{"address_unit":"Rua Álvares Maciel, 356 - Santa Efigênia - BH","medic":"ALINE TEIXEIRA GUIDINE","schedule":"2025-01-23 07:30","phone_unit":"(31) 3227-1000","name_unit":"BH (BAIRRO SANTA EFIGÊNIA) - CENTRO DE OFTALMOLOGIA BRASIL"}`)
 
-  console.log(returnAck.toQuery())
-  const teste = await returnAck
+  //console.log(chatOtherFields.address_unit)
+
+  const response1schedule = await Response.query()
+    .select('message')
+    .where('local', 'response1schedule')
+    .andWhere('inactive', false)
+    .first();
+
+  const defaultMessage = "teste"//`Muito obrigada 😀, seu agendamento foi confirmado, o endereço da sua consulta é {chat.shippingcampaign.address}. Esperamos por você. Ótimo dia. Lembrando que para qualquer dúvida, estamos disponíveis pelo whatsapp {chat.shippingcampaign.phone_unit}.`;
 
 
-  //console.log(returnAck)
+  const response1message = response1schedule
+  ? formatMessage(response1schedule.message, chatOtherFields)
+  : defaultMessage;
 
+
+  console.log(response1message)
 
 })

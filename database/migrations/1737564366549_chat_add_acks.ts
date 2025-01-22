@@ -5,15 +5,14 @@ export default class extends BaseSchema {
 
   public async up() {
     this.schema.alterTable(this.tableName, (table) => {
-      table.integer('ack').after('returned')
+      table.integer('ack').after('returned') // Adiciona a coluna 'ack'
     })
   }
 
   public async down() {
     this.schema.alterTable(this.tableName, (table) => {
-      table.dropColumn('ack')
+      table.dropColumn('ack') // Remove a coluna 'ack'
+      // Remove o índice composto
     })
   }
-
-
 }

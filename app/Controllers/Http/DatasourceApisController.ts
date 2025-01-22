@@ -88,7 +88,7 @@ export default class DatasourceApisController {
     const schedule_list = await prepareSchedules(await getSchedulesApi(date))
     for (const data of schedule_list) {
 
-      if (data.id_paciente !== 823) continue
+      //if (data.id_paciente !== 823) continue
 
         try {
           const reg = String(data.id_paciente).replace(/[^0-9.-]/g, "")
@@ -100,7 +100,7 @@ export default class DatasourceApisController {
           shipping.dateshedule = data.datahora
           shipping.idexternal = data.id_marcacao
           shipping.name = String(data.nome).trim()
-          shipping.cellphone ='31985228619' //String(data.celular).replace(/[^0-9]+/g, ''); //data.cellphone.replace("(", "").replace("-", "")
+          shipping.cellphone =String(data.celular).replace(/[^0-9]+/g, ''); //data.cellphone.replace("(", "").replace("-", "")
           if (!await ValidatePhone(shipping.cellphone))
             shipping.phonevalid = false
           shipping.messagesent = false

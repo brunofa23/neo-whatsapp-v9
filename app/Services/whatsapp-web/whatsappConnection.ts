@@ -170,21 +170,15 @@ async function startAgent(_agent: Agent) {
         ACK_READ: 3
         ACK_PLAYED: 4
     */
-    console.log("ack:",ack)
-    console.log("MENSAGEM>>>>>", msg)
+    // console.log("ack:",ack)
+    // console.log("MENSAGEM>>>>>", msg)
     if(ack>=2){
-      const returnAck = await Chat.query()
+     await Chat.query()
     .where('message', msg.body)
     .andWhere('cellphoneserialized', msg.to)
-    .andWhere('chatnumber','like', msg.from)
-
+    .andWhere('chatnumber','like',String(msg.from).replace(/\D/g,''))
+    .update({ack:msg.ack})
     }
-
-    // const returnAck = await Customchat.query()
-    //   .where('message', msg.body)
-    //   .andWhere('cellphoneserialized', msg.to)
-    //   .update({ ack: msg.ack })
-    //console.log("Mensagem:",msg)
   });
 
 

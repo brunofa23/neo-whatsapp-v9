@@ -8,9 +8,6 @@ export default async (client: Client, message: Message, chat: Chat) => {
   // Função para substituir os placeholders na mensagem
   const formatMessage = (template, fields) => {
        return template
-      // .replace('${chatOtherFields.address}', fields.address || 'Endereço indisponível')
-      // .replace('${chatOtherFields.medic}', fields.medic || 'Médico não informado')
-      // .replace('${chatOtherFields.phone_unit}', fields.phone_unit || 'Contato indisponível');
       .replace('{name_unit}', fields.name_unit)
       .replace('{address_unit}', fields.address_unit || 'Endereço indisponível')
       .replace('{medic}', fields.medic || 'Médico não informado')
@@ -34,6 +31,7 @@ export default async (client: Client, message: Message, chat: Chat) => {
   if (chat.interaction_seq == 1) {
     const chatOtherFields = JSON.parse(chat.shippingcampaign.otherfields)
 
+    
     if (await PositiveResponse(message.body)) {//presença confirmada
       await stateTyping(message)//status de digitando...
       try {

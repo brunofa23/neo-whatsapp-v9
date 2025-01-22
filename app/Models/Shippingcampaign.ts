@@ -18,6 +18,7 @@ export default class Shippingcampaign extends BaseModel {
       'interaction_id',
       'interaction_seq',
       'idexternal',
+      'idexternal_array',
       'reg',
       'name',
       'cellphone',
@@ -41,10 +42,6 @@ export default class Shippingcampaign extends BaseModel {
     ]
   }
 
-
-
-
-
   @column({ isPrimary: true })
   public id: number
 
@@ -56,6 +53,9 @@ export default class Shippingcampaign extends BaseModel {
 
   @column()
   public idexternal: number
+
+  @column()
+  public idexternal_array:string
 
   @column()
   public reg: number

@@ -48,8 +48,8 @@ async function TimeSchedule() {
 // }
 async function PositiveResponse(inputString: string): Promise<boolean> {
   const positiveResponses = [
-    "1", "sim", "ok", "pode sim", "confirma", "claro", "com certeza",
-    "afirmativo", "beleza", "sim claro", "está certo", "correto"
+    "1", "sim", "ok", "pode sim", "confirma", "com certeza",
+    "afirmativo", "sim claro", "pode confirmar"
   ];
   // Normaliza o texto de entrada para evitar problemas com capitalização
   const normalizedInput = inputString.trim().toLowerCase();
@@ -69,7 +69,7 @@ async function PositiveResponse(inputString: string): Promise<boolean> {
 async function NegativeResponse(stringResp: string): Promise<boolean> {
   const negativeResponses = [
     "2", "não", "nao", "cancelar", "reagenda", "desmarcar", "não pode",
-    "não quero", "não consigo", "negativo", "nunca", "recusar", "não aceito"
+    "não quero", "não consigo", "negativo", "nunca", "recusar"
   ];
   // Normaliza o texto de entrada para evitar problemas com capitalização
   const normalizedInput = stringResp.trim().toLowerCase();

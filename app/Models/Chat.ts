@@ -37,6 +37,11 @@ export default class Chat extends BaseModel {
     ]
   }
 
+  @hasOne(() => Shippingcampaign, {
+    foreignKey: 'id',
+    localKey: 'shippingcampaigns_id'
+  })
+  public shippingcamapgn: HasOne<typeof Shippingcampaign>
 
   @column({ isPrimary: true })
   public id: number

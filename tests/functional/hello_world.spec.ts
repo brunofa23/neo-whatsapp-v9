@@ -1,45 +1,53 @@
 import { test } from '@japa/runner'
-import Response from 'App/Models/Response'
-import ResponsesController from 'App/Controllers/Http/ResponsesController'
-import Log from 'App/Models/Log'
-import Agent from 'App/Models/Agent'
-import { DateFormat, RandomResponse, stateTyping } from '../../app/Services/whatsapp-web/util'
+import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
+import Shippingcampaign from 'App/Models/Shippingcampaign'
 import Chat from 'App/Models/Chat'
+import Unit from 'App/Models/Unit'
+import { getSchedulesApi, confirmOrCancelScheduleApi } from 'App/Services/requestExternal/request'
+import { ValidatePhone } from 'App/Services/whatsapp-web/util'
+import ResponsesController from './ResponsesController'
+import { DateTime } from 'luxon'
 
 test('display welcome page', async ({ client }) => {
 
+  //chmamar a API DO KLINGO
+  const date_start = DateTime.now().startOf('day').toFormat("yyyy-MM-dd HH:mm")
+  const date_end = DateTime.now().endOf('day').toFormat("yyyy-MM-dd HH:mm")
+  try {
+    const confirmCancel = await Chat.query()
+    .preload('shippingcamapgn')
+      .whereBetween('created_at', [date_start, date_end])
+      .andWhere('externalstatus', 'A')
+      .andWhere('interaction_id', 1)
 
-  const chatOtherFields = {
-    address_unit: 'Av. Augusto de Lima, 1126 - Barro Preto - BH',
-    medic: 'ANA FLAVIA DIAS MEDEIROS',
-    schedule: '2025-01-29 08:20',
-    phone_unit: '(31) 3227-1000',
-    name_unit: 'BH (BAIRRO BARRO PRETO) - CENTRO DE OFTALMOLOGIA BRASIL'
+      console.log("Executando Confirmação e Cancelamento no Klingo", confirmCancel[0].shippingcamapgn)
+return
+
+
+    if (!confirmCancel || confirmCancel.length === 0) return
+    let result
+    for (const data of confirmCancel) {
+      console.log("Executando Confirmação e Cancelamento no Klingo")
+      if (data.absoluteresp === 1) {
+        //   //FAZ A CONFIRMAÇÃO - STATUS C
+        //console.log("EXECUTAR CONFIRMAÇÃO", data.idexternal, data.idexternal_array)
+        //   result = await confirmOrCancelScheduleApi(data.idexternal, 'C', 'Confirmado')
+      } else if (data.absoluteresp === 2) {
+        //   //FAZ O CANCELAMENTO - STATUS N
+        //console.log("EXECUTAR CANCELAMENTO", data.idexternal, data.idexternal_array)
+        //   result = await confirmOrCancelScheduleApi(data.idexternal, 'N', 'Não Confirmada')
+      }
+      // if (result)
+      //   await Chat.query().where("id", data.id).update({ externalstatus: 'B' })
+    }
+
+  } catch (error) {
+    console.error("Erro ao processar confirmações ou cancelamentos:", error);
   }
-  console.log(chatOtherFields)
-
-  const response1schedule = await Response.query()
-            .select('message')
-            .where('local', 'response1schedule')
-            .andWhere('inactive', false)
-            .first();
-
-  //console.log(">>",response1schedule?.message)
 
 
-  const formatMessage = (template, fields) => {
-    return template
-   // .replace('${chatOtherFields.address}', fields.address || 'Endereço indisponível')
-   // .replace('${chatOtherFields.medic}', fields.medic || 'Médico não informado')
-   // .replace('${chatOtherFields.phone_unit}', fields.phone_unit || 'Contato indisponível');
-   .replace('{name_unit}', fields.name_unit)
-   .replace('{address_unit}', fields.address || 'Endereço indisponível')
-   .replace('{medic}', fields.medic || 'Médico não informado')
-   .replace('{phone_unit}', fields.phone_unit || 'Contato indisponível')
-   .replace('{schedule}', fields.schedule)
-};
 
-const teste = formatMessage(response1schedule.message, chatOtherFields)
-console.log("teste:::", teste)
+
+
 
 })

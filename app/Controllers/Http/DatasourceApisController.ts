@@ -40,11 +40,43 @@ async function otherFields(schedule: Object) {
   return null
 }
 
+//FUNÇÃO PARA PREPARAR OS DADOS ARRAY BUSCADO DO KLINGO ANTES DE ARMAZENAR O SHIPPINGCAMPAIGN
+function prepareSchedules(records: object[]): object[] {
+  // Filtra apenas registros com status_confirmacao igual a "A Confirmar"
+  records = records.filter(item => item.status_confirmacao === "A Confirmar");
+  // Agrupa os registros por id_paciente
+  const groupedByPatient = records.reduce<Record<string, object[]>>((acc, record) => {
+    const key = record.id_paciente.toString();
+    acc[key] = acc[key] || [];
+    acc[key].push(record);
+    return acc;
+  }, {});
+  // Para cada grupo, pega apenas o registro com a data mais antiga
+  const oldestRecords = Object.values(groupedByPatient).map((group) => {
+    // Obtém todos os id_marcacao no grupo
+    const allIds = group.map(item => item.id_marcacao);
+    // Encontra o registro com a data mais antiga
+    const oldest = group.reduce((oldest, current) => {
+      return new Date(current.datahora) < new Date(oldest.datahora) ? current : oldest;
+    });
+    // Adiciona o atributo id_schedule ao registro mais antigo
+    oldest.idexternal_array = allIds;
+    return oldest;
+  });
+
+  return oldestRecords;
+}
+
+
 export default class DatasourceApisController {
 
   //FUNÇÃO PARA BUSCAR OS PACIENTES AGENDADOS NO KLINGO
   public async getSchedulesInternal(date: string) {
-    const schedule_list = await getSchedulesApi(date)
+    const schedule_list =await prepareSchedules(await getSchedulesApi(date))
+    // console.log("FINAL FUNÇAÕ")
+    //return schedule_list
+    //const schedule_list =await getSchedulesApi(date)
+
     for (const data of schedule_list) {
       //if (data.id_paciente == 5144 || data.id_paciente == 28724 || data.id_paciente == 5845 || data.id_paciente == 5178) {
         try {
@@ -66,6 +98,7 @@ export default class DatasourceApisController {
           shipping.doctor = String(data.medico).trim()
           shipping.unit = String(data.unidade).trim()
           shipping.covenant = ''
+          shipping.idexternal_array = String(data.idexternal_array)
 
           const verifyExist = await Shippingcampaign.query().where('reg', reg)
             .andWhere('dateshedule', data.datahora).first()
@@ -100,6 +133,7 @@ export default class DatasourceApisController {
         console.log("Executando Confirmação e Cancelamento no Klingo")
         if (data.absoluteresp === 1) {
           //FAZ A CONFIRMAÇÃO - STATUS C
+          
           result = await confirmOrCancelScheduleApi(data.idexternal, 'C', 'Confirmado')
         } else if (data.absoluteresp === 2) {
           //FAZ O CANCELAMENTO - STATUS N
@@ -122,8 +156,8 @@ export default class DatasourceApisController {
     await auth.use('api').authenticate()
     //chmamar a API DO KLINGO
     const { date } = request.requestData//DateTime.now().toFormat("yyyy-MM-dd")
-    await this.getSchedulesInternal(date)
-    return response.status(200).send("OK")
+    const payLoad = await this.getSchedulesInternal(date)
+    return response.status(200).send(payLoad)
   }
 
   //FAZ A CONFIRMAÇÃO NO KLINGO

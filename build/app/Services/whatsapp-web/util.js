@@ -37,8 +37,8 @@ async function TimeSchedule() {
 exports.TimeSchedule = TimeSchedule;
 async function PositiveResponse(inputString) {
     const positiveResponses = [
-        "1", "sim", "ok", "pode sim", "confirma", "claro", "com certeza",
-        "afirmativo", "beleza", "sim claro", "está certo", "correto"
+        "1", "sim", "ok", "pode sim", "confirma", "com certeza",
+        "afirmativo", "sim claro", "pode confirmar"
     ];
     const normalizedInput = inputString.trim().toLowerCase();
     return positiveResponses.some(response => normalizedInput.includes(response));
@@ -47,7 +47,7 @@ exports.PositiveResponse = PositiveResponse;
 async function NegativeResponse(stringResp) {
     const negativeResponses = [
         "2", "não", "nao", "cancelar", "reagenda", "desmarcar", "não pode",
-        "não quero", "não consigo", "negativo", "nunca", "recusar", "não aceito"
+        "não quero", "não consigo", "negativo", "nunca", "recusar"
     ];
     const normalizedInput = stringResp.trim().toLowerCase();
     return negativeResponses.some(response => normalizedInput.includes(response));

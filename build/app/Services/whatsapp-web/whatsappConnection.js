@@ -14,6 +14,7 @@ const ChatMonitoring_1 = __importDefault(require("./ChatMonitoring/ChatMonitorin
 const ChatMonitoringInternal_1 = __importDefault(require("./ChatMonitoring/ChatMonitoringInternal"));
 const SendMessageInternal_1 = __importDefault(require("./SendMessageInternal"));
 const util_1 = require("./util");
+const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcodeTerminal = require('qrcode-terminal');
 const qrcode = require('qrcode');
@@ -89,20 +90,6 @@ async function startAgent(_agent) {
         agent.number_phone = client.info.wid.user;
         agent.qrcode = null;
         await agent.save();
-        try {
-            const chats = await client.getChats();
-            for (const chat of chats) {
-                console.log(`Chat encontrado: ${chat.name || chat.id.user}`);
-                const messages = await chat.fetchMessages({ limit: 1 });
-                console.log(`Mensagens do chat "${chat.name || chat.id.user}":`);
-                for (const message of messages) {
-                    console.log(`- ${message.fromMe ? 'Você' : 'Contato'}: ${message.body}`);
-                }
-            }
-        }
-        catch (error) {
-            console.error('Erro ao acessar chats ou mensagens:', error);
-        }
     });
     const startTimeSendMessage = agent.interval_init_message;
     const endTimeSendMessage = agent.interval_final_message;
@@ -130,6 +117,13 @@ async function startAgent(_agent) {
         await chatMonitoringInternal.monitoring(client);
     }
     client.on('message_ack', async (msg, ack) => {
+        if (ack >= 2) {
+            await Chat_1.default.query()
+                .where('message', msg.body)
+                .andWhere('cellphoneserialized', msg.to)
+                .andWhere('chatnumber', 'like', String(msg.from).replace(/\D/g, ''))
+                .update({ ack: msg.ack });
+        }
     });
     client.on('disconnected', async (reason) => {
         agent.status = 'Disconnected';

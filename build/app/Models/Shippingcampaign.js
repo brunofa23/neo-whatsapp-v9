@@ -26,6 +26,7 @@ class Shippingcampaign extends Orm_1.BaseModel {
             'interaction_id',
             'interaction_seq',
             'idexternal',
+            'idexternal_array',
             'reg',
             'name',
             'cellphone',
@@ -65,6 +66,10 @@ __decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", Number)
 ], Shippingcampaign.prototype, "idexternal", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", String)
+], Shippingcampaign.prototype, "idexternal_array", void 0);
 __decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", Number)

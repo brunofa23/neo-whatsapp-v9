@@ -35,6 +35,7 @@ class Chat extends Orm_1.BaseModel {
             'response',
             'invalidresponse',
             'returned',
+            'ack',
             'chatname',
             'absoluteresp',
             'externalstatus',
@@ -45,6 +46,13 @@ class Chat extends Orm_1.BaseModel {
         ];
     }
 }
+__decorate([
+    (0, Orm_1.hasOne)(() => Shippingcampaign_1.default, {
+        foreignKey: 'id',
+        localKey: 'shippingcampaigns_id'
+    }),
+    __metadata("design:type", Object)
+], Chat.prototype, "shippingcamapgn", void 0);
 __decorate([
     (0, Orm_1.column)({ isPrimary: true }),
     __metadata("design:type", Number)
@@ -97,6 +105,10 @@ __decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", Boolean)
 ], Chat.prototype, "returned", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", Number)
+], Chat.prototype, "ack", void 0);
 __decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", String)

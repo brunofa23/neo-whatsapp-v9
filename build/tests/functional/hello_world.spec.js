@@ -4,30 +4,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const runner_1 = require("@japa/runner");
-const Response_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Response"));
+const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
 (0, runner_1.test)('display welcome page', async ({ client }) => {
-    const chatOtherFields = {
-        address_unit: 'Av. Augusto de Lima, 1126 - Barro Preto - BH',
-        medic: 'ANA FLAVIA DIAS MEDEIROS',
-        schedule: '2025-01-29 08:20',
-        phone_unit: '(31) 3227-1000',
-        name_unit: 'BH (BAIRRO BARRO PRETO) - CENTRO DE OFTALMOLOGIA BRASIL'
-    };
-    console.log(chatOtherFields);
-    const response1schedule = await Response_1.default.query()
-        .select('message')
-        .where('local', 'response1schedule')
-        .andWhere('inactive', false)
-        .first();
-    const formatMessage = (template, fields) => {
-        return template
-            .replace('{name_unit}', fields.name_unit)
-            .replace('{address_unit}', fields.address || 'Endereço indisponível')
-            .replace('{medic}', fields.medic || 'Médico não informado')
-            .replace('{phone_unit}', fields.phone_unit || 'Contato indisponível')
-            .replace('{schedule}', fields.schedule);
-    };
-    const teste = formatMessage(response1schedule.message, chatOtherFields);
-    console.log("teste:::", teste);
+    const returnAck = Chat_1.default.query()
+        .where('message', 'Saudações! Aqui é a Iris atendente virtual do Cob, o motivo do meu contato Sra. ROSINHA é para confirmar o horário conosco, agendado para o dia *03/02/2025 13:00* na unidade BH (BAIRRO SANTA EFIGÊNIA) - CENTRO DE OFTALMOLOGIA BRASIL com Dr(a). COB podemos confirmar? *1* para Sim *2* para Desmarcar.Caso não haja interação em até 12 horas, o agendamento será automaticamente cancelado.')
+        .andWhere('cellphoneserialized', '553185228619@c.us')
+        .andWhere('chatnumber', 'LIKE', String('553196218275@c.us').replace(/\D/g, ''));
+    console.log(returnAck.toQuery());
+    const teste = await returnAck;
 });
 //# sourceMappingURL=hello_world.spec.js.map

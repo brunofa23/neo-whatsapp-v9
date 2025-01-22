@@ -49,7 +49,7 @@ async function getSchedulesApi(date) {
         };
         const response = await axios_1.default.get(`${process.env.SERVER_URL_API_KLINGO}/telefonia/lista/${date}`, { headers });
         const responseFilter = response.data.filter(item => item.status_confirmacao === "A Confirmar");
-        return responseFilter;
+        return response.data;
     }
     catch (error) {
     }
@@ -63,7 +63,7 @@ async function confirmOrCancelScheduleApi(id_marcacao, status, obs) {
             [server_header_key]: server_token
         };
         const response = await axios_1.default.post(`${process.env.SERVER_URL_API_KLINGO}/telefonia/confirmar`, { id_marcacao, status, obs }, { headers });
-        console.log("RESPONSE:", response.data);
+        console.log("RESPONSE 1924:", response.data);
         if (response.status === 200 && response.data == 'OK') {
             return true;
         }

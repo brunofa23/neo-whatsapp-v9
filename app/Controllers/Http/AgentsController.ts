@@ -8,8 +8,20 @@ import { startAgentChat } from "../../Services/whatsapp-web/whatsapp"
 import Config from 'App/Models/Config'
 
 const fs = require('fs');
+const path = require('path');
 
-
+// Função que retorna uma promessa para remover a pasta
+function deleteFolder(pathFolder) {
+  return new Promise((resolve, reject) => {
+    fs.rm(pathFolder, { recursive: true }, (err) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve();
+      }
+    });
+  });
+}
 export default class AgentsController {
   public async index({ auth, response }: HttpContextContract) {
     await auth.use('api').authenticate()
@@ -149,26 +161,58 @@ export default class AgentsController {
 
   }
 
+  // public async destroyFullAgents() {
+  //   const agents = await Agent.query().where('deleted', true)
+  //   for (const agent of agents) {
+  //     setTimeout(() => {
+  //       console.log("Excluindo pasta...")
+  //       const pathFolder = `.wwebjs_auth/session-${agent.id}`
+  //       if (fs.existsSync(pathFolder)) {
+  //         fs.rm(pathFolder, { recursive: true }, (err) => {
+  //           if (err) {
+  //             console.error(err)
+  //           } else {
+  //             console.log(`DIRETORIO DELETADO: session-${agent.id}`)
+  //             await Agent.query().where('id',agent.id).delete()
+  //           }
+  //         })
+  //       }
+  //     }, 10000)
+
+  //   }
+
+  // }
+
   public async destroyFullAgents() {
-    const agents = await Agent.query().where('deleted', true)
+    const agents = await Agent.query().where('deleted', true);
+
     for (const agent of agents) {
-      setTimeout(() => {
-        console.log("Excluindo pasta...")
-        const pathFolder = `.wwebjs_auth/session-${agent.id}`
-        if (fs.existsSync(pathFolder)) {
-          fs.rm(pathFolder, { recursive: true }, (err) => {
-            if (err) {
-              console.error(err)
-            } else {
-              console.log(`DIRETORIO DELETADO: session-${agent.id}`)
+      // Use um atraso de 10 segundos com Promise para usar await
+      await new Promise((resolve) => {
+        setTimeout(async () => {
+          console.log("Excluindo pasta...");
+          const pathFolder = `.wwebjs_auth/session-${agent.id}`;
+
+          if (fs.existsSync(pathFolder)) {
+            try {
+              await deleteFolder(pathFolder); // Função que aguarda a exclusão da pasta
+              console.log(`DIRETÓRIO DELETADO: session-${agent.id}`);
+
+              // Deleta o agente do banco
+              await Agent.query().where('id', agent.id).delete();
+              resolve(); // Resolve a promessa após a exclusão
+            } catch (err) {
+              console.error(err);
+              resolve(); // Resolve a promessa em caso de erro para não bloquear o loop
             }
-          })
-        }
-      }, 10000)
-
+          } else {
+            resolve(); // Resolve se a pasta não existir
+          }
+        }, 10000); // Atraso de 10 segundos
+      });
     }
-
   }
+
 
 
 }

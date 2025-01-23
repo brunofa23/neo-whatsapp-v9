@@ -62,7 +62,6 @@ export default class ConfigsController {
       });
 
 
-
     } catch (error) {
       return error
     }

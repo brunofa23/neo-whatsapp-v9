@@ -75,7 +75,7 @@ async function sendRepeatedMessageKlingo() {
          datasourceApisController.getSchedulesInternal(date)
       }
 
-  },await GenerateRandomTime(300, 400, '****Send Message Repeated')
+  },await GenerateRandomTime(500, 600, '****Send Message Repeated')
   )
 
   //Atualiza os confirmados e cancelados
@@ -87,7 +87,7 @@ async function sendRepeatedMessageKlingo() {
          datasourceApisController.confirmOrCancelScheduleInternal()
       }
 
-  },await GenerateRandomTime(160, 170, '****Send Message Repeated')
+  },await GenerateRandomTime(200, 250, '****Send Message Repeated')
   )
 
 

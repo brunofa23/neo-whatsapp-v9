@@ -239,10 +239,4 @@ async function destroyAgent(agentId) {
 }
 
 
-
-
-
-
-
-
 export { startAgent, getWhatsAppClient, destroyAgent }

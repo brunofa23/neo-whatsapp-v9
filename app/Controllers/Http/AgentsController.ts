@@ -1,6 +1,6 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Agent from 'App/Models/Agent'
-import { startAgent, , getWhatsAppClient } from "../../Services/whatsapp-web/whatsappConnection"
+import { startAgent, destroyAgent, getWhatsAppClient } from "../../Services/whatsapp-web/whatsappConnection"
 import Chat from 'App/Models/Chat'
 import { DateFormat } from '../../Services/whatsapp-web/util'
 import { DateTime } from 'luxon'
@@ -94,7 +94,7 @@ export default class AgentsController {
   }
 
   public async connection({ auth, params, response }: HttpContextContract) {
-    await auth.use('api').authenticate()
+    //await auth.use('api').authenticate()
     try {
       const valuedatetime = DateTime.local().toFormat('yyyy-MM-dd HH:mm:ss')
       await Config.query().where('id', 'statusSendMessage').update({ valuedatetime: valuedatetime })
@@ -193,6 +193,25 @@ export default class AgentsController {
       console.error("Erro ao enviar mensagem:", error);
       return response.status(500).send({ error: 'Erro ao enviar mensagem.', details: error });
     }
+  }
+
+
+  public async disconnectClient({ auth, params, response }: HttpContextContract) {
+    console.log("entrei no destroy.....ssss")
+    try {
+      const client = getWhatsAppClient(params.id);
+      if (client.info?.wid){
+        const logout = await client.logout()
+        console.log("logout:",logout)
+        const teste = await client.destroy();
+        console.log("cliente destruído", teste )
+      }else
+      console.log("não encontrei esse cliente")
+      //await destroyAgent(params.id)
+    } catch (error) {
+      console.log("ERROR 55555>>:", error)
+    }
+
   }
 
 

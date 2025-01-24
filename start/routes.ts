@@ -25,7 +25,7 @@ function operacaoAssincrona(callback) {
     destroyFullAgents()
     sendRepeatedMessageKlingo()
     resetStatusConnected()
-    //connectionAll()
+    connectionAll()
     return
 
   }

@@ -25,7 +25,7 @@ function operacaoAssincrona(callback) {
     destroyFullAgents()
     sendRepeatedMessageKlingo()
     resetStatusConnected()
-    connectionAll()
+    //connectionAll()
     return
 
   }
@@ -48,6 +48,7 @@ Route.get('/', async () => {
 Route.group(() => {
 
   Route.get("/getclient/:id","AgentsController.returnClient")
+  Route.get("/disconnectClient/:id","AgentsController.disconnectClient")
 
 
   //Executa busca no Smart

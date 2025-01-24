@@ -1,6 +1,6 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Agent from 'App/Models/Agent'
-import { startAgent } from "../../Services/whatsapp-web/whatsappConnection"
+import { startAgent, , getWhatsAppClient } from "../../Services/whatsapp-web/whatsappConnection"
 import Chat from 'App/Models/Chat'
 import { DateFormat } from '../../Services/whatsapp-web/util'
 import { DateTime } from 'luxon'
@@ -93,7 +93,7 @@ export default class AgentsController {
     }
   }
 
-  public async connection({auth,params, response }: HttpContextContract) {
+  public async connection({ auth, params, response }: HttpContextContract) {
     await auth.use('api').authenticate()
     try {
       const valuedatetime = DateTime.local().toFormat('yyyy-MM-dd HH:mm:ss')
@@ -122,7 +122,7 @@ export default class AgentsController {
   }
 
 
-  public async connectionAll({auth, params, request, response }: HttpContextContract) {
+  public async connectionAll({ auth, params, request, response }: HttpContextContract) {
     await auth.use('api').authenticate()
     try {
       console.log("connection all acionado...")
@@ -160,6 +160,41 @@ export default class AgentsController {
     return response.status(201).send(data)
 
   }
+
+  public async returnClient({ auth,request, params, response }: HttpContextContract) {
+    const {message}=request.only(['message'])
+
+    const client = getWhatsAppClient(params.id);
+    console.log("status:",await client.getState())
+
+    if (!client) {
+      console.log("Cliente WhatsApp não inicializado ou inexistente.");
+      return response.status(404).send({ error: 'Cliente WhatsApp não encontrado ou não inicializado.' });
+    }
+
+    try {
+      // Verifica se o cliente está pronto antes de enviar a mensagem
+      if (client.info?.wid) {
+        console.log("Cliente WhatsApp está pronto.");
+        console.log("MENSAGEM:", message)
+        await client.sendMessage('5531985453903@c.us', message)
+        .then(async (response) => {
+          console.log("envio sucesso:",response)
+        }).catch(async (error) => {
+          const state = await client.getState()
+          console.log(state, error)
+        })
+        return response.status(200).send({ success: true, message: 'Mensagem enviada com sucesso.' });
+      } else {
+        console.log("Cliente WhatsApp não está pronto.");
+        return response.status(400).send({ error: 'Cliente WhatsApp não está pronto.' });
+      }
+    } catch (error) {
+      console.error("Erro ao enviar mensagem:", error);
+      return response.status(500).send({ error: 'Erro ao enviar mensagem.', details: error });
+    }
+  }
+
 
   // public async destroyFullAgents() {
   //   const agents = await Agent.query().where('deleted', true)

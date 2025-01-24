@@ -46,6 +46,10 @@ Route.get('/', async () => {
 })
 
 Route.group(() => {
+
+  Route.get("/getclient/:id","AgentsController.returnClient")
+
+
   //Executa busca no Smart
   Route.get('/executequery', async () => {
     console.log("EXECUTANDO BUSCA NO SMART")

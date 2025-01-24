@@ -59,7 +59,7 @@ async function startAgent(_agent: Agent) {
 
   client.initialize();
 
-  client.on('loading_screen', async (percent, message) => {
+  client.on('loading_screen', (percent, message) => {
     console.log(`LOADING SCREEN: ${_agent.name}`, percent, message);
     //agent.status = `Carregando: ${_agent.name} - ${percent} - ${message}`
     //agent.save()

@@ -68,26 +68,33 @@ async function sendRepeatedMessageKlingo() {
   console.log("EXECUTANDO BUSCA KLINGO")
   //const executingSendMessage = await Config.find('executingSendMessage')
   setInterval(async () => {
-    const date = DateTime.now().plus({days:3}).toFormat("yyyy-MM-dd")
-      if (await TimeSchedule()) {
-        console.log(`Buscando dados no Klingo: ${date}`)
-        const datasourceApisController = new DatasourceApisController
-         datasourceApisController.getSchedulesInternal(date)
-      }
+    let date = DateTime.now().plus({ days: 3 });
+    if (date.weekday === 6) {
+      date = date.plus({ days: 2 }); // Passa para segunda-feira
+    } else if (date.weekday === 7) {
+      date = date.plus({ days: 1 }); // Passa para segunda-feira
+    }
+    date = date.toFormat("yyyy-MM-dd");
 
-  },await GenerateRandomTime(500, 600, '****Send Message Repeated')
+    if (await TimeSchedule()) {
+      console.log(`Buscando dados no Klingo: ${date}`)
+      const datasourceApisController = new DatasourceApisController
+      datasourceApisController.getSchedulesInternal(date)
+    }
+
+  }, await GenerateRandomTime(500, 600, '****Send Message Repeated')
   )
 
   //Atualiza os confirmados e cancelados
   //console.log("CONFIRM OR CANCEL DESABILITADO ****************")
   setInterval(async () => {
-      if (await TimeSchedule()) {
-        console.log(`Atualizando confirmações no Klingo: ${DateTime.now().toFormat("dd/MM/yyyy HH:mm")}`)
-        const datasourceApisController = new DatasourceApisController
-         datasourceApisController.confirmOrCancelScheduleInternal()
-      }
+    if (await TimeSchedule()) {
+      console.log(`Atualizando confirmações no Klingo: ${DateTime.now().toFormat("dd/MM/yyyy HH:mm")}`)
+      const datasourceApisController = new DatasourceApisController
+      datasourceApisController.confirmOrCancelScheduleInternal()
+    }
 
-  },await GenerateRandomTime(200, 250, '****Send Message Repeated')
+  }, await GenerateRandomTime(200, 250, '****Send Message Repeated')
   )
 
 

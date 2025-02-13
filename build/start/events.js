@@ -65,20 +65,27 @@ exports.sendRepeatedMessage = sendRepeatedMessage;
 async function sendRepeatedMessageKlingo() {
     console.log("EXECUTANDO BUSCA KLINGO");
     setInterval(async () => {
-        const date = luxon_1.DateTime.now().plus({ days: 3 }).toFormat("yyyy-MM-dd");
+        let date = luxon_1.DateTime.now().plus({ days: 3 });
+        if (date.weekday === 6) {
+            date = date.plus({ days: 2 });
+        }
+        else if (date.weekday === 7) {
+            date = date.plus({ days: 1 });
+        }
+        date = date.toFormat("yyyy-MM-dd");
         if (await (0, util_1.TimeSchedule)()) {
             console.log(`Buscando dados no Klingo: ${date}`);
             const datasourceApisController = new DatasourceApisController_1.default;
             datasourceApisController.getSchedulesInternal(date);
         }
-    }, await (0, util_1.GenerateRandomTime)(300, 400, '****Send Message Repeated'));
+    }, await (0, util_1.GenerateRandomTime)(500, 600, '****Send Message Repeated'));
     setInterval(async () => {
         if (await (0, util_1.TimeSchedule)()) {
             console.log(`Atualizando confirmações no Klingo: ${luxon_1.DateTime.now().toFormat("dd/MM/yyyy HH:mm")}`);
             const datasourceApisController = new DatasourceApisController_1.default;
             datasourceApisController.confirmOrCancelScheduleInternal();
         }
-    }, await (0, util_1.GenerateRandomTime)(160, 170, '****Send Message Repeated'));
+    }, await (0, util_1.GenerateRandomTime)(200, 250, '****Send Message Repeated'));
 }
 exports.sendRepeatedMessageKlingo = sendRepeatedMessageKlingo;
 async function resetStatusConnected() {

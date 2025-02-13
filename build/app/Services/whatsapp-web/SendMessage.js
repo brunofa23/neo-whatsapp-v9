@@ -105,10 +105,11 @@ exports.default = async (client, agent) => {
                                 };
                                 await Chat_1.default.create(bodyChat);
                                 console.log("Mensagem enviada:", shippingCampaign.name, "cellphone", shippingCampaign.cellphoneserialized, "agent", agent.name);
-                                if (agent.statusconnected == false)
-                                    await Agent_1.default.query().where('id', agent.id).update({ statusconnected: true });
+                                if (agent.statusconnected == false || agent.status !== 'CONNECTED')
+                                    await Agent_1.default.query().where('id', agent.id).update({ statusconnected: true, status: 'CONNECTED' });
                             }).catch(async (error) => {
-                                await Agent_1.default.query().where('id', agent.id).update({ statusconnected: false });
+                                const state = await client.getState();
+                                await Agent_1.default.query().where('id', agent.id).update({ statusconnected: false, status: state });
                                 await Log_1.default.create({ name: 'sendMessage', message: error, description: "SendMessage.ts. linha:120 - Whatsapp Bugado catch" });
                             });
                             if (Object.keys(returnResponse).length === 0) {

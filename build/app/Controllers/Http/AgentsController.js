@@ -11,6 +11,19 @@ const luxon_1 = require("luxon");
 const whatsapp_1 = require("../../Services/whatsapp-web/whatsapp");
 const Config_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Config"));
 const fs = require('fs');
+const path = require('path');
+function deleteFolder(pathFolder) {
+    return new Promise((resolve, reject) => {
+        fs.rm(pathFolder, { recursive: true }, (err) => {
+            if (err) {
+                reject(err);
+            }
+            else {
+                resolve();
+            }
+        });
+    });
+}
 class AgentsController {
     async index({ auth, response }) {
         await auth.use('api').authenticate();
@@ -142,20 +155,27 @@ class AgentsController {
     async destroyFullAgents() {
         const agents = await Agent_1.default.query().where('deleted', true);
         for (const agent of agents) {
-            setTimeout(() => {
-                console.log("Excluindo pasta...");
-                const pathFolder = `.wwebjs_auth/session-${agent.id}`;
-                if (fs.existsSync(pathFolder)) {
-                    fs.rm(pathFolder, { recursive: true }, (err) => {
-                        if (err) {
+            await new Promise((resolve) => {
+                setTimeout(async () => {
+                    console.log("Excluindo pasta...");
+                    const pathFolder = `.wwebjs_auth/session-${agent.id}`;
+                    if (fs.existsSync(pathFolder)) {
+                        try {
+                            await deleteFolder(pathFolder);
+                            console.log(`DIRETÓRIO DELETADO: session-${agent.id}`);
+                            await Agent_1.default.query().where('id', agent.id).delete();
+                            resolve();
+                        }
+                        catch (err) {
                             console.error(err);
+                            resolve();
                         }
-                        else {
-                            console.log(`DIRETORIO DELETADO: session-${agent.id}`);
-                        }
-                    });
-                }
-            }, 10000);
+                    }
+                    else {
+                        resolve();
+                    }
+                }, 10000);
+            });
         }
     }
 }

@@ -3,15 +3,16 @@ import PersistShippingcampaign from "App/Services/whatsapp-web/PersistShippingca
 
 import { connectionAll, destroyFullAgents, resetStatusConnected, sendRepeatedMessage, sendRepeatedMessageKlingo } from './events'
 
-console.log("***CHAT BOT V-125***04/10/2024")
+console.log("***CHAT BOT V-125***04/10/2024",process.env.SERVER)
 function operacaoAssincrona(callback) {
+  console.log("ENTREI PASSO 1", callback)
   if (process.env.SERVER === 'true') {
     console.log("INICIALIZANDO EASYTALK SERVIDOR")
     sendRepeatedMessage()
     return
   }
 
-  if (process.env.SERVER === 'false') {
+  if (process.env.SERVER?.toLowerCase() === 'false') {
     console.log("INICIALIZANDO EASYTALK SMART")
     destroyFullAgents()
     resetStatusConnected()

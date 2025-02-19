@@ -31,7 +31,7 @@ export default async (client: Client, message: Message, chat: Chat) => {
   if (chat.interaction_seq == 1) {
     const chatOtherFields = JSON.parse(chat.shippingcampaign.otherfields)
 
-    
+
     if (await PositiveResponse(message.body)) {//presença confirmada
       await stateTyping(message)//status de digitando...
       try {
@@ -41,8 +41,7 @@ export default async (client: Client, message: Message, chat: Chat) => {
           .where('local', 'response1schedule')
           .andWhere('inactive', false)
           .first();
-
-        const defaultMessage = `Muito obrigada 😀, seu agendamento foi confirmado, o endereço da sua consulta é ${chat.shippingcampaign.address}. Esperamos por você. Ótimo dia. Lembrando que para qualquer dúvida, estamos disponíveis pelo whatsapp ${chat.shippingcampaign.phone_unit}.`;
+        const defaultMessage = `Muito obrigada 😀, seu agendamento foi confirmado, o endereço da sua consulta é ${chatOtherFields.address}. Esperamos por você. Ótimo dia. Lembrando que para qualquer dúvida, estamos disponíveis pelo whatsapp ${chatOtherFields.phone_unit}.`;
 
         const response1message = response1schedule
           ? formatMessage(response1schedule.message, chatOtherFields)

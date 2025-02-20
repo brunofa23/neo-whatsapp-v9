@@ -115,6 +115,9 @@ Route.group(() => {
   Route.resource('/chats', 'ChatsController').apiOnly()
   Route.post('/closed', 'ChatsController.closed')
 
+  //MANIFESTS
+  Route.resource("/manifests", "ManifestsController").apiOnly()
+
   //MIDIAS
   Route.get('/midia/:filename', 'MidiasController.midia')
   Route.get('/midiapath/:filename', 'MidiasController.midiapath')

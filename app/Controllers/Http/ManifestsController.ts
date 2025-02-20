@@ -9,8 +9,9 @@ export default class ManifestsController {
 
   public async show({ auth, params, response }: HttpContextContract) {
     //await auth.use('api').authenticate()
+    console.log("PASSEI NO 8898", params.id)
     try {
-      const data = await Manifest.query().where('id', params.id)
+      const data = await Manifest.query().where('chat_id', params.id)
       return response.status(200).send(data)
     } catch (error) {
       return error

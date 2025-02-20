@@ -42,34 +42,26 @@ export default class UsersController {
 
 
   public async login({ auth, request, response }: HttpContextContract) {
-    //const authenticate = await auth.use('api').authenticate()
     const body = request.only(User.fillable)
-
     const user = await User
       .query()
       .where('username', body.username)
       .first()
 
     if (!user) {
-      //const errorValidation = await new validations('user_error_205')
-      throw new BadRequest("error", 401, "Invalid User")
+      throw new BadRequest("Invalid username",401,"InvalidUsername")
     }
 
     // Verify password
     if (!(await Hash.verify(user.password, body.password))) {
-      //let errorValidation = await new validations('user_error_206')
-      throw new BadRequest("error", 401, "Invalid Password")
+      throw new BadRequest("Invalid password",401,"InvalidPassword")
     }
 
     // Generate token
     const token = await auth.use('api').generate(user, {
       expiresIn: '7 days',
       name: user.username
-
     })
-
-    //return { token, user }
-    //console.log("acessei o login...", token, user)
     return response.status(200).send({ token, user })
 
   }

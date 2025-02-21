@@ -19,10 +19,9 @@ export default class ManifestsController {
 
 
   public async store({ auth, request, response }: HttpContextContract) {
-    //await auth.use('api').authenticate()
+    await auth.use('api').authenticate()
     const body = request.only(Manifest.fillable)
-    console.log("SALVANDO MANIFESTO:", body)
-    try {
+        try {
       const data = await Manifest.create(body)
       return response.status(201).send(data)
     } catch (error) {
@@ -31,9 +30,9 @@ export default class ManifestsController {
   }
 
   public async update({ auth, params, request, response }: HttpContextContract) {
-    //await auth.use('api').authenticate()
+    await auth.use('api').authenticate()
     const body = request.only(Manifest.fillable)
-    console.log("fazendo update:", body)
+    
     try {
       const data = await Manifest.query().where('id', params.id)
         .update(body)

@@ -13,7 +13,7 @@ export default class Manifest extends BaseModel {
       'employee_involved',
       'medic_einvolved',
       'date_limit',
-      'respnsible_response',
+      'responsible_response',
       'root_cause',
       'action',
       'date_limit_action',
@@ -23,7 +23,7 @@ export default class Manifest extends BaseModel {
     ]
   }
 
-  
+
   @column({ isPrimary: true })
   public id: number
 
@@ -44,7 +44,7 @@ export default class Manifest extends BaseModel {
   public date_limit: DateTime
 
   @column()
-  public respnsible_response: string
+  public responsible_response: string
   @column()
   public root_cause: string
   @column()

@@ -35,7 +35,7 @@ exports.default = async (client, message, chat) => {
                     .where('local', 'response1schedule')
                     .andWhere('inactive', false)
                     .first();
-                const defaultMessage = `Muito obrigada 😀, seu agendamento foi confirmado, o endereço da sua consulta é ${chat.shippingcampaign.address}. Esperamos por você. Ótimo dia. Lembrando que para qualquer dúvida, estamos disponíveis pelo whatsapp ${chat.shippingcampaign.phone_unit}.`;
+                const defaultMessage = `Muito obrigada 😀, seu agendamento foi confirmado, o endereço da sua consulta é ${chatOtherFields.address}. Esperamos por você. Ótimo dia. Lembrando que para qualquer dúvida, estamos disponíveis pelo whatsapp ${chatOtherFields.phone_unit}.`;
                 const response1message = response1schedule
                     ? formatMessage(response1schedule.message, chatOtherFields)
                     : defaultMessage;
@@ -47,6 +47,7 @@ exports.default = async (client, message, chat) => {
                     externalstatus: 'A',
                     company_id: chat.shippingcampaign.company_id,
                 });
+                console.log("verificar:", chat.shippingcamapgn);
                 await chat.save();
             }
             catch (error) {

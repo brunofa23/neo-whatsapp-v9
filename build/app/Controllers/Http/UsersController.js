@@ -47,10 +47,10 @@ class UsersController {
             .where('username', body.username)
             .first();
         if (!user) {
-            throw new BadRequestException_1.default("error", 401, "Invalid User");
+            throw new BadRequestException_1.default("Invalid username", 401, "InvalidUsername");
         }
         if (!(await Hash_1.default.verify(user.password, body.password))) {
-            throw new BadRequestException_1.default("error", 401, "Invalid Password");
+            throw new BadRequestException_1.default("Invalid password", 401, "InvalidPassword");
         }
         const token = await auth.use('api').generate(user, {
             expiresIn: '7 days',

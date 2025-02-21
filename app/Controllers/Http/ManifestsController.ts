@@ -9,7 +9,6 @@ export default class ManifestsController {
 
   public async show({ auth, params, response }: HttpContextContract) {
     //await auth.use('api').authenticate()
-    console.log("PASSEI NO 8898", params.id)
     try {
       const data = await Manifest.query().where('chat_id', params.id)
       return response.status(200).send(data)
@@ -22,6 +21,7 @@ export default class ManifestsController {
   public async store({ auth, request, response }: HttpContextContract) {
     //await auth.use('api').authenticate()
     const body = request.only(Manifest.fillable)
+    console.log("SALVANDO MANIFESTO:", body)
     try {
       const data = await Manifest.create(body)
       return response.status(201).send(data)
@@ -33,6 +33,7 @@ export default class ManifestsController {
   public async update({ auth, params, request, response }: HttpContextContract) {
     //await auth.use('api').authenticate()
     const body = request.only(Manifest.fillable)
+    console.log("fazendo update:", body)
     try {
       const data = await Manifest.query().where('id', params.id)
         .update(body)

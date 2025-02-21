@@ -162,6 +162,7 @@ export default class AgentsController {
   }
 
   public async returnClient({ auth,request, params, response }: HttpContextContract) {
+    console.log("passei aqui message 1500")
     const {message}=request.only(['message'])
 
     const client = getWhatsAppClient(params.id);
@@ -177,7 +178,7 @@ export default class AgentsController {
       if (client.info?.wid) {
         console.log("Cliente WhatsApp está pronto.");
         console.log("MENSAGEM:", message)
-        await client.sendMessage('5531985453903@c.us', message)
+        await client.sendMessage('553185228619@c.us', "teste")
         .then(async (response) => {
           console.log("envio sucesso:",response)
         }).catch(async (error) => {

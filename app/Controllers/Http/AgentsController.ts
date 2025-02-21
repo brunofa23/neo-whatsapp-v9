@@ -178,9 +178,9 @@ export default class AgentsController {
       if (client.info?.wid) {
         console.log("Cliente WhatsApp está pronto.");
         console.log("MENSAGEM:", message)
-        await client.sendMessage('553185228619@c.us', "teste")
+        await client.sendMessage('553185228619@c.us', message)
         .then(async (response) => {
-          console.log("envio sucesso:",response)
+          console.log("envio sucesso:")
         }).catch(async (error) => {
           const state = await client.getState()
           console.log(state, error)

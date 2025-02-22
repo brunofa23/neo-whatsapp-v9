@@ -9,6 +9,7 @@ import ChatMonitoringInternal from './ChatMonitoring/ChatMonitoringInternal'
 import SendMessageInternal from './SendMessageInternal';
 import { GenerateRandomTime } from './util'
 import Chat from 'App/Models/Chat';
+import Application from '@ioc:Adonis/Core/Application'
 
 
 const { Client, LocalAuth } = require('whatsapp-web.js');
@@ -35,7 +36,7 @@ async function startAgent(_agent: Agent) {
     return
   }
   const client = new Client({
-    authStrategy: new LocalAuth({ clientId: _agent.id }),
+    authStrategy: new LocalAuth({ clientId: _agent.id, dataPath:Application.tmpPath('/sessions') }),
     puppeteer: {
       args: ['--no-sandbox',
         '--max-memory=512MB',
@@ -50,6 +51,7 @@ async function startAgent(_agent: Agent) {
       setRequestInterception: true,
       setBypassCSP: true,
       setJavaScriptEnabled: false
+
     }
 
   });

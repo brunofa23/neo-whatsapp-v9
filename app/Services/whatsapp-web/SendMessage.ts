@@ -72,7 +72,6 @@ export default async (client: Client, agent: Agent) => {
     }
     await verifyContSend()
     if (shippingCampaign) {
-      console.log("Enviando mensagem...2525")
       //console.log("passo 6")
       if (global.contSend < 3) {
         if (global.contSend < 0)

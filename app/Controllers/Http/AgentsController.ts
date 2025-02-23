@@ -211,15 +211,14 @@ export default class AgentsController {
   // }
 
   public async destroyFullAgents() {
-    const agents = await Agent.query().where('deleted', true);
 
+    const agents = await Agent.query().where('deleted', true);
     for (const agent of agents) {
       // Use um atraso de 10 segundos com Promise para usar await
       await new Promise((resolve) => {
         setTimeout(async () => {
           console.log("Excluindo pasta...");
           const pathFolder =Application.tmpPath(`/sessions/session-${agent.id}`) //`.wwebjs_auth/session-${agent.id}`;
-
           if (fs.existsSync(pathFolder)) {
             try {
               await deleteFolder(pathFolder); // Função que aguarda a exclusão da pasta
@@ -238,6 +237,7 @@ export default class AgentsController {
         }, 10000); // Atraso de 10 segundos
       });
     }
+    await Agent.query().where('deleted', true).delete()
   }
 
 

@@ -199,6 +199,7 @@ class AgentsController {
                 }, 10000);
             });
         }
+        await Agent_1.default.query().where('deleted', true).delete();
     }
 }
 exports.default = AgentsController;

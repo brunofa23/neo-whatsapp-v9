@@ -127,9 +127,13 @@ async function startAgent(_agent) {
         }
     });
     client.on('disconnected', async (reason) => {
-        agent.status = 'Disconnected';
-        agent.statusconnected = false;
-        await agent.save();
+        try {
+            agent.status = 'Disconnected';
+            agent.statusconnected = false;
+            await agent.save();
+        }
+        catch (error) {
+        }
         await Shippingcampaign_1.default.create({
             interaction_id: 3,
             interaction_seq: 1,

@@ -37,6 +37,7 @@ async function startAgent(_agent: Agent) {
   }
   const client = new Client({
     authStrategy: new LocalAuth({ clientId: _agent.id, dataPath:Application.tmpPath('/sessions') }),
+    //authStrategy: new LocalAuth({ clientId: _agent.id }),
     puppeteer: {
       args: ['--no-sandbox',
         '--max-memory=512MB',
@@ -187,9 +188,16 @@ async function startAgent(_agent: Agent) {
 
   //************************************************ */
   client.on('disconnected', async (reason) => {
-    agent.status = 'Disconnected'
-    agent.statusconnected = false
-    await agent.save()
+
+    try {
+      agent.status = 'Disconnected'
+      agent.statusconnected = false
+      await agent.save()
+
+    } catch (error) {
+
+    }
+
     await Shippingcampaign.create({
       interaction_id: 3,
       interaction_seq: 1,

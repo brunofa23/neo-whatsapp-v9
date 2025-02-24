@@ -10,12 +10,13 @@ export default class CustomchatsController {
     .select('id','reg', 'cellphone', 'cellphoneserialized','message','response','invalidresponse','returned','chatname',
     Database.raw('0 messagesent'),'chatnumber',Database.raw('0  phonevalid'),Database.raw('0 `read`'),Database.raw('0 viewed'),
     Database.raw('0 ack'),
-    Database.raw('0 path_media')
+    Database.raw('0 path_media'),
+    Database.raw('created_at')
   )
     .where('id', params.id)
     .union(query=>{
       query.from('customchats')
-     .select('id','reg', 'cellphone', 'cellphoneserialized','message','response','response','returned','chatname','messagesent','chatnumber','phonevalid', 'read', 'viewed','ack','path_media')
+     .select('id','reg', 'cellphone', 'cellphoneserialized','message','response','response','returned','chatname','messagesent','chatnumber','phonevalid', 'read', 'viewed','ack','path_media', 'created_at')
      .where('chats_id',params.id)
     })
 

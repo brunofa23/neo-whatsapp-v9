@@ -356,9 +356,9 @@ export default class ShippingcampaignsController {
 
   public async serviceEvaluationDashboard({ request, response }: HttpContextContract) {
 
-    const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name, attendant, doctor, unit, excluded, cellphone, chat_finished, type_service, closed }
+    const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name, attendant, doctor, unit, excluded, cellphone, chat_finished, type_service, closed, report }
       = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp',
-        'interactions', 'returned', 'reg', 'name', 'attendant', 'doctor', 'unit', 'excluded', 'cellphone', 'chat_finished', 'type_service', 'closed'])
+        'interactions', 'returned', 'reg', 'name', 'attendant', 'doctor', 'unit', 'excluded', 'cellphone', 'chat_finished', 'type_service', 'closed', 'report'])
 
     let query = "1=1"
     if (returned)//clientes que enviaram mensagem dentro do sistema
@@ -382,8 +382,10 @@ export default class ShippingcampaignsController {
       query += ` and absoluteresp >= 9 `
     if (attendant)
       query += ` and attendant ='${attendant}'`
-    if (doctor)
+    if (doctor) {
+
       query += ` and doctor ='${doctor}' `
+    }
     if (unit)
       query += ` and unit='${unit}'`
     if (excluded)
@@ -402,64 +404,100 @@ export default class ShippingcampaignsController {
     try {
       const queryResult = Database.connection(Env.get('DB_CONNECTION_MAIN')).query()
         .from('shippingcampaigns')
-        if(!closed){
-          queryResult.select(
-            'shippingcampaigns.id as idShipp',
-            'shippingcampaigns.interaction_id',
-            'shippingcampaigns.reg',
-            'shippingcampaigns.name',
-            'shippingcampaigns.cellphone',
-            'chats.id',
-            'otherfields',
-            'phonevalid',
-            'messagesent',
-            'chats.created_at',
-            'response',
-            'returned',
-            'invalidresponse',
-            'chatname',
-            'absoluteresp',
-            'prioritysend',
-            'excluded',
-            'doctor',
-            'unit',
-            'attendant',
-            Database.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed'),
-            'chat_finished'
+      if (!closed) {
+        queryResult.select(
+          'shippingcampaigns.id as idShipp',
+          'shippingcampaigns.interaction_id',
+          'shippingcampaigns.reg',
+          'shippingcampaigns.name',
+          'shippingcampaigns.cellphone',
+          'chats.id',
+          'otherfields',
+          'phonevalid',
+          'messagesent',
+          'chats.created_at',
+          'response',
+          'returned',
+          'invalidresponse',
+          'chatname',
+          'absoluteresp',
+          'prioritysend',
+          'excluded',
+          'doctor',
+          'unit',
+          'attendant',
+          Database.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed'),
+          'chat_finished'
+        )
+        if (report)
+          queryResult.select('main_subject', 'responsible',
+            'main_subject',
+            'report',
+            'employee_involved',
+            'medic_einvolved',
+            'date_limit',
+            'responsible_response',
+            'root_cause',
+            'action',
+            'date_limit_action',
+            'date_limit_manifest',
+            'obs',
+            'status',
           )
-        }
-        if(closed){
-          queryResult.select(
-            'shippingcampaigns.id as idShipp',
-            'shippingcampaigns.interaction_id',
-            'shippingcampaigns.reg',
-            'shippingcampaigns.name',
-            'shippingcampaigns.cellphone',
-            'chats.id',
-            'otherfields',
-            'phonevalid',
-            'messagesent',
-            'chats.created_at',
-            'response',
-            'returned',
-            'invalidresponse',
-            'chatname',
-            Database.raw('CASE WHEN closed = 0 THEN NULL ELSE absoluteresp END AS absoluteresp'),
-            'prioritysend',
-            'excluded',
-            'doctor',
-            'unit',
-            'attendant',
-            Database.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed'),
-            'chat_finished'
-          )
-        }
 
-        queryResult.leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
+      }
+      if (closed) {
+        queryResult.select(
+          'shippingcampaigns.id as idShipp',
+          'shippingcampaigns.interaction_id',
+          'shippingcampaigns.reg',
+          'shippingcampaigns.name',
+          'shippingcampaigns.cellphone',
+          'chats.id',
+          'otherfields',
+          'phonevalid',
+          'messagesent',
+          'chats.created_at',
+          'response',
+          'returned',
+          'invalidresponse',
+          'chatname',
+          Database.raw('CASE WHEN closed = 0 THEN NULL ELSE absoluteresp END AS absoluteresp'),
+          'prioritysend',
+          'excluded',
+          'doctor',
+          'unit',
+          'attendant',
+          Database.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed'),
+          'chat_finished',
+
+        )
+        if (report)
+          queryResult.select('main_subject', 'responsible',
+            'main_subject',
+            'report',
+            'employee_involved',
+            'medic_einvolved',
+            'date_limit',
+            'responsible_response',
+            'root_cause',
+            'action',
+            'date_limit_action',
+            'date_limit_manifest',
+            'obs',
+            'status',
+          )
+      }
+
+      queryResult.leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
         .whereBetween('chats.created_at', [initialdate, finaldate])
-        //.whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
-        .where('shippingcampaigns.interaction_id', 2)
-        .whereRaw(query)
+
+      if (report)
+        queryResult.leftJoin('manifests', 'chats.id', 'manifests.chat_id')
+      //     //.whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
+
+      queryResult.where('shippingcampaigns.interaction_id', 2)
+      queryResult.whereRaw(query)
 
       const result = await queryResult
 

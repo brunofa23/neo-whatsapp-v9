@@ -37,7 +37,8 @@ class Customchat extends Orm_1.BaseModel {
             'viewed',
             'phonevalid',
             'ack',
-            'path_media'
+            'path_media',
+            'created_at'
         ];
     }
 }

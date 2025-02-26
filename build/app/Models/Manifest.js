@@ -18,6 +18,7 @@ class Manifest extends Orm_1.BaseModel {
             'chat_id',
             'responsible',
             'main_subject',
+            'complement',
             'report',
             'employee_involved',
             'medic_einvolved',
@@ -29,6 +30,7 @@ class Manifest extends Orm_1.BaseModel {
             'date_limit_manifest',
             'obs',
             'status',
+            'justification'
         ];
     }
 }
@@ -48,6 +50,10 @@ __decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", String)
 ], Manifest.prototype, "main_subject", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", String)
+], Manifest.prototype, "complement", void 0);
 __decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", String)
@@ -92,6 +98,10 @@ __decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", String)
 ], Manifest.prototype, "status", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", String)
+], Manifest.prototype, "justification", void 0);
 __decorate([
     Orm_1.column.dateTime({ autoCreate: true }),
     __metadata("design:type", luxon_1.DateTime)

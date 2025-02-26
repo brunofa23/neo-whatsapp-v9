@@ -9,6 +9,7 @@ export default class Manifest extends BaseModel {
       'chat_id',
       'responsible',
       'main_subject',
+      'complement',
       'report',
       'employee_involved',
       'medic_einvolved',
@@ -20,6 +21,7 @@ export default class Manifest extends BaseModel {
       'date_limit_manifest',
       'obs',
       'status',
+      'justification'
     ]
   }
 
@@ -33,6 +35,10 @@ export default class Manifest extends BaseModel {
   public responsible: string
   @column()
   public main_subject: string
+
+  @column()
+  public complement: string
+
   @column()
   public report: string
   @column()
@@ -61,9 +67,15 @@ export default class Manifest extends BaseModel {
   @column()
   public status: string
 
+  @column()
+  public justification: string
+
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   public updatedAt: DateTime
 }
+
+
+

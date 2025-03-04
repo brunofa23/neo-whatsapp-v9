@@ -38,7 +38,8 @@ export default class Shippingcampaign extends BaseModel {
       'company_id',
       'phone_unit',
       'type_service',
-      'created_at'
+      'created_at',
+      'updated_at'
     ]
   }
 

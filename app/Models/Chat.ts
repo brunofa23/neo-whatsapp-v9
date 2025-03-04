@@ -34,7 +34,8 @@ export default class Chat extends BaseModel {
       'chatnumber',
       'chat_finished',
       'company_id',
-      'closed'
+      'closed',
+      'date_return'
     ]
   }
 
@@ -106,6 +107,9 @@ export default class Chat extends BaseModel {
 
   @column()
   public closed:boolean
+
+  @column.dateTime()
+  public date_return:DateTime
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime

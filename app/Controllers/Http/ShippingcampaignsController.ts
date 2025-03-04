@@ -356,9 +356,9 @@ export default class ShippingcampaignsController {
 
   public async serviceEvaluationDashboard({ request, response }: HttpContextContract) {
 
-    const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name, attendant, doctor, unit, excluded, cellphone, chat_finished, type_service, closed, report }
+    const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name, attendant, doctor, unit, excluded, cellphone, chat_finished, type_service, closed, report, updated_at }
       = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp',
-        'interactions', 'returned', 'reg', 'name', 'attendant', 'doctor', 'unit', 'excluded', 'cellphone', 'chat_finished', 'type_service', 'closed', 'report'])
+        'interactions', 'returned', 'reg', 'name', 'attendant', 'doctor', 'unit', 'excluded', 'cellphone', 'chat_finished', 'type_service', 'closed', 'report', 'updated_at'])
 
     let query = "1=1"
     if (returned)//clientes que enviaram mensagem dentro do sistema
@@ -416,6 +416,7 @@ export default class ShippingcampaignsController {
           'phonevalid',
           'messagesent',
           'chats.created_at',
+          'chats.updated_at',
           'response',
           'returned',
           'invalidresponse',
@@ -458,6 +459,7 @@ export default class ShippingcampaignsController {
           'phonevalid',
           'messagesent',
           'chats.created_at',
+          'chats.updated_at',
           'response',
           'returned',
           'invalidresponse',
@@ -490,7 +492,15 @@ export default class ShippingcampaignsController {
       }
 
       queryResult.leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
-        .whereBetween('chats.created_at', [initialdate, finaldate])
+      if (!updated_at){
+        console.log("data de envio")
+        queryResult.whereBetween('chats.created_at', [initialdate, finaldate])
+      }
+      if (updated_at == "true"){
+        console.log("data de retorno")
+        queryResult.whereBetween('chats.updated_at', [initialdate, finaldate])
+      }
+
 
       if (report)
         queryResult.leftJoin('manifests', 'chats.id', 'manifests.chat_id')

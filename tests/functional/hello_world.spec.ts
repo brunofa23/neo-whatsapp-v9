@@ -11,15 +11,7 @@ import Response from 'App/Models/Response'
 
 test('display welcome page', async ({ client }) => {
 
-  let date = DateTime.now().plus({ days: 3 });
-  // Se a data cair no sábado (6) ou domingo (7), ajustar para segunda-feira
-  if (date.weekday === 6) {
-    date = date.plus({ days: 2 }); // Passa para segunda-feira
-} else if (date.weekday === 7) {
-    date = date.plus({ days: 1 }); // Passa para segunda-feira
-}
-  date = date.toFormat("yyyy-MM-dd");
-
-  console.log("Date:",date)
+  const date_return = DateTime.now().toFormat("yyyy-MM-dd HH:mm")
+  await Chat.query().where('id',117139).update({date_return})
 
 })

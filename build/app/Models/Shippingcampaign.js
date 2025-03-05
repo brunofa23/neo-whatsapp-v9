@@ -46,7 +46,8 @@ class Shippingcampaign extends Orm_1.BaseModel {
             'company_id',
             'phone_unit',
             'type_service',
-            'created_at'
+            'created_at',
+            'updated_at'
         ];
     }
 }

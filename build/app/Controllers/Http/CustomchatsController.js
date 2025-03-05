@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const Customchat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Customchat"));
+const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
 const Database_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Lucid/Database"));
 class CustomchatsController {
     async show({ auth, params, response }) {
@@ -25,6 +26,7 @@ class CustomchatsController {
         body.messagesent = false;
         try {
             const payLoad = await Customchat_1.default.create(body);
+            await Chat_1.default.query().where('id', body.chats_id).update({ last_response: 1 });
             return response.status(201).send(payLoad);
         }
         catch (error) {

@@ -11,6 +11,7 @@ const util_1 = require("../util");
 const ConfirmSchedule_1 = __importDefault(require("./ConfirmSchedule"));
 const ServiceEvaluation_1 = __importDefault(require("./ServiceEvaluation"));
 const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
+const luxon_1 = require("luxon");
 async function verifyNumberInternal(phoneVerify) {
     const listPhonesFromEnv = process.env.LIST_PHONES_TALK?.split(",") || [];
     if (listPhonesFromEnv.includes(phoneVerify)) {
@@ -104,6 +105,7 @@ async function handleCustomChatMessage(message, customChat) {
         path_media: pathMedia,
     };
     await Customchat_1.default.create(bodyResponse);
+    await Chat_1.default.query().where('id', customChat.chats_id).update({ date_return: luxon_1.DateTime.now().toFormat("yyyy-MM-dd HH:mm"), last_response: 2 });
 }
 async function handleChatMessage(client, message, chat) {
     if (!chat.returned) {

@@ -285,8 +285,9 @@ class ShippingcampaignsController {
         }
     }
     async serviceEvaluationDashboard({ request, response }) {
-        const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name, attendant, doctor, unit, excluded, cellphone, chat_finished, type_service, closed, report } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp',
-            'interactions', 'returned', 'reg', 'name', 'attendant', 'doctor', 'unit', 'excluded', 'cellphone', 'chat_finished', 'type_service', 'closed', 'report']);
+        const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name, attendant, doctor, unit, excluded, cellphone, chat_finished, type_service, closed, report, date_return, last_response } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp',
+            'interactions', 'returned', 'reg', 'name', 'attendant', 'doctor', 'unit', 'excluded', 'cellphone',
+            'chat_finished', 'type_service', 'closed', 'report', 'date_return', 'last_response']);
         let query = "1=1";
         if (returned)
             query += ` and chats.id in (select chats_id from customchats) `;
@@ -322,6 +323,12 @@ class ShippingcampaignsController {
             query += ` and chat_finished=1 `;
         if (type_service)
             query += ` and type_service = '${type_service}'`;
+        if (last_response) {
+            if (last_response == "1")
+                query += ` and last_response=1 `;
+            else if (last_response == "2")
+                query += ` and last_response=2 `;
+        }
         if (!luxon_1.DateTime.fromISO(initialdate).isValid || !luxon_1.DateTime.fromISO(finaldate).isValid) {
             throw new Error("Datas inválidas.");
         }
@@ -329,17 +336,22 @@ class ShippingcampaignsController {
             const queryResult = Database_1.default.connection(Env_1.default.get('DB_CONNECTION_MAIN')).query()
                 .from('shippingcampaigns');
             if (!closed) {
-                queryResult.select('shippingcampaigns.id as idShipp', 'shippingcampaigns.interaction_id', 'shippingcampaigns.reg', 'shippingcampaigns.name', 'shippingcampaigns.cellphone', 'chats.id', 'otherfields', 'phonevalid', 'messagesent', 'chats.created_at', 'response', 'returned', 'invalidresponse', 'chatname', 'absoluteresp', 'prioritysend', 'excluded', 'doctor', 'unit', 'attendant', Database_1.default.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed'), 'chat_finished');
+                queryResult.select('shippingcampaigns.id as idShipp', 'shippingcampaigns.interaction_id', 'shippingcampaigns.reg', 'shippingcampaigns.name', 'shippingcampaigns.cellphone', 'chats.id', 'otherfields', 'phonevalid', 'messagesent', 'chats.created_at', 'chats.date_return', 'response', 'returned', 'invalidresponse', 'chatname', 'absoluteresp', 'prioritysend', 'excluded', 'doctor', 'unit', 'attendant', Database_1.default.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed'), 'chat_finished', 'last_response');
                 if (report)
                     queryResult.select('main_subject', 'responsible', 'main_subject', 'report', 'employee_involved', 'medic_einvolved', 'date_limit', 'responsible_response', 'root_cause', 'action', 'date_limit_action', 'date_limit_manifest', 'obs', 'status');
             }
             if (closed) {
-                queryResult.select('shippingcampaigns.id as idShipp', 'shippingcampaigns.interaction_id', 'shippingcampaigns.reg', 'shippingcampaigns.name', 'shippingcampaigns.cellphone', 'chats.id', 'otherfields', 'phonevalid', 'messagesent', 'chats.created_at', 'response', 'returned', 'invalidresponse', 'chatname', Database_1.default.raw('CASE WHEN closed = 0 THEN NULL ELSE absoluteresp END AS absoluteresp'), 'prioritysend', 'excluded', 'doctor', 'unit', 'attendant', Database_1.default.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed'), 'chat_finished');
+                queryResult.select('shippingcampaigns.id as idShipp', 'shippingcampaigns.interaction_id', 'shippingcampaigns.reg', 'shippingcampaigns.name', 'shippingcampaigns.cellphone', 'chats.id', 'otherfields', 'phonevalid', 'messagesent', 'chats.created_at', 'chats.date_return', 'response', 'returned', 'invalidresponse', 'chatname', Database_1.default.raw('CASE WHEN closed = 0 THEN NULL ELSE absoluteresp END AS absoluteresp'), 'prioritysend', 'excluded', 'doctor', 'unit', 'attendant', Database_1.default.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed'), 'chat_finished', 'last_response');
                 if (report)
                     queryResult.select('main_subject', 'responsible', 'main_subject', 'report', 'employee_involved', 'medic_einvolved', 'date_limit', 'responsible_response', 'root_cause', 'action', 'date_limit_action', 'date_limit_manifest', 'obs', 'status');
             }
-            queryResult.leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
-                .whereBetween('chats.created_at', [initialdate, finaldate]);
+            queryResult.leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id');
+            if (!date_return) {
+                queryResult.whereBetween('chats.created_at', [initialdate, finaldate]);
+            }
+            if (date_return == "true") {
+                queryResult.whereBetween('chats.date_return', [initialdate, finaldate]);
+            }
             if (report)
                 queryResult.leftJoin('manifests', 'chats.id', 'manifests.chat_id');
             queryResult.where('shippingcampaigns.interaction_id', 2);

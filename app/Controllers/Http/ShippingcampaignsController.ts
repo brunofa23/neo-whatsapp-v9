@@ -358,7 +358,8 @@ export default class ShippingcampaignsController {
 
     const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name, attendant, doctor, unit, excluded, cellphone, chat_finished, type_service, closed, report, date_return, last_response }
       = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp',
-        'interactions', 'returned', 'reg', 'name', 'attendant', 'doctor', 'unit', 'excluded', 'cellphone', 'chat_finished', 'type_service', 'closed', 'report', 'date_return','last_response'])
+        'interactions', 'returned', 'reg', 'name', 'attendant', 'doctor', 'unit', 'excluded', 'cellphone',
+        'chat_finished', 'type_service', 'closed', 'report', 'date_return','last_response'])
 
     let query = "1=1"
     if (returned)//clientes que enviaram mensagem dentro do sistema

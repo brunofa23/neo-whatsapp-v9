@@ -126,7 +126,7 @@ async function handleCustomChatMessage(message: any, customChat: any) {
   };
 
   await Customchat.create(bodyResponse);
-  await Chat.query().where('id', customChat.chats_id).update({date_return:DateTime.now().toFormat("yyyy-MM-dd HH:mm")})
+  await Chat.query().where('id', customChat.chats_id).update({date_return:DateTime.now().toFormat("yyyy-MM-dd HH:mm"),last_response:2 })
 }
 
 // Processa mensagens de chat existentes

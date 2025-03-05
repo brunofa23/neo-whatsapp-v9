@@ -356,9 +356,9 @@ export default class ShippingcampaignsController {
 
   public async serviceEvaluationDashboard({ request, response }: HttpContextContract) {
 
-    const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name, attendant, doctor, unit, excluded, cellphone, chat_finished, type_service, closed, report, date_return }
+    const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name, attendant, doctor, unit, excluded, cellphone, chat_finished, type_service, closed, report, date_return, last_response }
       = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp',
-        'interactions', 'returned', 'reg', 'name', 'attendant', 'doctor', 'unit', 'excluded', 'cellphone', 'chat_finished', 'type_service', 'closed', 'report', 'date_return'])
+        'interactions', 'returned', 'reg', 'name', 'attendant', 'doctor', 'unit', 'excluded', 'cellphone', 'chat_finished', 'type_service', 'closed', 'report', 'date_return','last_response'])
 
     let query = "1=1"
     if (returned)//clientes que enviaram mensagem dentro do sistema
@@ -397,6 +397,14 @@ export default class ShippingcampaignsController {
     if (type_service)
       query += ` and type_service = '${type_service}'`
 
+    if(last_response)
+    {
+      if(last_response=="1")
+        query +=` and last_response=1 `
+      else if(last_response=="2")
+        query +=` and last_response=2 `
+    }
+
     if (!DateTime.fromISO(initialdate).isValid || !DateTime.fromISO(finaldate).isValid) {
       throw new Error("Datas inválidas.")
     }
@@ -428,7 +436,8 @@ export default class ShippingcampaignsController {
           'unit',
           'attendant',
           Database.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed'),
-          'chat_finished'
+          'chat_finished',
+          'last_response'
         )
         if (report)
           queryResult.select('main_subject', 'responsible',
@@ -472,6 +481,7 @@ export default class ShippingcampaignsController {
           'attendant',
           Database.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed'),
           'chat_finished',
+          'last_response'
 
         )
         if (report)

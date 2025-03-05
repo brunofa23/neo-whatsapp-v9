@@ -35,7 +35,8 @@ export default class Chat extends BaseModel {
       'chat_finished',
       'company_id',
       'closed',
-      'date_return'
+      'date_return', //data de retorno da última mensagem
+      'last_response' //verifica quem respondeu por ultimo 1 operador 2 paciente
     ]
   }
 
@@ -107,6 +108,9 @@ export default class Chat extends BaseModel {
 
   @column()
   public closed:boolean
+
+  @column()
+  public last_response:number
 
   @column.dateTime()
   public date_return:DateTime

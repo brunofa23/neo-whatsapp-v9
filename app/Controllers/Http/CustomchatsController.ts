@@ -1,5 +1,6 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Customchat from 'App/Models/Customchat'
+import Chat from 'App/Models/Chat'
 import Database from '@ioc:Adonis/Lucid/Database'
 export default class CustomchatsController {
 
@@ -29,9 +30,12 @@ export default class CustomchatsController {
     await auth.use('api').authenticate()
     const body = request.only(Customchat.fillable)
     body.messagesent = false
+
     //console.log("Passei aqui 45888", body)
+
     try {
       const payLoad = await Customchat.create(body)
+      await Chat.query().where('id', body.chats_id).update({last_response:1})
       return response.status(201).send(payLoad)
     } catch (error) {
       error

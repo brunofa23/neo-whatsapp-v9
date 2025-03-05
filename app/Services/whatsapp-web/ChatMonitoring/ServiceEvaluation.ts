@@ -2,6 +2,7 @@ import { types } from '@ioc:Adonis/Core/Helpers'
 import Chat from 'App/Models/Chat';
 import { Client, Message } from 'whatsapp-web.js';
 import { stateTyping } from '../util'
+import { DateTime } from 'luxon';
 
 export default async (client: Client, message: Message, chat: Chat) => {
 
@@ -31,6 +32,7 @@ export default async (client: Client, message: Message, chat: Chat) => {
       chat.absoluteresp = parseInt(notes[0])
       chat.interaction_seq = 2
       chat.closed=false
+      chat.date_return =DateTime.now()
       await chat.save()
       await stateTyping(message)//status de digitando...
       client.sendMessage(message.from, `Consegue nos dizer o que motivou a sua nota ${notes[0]}? Tudo bem se não quiser responder, digite 9 para finalizar essa etapa.`)
@@ -46,6 +48,7 @@ export default async (client: Client, message: Message, chat: Chat) => {
       }
 
       await stateTyping(message)//status de digitando...
+      chat.date_return =DateTime.now()
       chat.response = message.body.slice(0, 599)
       chat.closed=false
       await chat.save()

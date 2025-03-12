@@ -74,20 +74,13 @@ export default class ShippingcampaignsController {
 
   public async update({ auth, request, params, response }: HttpContextContract) {
     await auth.use('api').authenticate()
-
     const body = request.only(Shippingcampaign.fillable)
     body.id = params.id
     delete body.created_at
-    //console.log("params:",params.id, "-",body)
     if(body.date_first_return)
       body.date_first_return = DateTime.fromFormat(body.date_first_return, "dd/MM/yyyy HH:mm").toFormat("yyyy-MM-dd HH:mm")
-
-    console.log("request ^^^^:", body)
-
     try {
       const data = await Shippingcampaign.query().where('id', params.id).update(body)
-        console.log("PASSANDO UPDATE 66666")
-      //await Shippingcampaign.query().where('id', params.id).first()
       return response.status(201).send(data)
     } catch (error) {
       //return error
@@ -450,7 +443,8 @@ export default class ShippingcampaignsController {
           Database.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed'),
           'chat_finished',
           'last_response',
-          'date_first_return'
+          'date_first_return',
+          'justify_excluded'
         )
         if (report)
           queryResult.select('main_subject', 'responsible',
@@ -495,7 +489,8 @@ export default class ShippingcampaignsController {
           Database.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed'),
           'chat_finished',
           'last_response',
-          'date_first_return'
+          'date_first_return',
+          'justify_excluded'
 
         )
         if (report)

@@ -21,7 +21,6 @@ export default class ManifestsController {
   public async store({ auth, request, response }: HttpContextContract) {
     await auth.use('api').authenticate()
     const body = request.only(Manifest.fillable)
-
         try {
       const data = await Manifest.create(body)
       return response.status(201).send(data)

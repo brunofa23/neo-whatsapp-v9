@@ -35,6 +35,8 @@ export default class Shippingcampaign extends BaseModel {
       'dateservice',
       'prioritysend',
       'excluded',
+      'justify_excluded',
+      'date_first_return',
       'company_id',
       'phone_unit',
       'type_service',
@@ -105,6 +107,12 @@ export default class Shippingcampaign extends BaseModel {
 
   @column()
   public excluded: boolean
+
+  @column()
+  public justify_excluded:string
+
+  @column.dateTime()
+  public date_first_return:DateTime
 
   @column()
   public company_id:number

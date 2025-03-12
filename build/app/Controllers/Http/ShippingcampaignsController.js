@@ -9,6 +9,7 @@ const Database_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Lucid/D
 const Env_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Env"));
 const util_1 = require("../../Services/whatsapp-web/util");
 const luxon_1 = require("luxon");
+const BadRequestException_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Exceptions/BadRequestException"));
 const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
 class ShippingcampaignsController {
     static get connection() {
@@ -67,14 +68,14 @@ class ShippingcampaignsController {
         const body = request.only(Shippingcampaign_1.default.fillable);
         body.id = params.id;
         delete body.created_at;
+        if (body.date_first_return)
+            body.date_first_return = luxon_1.DateTime.fromFormat(body.date_first_return, "dd/MM/yyyy HH:mm").toFormat("yyyy-MM-dd HH:mm");
         try {
-            const data = await Shippingcampaign_1.default.query().where('id', params.id)
-                .update(body);
-            await Shippingcampaign_1.default.query().where('id', params.id).first();
+            const data = await Shippingcampaign_1.default.query().where('id', params.id).update(body);
             return response.status(201).send(data);
         }
         catch (error) {
-            return error;
+            throw new BadRequestException_1.default('Bad Request', 401, error);
         }
     }
     async messagesSent() {
@@ -87,29 +88,35 @@ class ShippingcampaignsController {
             return error;
         }
     }
-    async resend({ auth, params, response }) {
+    async resend({ auth, params, request, response }) {
         await auth.use('api').authenticate();
-        const data = await Shippingcampaign_1.default.query().where('id', params.id).update({ 'excluded': true });
-        const message = await Shippingcampaign_1.default.find(params.id);
-        if (message) {
-            const newData = await Shippingcampaign_1.default.create({
-                attendant: message?.attendant,
-                cellphone: message?.cellphone,
-                cellphoneserialized: message.cellphoneserialized,
-                doctor: message?.doctor,
-                idexternal: message?.idexternal,
-                interaction_id: message?.interaction_id,
-                interaction_seq: message?.interaction_seq,
-                message: message?.message,
-                messagesent: false,
-                name: message?.name,
-                otherfields: message?.otherfields,
-                prioritysend: true,
-                reg: message?.reg,
-                dateservice: message?.dateservice,
-                unit: message?.unit
-            });
-            return response.status(201).send(newData);
+        const justify_excluded = request.input('justify_excluded');
+        try {
+            await Shippingcampaign_1.default.query().where('id', params.id).update({ 'excluded': true, 'justify_excluded': justify_excluded });
+            const message = await Shippingcampaign_1.default.find(params.id);
+            if (message) {
+                const newData = await Shippingcampaign_1.default.create({
+                    attendant: message?.attendant,
+                    cellphone: message?.cellphone,
+                    cellphoneserialized: message.cellphoneserialized,
+                    doctor: message?.doctor,
+                    idexternal: message?.idexternal,
+                    interaction_id: message?.interaction_id,
+                    interaction_seq: message?.interaction_seq,
+                    message: message?.message,
+                    messagesent: false,
+                    name: message?.name,
+                    otherfields: message?.otherfields,
+                    prioritysend: true,
+                    reg: message?.reg,
+                    dateservice: message?.dateservice,
+                    unit: message?.unit
+                });
+                return response.status(201).send(newData);
+            }
+        }
+        catch (error) {
+            throw new BadRequestException_1.default('Bad Request', 401, error);
         }
     }
     async doctorList({ response }) {
@@ -336,12 +343,12 @@ class ShippingcampaignsController {
             const queryResult = Database_1.default.connection(Env_1.default.get('DB_CONNECTION_MAIN')).query()
                 .from('shippingcampaigns');
             if (!closed) {
-                queryResult.select('shippingcampaigns.id as idShipp', 'shippingcampaigns.interaction_id', 'shippingcampaigns.reg', 'shippingcampaigns.name', 'shippingcampaigns.cellphone', 'chats.id', 'otherfields', 'phonevalid', 'messagesent', 'chats.created_at', 'chats.date_return', 'response', 'returned', 'invalidresponse', 'chatname', 'absoluteresp', 'prioritysend', 'excluded', 'doctor', 'unit', 'attendant', Database_1.default.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed'), 'chat_finished', 'last_response');
+                queryResult.select('shippingcampaigns.id as idShipp', 'shippingcampaigns.interaction_id', 'shippingcampaigns.reg', 'shippingcampaigns.name', 'shippingcampaigns.cellphone', 'chats.id', 'otherfields', 'phonevalid', 'messagesent', 'chats.created_at', 'chats.date_return', 'response', 'returned', 'invalidresponse', 'chatname', 'absoluteresp', 'prioritysend', 'excluded', 'doctor', 'unit', 'attendant', Database_1.default.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed'), 'chat_finished', 'last_response', 'date_first_return', 'justify_excluded');
                 if (report)
                     queryResult.select('main_subject', 'responsible', 'main_subject', 'report', 'employee_involved', 'medic_einvolved', 'date_limit', 'responsible_response', 'root_cause', 'action', 'date_limit_action', 'date_limit_manifest', 'obs', 'status');
             }
             if (closed) {
-                queryResult.select('shippingcampaigns.id as idShipp', 'shippingcampaigns.interaction_id', 'shippingcampaigns.reg', 'shippingcampaigns.name', 'shippingcampaigns.cellphone', 'chats.id', 'otherfields', 'phonevalid', 'messagesent', 'chats.created_at', 'chats.date_return', 'response', 'returned', 'invalidresponse', 'chatname', Database_1.default.raw('CASE WHEN closed = 0 THEN NULL ELSE absoluteresp END AS absoluteresp'), 'prioritysend', 'excluded', 'doctor', 'unit', 'attendant', Database_1.default.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed'), 'chat_finished', 'last_response');
+                queryResult.select('shippingcampaigns.id as idShipp', 'shippingcampaigns.interaction_id', 'shippingcampaigns.reg', 'shippingcampaigns.name', 'shippingcampaigns.cellphone', 'chats.id', 'otherfields', 'phonevalid', 'messagesent', 'chats.created_at', 'chats.date_return', 'response', 'returned', 'invalidresponse', 'chatname', Database_1.default.raw('CASE WHEN closed = 0 THEN NULL ELSE absoluteresp END AS absoluteresp'), 'prioritysend', 'excluded', 'doctor', 'unit', 'attendant', Database_1.default.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed'), 'chat_finished', 'last_response', 'date_first_return', 'justify_excluded');
                 if (report)
                     queryResult.select('main_subject', 'responsible', 'main_subject', 'report', 'employee_involved', 'medic_einvolved', 'date_limit', 'responsible_response', 'root_cause', 'action', 'date_limit_action', 'date_limit_manifest', 'obs', 'status');
             }

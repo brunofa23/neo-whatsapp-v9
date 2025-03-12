@@ -6,6 +6,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const Customchat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Customchat"));
 const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
 const Database_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Lucid/Database"));
+const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Shippingcampaign"));
+const luxon_1 = require("luxon");
 class CustomchatsController {
     async show({ auth, params, response }) {
         await auth.use('api').authenticate();
@@ -27,6 +29,14 @@ class CustomchatsController {
         try {
             const payLoad = await Customchat_1.default.create(body);
             await Chat_1.default.query().where('id', body.chats_id).update({ last_response: 1 });
+            const chat = await Chat_1.default.find(body.chats_id);
+            if (chat?.shippingcampaigns_id) {
+                const shippingcampaign = await Shippingcampaign_1.default.find(chat.shippingcampaigns_id);
+                if (shippingcampaign && !shippingcampaign.date_first_return) {
+                    shippingcampaign.date_first_return = luxon_1.DateTime.local().toFormat("yyyy-MM-dd HH:mm");
+                    await shippingcampaign.save();
+                }
+            }
             return response.status(201).send(payLoad);
         }
         catch (error) {

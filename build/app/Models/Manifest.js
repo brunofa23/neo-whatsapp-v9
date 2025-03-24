@@ -16,6 +16,7 @@ class Manifest extends Orm_1.BaseModel {
         return [
             'id',
             'chat_id',
+            'mainsubject_id',
             'responsible',
             'main_subject',
             'complement',
@@ -42,6 +43,10 @@ __decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", Number)
 ], Manifest.prototype, "chat_id", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", Number)
+], Manifest.prototype, "mainsubject_id", void 0);
 __decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", String)

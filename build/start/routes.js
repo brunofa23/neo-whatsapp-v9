@@ -94,5 +94,6 @@ Route_1.default.group(() => {
     Route_1.default.resource('/datecloseds', 'DateclosedsController').apiOnly();
     Route_1.default.get('/getschedules', 'DatasourceApisController.getSchedules');
     Route_1.default.post('/confirmorcancelscheduleapi', 'DatasourceApisController.confirmOrCancelSchedule');
+    Route_1.default.resource('/mainsubjects', 'MainsubjectsController').apiOnly();
 }).prefix('/api');
 //# sourceMappingURL=routes.js.map

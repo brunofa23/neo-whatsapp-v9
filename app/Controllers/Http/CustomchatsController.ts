@@ -7,8 +7,8 @@ import { DateTime } from 'luxon'
 export default class CustomchatsController {
 
   public async show({ auth, params, response }: HttpContextContract) {
-    await auth.use('api').authenticate()
 
+    await auth.use('api').authenticate()
     const query = Database.from('chats')
       .select('id', 'reg', 'cellphone', 'cellphoneserialized', 'message', 'response', 'invalidresponse', 'returned', 'chatname',
         Database.raw('0 messagesent'), 'chatnumber', Database.raw('0  phonevalid'), Database.raw('0 `read`'), Database.raw('0 viewed'),
@@ -23,6 +23,7 @@ export default class CustomchatsController {
           .where('chats_id', params.id)
       })
 
+      //console.log(query.toQuery())
 
     const data = await query
     return response.status(200).send(data)

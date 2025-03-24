@@ -1,15 +1,13 @@
 import BaseSchema from '@ioc:Adonis/Lucid/Schema'
 
 export default class extends BaseSchema {
-  protected tableName = 'datecloseds'
+  protected tableName = 'mainsubjects'
 
   public async up () {
     this.schema.createTable(this.tableName, (table) => {
-      table.increments('id')
-      table.integer('month')
-      table.integer('year')
-      table.boolean('status').defaultTo(false)
-      table.unique(['month', 'year'])
+      table.integer('id').primary().unsigned().notNullable()
+      table.string('description', 100).notNullable()
+      table.boolean('excluded').defaultTo('false')
       /**
        * Uses timestamptz for PostgreSQL and DATETIME2 for MSSQL
        */

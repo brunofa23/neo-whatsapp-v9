@@ -125,11 +125,12 @@ Route.group(() => {
   //DATECLOSED
   Route.resource('/datecloseds', 'DateclosedsController').apiOnly()
 
-
   //ROUTES FOR KLINGO / APIS
   Route.get('/getschedules', 'DatasourceApisController.getSchedules')
   Route.post('/confirmorcancelscheduleapi', 'DatasourceApisController.confirmOrCancelSchedule')
 
+  //MAINSUBJECT
+  Route.resource('/mainsubjects', 'MainsubjectsController').apiOnly()
 
 }).prefix('/api')
 

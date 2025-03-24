@@ -7,6 +7,7 @@ export default class Manifest extends BaseModel {
     return [
       'id',
       'chat_id',
+      'mainsubject_id',
       'responsible',
       'main_subject',
       'complement',
@@ -31,6 +32,10 @@ export default class Manifest extends BaseModel {
 
   @column()
   public chat_id: number
+
+  @column()
+  public mainsubject_id:number
+
   @column()
   public responsible: string
   @column()

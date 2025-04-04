@@ -28,7 +28,7 @@ export default class Talk extends BaseModel {
   @column()
   public chatnumber: string
   @column()
-  public type: number
+  public type: string
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime

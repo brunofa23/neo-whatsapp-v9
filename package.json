@@ -32,6 +32,7 @@
     "moment": "^2.30.1",
     "mssql": "^4.1.0",
     "mysql2": "^3.6.5",
+    "node-nlp": "^5.0.0-alpha.5",
     "openai": "^4.91.1",
     "phc-argon2": "^1.1.4",
     "proxy-addr": "^2.0.7",

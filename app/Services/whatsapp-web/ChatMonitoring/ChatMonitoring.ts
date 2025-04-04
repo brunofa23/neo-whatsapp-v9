@@ -1,15 +1,16 @@
-import ShippingcampaignsController from 'App/Controllers/Http/ShippingcampaignsController';
 import Chat from 'App/Models/Chat';
 import Response from 'App/Models/Response';
 import Customchat from 'App/Models/Customchat';
 import { Client, MessageMedia } from 'whatsapp-web.js';
 import MidiasController from 'App/Controllers/Http/MidiasController';
-import { DateFormat, RandomResponse, stateTyping } from '../util'
+import { chunckPhone, RandomResponse, stateTyping } from '../util'
 import ConfirmSchedule from './ConfirmSchedule'
 import ServiceEvaluation from './ServiceEvaluation';
 import Agent from 'App/Models/Agent';
 import { DateTime } from 'luxon';
-
+import { responderPergunta } from 'App/Services/Ai/aiResponder'
+import Shippingcampaign from 'App/Models/Shippingcampaign';
+import Talk from 'App/Models/Talk';
 
 async function verifyNumberInternal(phoneVerify: string): Promise<boolean> {
   // Lista de telefones em formato de array
@@ -56,7 +57,7 @@ async function getChat(cellphone: String, agentPhone: String) {
 }
 
 export default class Monitoring {
-    async monitoring(client: Client) {
+  async monitoring(client: Client) {
     try {
       client.on('message', async (message) => {
         if (await shouldIgnoreMessage(message)) return;
@@ -126,7 +127,7 @@ async function handleCustomChatMessage(message: any, customChat: any) {
   };
 
   await Customchat.create(bodyResponse);
-  await Chat.query().where('id', customChat.chats_id).update({date_return:DateTime.now().toFormat("yyyy-MM-dd HH:mm"),last_response:2 })
+  await Chat.query().where('id', customChat.chats_id).update({ date_return: DateTime.now().toFormat("yyyy-MM-dd HH:mm"), last_response: 2 })
 }
 
 // Processa mensagens de chat existentes
@@ -160,14 +161,34 @@ async function handleNewMessage(client: Client, message: any) {
     return;
   }
 
-  const response = await AutomaticResponses(message.body);
+  //AI EM AÇÃO *******************************************************
+  //const response = await AutomaticResponses(message.body);
+  console.log(message.from)
+  //insere a conversa na tabela
+  await Talk.create({ cellphone: message.from, chatnumber: message.to, message: message.body, type:"from" })
+  const query = await Shippingcampaign.query()
+    .where('cellphone', 'like', `%${await chunckPhone(message.from)}%`)
+    .where('interaction_id', 1).select('otherfields')
+
+  const queryTalk = await Talk.query()
+    .where('cellphone', message.from)
+    .andWhere('chatnumber', message.to)
+
+  const context = query.map((item) => item.otherfields).join("\n")
+  const contextTalk = queryTalk.map((item) => item.message).join("\n")
+  const fullContext = context + '\n\n' + contextTalk
+
+  const response = await responderPergunta(message.body, fullContext)
+
   if (response) {
     await stateTyping(message);
     client.sendMessage(message.from, response);
+    await Talk.create({ cellphone: message.from, chatnumber: message.to, message: response, type:"to" })
   } else {
     await sendRandomFinalMessage(client, message);
   }
 }
+//********************************************************************
 
 // Processa mensagens de verificação
 async function handleVerification(client: Client, message: any) {

@@ -38,14 +38,7 @@ async function TimeSchedule() {
   return timeSchedule
 }
 
-// async function PositiveResponse(inputString) {
-//   const regex = /(1|sim|ok|pode sim|confirma)/i;
-//   if (regex.test(inputString)) {
-//     return true
-//   } else {
-//     return false
-//   }
-// }
+
 async function PositiveResponse(inputString: string): Promise<boolean> {
   const positiveResponses = [
     "1", "sim", "ok", "pode sim", "confirma", "com certeza",
@@ -57,15 +50,7 @@ async function PositiveResponse(inputString: string): Promise<boolean> {
   return positiveResponses.some(response => normalizedInput.includes(response));
 }
 
-// async function NegativeResponse(stringResp) {
-//   const positive = /(2|não|nao|cancelar|reagenda|desmarcar)/i;
-//   if (positive.test(stringResp)) {
-//     return true
-//   } else {
-//     return false
-//   }
 
-// }
 async function NegativeResponse(stringResp: string): Promise<boolean> {
   const negativeResponses = [
     "2", "não", "nao", "cancelar", "reagenda", "desmarcar", "não pode",
@@ -77,20 +62,6 @@ async function NegativeResponse(stringResp: string): Promise<boolean> {
   return negativeResponses.some(response => normalizedInput.includes(response));
 }
 
-
-// async function InvalidResponse(stringResp) {
-
-//   //console.log("DENTRO DO INVALID RESPONSE>>", stringResp)
-//   const positive = /sim|não|1|2|pode confirmar|confirmada/ig;
-//   if (positive.test(stringResp)) {
-//     //console.log("RETORNOU TRUE")
-//     return true
-//   } else {
-//     //console.log("RETORNOU FALSE")
-//     return false
-//   }
-
-// }
 
 
 async function RandomResponse(arrayResponse: String[]) {
@@ -142,4 +113,11 @@ async function validAgent(agent) {
     .update({ statusconnected: false })
 }
 
-export { stateTyping, DateFormat, GenerateRandomTime, TimeSchedule, PositiveResponse, NegativeResponse, ClearFolder, ValidatePhone, RandomResponse, validAgent }
+
+//Pega um pedaço do telefone para buscas
+async function chunckPhone(cellphone:string) {
+  const match = cellphone.match(/(\d{8})@c\.us$/); // Captura os últimos 8 números antes do "@c.us"
+  return match ? match[1] : "";
+}
+
+export { stateTyping, DateFormat, GenerateRandomTime, TimeSchedule, PositiveResponse, NegativeResponse, ClearFolder, ValidatePhone, RandomResponse, validAgent, chunckPhone }

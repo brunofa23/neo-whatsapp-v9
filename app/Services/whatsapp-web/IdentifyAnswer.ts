@@ -1,25 +1,4 @@
-import Application from '@ioc:Adonis/Core/Application'
-
-console.log(Application.nodeEnvironment)
-
-import { test } from '@japa/runner'
-// import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-// import Shippingcampaign from 'App/Models/Shippingcampaign'
-// import Chat from 'App/Models/Chat'
-// import Unit from 'App/Models/Unit'
-// import { getSchedulesApi, confirmOrCancelScheduleApi } from 'App/Services/requestExternal/request'
-// import { ValidatePhone } from 'App/Services/whatsapp-web/util'
-// import ResponsesController from './ResponsesController'
-// import { DateTime } from 'luxon'
-// import Response from 'App/Models/Response'
-import { responderPergunta } from 'App/Services/Ai/aiResponder'
-import fs from 'fs'
-import path from 'path'
-import Chat from 'App/Models/Chat'
-import Shippingcampaign from 'App/Models/Shippingcampaign'
-import { chunckPhone } from 'App/Services/whatsapp-web/util'
 import { NlpManager } from 'node-nlp'
-
 
 
 async function treinarGerenciador() {
@@ -59,7 +38,7 @@ async function treinarGerenciador() {
   return manager
 }
 
-async function interpretarResposta(respostaUsuario: string) {
+export async function interpretAnswer(respostaUsuario: string) {
   const manager = await treinarGerenciador()
   const result = await manager.process('pt', respostaUsuario)
 
@@ -69,29 +48,13 @@ async function interpretarResposta(respostaUsuario: string) {
 
   // Aqui você pode decidir com base na intent
   if (result.intent === 'confirmar.consulta' && result.score > 0.75) {
-    return '✅ Consulta confirmada!'
+    return 1//'✅ Consulta confirmada!'
   } else if (result.intent === 'reagendar.consulta') {
-    return '📆 Podemos reagendar então.'
+    return 2//'📆 Podemos reagendar então.'
   } else if (result.intent === 'recusar.consulta') {
-    return '❌ Ok, vamos cancelar.'
+    return 2//'❌ Ok, vamos cancelar.'
   } else {
-    return '🤔 Desculpe, não entendi sua resposta. Você pode digitar *1* para confirmar ou *2* para reagendar.'
+    return 0//'🤔 Desculpe, não entendi sua resposta. Você pode digitar *1* para confirmar ou *2* para reagendar.'
   }
 }
 
-test('display welcome page', async ({ client }) => {
-
-  console.log('*******TESTES')
-
-  // const id = "553185228619@c.us";
-  // const match = id.match(/(\d{8})@c\.us$/); // Captura os últimos 8 números antes do "@c.us"
-  // const cellphone = match ? match[1] : "";
-
-// Teste rápido:
-  //interpretarResposta("não confirmado").then(console.log)
-  const teste =await interpretarResposta("não confirmado")
-console.log("ÇÇÇ", teste)
-
-
-
-})

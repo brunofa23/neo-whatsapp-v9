@@ -2,15 +2,12 @@ import { NegativeResponse, PositiveResponse, stateTyping } from '../util'
 import Chat from 'App/Models/Chat';
 import Response from 'App/Models/Response';
 import { Client, Message } from 'whatsapp-web.js';
-import { interpretAnswer } from 'App/Services/whatsapp-web/IdentifyAnswer'
-
-
 
 export default async (client: Client, message: Message, chat: Chat) => {
 
   // Função para substituir os placeholders na mensagem
   const formatMessage = (template, fields) => {
-    return template
+       return template
       .replace('{name_unit}', fields.name_unit)
       .replace('{address_unit}', fields.address_unit || 'Endereço indisponível')
       .replace('{medic}', fields.medic || 'Médico não informado')
@@ -34,9 +31,9 @@ export default async (client: Client, message: Message, chat: Chat) => {
   if (chat.interaction_seq == 1) {
     const chatOtherFields = JSON.parse(chat.shippingcampaign.otherfields)
 
-    const answer = await interpretAnswer(message.body)
-    console.log("@@@@@Answer:", answer)
-    if (answer == 1) {//presença confirmada
+    
+
+    if (await PositiveResponse(message.body)) {//presença confirmada
       await stateTyping(message)//status de digitando...
       try {
         // Busca a mensagem personalizada ou usa a mensagem padrão
@@ -70,7 +67,7 @@ export default async (client: Client, message: Message, chat: Chat) => {
       //Salvar no Smart e marcar presença
     } else
       //CANCELAR AGENDAMENTO******************************************************************
-      if (answer == 2) {
+      if (await NegativeResponse(message.body)) {
         try {
           Object.assign(chat, {
             response: message.body,
@@ -102,7 +99,7 @@ export default async (client: Client, message: Message, chat: Chat) => {
             //.andWhere('inactive', false)
             .first();
           if (response2schedule2) {
-            if (response2schedule2.inactive === false) {
+            if (response2schedule2.inactive===false) {
               const linkRedirect = messageLink(response2schedule2.message, chatOtherFields.phone_unit)
               await client.sendMessage(message.from, linkRedirect)
             }

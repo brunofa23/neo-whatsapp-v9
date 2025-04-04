@@ -9,6 +9,7 @@ import ServiceEvaluation from './ServiceEvaluation';
 import Agent from 'App/Models/Agent';
 import { DateTime } from 'luxon';
 import { responderPergunta } from 'App/Services/Ai/aiResponder'
+
 import Shippingcampaign from 'App/Models/Shippingcampaign';
 import Talk from 'App/Models/Talk';
 

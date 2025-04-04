@@ -1,0 +1,18 @@
+[
+  {
+    "pergunta": "Quais são os horários de atendimento?",
+    "resposta": "Atendemos de segunda a sexta, das 8h às 18h."
+  },
+  {
+    "pergunta": "Como faço para agendar um horário?",
+    "resposta": "Você pode agendar um horário diretamente pelo nosso site ou enviando uma mensagem aqui mesmo."
+  },
+  {
+    "pergunta": "Qual o endereço da clinica/hospital/consultório?",
+    "resposta": "Estamos localizados na Rua Exemplo, 123 - Centro."
+  },
+  {
+    "pergunta": "Como pegar um resultade de um exame?",
+    "resposta": "Para resultados de exames somente vindo ao hospital."
+  }
+]

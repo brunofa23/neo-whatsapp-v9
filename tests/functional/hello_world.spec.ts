@@ -19,7 +19,7 @@ import path from 'path'
 test('display welcome page', async ({ client }) => {
 
   console.log('*******TESTES')
-  const resposta = await responderPergunta('qual o horario do agendamento?')
+  const resposta = await responderPergunta('Qual o endereço da Clinica e a data da consulta?',`{"address":"AV TITO FULGENCIO, 1000, CID. INDUSTRIAL","medic":"FILA TOPOGRAFIA","schedule":"2023-12-26 07:30"}`)
   console.log(">>>>>>RESPOSTA:", resposta)
 
 

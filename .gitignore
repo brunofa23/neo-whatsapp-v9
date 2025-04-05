@@ -1,6 +1,6 @@
 node_modules
 build/node_modules
-
+build/model.nlp
 coverage
 .vscode
 .DS_STORE
@@ -12,5 +12,5 @@ tmp
 backups
 Medias
 scripts
-
+model.nlp
 

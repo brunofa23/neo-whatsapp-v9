@@ -7,9 +7,10 @@ import { DateTime } from 'luxon'
 import { startAgentChat } from "../../Services/whatsapp-web/whatsapp"
 import Config from 'App/Models/Config'
 import Application from '@ioc:Adonis/Core/Application'
+import fs from 'fs';
 
-const fs = require('fs');
-const path = require('path');
+//const fs = require('fs');
+//const path = require('path');
 
 // Função que retorna uma promessa para remover a pasta
 function deleteFolder(pathFolder) {

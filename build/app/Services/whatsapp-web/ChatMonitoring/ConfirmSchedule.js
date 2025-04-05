@@ -29,7 +29,6 @@ exports.default = async (client, message, chat) => {
     if (chat.interaction_seq == 1) {
         const chatOtherFields = JSON.parse(chat.shippingcampaign.otherfields);
         const answer = await (0, IdentifyAnswer_1.interpretAnswer)(message.body);
-        console.log("@@@@@Answer:", answer);
         if (answer == 1) {
             await (0, util_1.stateTyping)(message);
             try {

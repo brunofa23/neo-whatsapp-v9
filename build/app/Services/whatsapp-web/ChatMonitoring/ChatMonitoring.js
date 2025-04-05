@@ -125,25 +125,41 @@ async function handleChatMessage(client, message, chat) {
     }
 }
 async function handleNewMessage(client, message) {
-    console.log(message.from);
-    await Talk_1.default.create({ cellphone: message.from, chatnumber: message.to, message: message.body, type: "from" });
-    const query = await Shippingcampaign_1.default.query()
-        .where('cellphone', 'like', `%${await (0, util_1.chunckPhone)(message.from)}%`)
-        .where('interaction_id', 1).select('otherfields');
-    const queryTalk = await Talk_1.default.query()
-        .where('cellphone', message.from)
-        .andWhere('chatnumber', message.to);
-    const context = query.map((item) => item.otherfields).join("\n");
-    const contextTalk = queryTalk.map((item) => item.message).join("\n");
-    const fullContext = context + '\n\n' + contextTalk;
-    const response = await (0, aiResponder_1.responderPergunta)(message.body, fullContext);
-    if (response) {
-        await (0, util_1.stateTyping)(message);
-        client.sendMessage(message.from, response);
-        await Talk_1.default.create({ cellphone: message.from, chatnumber: message.to, message: response, type: "to" });
+    try {
+        await Talk_1.default.create({
+            cellphone: message.from,
+            chatnumber: message.to,
+            message: message.body,
+            type: "from"
+        });
+        const query = await Shippingcampaign_1.default.query()
+            .where('cellphone', 'like', `%${await (0, util_1.chunckPhone)(message.from)}%`)
+            .where('interaction_id', 1)
+            .select('otherfields');
+        const queryTalk = await Talk_1.default.query()
+            .where('cellphone', message.from)
+            .andWhere('chatnumber', message.to);
+        const context = query.map((item) => item.otherfields).join("\n");
+        const contextTalk = queryTalk.map((item) => item.message).join("\n");
+        const fullContext = context + '\n\n' + contextTalk;
+        const response = await (0, aiResponder_1.responderPergunta)(message.body, fullContext);
+        if (response) {
+            await (0, util_1.stateTyping)(message);
+            await client.sendMessage(message.from, response);
+            await Talk_1.default.create({
+                cellphone: message.from,
+                chatnumber: message.to,
+                message: response,
+                type: "to"
+            });
+        }
+        else {
+            await sendRandomFinalMessage(client, message);
+        }
     }
-    else {
-        await sendRandomFinalMessage(client, message);
+    catch (error) {
+        console.error("Erro ao processar mensagem:", error);
+        await client.sendMessage(message.from, "Desculpe, ocorreu um erro ao processar sua mensagem.");
     }
 }
 async function handleVerification(client, message) {
@@ -161,6 +177,7 @@ async function handleVerification(client, message) {
     }
 }
 async function sendRandomFinalMessage(client, message) {
+    console.log("Passo 1@@@");
     let responseArray;
     const responsesChatfinish = await Response_1.default.query().select('message')
         .where('local', 'chatfinish');

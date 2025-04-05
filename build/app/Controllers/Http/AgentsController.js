@@ -11,11 +11,10 @@ const luxon_1 = require("luxon");
 const whatsapp_1 = require("../../Services/whatsapp-web/whatsapp");
 const Config_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Config"));
 const Application_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Application"));
-const fs = require('fs');
-const path = require('path');
+const fs_1 = __importDefault(require("fs"));
 function deleteFolder(pathFolder) {
     return new Promise((resolve, reject) => {
-        fs.rm(pathFolder, { recursive: true }, (err) => {
+        fs_1.default.rm(pathFolder, { recursive: true }, (err) => {
             if (err) {
                 reject(err);
             }
@@ -153,7 +152,7 @@ class AgentsController {
             setTimeout(async () => {
                 console.log("Excluindo pasta...");
                 const pathFolder = Application_1.default.tmpPath(`/sessions/session-${params.id}`);
-                if (fs.existsSync(pathFolder)) {
+                if (fs_1.default.existsSync(pathFolder)) {
                     try {
                         await deleteFolder(pathFolder);
                         console.log(`DIRETÓRIO DELETADO: session-${params.id}`);
@@ -181,7 +180,7 @@ class AgentsController {
                 setTimeout(async () => {
                     console.log("Excluindo pasta...");
                     const pathFolder = Application_1.default.tmpPath(`/sessions/session-${agent.id}`);
-                    if (fs.existsSync(pathFolder)) {
+                    if (fs_1.default.existsSync(pathFolder)) {
                         try {
                             await deleteFolder(pathFolder);
                             console.log(`DIRETÓRIO DELETADO: session-${agent.id}`);

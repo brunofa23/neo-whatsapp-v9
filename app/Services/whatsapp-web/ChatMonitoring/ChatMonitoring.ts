@@ -144,45 +144,49 @@ async function handleChatMessage(client: Client, message: any, chat: any) {
 
 // Processa mensagens novas
 async function handleNewMessage(client: Client, message: any) {
-  //const upperBody = message.body.toUpperCase();
-
-  // if (upperBody === "OI" || upperBody === "OLÁ") {
-  //   await stateTyping(message);
-  //   client.sendMessage(message.from, "Olá, sou a Iris, uma atendente virtual.");
-  //   return;
-  // }
-
-  // if (upperBody.startsWith("VERIFICAR")) {
-  //   await handleVerification(client, message);
-  //   return;
-  // }
-
   //AI EM AÇÃO *******************************************************
-  //const response = await AutomaticResponses(message.body);
-  console.log(message.from)
-  //insere a conversa na tabela
-  await Talk.create({ cellphone: message.from, chatnumber: message.to, message: message.body, type: "from" })
-  const query = await Shippingcampaign.query()
-    .where('cellphone', 'like', `%${await chunckPhone(message.from)}%`)
-    .where('interaction_id', 1).select('otherfields')
+  try {
+    // Insere a conversa na tabela
+    await Talk.create({
+      cellphone: message.from,
+      chatnumber: message.to,
+      message: message.body,
+      type: "from"
+    });
+    const query = await Shippingcampaign.query()
+      .where('cellphone', 'like', `%${await chunckPhone(message.from)}%`)
+      .where('interaction_id', 1)
+      .select('otherfields');
 
-  const queryTalk = await Talk.query()
-    .where('cellphone', message.from)
-    .andWhere('chatnumber', message.to)
+    const queryTalk = await Talk.query()
+      .where('cellphone', message.from)
+      .andWhere('chatnumber', message.to);
 
-  const context = query.map((item) => item.otherfields).join("\n")
-  const contextTalk = queryTalk.map((item) => item.message).join("\n")
-  const fullContext = context + '\n\n' + contextTalk
+    const context = query.map((item) => item.otherfields).join("\n");
+    const contextTalk = queryTalk.map((item) => item.message).join("\n");
+    const fullContext = context + '\n\n' + contextTalk;
 
-  const response = await responderPergunta(message.body, fullContext)
+    const response = await responderPergunta(message.body, fullContext);
 
-  if (response) {
-    await stateTyping(message);
-    client.sendMessage(message.from, response);
-    await Talk.create({ cellphone: message.from, chatnumber: message.to, message: response, type: "to" })
-  } else {
-    await sendRandomFinalMessage(client, message);
+    if (response) {
+      await stateTyping(message);
+      await client.sendMessage(message.from, response);
+      await Talk.create({
+        cellphone: message.from,
+        chatnumber: message.to,
+        message: response,
+        type: "to"
+      });
+    } else {
+      await sendRandomFinalMessage(client, message);
+    }
+
+  } catch (error) {
+    console.error("Erro ao processar mensagem:", error);
+    await client.sendMessage(message.from, "Desculpe, ocorreu um erro ao processar sua mensagem.");
   }
+
+
 }
 //********************************************************************
 
@@ -204,6 +208,7 @@ async function handleVerification(client: Client, message: any) {
 
 // Envia mensagem final aleatória
 async function sendRandomFinalMessage(client: Client, message: any) {
+  console.log("Passo 1@@@")
   let responseArray: String[]
   const responsesChatfinish = await Response.query().select('message')
     .where('local', 'chatfinish')

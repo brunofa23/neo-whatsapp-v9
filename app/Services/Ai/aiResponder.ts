@@ -5,7 +5,7 @@ import Faq from 'App/Models/Faq'
 import axios from 'axios'
 import { OpenAI } from 'openai'
 
-// Instância OpenAI (caso esteja usando diretamente)
+// Instância OpenAI
 const openai = new OpenAI({
   apiKey: Env.get('OPENAI_API_KEY'),
 })
@@ -23,62 +23,66 @@ async function criarGerenciador(perguntas: { ask: string; answer: string }[]) {
   return manager
 }
 
-// Função genérica para fallback com IA (OpenAI ou OpenRouter)
+// Fallback com IA
 async function fallbackParaIA(
   perguntaUsuario: string,
   perguntas: { ask: string; answer: string }[],
   informationContext: string
 ): Promise<string> {
-  const contexto = perguntas.map((p) => `Q: ${p.ask}\nA: ${p.answer}`).join('\n\n')
+  try {
+    const contexto = perguntas.map((p) => `Q: ${p.ask}\nA: ${p.answer}`).join('\n\n')
 
-  const messages = [
-    {
-      role: 'system',
-      content: `Você é uma atendente de call center de um hospital e só pode responder com base nas perguntas e respostas abaixo.
-      Se a pergunta do usuário não estiver claramente presente ou relacionada diga "Desculpe, não tenho essa resposta".
-      Responda de forma clara, objetiva e educada.
-      Sempre responda em português.`,
-    },
-    {
-      role: 'user',
-      content: `Baseado nas perguntas abaixo, responda de forma direta:
+    const messages = [
+      {
+        role: 'system',
+        content: `Você é uma atendente de call center de um hospital e só pode responder com base nas perguntas e respostas abaixo.
+Se a pergunta do usuário não estiver claramente presente ou relacionada diga "Desculpe, não tenho essa resposta".
+Responda de forma clara, objetiva e educada.
+Sempre responda em português.`,
+      },
+      {
+        role: 'user',
+        content: `Baseado nas perguntas abaixo, responda de forma direta:
 
 ${contexto}
 
 Informações adicionais do paciente: ${informationContext}
 
 Pergunta: ${perguntaUsuario}`,
-    },
-  ]
+      },
+    ]
 
-  // Alternar entre OpenAI e OpenRouter via ENV
-  if (Env.get('USE_OPENROUTER') === 'true') {
-    const response = await axios.post(
-      'https://openrouter.ai/api/v1/chat/completions',
-      {
-        model: Env.get('OPENROUTER_MODEL', 'openai/gpt-3.5-turbo'),
+    if (Env.get('USE_OPENROUTER') === 'true') {
+      const response = await axios.post(
+        'https://openrouter.ai/api/v1/chat/completions',
+        {
+          model: Env.get('OPENROUTER_MODEL', 'openai/gpt-3.5-turbo'),
+          messages,
+          temperature: 0.5,
+          max_tokens: 500,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${Env.get('OPENROUTER_API_KEY')}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      )
+
+      return response.data.choices?.[0]?.message?.content?.trim() || 'Desculpe, não entendi sua pergunta.'
+    } else {
+      const completion = await openai.chat.completions.create({
+        model: 'gpt-3.5-turbo',
         messages,
         temperature: 0.5,
         max_tokens: 500,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${Env.get('OPENROUTER_API_KEY')}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    )
+      })
 
-    return response.data.choices?.[0]?.message?.content?.trim() || 'Desculpe, não entendi sua pergunta.'
-  } else {
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
-      messages,
-      temperature: 0.5,
-      max_tokens: 500,
-    })
-
-    return completion.choices[0].message?.content?.trim() || 'Desculpe, não entendi sua pergunta.'
+      return completion.choices[0].message?.content?.trim() || 'Desculpe, não entendi sua pergunta.'
+    }
+  } catch (error) {
+    console.error('Erro no fallback com IA:', error)
+    return 'Desculpe, houve um erro ao tentar entender sua pergunta.'
   }
 }
 
@@ -87,27 +91,44 @@ export async function responderPergunta(
   perguntaUsuario: string,
   informationContext: string = ''
 ): Promise<string> {
-  const query = await Faq.query().select('ask', 'answer')
+  let query: { ask: string; answer: string }[] = []
+
+  try {
+    query = await Faq.query().select('ask', 'answer')
+  } catch (error) {
+    console.error('Erro ao consultar FAQs:', error)
+    return 'Desculpe, houve um erro ao buscar as perguntas frequentes.'
+  }
+
   const perguntas = query.map((item) => item.ask)
 
-  const manager = await criarGerenciador(query)
-  const resultado = await manager.process('pt', perguntaUsuario)
+  let manager
+  try {
+    manager = await criarGerenciador(query)
+  } catch (error) {
+    console.error('Erro ao treinar NLP:', error)
+    return 'Desculpe, não consegui processar sua pergunta no momento.'
+  }
 
-  // Verifica similaridade real
+  let resultado
+  try {
+    resultado = await manager.process('pt', perguntaUsuario)
+  } catch (error) {
+    console.error('Erro ao processar pergunta com NLP:', error)
+    return 'Desculpe, houve um erro ao tentar entender sua pergunta.'
+  }
+
+  // Verifica similaridade
   const match = stringSimilarity.findBestMatch(perguntaUsuario, perguntas)
   const similaridade = match.bestMatch.rating
   const perguntaMaisParecida = match.bestMatch.target
   const indexMaisParecido = perguntas.findIndex((p) => p === perguntaMaisParecida)
   const respostaMaisParecida = query[indexMaisParecido]?.answer
 
-  console.log('Score NLP:', resultado.score)
-  console.log('Similaridade:', similaridade)
-  console.log('Pergunta mais parecida:', perguntaMaisParecida)
-
   if (similaridade >= 0.6 && respostaMaisParecida) {
     return respostaMaisParecida
   }
 
-  // Se a similaridade for baixa, usamos fallback IA
+  // Fallback com IA se não houver resposta satisfatória
   return await fallbackParaIA(perguntaUsuario, query, informationContext)
 }

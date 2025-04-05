@@ -9,32 +9,26 @@ import ServiceEvaluation from './ServiceEvaluation';
 import Agent from 'App/Models/Agent';
 import { DateTime } from 'luxon';
 import { responderPergunta } from 'App/Services/Ai/aiResponder'
-//import { responderPergunta } from 'App/Services/Ai/aiResponderOpenRouter'
-
 import Shippingcampaign from 'App/Models/Shippingcampaign';
 import Talk from 'App/Models/Talk';
 
 async function verifyNumberInternal(phoneVerify: string): Promise<boolean> {
   // Lista de telefones em formato de array
   const listPhonesFromEnv = process.env.LIST_PHONES_TALK?.split(",") || [];
-
   // Verifica se o telefone está na lista do ambiente
   if (listPhonesFromEnv.includes(phoneVerify)) {
     return true;
   }
-
   // Busca números de telefone dos agentes conectados
   const connectedAgents = await Agent.query()
     .select('number_phone')
     .whereNull('deleted')
     .andWhere('status', 'CONNECTED');
-
   // Verifica se o telefone está na lista de agentes
   const isPhoneInAgents = connectedAgents.some(agent => agent.number_phone === phoneVerify);
 
   return isPhoneInAgents;
 }
-
 
 async function getCustomChat(cellphone: String, chatnumber: String) {
   chatnumber = chatnumber.replace(/@.*$/, '');
@@ -45,8 +39,8 @@ async function getCustomChat(cellphone: String, chatnumber: String) {
     .orderBy('created_at', 'desc')
     .first()
   return customChat
-
 }
+
 async function getChat(cellphone: String, agentPhone: String) {
   const phoneAgent = agentPhone.match(/\d/g).join("");
 

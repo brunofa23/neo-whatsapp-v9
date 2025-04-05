@@ -90,19 +90,39 @@ async function ClearFolder(folderPath) {
 
 }
 
-
-// async function ValidatePhone(cellphone) {
-//   // Expressão regular para validar o formato de um número de celular no Brasil
-//   const regexTelefoneCelular = /^(\+55|55)?\s?(?:\(?0?[1-9]{2}\)?)?\s?(?:9\s?)?[6789]\d{3}[-\s]?\d{4}$/;
-//   return regexTelefoneCelular.test(cellphone);
+// function ValidatePhone(cellphone: string): Promise<boolean> {
+//   // Remove espaços e normaliza a entrada
+//   const sanitizedCellphone = cellphone.trim();
+//   // Expressão regular para validar números de celular brasileiros
+//   const brazilianPhoneRegex = /^(\+55|55)?\s?(?:\(?0?[1-9]{2}\)?)?\s?(?:9\s?)?[6789]\d{3}[-\s]?\d{4}$/;
+//   // Testa o número de telefone contra o regex
+//   return brazilianPhoneRegex.test(sanitizedCellphone);
 // }
-async function ValidatePhone(cellphone: string): Promise<boolean> {
-  // Remove espaços e normaliza a entrada
-  const sanitizedCellphone = cellphone.trim();
-  // Expressão regular para validar números de celular brasileiros
-  const brazilianPhoneRegex = /^(\+55|55)?\s?(?:\(?0?[1-9]{2}\)?)?\s?(?:9\s?)?[6789]\d{3}[-\s]?\d{4}$/;
-  // Testa o número de telefone contra o regex
-  return brazilianPhoneRegex.test(sanitizedCellphone);
+function ValidatePhone(cellphone: string): string | null {
+  if (!cellphone) return null;
+  // Remove tudo que não for número
+  const digits = cellphone.replace(/\D/g, '');
+
+  // Ex: 911234567 (sem DDD) → inválido
+  if (digits.length < 10) return null;
+
+  // Adiciona +55 se não tiver (código do Brasil)
+  let normalized = digits;
+
+  if (digits.length === 11) {
+    // Ex: 11912345678
+    normalized = '55' + digits;
+  } else if (digits.length === 13 && digits.startsWith('55')) {
+    // já está no formato correto
+  } else {
+    // número não esperado
+
+    return null;
+  }
+  // Validação básica: deve ter 13 dígitos e ser celular (começa com 9 após DDD)
+  const celularRegex = /^55[1-9]{2}9[6-9]\d{7}$/;
+  if (!celularRegex.test(normalized)) return null;
+  return normalized; // exemplo: 5511912345678
 }
 
 

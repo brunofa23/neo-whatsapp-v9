@@ -1,7 +1,3 @@
-import Application from '@ioc:Adonis/Core/Application'
-
-console.log(Application.nodeEnvironment)
-
 import { test } from '@japa/runner'
 // import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 // import Shippingcampaign from 'App/Models/Shippingcampaign'
@@ -19,65 +15,8 @@ import Chat from 'App/Models/Chat'
 import Shippingcampaign from 'App/Models/Shippingcampaign'
 import { chunckPhone } from 'App/Services/whatsapp-web/util'
 import { NlpManager } from 'node-nlp'
-
-
-
-async function treinarGerenciador() {
-  const manager = new NlpManager({ languages: ['pt'], forceNER: true, nlu: { log: false } })
-
-  // Confirmação
-  manager.addDocument('pt', 'sim', 'confirmar.consulta')
-  manager.addDocument('pt', 'pode confirmar', 'confirmar.consulta')
-  manager.addDocument('pt', 'ok', 'confirmar.consulta')
-  manager.addDocument('pt', '1', 'confirmar.consulta')
-
-  // Reagendamento / Desmarcar
-  manager.addDocument('pt', 'não posso neste horário', 'reagendar.consulta')
-  manager.addDocument('pt', 'quero reagendar', 'reagendar.consulta')
-  manager.addDocument('pt', 'quero desmarcar', 'reagendar.consulta')
-  manager.addDocument('pt', '2', 'reagendar.consulta')
-  manager.addDocument('pt', 'não confirmar', 'reagendar.consulta')
-
-  // Recusa
-  manager.addDocument('pt', 'não sou essa pessoa', 'recusar.consulta')
-  manager.addDocument('pt', 'número errado', 'recusar.consulta')
-  manager.addDocument('pt', 'não marquei nada', 'recusar.consulta')
-
-  // Fora de contexto
-  manager.addDocument('pt', 'oi tudo bem?', 'fora.do.contexto')
-  manager.addDocument('pt', 'quem é você?', 'fora.do.contexto')
-  manager.addDocument('pt', 'qual é o seu nome?', 'fora.do.contexto')
-
-  // Respostas
-  manager.addAnswer('pt', 'confirmar.consulta', 'Consulta confirmada!')
-  manager.addAnswer('pt', 'reagendar.consulta', 'Vamos reagendar então.')
-  manager.addAnswer('pt', 'recusar.consulta', 'Tudo bem, vamos cancelar.')
-  manager.addAnswer('pt', 'fora.do.contexto', 'Desculpe, não entendi. Poderia repetir?')
-
-  await manager.train()
-  manager.save()
-  return manager
-}
-
-async function interpretarResposta(respostaUsuario: string) {
-  const manager = await treinarGerenciador()
-  const result = await manager.process('pt', respostaUsuario)
-
-  console.log('Intent:', result.intent)
-  console.log('Score:', result.score)
-  console.log('Resposta sugerida:', result.answer)
-
-  // Aqui você pode decidir com base na intent
-  if (result.intent === 'confirmar.consulta' && result.score > 0.75) {
-    return '✅ Consulta confirmada!'
-  } else if (result.intent === 'reagendar.consulta') {
-    return '📆 Podemos reagendar então.'
-  } else if (result.intent === 'recusar.consulta') {
-    return '❌ Ok, vamos cancelar.'
-  } else {
-    return '🤔 Desculpe, não entendi sua resposta. Você pode digitar *1* para confirmar ou *2* para reagendar.'
-  }
-}
+import { responderPergunta } from 'App/Services/Ai/aiResponder'
+import {interpretAnswer} from 'App/Services/whatsapp-web/IdentifyAnswer'
 
 test('display welcome page', async ({ client }) => {
 
@@ -86,11 +25,8 @@ test('display welcome page', async ({ client }) => {
   // const id = "553185228619@c.us";
   // const match = id.match(/(\d{8})@c\.us$/); // Captura os últimos 8 números antes do "@c.us"
   // const cellphone = match ? match[1] : "";
-
-// Teste rápido:
-  //interpretarResposta("não confirmado").then(console.log)
-  const teste =await interpretarResposta("não confirmado")
-console.log("ÇÇÇ", teste)
+  const answer = await interpretAnswer("não sou bruno")
+  console.log(">>>>>", answer)
 
 
 

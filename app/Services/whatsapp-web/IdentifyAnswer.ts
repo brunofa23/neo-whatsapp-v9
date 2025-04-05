@@ -16,16 +16,29 @@ async function treinarGerenciador() {
   manager.addDocument('pt', 'quero desmarcar', 'reagendar.consulta')
   manager.addDocument('pt', '2', 'reagendar.consulta')
   manager.addDocument('pt', 'não confirmar', 'reagendar.consulta')
+  manager.addDocument('pt', 'não', 'reagendar.consulta')
+  manager.addDocument('pt', 'pode reagendar', 'reagendar.consulta')
+  manager.addDocument('pt', 'não vou poder comparecer', 'reagendar.consulta')
+  manager.addDocument('pt', 'troquei o dia', 'reagendar.consulta')
 
-  // Recusa
+
+  // Recusa retorna 2
   manager.addDocument('pt', 'não sou essa pessoa', 'recusar.consulta')
   manager.addDocument('pt', 'número errado', 'recusar.consulta')
   manager.addDocument('pt', 'não marquei nada', 'recusar.consulta')
+  manager.addDocument('pt', 'não poderemos ir', 'reagendar.consulta')
+  manager.addDocument('pt', 'esse telefone não pertence', 'recusar.consulta')
+  manager.addDocument('pt', 'esse não é o número', 'recusar.consulta')
+  manager.addDocument('pt', 'engano', 'recusar.consulta')
+  manager.addDocument('pt', 'celular não é dessa pessoa', 'recusar.consulta')
 
   // Fora de contexto
   manager.addDocument('pt', 'oi tudo bem?', 'fora.do.contexto')
   manager.addDocument('pt', 'quem é você?', 'fora.do.contexto')
   manager.addDocument('pt', 'qual é o seu nome?', 'fora.do.contexto')
+  manager.addDocument('pt', 'agradece seu contato', 'fora.do.contexto')
+  manager.addDocument('pt', 'não posso atender', 'fora.do.contexto')
+  manager.addDocument('pt', 'mensagem automatica', 'fora.do.contexto')
 
   // Respostas
   manager.addAnswer('pt', 'confirmar.consulta', 'Consulta confirmada!')
@@ -52,7 +65,7 @@ export async function interpretAnswer(respostaUsuario: string) {
   } else if (result.intent === 'reagendar.consulta') {
     return 2//'📆 Podemos reagendar então.'
   } else if (result.intent === 'recusar.consulta') {
-    return 2//'❌ Ok, vamos cancelar.'
+    return 3//'❌ Ok, vamos cancelar.'
   } else {
     return 0//'🤔 Desculpe, não entendi sua resposta. Você pode digitar *1* para confirmar ou *2* para reagendar.'
   }

@@ -9,6 +9,7 @@ import ServiceEvaluation from './ServiceEvaluation';
 import Agent from 'App/Models/Agent';
 import { DateTime } from 'luxon';
 import { responderPergunta } from 'App/Services/Ai/aiResponder'
+//import { responderPergunta } from 'App/Services/Ai/aiResponderOpenRouter'
 
 import Shippingcampaign from 'App/Models/Shippingcampaign';
 import Talk from 'App/Models/Talk';
@@ -149,24 +150,24 @@ async function handleChatMessage(client: Client, message: any, chat: any) {
 
 // Processa mensagens novas
 async function handleNewMessage(client: Client, message: any) {
-  const upperBody = message.body.toUpperCase();
+  //const upperBody = message.body.toUpperCase();
 
-  if (upperBody === "OI" || upperBody === "OLÁ") {
-    await stateTyping(message);
-    client.sendMessage(message.from, "Olá, sou a Iris, uma atendente virtual.");
-    return;
-  }
+  // if (upperBody === "OI" || upperBody === "OLÁ") {
+  //   await stateTyping(message);
+  //   client.sendMessage(message.from, "Olá, sou a Iris, uma atendente virtual.");
+  //   return;
+  // }
 
-  if (upperBody.startsWith("VERIFICAR")) {
-    await handleVerification(client, message);
-    return;
-  }
+  // if (upperBody.startsWith("VERIFICAR")) {
+  //   await handleVerification(client, message);
+  //   return;
+  // }
 
   //AI EM AÇÃO *******************************************************
   //const response = await AutomaticResponses(message.body);
   console.log(message.from)
   //insere a conversa na tabela
-  await Talk.create({ cellphone: message.from, chatnumber: message.to, message: message.body, type:"from" })
+  await Talk.create({ cellphone: message.from, chatnumber: message.to, message: message.body, type: "from" })
   const query = await Shippingcampaign.query()
     .where('cellphone', 'like', `%${await chunckPhone(message.from)}%`)
     .where('interaction_id', 1).select('otherfields')
@@ -184,7 +185,7 @@ async function handleNewMessage(client: Client, message: any) {
   if (response) {
     await stateTyping(message);
     client.sendMessage(message.from, response);
-    await Talk.create({ cellphone: message.from, chatnumber: message.to, message: response, type:"to" })
+    await Talk.create({ cellphone: message.from, chatnumber: message.to, message: response, type: "to" })
   } else {
     await sendRandomFinalMessage(client, message);
   }
@@ -226,25 +227,25 @@ async function sendRandomFinalMessage(client: Client, message: any) {
   client.sendMessage(message.from, randomMessage);
 }
 
-async function AutomaticResponses(message: String) {
-  // Separando a frase em palavras individuais
-  const words = message.toLowerCase().split(/\s+/); // Dividindo a frase em palavras e convertendo para minúsculas
-  // Inicializando a consulta
-  let query = Response.query();
-  words.forEach((word, index) => {
-    if (index === 0) {
-      // Para a primeira palavra, utilizamos where
-      if (word)
-        query = query.where('local', 'like', `%${word}%`);
-    } else {
-      // Para as palavras subsequentes, utilizamos orWhere
-      query = query.orWhere('local', 'like', `%${word}%`);
-    }
-  });
-  const response = await query.first();
-  return response?.message
+// async function AutomaticResponses(message: String) {
+//   // Separando a frase em palavras individuais
+//   const words = message.toLowerCase().split(/\s+/); // Dividindo a frase em palavras e convertendo para minúsculas
+//   // Inicializando a consulta
+//   let query = Response.query();
+//   words.forEach((word, index) => {
+//     if (index === 0) {
+//       // Para a primeira palavra, utilizamos where
+//       if (word)
+//         query = query.where('local', 'like', `%${word}%`);
+//     } else {
+//       // Para as palavras subsequentes, utilizamos orWhere
+//       query = query.orWhere('local', 'like', `%${word}%`);
+//     }
+//   });
+//   const response = await query.first();
+//   return response?.message
 
-}
+// }
 
 
 

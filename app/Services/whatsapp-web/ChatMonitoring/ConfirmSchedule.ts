@@ -136,7 +136,19 @@ export default async (client: Client, message: Message, chat: Chat) => {
           console.log("Erro:", error)
         }
 
-      } else {
+      }
+      else if (answer == 3) {
+        await stateTyping(message)//status de digitando...
+        try {
+          const defaultMessage = `Desculpe pelo engano, vou pedir para corrigir nosso cadastro.`;
+          // Envia a mensagem ao cliente
+          await client.sendMessage(message.from, defaultMessage);
+          // Atualiza o chat com os dados de resposta
+        } catch (error) {
+          console.error("Erro ao enviar a mensagem de agendamento:", error.message, error.stack);
+        }
+      }
+      else {
         await stateTyping(message)
         client.sendMessage(message.from, 'Oi, desculpe mas não consegui identificar uma resposta, por favor responda \n*1* para Confirmar o agendamento. \n*2* para Reagendamento ou Cancelamento.')
       }

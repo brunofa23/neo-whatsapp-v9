@@ -6,7 +6,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const util_1 = require("../util");
 const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
 const Response_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Response"));
-const IdentifyAnswer_1 = global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/IdentifyAnswer");
 exports.default = async (client, message, chat) => {
     const formatMessage = (template, fields) => {
         return template
@@ -28,9 +27,7 @@ exports.default = async (client, message, chat) => {
     }
     if (chat.interaction_seq == 1) {
         const chatOtherFields = JSON.parse(chat.shippingcampaign.otherfields);
-        const answer = await (0, IdentifyAnswer_1.interpretAnswer)(message.body);
-        console.log("@@@@@Answer:", answer);
-        if (answer == 1) {
+        if (await (0, util_1.PositiveResponse)(message.body)) {
             await (0, util_1.stateTyping)(message);
             try {
                 const response1schedule = await Response_1.default.query()
@@ -57,7 +54,7 @@ exports.default = async (client, message, chat) => {
                 console.error("Erro ao enviar a mensagem de agendamento:", error.message, error.stack);
             }
         }
-        else if (answer == 2) {
+        else if (await (0, util_1.NegativeResponse)(message.body)) {
             try {
                 Object.assign(chat, {
                     response: message.body,
@@ -116,20 +113,10 @@ exports.default = async (client, message, chat) => {
                 console.log("Erro:", error);
             }
         }
-        else if (answer == 3) {
-            await (0, util_1.stateTyping)(message);
-            try {
-                const defaultMessage = `Desculpe pelo engano, vou pedir para corrigir nosso cadastro.`;
-                await client.sendMessage(message.from, defaultMessage);
-            }
-            catch (error) {
-                console.error("Erro ao enviar a mensagem de agendamento:", error.message, error.stack);
-            }
-        }
         else {
             await (0, util_1.stateTyping)(message);
             client.sendMessage(message.from, 'Oi, desculpe mas não consegui identificar uma resposta, por favor responda \n*1* para Confirmar o agendamento. \n*2* para Reagendamento ou Cancelamento.');
         }
     }
 };
-//# sourceMappingURL=ConfirmSchedule.js.map
+//# sourceMappingURL=ConfirmSchedule%20copy.js.map

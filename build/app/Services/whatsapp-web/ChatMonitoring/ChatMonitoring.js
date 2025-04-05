@@ -12,6 +12,9 @@ const ConfirmSchedule_1 = __importDefault(require("./ConfirmSchedule"));
 const ServiceEvaluation_1 = __importDefault(require("./ServiceEvaluation"));
 const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
 const luxon_1 = require("luxon");
+const aiResponder_1 = global[Symbol.for('ioc.use')]("App/Services/Ai/aiResponder");
+const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Shippingcampaign"));
+const Talk_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Talk"));
 async function verifyNumberInternal(phoneVerify) {
     const listPhonesFromEnv = process.env.LIST_PHONES_TALK?.split(",") || [];
     if (listPhonesFromEnv.includes(phoneVerify)) {
@@ -122,20 +125,22 @@ async function handleChatMessage(client, message, chat) {
     }
 }
 async function handleNewMessage(client, message) {
-    const upperBody = message.body.toUpperCase();
-    if (upperBody === "OI" || upperBody === "OLÁ") {
-        await (0, util_1.stateTyping)(message);
-        client.sendMessage(message.from, "Olá, sou a Iris, uma atendente virtual.");
-        return;
-    }
-    if (upperBody.startsWith("VERIFICAR")) {
-        await handleVerification(client, message);
-        return;
-    }
-    const response = await AutomaticResponses(message.body);
+    console.log(message.from);
+    await Talk_1.default.create({ cellphone: message.from, chatnumber: message.to, message: message.body, type: "from" });
+    const query = await Shippingcampaign_1.default.query()
+        .where('cellphone', 'like', `%${await (0, util_1.chunckPhone)(message.from)}%`)
+        .where('interaction_id', 1).select('otherfields');
+    const queryTalk = await Talk_1.default.query()
+        .where('cellphone', message.from)
+        .andWhere('chatnumber', message.to);
+    const context = query.map((item) => item.otherfields).join("\n");
+    const contextTalk = queryTalk.map((item) => item.message).join("\n");
+    const fullContext = context + '\n\n' + contextTalk;
+    const response = await (0, aiResponder_1.responderPergunta)(message.body, fullContext);
     if (response) {
         await (0, util_1.stateTyping)(message);
         client.sendMessage(message.from, response);
+        await Talk_1.default.create({ cellphone: message.from, chatnumber: message.to, message: response, type: "to" });
     }
     else {
         await sendRandomFinalMessage(client, message);
@@ -171,20 +176,5 @@ async function sendRandomFinalMessage(client, message) {
     const randomMessage = await (0, util_1.RandomResponse)(responseArray);
     await (0, util_1.stateTyping)(message);
     client.sendMessage(message.from, randomMessage);
-}
-async function AutomaticResponses(message) {
-    const words = message.toLowerCase().split(/\s+/);
-    let query = Response_1.default.query();
-    words.forEach((word, index) => {
-        if (index === 0) {
-            if (word)
-                query = query.where('local', 'like', `%${word}%`);
-        }
-        else {
-            query = query.orWhere('local', 'like', `%${word}%`);
-        }
-    });
-    const response = await query.first();
-    return response?.message;
 }
 //# sourceMappingURL=ChatMonitoring.js.map

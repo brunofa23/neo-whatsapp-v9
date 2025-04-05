@@ -33,9 +33,7 @@ export default async (client: Client, message: Message, chat: Chat) => {
   }
   if (chat.interaction_seq == 1) {
     const chatOtherFields = JSON.parse(chat.shippingcampaign.otherfields)
-
     const answer = await interpretAnswer(message.body)
-    console.log("@@@@@Answer:", answer)
     if (answer == 1) {//presença confirmada
       await stateTyping(message)//status de digitando...
       try {

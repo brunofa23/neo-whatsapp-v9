@@ -1,5 +1,6 @@
 import { NlpManager } from 'node-nlp'
 
+//RECEBE A MENSAGEM E TENTA IDENTIFICAR QUAL A RESPOSTA DO PACIENTE
 
 async function treinarGerenciador() {
   const manager = new NlpManager({ languages: ['pt'], forceNER: true, nlu: { log: false } })
@@ -10,7 +11,7 @@ async function treinarGerenciador() {
   manager.addDocument('pt', 'ok', 'confirmar.consulta')
   manager.addDocument('pt', '1', 'confirmar.consulta')
 
-  // Reagendamento / Desmarcar
+  // Reagendamento / Desmarcar 2
   manager.addDocument('pt', 'não posso neste horário', 'reagendar.consulta')
   manager.addDocument('pt', 'quero reagendar', 'reagendar.consulta')
   manager.addDocument('pt', 'quero desmarcar', 'reagendar.consulta')
@@ -22,7 +23,7 @@ async function treinarGerenciador() {
   manager.addDocument('pt', 'troquei o dia', 'reagendar.consulta')
 
 
-  // Recusa retorna 2
+  // Recusa retorna 3
   manager.addDocument('pt', 'não sou essa pessoa', 'recusar.consulta')
   manager.addDocument('pt', 'número errado', 'recusar.consulta')
   manager.addDocument('pt', 'não marquei nada', 'recusar.consulta')
@@ -32,7 +33,7 @@ async function treinarGerenciador() {
   manager.addDocument('pt', 'engano', 'recusar.consulta')
   manager.addDocument('pt', 'celular não é dessa pessoa', 'recusar.consulta')
 
-  // Fora de contexto
+  // Fora de contexto 0
   manager.addDocument('pt', 'oi tudo bem?', 'fora.do.contexto')
   manager.addDocument('pt', 'quem é você?', 'fora.do.contexto')
   manager.addDocument('pt', 'qual é o seu nome?', 'fora.do.contexto')
@@ -66,7 +67,7 @@ export async function interpretAnswer(respostaUsuario: string) {
     return 2//'📆 Podemos reagendar então.'
   } else if (result.intent === 'recusar.consulta') {
     return 3//'❌ Ok, vamos cancelar.'
-  } else {
+  } else {//FORA DO CONTEXTO
     return 0//'🤔 Desculpe, não entendi sua resposta. Você pode digitar *1* para confirmar ou *2* para reagendar.'
   }
 }

@@ -50,53 +50,34 @@ Pergunta: ${perguntaUsuario}`,
       },
     ]
 
+    if (Env.get('USE_OPENROUTER') === 'true') {
+      const response = await axios.post(
+        'https://openrouter.ai/api/v1/chat/completions',
+        {
+          model: Env.get('OPENROUTER_MODEL', 'openai/gpt-3.5-turbo'),
+          messages,
+          temperature: 0.5,
+          max_tokens: 500,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${Env.get('OPENROUTER_API_KEY')}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      )
 
-    const response = await axios.post(
-      'https://api.groq.com/openai/v1/chat/completions',
-      {
-        model: 'llama3-70b-8192',
+      return response.data.choices?.[0]?.message?.content?.trim() || 'Desculpe, não entendi sua pergunta.'
+    } else {
+      const completion = await openai.chat.completions.create({
+        model: 'gpt-3.5-turbo',
         messages,
         temperature: 0.5,
         max_tokens: 500,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${Env.get('GROQ_API_KEY')}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    )
+      })
 
-    return response.data.choices?.[0]?.message?.content?.trim() || 'Desculpe, não entendi sua pergunta.'
-
-    // if (Env.get('USE_OPENROUTER') === 'true') {
-    //   const response = await axios.post(
-    //     'https://openrouter.ai/api/v1/chat/completions',
-    //     {
-    //       model: Env.get('OPENROUTER_MODEL', 'openai/gpt-3.5-turbo'),
-    //       messages,
-    //       temperature: 0.5,
-    //       max_tokens: 500,
-    //     },
-    //     {
-    //       headers: {
-    //         Authorization: `Bearer ${Env.get('OPENROUTER_API_KEY')}`,
-    //         'Content-Type': 'application/json',
-    //       },
-    //     }
-    //   )
-
-    //   return response.data.choices?.[0]?.message?.content?.trim() || 'Desculpe, não entendi sua pergunta.'
-    // } else {
-    //   const completion = await openai.chat.completions.create({
-    //     model: 'gpt-3.5-turbo',
-    //     messages,
-    //     temperature: 0.5,
-    //     max_tokens: 500,
-    //   })
-
-    //   return completion.choices[0].message?.content?.trim() || 'Desculpe, não entendi sua pergunta.'
-    // }
+      return completion.choices[0].message?.content?.trim() || 'Desculpe, não entendi sua pergunta.'
+    }
   } catch (error) {
     console.error('Erro no fallback com IA:', error)
     return 'Desculpe, houve um erro ao tentar entender sua pergunta.'

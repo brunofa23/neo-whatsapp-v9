@@ -135,9 +135,23 @@ async function validAgent(agent) {
 
 
 //Pega um pedaço do telefone para buscas
-async function chunckPhone(cellphone:string) {
-  const match = cellphone.match(/(\d{8})@c\.us$/); // Captura os últimos 8 números antes do "@c.us"
-  return match ? match[1] : "";
+// async function chunckPhone(cellphone:string) {
+//   const match = cellphone.match(/(\d{8})@c\.us$/); // Captura os últimos 8 números antes do "@c.us"
+//   return match ? match[1] : "";
+// }
+
+async function chunckPhone(cellphone: string): Promise<string> {
+  const match = cellphone.match(/(\d{8})@c\.us$/);
+  if (match) {
+    return match[1]; // Se casar com o padrão, retorna os 8 dígitos
+  }
+  // Caso não tenha '@c.us', retorna o número inteiro como está
+  if (!cellphone.includes('@')) {
+    return cellphone;
+  }
+  // Se tiver algo como '@g.us' ou outro sufixo, remove o que vem depois de '@'
+  return cellphone.split('@')[0];
 }
+
 
 export { stateTyping, DateFormat, GenerateRandomTime, TimeSchedule, PositiveResponse, NegativeResponse, ClearFolder, ValidatePhone, RandomResponse, validAgent, chunckPhone }

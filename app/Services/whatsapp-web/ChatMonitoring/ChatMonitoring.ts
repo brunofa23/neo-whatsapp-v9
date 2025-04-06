@@ -156,13 +156,13 @@ async function handleNewMessage(client: Client, message: any) {
     const query = await Shippingcampaign.query()
       .where('cellphone', 'like', `%${await chunckPhone(message.from)}%`)
       .where('interaction_id', 1)
-      .select('otherfields');
+      .select('otherfields', 'name');
 
     const queryTalk = await Talk.query()
       .where('cellphone', message.from)
       .andWhere('chatnumber', message.to);
 
-    const context = query.map((item) => item.otherfields).join("\n");
+    const context = query.map((item) => `name:${item.name} \n${item.otherfields}`).join("\n");
     const contextTalk = queryTalk.map((item) => item.message).join("\n");
     const fullContext = context + '\n\n' + contextTalk;
 
@@ -191,24 +191,24 @@ async function handleNewMessage(client: Client, message: any) {
 //********************************************************************
 
 // Processa mensagens de verificação
-async function handleVerification(client: Client, message: any) {
-  const numbers = message.body.match(/\d/g)?.join("") || "";
-  await stateTyping(message);
+// async function handleVerification(client: Client, message: any) {
+//   const numbers = message.body.match(/\d/g)?.join("") || "";
+//   await stateTyping(message);
 
-  try {
-    const result = await client.getNumberId(numbers);
-    const responseMessage = result
-      ? `Número de Whatsapp validado: ${result._serialized}`
-      : "Número não identificado para o Whatsapp.";
-    client.sendMessage(message.from, responseMessage);
-  } catch (error) {
-    console.error("Erro ao verificar número:", error);
-  }
-}
+//   try {
+//     const result = await client.getNumberId(numbers);
+//     const responseMessage = result
+//       ? `Número de Whatsapp validado: ${result._serialized}`
+//       : "Número não identificado para o Whatsapp.";
+//     client.sendMessage(message.from, responseMessage);
+//   } catch (error) {
+//     console.error("Erro ao verificar número:", error);
+//   }
+// }
 
 // Envia mensagem final aleatória
 async function sendRandomFinalMessage(client: Client, message: any) {
-  console.log("Passo 1@@@")
+
   let responseArray: String[]
   const responsesChatfinish = await Response.query().select('message')
     .where('local', 'chatfinish')
@@ -226,25 +226,6 @@ async function sendRandomFinalMessage(client: Client, message: any) {
   client.sendMessage(message.from, randomMessage);
 }
 
-// async function AutomaticResponses(message: String) {
-//   // Separando a frase em palavras individuais
-//   const words = message.toLowerCase().split(/\s+/); // Dividindo a frase em palavras e convertendo para minúsculas
-//   // Inicializando a consulta
-//   let query = Response.query();
-//   words.forEach((word, index) => {
-//     if (index === 0) {
-//       // Para a primeira palavra, utilizamos where
-//       if (word)
-//         query = query.where('local', 'like', `%${word}%`);
-//     } else {
-//       // Para as palavras subsequentes, utilizamos orWhere
-//       query = query.orWhere('local', 'like', `%${word}%`);
-//     }
-//   });
-//   const response = await query.first();
-//   return response?.message
-
-// }
 
 
 

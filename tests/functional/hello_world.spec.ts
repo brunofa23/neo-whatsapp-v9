@@ -22,12 +22,20 @@ test('display welcome page', async ({ client }) => {
 
   console.log('*******TESTES')
 
-  // const id = "553185228619@c.us";
-  // const match = id.match(/(\d{8})@c\.us$/); // Captura os últimos 8 números antes do "@c.us"
-  // const cellphone = match ? match[1] : "";
-  const answer = await interpretAnswer("não sou bruno")
-  console.log(">>>>>", answer)
+  const chunckPhoneNumber = await chunckPhone('31985228619@')
 
+   const query1 = Shippingcampaign.query()
+        .where('cellphone', 'like', `%${await chunckPhone('31985228619')}%`)
+        .where('interaction_id', 1)
+        //.select('otherfields','name');
 
+        console.log("::::::", chunckPhoneNumber)
+        console.log("::::::", query1.toQuery())
+
+        const query = await query1
+
+    const context = query.map((item) => `name:${item.name} \n${item.otherfields}` ).join("\n");
+    //const context = query.map(item =>item.serialize());
+    console.log("::::::", context)
 
 })

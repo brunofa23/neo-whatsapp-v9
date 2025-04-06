@@ -31,16 +31,14 @@ async function fallbackParaIA(perguntaUsuario, perguntas, informationContext) {
                 content: `Você é uma atendente de call center de um hospital e só pode responder com base nas perguntas e respostas abaixo.
 Se a pergunta do usuário não estiver claramente presente ou relacionada diga "Desculpe, não tenho essa resposta".
 Responda de forma clara, objetiva e educada.
+Se tiver o nome chame-o pelo nome.
 Sempre responda em português.`,
             },
             {
                 role: 'user',
                 content: `Baseado nas perguntas abaixo, responda de forma direta:
-
 ${contexto}
-
 Informações adicionais do paciente: ${informationContext}
-
 Pergunta: ${perguntaUsuario}`,
             },
         ];

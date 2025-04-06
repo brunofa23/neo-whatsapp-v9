@@ -107,7 +107,13 @@ async function validAgent(agent) {
 exports.validAgent = validAgent;
 async function chunckPhone(cellphone) {
     const match = cellphone.match(/(\d{8})@c\.us$/);
-    return match ? match[1] : "";
+    if (match) {
+        return match[1];
+    }
+    if (!cellphone.includes('@')) {
+        return cellphone;
+    }
+    return cellphone.split('@')[0];
 }
 exports.chunckPhone = chunckPhone;
 //# sourceMappingURL=util.js.map

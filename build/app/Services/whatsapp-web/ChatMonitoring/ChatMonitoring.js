@@ -135,11 +135,11 @@ async function handleNewMessage(client, message) {
         const query = await Shippingcampaign_1.default.query()
             .where('cellphone', 'like', `%${await (0, util_1.chunckPhone)(message.from)}%`)
             .where('interaction_id', 1)
-            .select('otherfields');
+            .select('otherfields', 'name');
         const queryTalk = await Talk_1.default.query()
             .where('cellphone', message.from)
             .andWhere('chatnumber', message.to);
-        const context = query.map((item) => item.otherfields).join("\n");
+        const context = query.map((item) => `name:${item.name} \n${item.otherfields}`).join("\n");
         const contextTalk = queryTalk.map((item) => item.message).join("\n");
         const fullContext = context + '\n\n' + contextTalk;
         const response = await (0, aiResponder_1.responderPergunta)(message.body, fullContext);
@@ -162,22 +162,7 @@ async function handleNewMessage(client, message) {
         await client.sendMessage(message.from, "Desculpe, ocorreu um erro ao processar sua mensagem.");
     }
 }
-async function handleVerification(client, message) {
-    const numbers = message.body.match(/\d/g)?.join("") || "";
-    await (0, util_1.stateTyping)(message);
-    try {
-        const result = await client.getNumberId(numbers);
-        const responseMessage = result
-            ? `Número de Whatsapp validado: ${result._serialized}`
-            : "Número não identificado para o Whatsapp.";
-        client.sendMessage(message.from, responseMessage);
-    }
-    catch (error) {
-        console.error("Erro ao verificar número:", error);
-    }
-}
 async function sendRandomFinalMessage(client, message) {
-    console.log("Passo 1@@@");
     let responseArray;
     const responsesChatfinish = await Response_1.default.query().select('message')
         .where('local', 'chatfinish');

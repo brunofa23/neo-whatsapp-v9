@@ -42,18 +42,29 @@ Informações adicionais do paciente: ${informationContext}
 Pergunta: ${perguntaUsuario}`,
             },
         ];
-        const response = await axios_1.default.post('https://api.groq.com/openai/v1/chat/completions', {
-            model: 'llama3-70b-8192',
-            messages,
-            temperature: 0.5,
-            max_tokens: 500,
-        }, {
-            headers: {
-                Authorization: `Bearer ${Env_1.default.get('GROQ_API_KEY')}`,
-                'Content-Type': 'application/json',
-            },
-        });
-        return response.data.choices?.[0]?.message?.content?.trim() || 'Desculpe, não entendi sua pergunta.';
+        if (Env_1.default.get('USE_OPENROUTER') === 'true') {
+            const response = await axios_1.default.post('https://openrouter.ai/api/v1/chat/completions', {
+                model: Env_1.default.get('OPENROUTER_MODEL', 'openai/gpt-3.5-turbo'),
+                messages,
+                temperature: 0.5,
+                max_tokens: 500,
+            }, {
+                headers: {
+                    Authorization: `Bearer ${Env_1.default.get('OPENROUTER_API_KEY')}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+            return response.data.choices?.[0]?.message?.content?.trim() || 'Desculpe, não entendi sua pergunta.';
+        }
+        else {
+            const completion = await openai.chat.completions.create({
+                model: 'gpt-3.5-turbo',
+                messages,
+                temperature: 0.5,
+                max_tokens: 500,
+            });
+            return completion.choices[0].message?.content?.trim() || 'Desculpe, não entendi sua pergunta.';
+        }
     }
     catch (error) {
         console.error('Erro no fallback com IA:', error);
@@ -97,4 +108,4 @@ async function responderPergunta(perguntaUsuario, informationContext = '') {
     return await fallbackParaIA(perguntaUsuario, query, informationContext);
 }
 exports.responderPergunta = responderPergunta;
-//# sourceMappingURL=aiResponder.js.map
+//# sourceMappingURL=aiResponder%20copy.js.map

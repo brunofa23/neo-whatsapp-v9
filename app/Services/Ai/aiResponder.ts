@@ -5,21 +5,45 @@ import Faq from 'App/Models/Faq'
 import axios from 'axios'
 import { OpenAI } from 'openai'
 
+import fs from 'fs'
+import path from 'path'
+
 // Instância OpenAI
 const openai = new OpenAI({
   apiKey: Env.get('OPENAI_API_KEY'),
 })
 
-// Função para treinar NLP
+// // Função para treinar NLP
+// async function criarGerenciador(perguntas: { ask: string; answer: string }[]) {
+//   const manager = new NlpManager({ languages: ['pt'], forceNER: true, nlu: { log: false } })
+
+//   perguntas.forEach((item, index) => {
+//     manager.addDocument('pt', item.ask, `pergunta.${index}`)
+//     manager.addAnswer('pt', `pergunta.${index}`, item.answer)
+//   })
+
+//   await manager.train()
+//   return manager
+// }
 async function criarGerenciador(perguntas: { ask: string; answer: string }[]) {
+  const modelPath = path.resolve(__dirname, '../../nlp/model.nlp')
   const manager = new NlpManager({ languages: ['pt'], forceNER: true, nlu: { log: false } })
 
+  // Se o modelo já existe, carregue ele da memória
+  if (fs.existsSync(modelPath)) {
+    await manager.load(modelPath)
+    return manager
+  }
+
+  // Caso contrário, treina com as perguntas atuais
   perguntas.forEach((item, index) => {
     manager.addDocument('pt', item.ask, `pergunta.${index}`)
     manager.addAnswer('pt', `pergunta.${index}`, item.answer)
   })
 
   await manager.train()
+  await manager.save(modelPath)
+
   return manager
 }
 
@@ -38,7 +62,7 @@ async function fallbackParaIA(
         content: `Você é uma atendente de call center de um hospital e só pode responder com base nas perguntas e respostas abaixo.
 Se a pergunta do usuário não estiver claramente presente ou relacionada diga "Desculpe, não tenho essa resposta".
 Responda de forma clara, objetiva e educada.
-Se tiver o nome chame-o pelo nome.
+Se tiver o nome chame-o apenas pelo primeiro nome.
 Sempre responda em português.`,
       },
       {

@@ -1,8 +1,9 @@
 import Agent from 'App/Models/Agent';
 import Customchat from 'App/Models/Customchat';
 //import Shippingcampaign from 'App/Models/Shippingcampaign';
-import { verifyNumber } from 'App/Services/whatsapp-web/VerifyNumber';
+//import { verifyNumber } from 'App/Services/whatsapp-web/VerifyNumber';
 import { Client } from "whatsapp-web.js"
+import Talk from 'App/Models/Talk';
 
 import { DateFormat, GenerateRandomTime, TimeSchedule } from './util'
 
@@ -39,6 +40,13 @@ export default async (client: Client, agent: Agent) => {
               customChat.phonevalid = true
 
               await customChat.save()
+              await Talk.create({
+                cellphone: customChat.cellphone,
+                chatnumber: client.info.wid.user,
+                message: customChat.message,
+                type: "to"
+              })
+
             }).catch(async (error) => {
               console.log("ERRO 1452:::", error)
             })

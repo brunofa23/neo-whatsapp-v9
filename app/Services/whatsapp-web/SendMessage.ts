@@ -6,6 +6,7 @@ import { DateTime } from 'luxon';
 import { Client } from "whatsapp-web.js"
 import { DateFormat, ExecutingSendMessage, GenerateRandomTime, TimeSchedule } from './util'
 import Log from "App/Models/Log"
+import Talk from 'App/Models/Talk';
 
 global.contSend = 0
 //const yesterday = DateTime.local().toFormat('yyyy-MM-dd 00:00')
@@ -113,6 +114,13 @@ export default async (client: Client, agent: Agent) => {
                     chatnumber: client.info.wid.user
                   }
                   await Chat.create(bodyChat)
+                  await Talk.create({
+                    cellphone: shippingCampaign.cellphone,
+                    chatnumber: client.info.wid.user,
+                    message: shippingCampaign.message,
+                    type:"to"
+                  })
+
                   console.log("Mensagem enviada:", shippingCampaign.name, "cellphone", shippingCampaign.cellphoneserialized, "agent", agent.name)
                   if (agent.statusconnected == false || agent.status !=='CONNECTED')
                     await Agent.query().where('id', agent.id).update({ statusconnected: true, status:'CONNECTED'})

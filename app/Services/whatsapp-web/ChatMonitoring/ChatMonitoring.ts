@@ -56,6 +56,15 @@ export default class Monitoring {
   async monitoring(client: Client) {
     try {
       client.on('message', async (message) => {
+        // Insere a conversa na tabela
+        await Talk.create({
+          cellphone: message.from,
+          chatnumber: message.to,
+          message: message.body,
+          type: "from"
+        });
+
+
         if (await shouldIgnoreMessage(message)) return;
 
         if (message.hasMedia) {
@@ -145,14 +154,15 @@ async function handleChatMessage(client: Client, message: any, chat: any) {
 // Processa mensagens novas
 async function handleNewMessage(client: Client, message: any) {
   //AI EM AÇÃO *******************************************************
+  //************************************************************************
   try {
     // Insere a conversa na tabela
-    await Talk.create({
-      cellphone: message.from,
-      chatnumber: message.to,
-      message: message.body,
-      type: "from"
-    });
+    // await Talk.create({
+    //   cellphone: message.from,
+    //   chatnumber: message.to,
+    //   message: message.body,
+    //   type: "from"
+    // });
     const query = await Shippingcampaign.query()
       .where('cellphone', 'like', `%${await chunckPhone(message.from)}%`)
       .where('interaction_id', 1)

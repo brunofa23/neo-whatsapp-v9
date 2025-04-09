@@ -17,25 +17,19 @@ import { chunckPhone } from 'App/Services/whatsapp-web/util'
 import { NlpManager } from 'node-nlp'
 import { responderPergunta } from 'App/Services/Ai/aiResponder'
 import {interpretAnswer} from 'App/Services/whatsapp-web/IdentifyAnswer'
+const fs = require('fs')
 
 test('display welcome page', async ({ client }) => {
 
   console.log('*******TESTES')
-
-  const chunckPhoneNumber = await chunckPhone('31985228619@')
-
-   const query1 = Shippingcampaign.query()
-        .where('cellphone', 'like', `%${await chunckPhone('31985228619')}%`)
-        .where('interaction_id', 1)
-        //.select('otherfields','name');
-
-        console.log("::::::", chunckPhoneNumber)
-        console.log("::::::", query1.toQuery())
-
-        const query = await query1
-
-    const context = query.map((item) => `name:${item.name} \n${item.otherfields}` ).join("\n");
-    //const context = query.map(item =>item.serialize());
-    console.log("::::::", context)
-
+  // const answer = await interpretAnswer("nao 2 confirmar")
+  //   console.log("::::::", answer)
+  try {
+    //const modelPath = path.resolve(__dirname, '../../nlp/model.nlp')
+    const modelPath = 
+    const teste = fs.existsSync(modelPath)
+    console.log("::::::", teste)
+  } catch (error) {
+    console.log("ERRO:", error)
+  }
 })

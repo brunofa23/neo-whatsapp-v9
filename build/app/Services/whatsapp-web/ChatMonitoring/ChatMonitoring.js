@@ -49,12 +49,6 @@ class Monitoring {
     async monitoring(client) {
         try {
             client.on('message', async (message) => {
-                await Talk_1.default.create({
-                    cellphone: message.from,
-                    chatnumber: message.to,
-                    message: message.body,
-                    type: "from"
-                });
                 if (await shouldIgnoreMessage(message))
                     return;
                 if (message.hasMedia) {
@@ -67,6 +61,12 @@ class Monitoring {
                     console.log("Número interno:", message.from);
                     return;
                 }
+                await Talk_1.default.create({
+                    cellphone: message.from,
+                    chatnumber: message.to,
+                    message: message.body,
+                    type: "from"
+                });
                 const customChat = await getCustomChat(message.from, client.info.wid.user);
                 if (customChat) {
                     await handleCustomChatMessage(message, customChat);
@@ -86,12 +86,14 @@ class Monitoring {
     }
 }
 exports.default = Monitoring;
-async function shouldIgnoreMessage(message) {
-    const isGroup = (await message.getChat()).isGroup;
-    const isE2ENotification = message.type.toLowerCase() === "e2e_notification";
+function shouldIgnoreMessage(message) {
+    const isE2ENotification = message.type?.toLowerCase() === "e2e_notification";
     const isEmptyMessage = message.body === "" && !message.hasMedia;
-    const isGroupMessage = message.from.includes("@g.us");
-    return isGroup || isE2ENotification || isEmptyMessage || isGroupMessage;
+    const isGroupMessage = message.from?.includes("@g.us");
+    const isBroadcastMessage = message.from?.includes("@broadcast");
+    const isStatusMessage = message.from?.includes("@status");
+    const isNotFromIndividual = !message.from?.includes("@c.us");
+    return isE2ENotification || isEmptyMessage || isGroupMessage || isBroadcastMessage || isStatusMessage || isNotFromIndividual;
 }
 async function handleCustomChatMessage(message, customChat) {
     let pathMedia = "";

@@ -7,7 +7,7 @@ import { OpenAI } from 'openai'
 import Application from '@ioc:Adonis/Core/Application'
 
 import fs from 'fs'
-import path from 'path'
+
 
 // Instância OpenAI
 const openai = new OpenAI({

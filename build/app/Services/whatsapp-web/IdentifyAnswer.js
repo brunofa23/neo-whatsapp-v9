@@ -16,7 +16,6 @@ async function treinarGerenciador() {
     manager.addDocument('pt', 'não', 'reagendar.consulta');
     manager.addDocument('pt', 'pode reagendar', 'reagendar.consulta');
     manager.addDocument('pt', 'não vou poder comparecer', 'reagendar.consulta');
-    manager.addDocument('pt', 'troquei o dia', 'reagendar.consulta');
     manager.addDocument('pt', 'não sou essa pessoa', 'recusar.consulta');
     manager.addDocument('pt', 'número errado', 'recusar.consulta');
     manager.addDocument('pt', 'não marquei nada', 'recusar.consulta');

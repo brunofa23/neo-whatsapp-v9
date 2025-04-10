@@ -10,6 +10,7 @@ const VerifyNumber_1 = global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/
 const luxon_1 = require("luxon");
 const util_1 = require("./util");
 const Log_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Log"));
+const Talk_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Talk"));
 global.contSend = 0;
 const dayBefore5 = luxon_1.DateTime.local().minus({ days: 5 }).toFormat('yyyy-MM-dd 00:00');
 let resetContSend = luxon_1.DateTime.local();
@@ -104,6 +105,12 @@ exports.default = async (client, agent) => {
                                     chatnumber: client.info.wid.user
                                 };
                                 await Chat_1.default.create(bodyChat);
+                                await Talk_1.default.create({
+                                    cellphone: shippingCampaign.cellphone,
+                                    chatnumber: client.info.wid.user,
+                                    message: shippingCampaign.message,
+                                    type: "to"
+                                });
                                 console.log("Mensagem enviada:", shippingCampaign.name, "cellphone", shippingCampaign.cellphoneserialized, "agent", agent.name);
                                 if (agent.statusconnected == false || agent.status !== 'CONNECTED')
                                     await Agent_1.default.query().where('id', agent.id).update({ statusconnected: true, status: 'CONNECTED' });

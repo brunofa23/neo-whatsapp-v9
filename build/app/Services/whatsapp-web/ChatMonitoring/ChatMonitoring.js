@@ -49,6 +49,12 @@ class Monitoring {
     async monitoring(client) {
         try {
             client.on('message', async (message) => {
+                await Talk_1.default.create({
+                    cellphone: message.from,
+                    chatnumber: message.to,
+                    message: message.body,
+                    type: "from"
+                });
                 if (await shouldIgnoreMessage(message))
                     return;
                 if (message.hasMedia) {
@@ -126,12 +132,6 @@ async function handleChatMessage(client, message, chat) {
 }
 async function handleNewMessage(client, message) {
     try {
-        await Talk_1.default.create({
-            cellphone: message.from,
-            chatnumber: message.to,
-            message: message.body,
-            type: "from"
-        });
         const query = await Shippingcampaign_1.default.query()
             .where('cellphone', 'like', `%${await (0, util_1.chunckPhone)(message.from)}%`)
             .where('interaction_id', 1)

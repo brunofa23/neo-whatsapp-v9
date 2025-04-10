@@ -56,14 +56,6 @@ export default class Monitoring {
   async monitoring(client: Client) {
     try {
       client.on('message', async (message) => {
-        // Insere a conversa na tabela
-        await Talk.create({
-          cellphone: message.from,
-          chatnumber: message.to,
-          message: message.body,
-          type: "from"
-        });
-
 
         if (await shouldIgnoreMessage(message)) return;
 
@@ -78,6 +70,14 @@ export default class Monitoring {
           console.log("Número interno:", message.from);
           return;
         }
+
+        // Insere a conversa na tabela
+        await Talk.create({
+          cellphone: message.from,
+          chatnumber: message.to,
+          message: message.body,
+          type: "from"
+        });
 
         const customChat = await getCustomChat(message.from, client.info.wid.user);
         if (customChat) {
@@ -99,14 +99,27 @@ export default class Monitoring {
   }
 }
 // Verifica se a mensagem deve ser ignorada
-async function shouldIgnoreMessage(message: any): Promise<boolean> {
-  const isGroup = (await message.getChat()).isGroup;
-  const isE2ENotification = message.type.toLowerCase() === "e2e_notification";
-  const isEmptyMessage = message.body === "" && !message.hasMedia;
-  const isGroupMessage = message.from.includes("@g.us");
+// async function shouldIgnoreMessage(message: any): Promise<boolean> {
+//   const isGroup = (await message.getChat()).isGroup;
+//   const isE2ENotification = message.type.toLowerCase() === "e2e_notification";
+//   const isEmptyMessage = message.body === "" && !message.hasMedia;
+//   const isGroupMessage = message.from.includes("@g.us");
+//   const isOnlyPerson = !message.from.includes('@c.us')
 
-  return isGroup || isE2ENotification || isEmptyMessage || isGroupMessage;
+//   return isGroup || isE2ENotification || isEmptyMessage || isGroupMessage || isOnlyPerson;
+// }
+function shouldIgnoreMessage(message: any): boolean {
+  const isE2ENotification = message.type?.toLowerCase() === "e2e_notification";
+  const isEmptyMessage = message.body === "" && !message.hasMedia;
+  // Verificações baseadas no campo `from`
+  const isGroupMessage = message.from?.includes("@g.us");
+  const isBroadcastMessage = message.from?.includes("@broadcast");
+  const isStatusMessage = message.from?.includes("@status");
+  // Só queremos mensagens de pessoas (@c.us)
+  const isNotFromIndividual = !message.from?.includes("@c.us");
+  return isE2ENotification || isEmptyMessage || isGroupMessage || isBroadcastMessage || isStatusMessage || isNotFromIndividual;
 }
+
 
 // Processa mensagens personalizadas
 async function handleCustomChatMessage(message: any, customChat: any) {
@@ -156,13 +169,6 @@ async function handleNewMessage(client: Client, message: any) {
   //AI EM AÇÃO *******************************************************
   //************************************************************************
   try {
-    // Insere a conversa na tabela
-    // await Talk.create({
-    //   cellphone: message.from,
-    //   chatnumber: message.to,
-    //   message: message.body,
-    //   type: "from"
-    // });
     const query = await Shippingcampaign.query()
       .where('cellphone', 'like', `%${await chunckPhone(message.from)}%`)
       .where('interaction_id', 1)

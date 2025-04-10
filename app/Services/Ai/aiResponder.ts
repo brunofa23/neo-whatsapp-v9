@@ -4,6 +4,7 @@ import Env from '@ioc:Adonis/Core/Env'
 import Faq from 'App/Models/Faq'
 import axios from 'axios'
 import { OpenAI } from 'openai'
+import Application from '@ioc:Adonis/Core/Application'
 
 import fs from 'fs'
 import path from 'path'
@@ -26,9 +27,9 @@ const openai = new OpenAI({
 //   return manager
 // }
 async function criarGerenciador(perguntas: { ask: string; answer: string }[]) {
-  const modelPath = path.resolve(__dirname, '../../nlp/model.nlp')
+  //const modelPath = path.resolve(__dirname, '../../nlp/model.nlp')
+  const modelPath = Application.makePath(`app/Services/Ai/model.nlp`)
   const manager = new NlpManager({ languages: ['pt'], forceNER: true, nlu: { log: false } })
-
   // Se o modelo já existe, carregue ele da memória
   if (fs.existsSync(modelPath)) {
     await manager.load(modelPath)

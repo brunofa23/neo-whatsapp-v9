@@ -17,6 +17,7 @@ import { chunckPhone } from 'App/Services/whatsapp-web/util'
 import { NlpManager } from 'node-nlp'
 import { responderPergunta } from 'App/Services/Ai/aiResponder'
 import {interpretAnswer} from 'App/Services/whatsapp-web/IdentifyAnswer'
+import Application from '@ioc:Adonis/Core/Application'
 const fs = require('fs')
 
 test('display welcome page', async ({ client }) => {
@@ -26,8 +27,11 @@ test('display welcome page', async ({ client }) => {
   //   console.log("::::::", answer)
   try {
     //const modelPath = path.resolve(__dirname, '../../nlp/model.nlp')
-    const modelPath = 
-    const teste = fs.existsSync(modelPath)
+
+    const filePath = Application.makePath(`app/Services/Ai/model.nlp`)
+
+    const teste = fs.existsSync(filePath)
+    console.log("::::::path:", filePath)
     console.log("::::::", teste)
   } catch (error) {
     console.log("ERRO:", error)

@@ -85,15 +85,16 @@ async function startAgent(_agent: Agent) {
   await client.on('authenticated', async () => {
     console.log(`AUTHENTICATED ${agent.name}`);
     agent.status = 'Authentication'
+    agent.statusconnected = true
+    agent.number_phone = client.info.wid.user
+    agent.qrcode = null
     agent.save()
   });
-
 
   client.on('auth_failure', msg => {
     // Fired if session restore was unsuccessful
     console.error('AUTHENTICATION FAILURE', msg);
   });
-
 
   client.on('ready', async () => {
     console.log(`READY...${agent.name}`);
@@ -217,7 +218,7 @@ async function startAgent(_agent: Agent) {
   client.on('call', async (call) => {
     console.log('Call received, rejecting. GOTO Line 261 to disable', call);
     if (rejectCalls) await call.reject();
-    await client.sendMessage(call.from, `[${call.fromMe ? 'Outgoing' : 'Incoming'}] Olá tudo Bem? Sou uma atendente virtual e por isso não consigo receber chamadas. Desculpe!!☺️`);
+    await client.sendMessage(call.from, `Olá tudo Bem? Sou uma atendente virtual e por isso não consigo receber chamadas. Desculpe!!☺️`);
   });
   return client
 }

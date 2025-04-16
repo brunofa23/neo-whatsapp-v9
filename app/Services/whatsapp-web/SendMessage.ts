@@ -4,7 +4,7 @@ import Chat from "App/Models/Chat"
 import { verifyNumber } from 'App/Services/whatsapp-web/VerifyNumber';
 import { DateTime } from 'luxon';
 import { Client } from "whatsapp-web.js"
-import { DateFormat, ExecutingSendMessage, GenerateRandomTime, TimeSchedule } from './util'
+import { DateFormat, ExecutingSendMessage, extractCellphone, GenerateRandomTime, TimeSchedule } from './util'
 import Log from "App/Models/Log"
 import Talk from 'App/Models/Talk';
 
@@ -19,7 +19,7 @@ export default async (client: Client, agent: Agent) => {
 
   async function verifyClientSend(client, cellphone) {
     if (client?.info?.wid) {
-      const query= Chat.query()
+      const query = Chat.query()
         .where('cellphone', cellphone)
         .andWhere('created_at', '>', dayBefore5)
         .andWhere('chatnumber', client.info.wid.user)
@@ -91,8 +91,8 @@ export default async (client: Client, agent: Agent) => {
               .andWhere('shippingcampaigns_id', shippingCampaign?.id).first()
 
             if (verifyChat == undefined) {
-                let returnResponse:any={}
-                await client.sendMessage(validationCellPhone, shippingCampaign.message)
+              let returnResponse: any = {}
+              await client.sendMessage(validationCellPhone, shippingCampaign.message)
                 .then(async (response) => {
                   returnResponse = response
                   global.contSend++
@@ -115,24 +115,24 @@ export default async (client: Client, agent: Agent) => {
                   }
                   await Chat.create(bodyChat)
                   await Talk.create({
-                    cellphone: shippingCampaign.cellphone,
+                    cellphone: extractCellphone(shippingCampaign.cellphone),
                     chatnumber: client.info.wid.user,
                     message: shippingCampaign.message,
-                    type:"to"
+                    type: "to"
                   })
 
                   console.log("Mensagem enviada:", shippingCampaign.name, "cellphone", shippingCampaign.cellphoneserialized, "agent", agent.name)
-                  if (agent.statusconnected == false || agent.status !=='CONNECTED')
-                    await Agent.query().where('id', agent.id).update({ statusconnected: true, status:'CONNECTED'})
+                  if (agent.statusconnected == false || agent.status !== 'CONNECTED')
+                    await Agent.query().where('id', agent.id).update({ statusconnected: true, status: 'CONNECTED' })
                 }).catch(async (error) => {
                   const state = await client.getState()
-                  await Agent.query().where('id', agent.id).update({ statusconnected: false, status:state })
-                  await Log.create({name:'sendMessage', message:error,description:"SendMessage.ts. linha:120 - Whatsapp Bugado catch" })
+                  await Agent.query().where('id', agent.id).update({ statusconnected: false, status: state })
+                  await Log.create({ name: 'sendMessage', message: error, description: "SendMessage.ts. linha:120 - Whatsapp Bugado catch" })
                 })
-                if(Object.keys(returnResponse).length===0){
-                  await Log.create({name:'sendMessage', message:error,description:"SendMessage.ts. linha:120 - Whatsapp Bugado depois deo catch" })
-                  await Agent.query().where('id', agent.id).update({ statusconnected: false })
-                }
+              if (Object.keys(returnResponse).length === 0) {
+                await Log.create({ name: 'sendMessage', message: error, description: "SendMessage.ts. linha:120 - Whatsapp Bugado depois deo catch" })
+                await Agent.query().where('id', agent.id).update({ statusconnected: false })
+              }
 
             }
 
@@ -143,7 +143,7 @@ export default async (client: Client, agent: Agent) => {
         }
         catch (error) {
           console.log("ERRO 1500:::", error)
-          await Log.create({name:'sendMessageGeneral', message:error,description:"SendMessage.ts. linha:131" })
+          await Log.create({ name: 'sendMessageGeneral', message: error, description: "SendMessage.ts. linha:131" })
         }
       }
     }

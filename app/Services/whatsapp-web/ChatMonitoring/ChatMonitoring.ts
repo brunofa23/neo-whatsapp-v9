@@ -3,7 +3,7 @@ import Response from 'App/Models/Response';
 import Customchat from 'App/Models/Customchat';
 import { Client, MessageMedia } from 'whatsapp-web.js';
 import MidiasController from 'App/Controllers/Http/MidiasController';
-import { chunckPhone, RandomResponse, stateTyping } from '../util'
+import { chunckPhone, extractCellphone, RandomResponse, stateTyping } from '../util'
 import ConfirmSchedule from './ConfirmSchedule'
 import ServiceEvaluation from './ServiceEvaluation';
 import Agent from 'App/Models/Agent';
@@ -73,8 +73,8 @@ export default class Monitoring {
 
         // Insere a conversa na tabela
         await Talk.create({
-          cellphone: message.from,
-          chatnumber: message.to,
+          cellphone: extractCellphone(message.from),
+          chatnumber: extractCellphone(message.to),
           message: message.body,
           type: "from"
         });
@@ -188,8 +188,8 @@ async function handleNewMessage(client: Client, message: any) {
       await stateTyping(message);
       await client.sendMessage(message.from, response);
       await Talk.create({
-        cellphone: message.from,
-        chatnumber: message.to,
+        cellphone:extractCellphone(message.from),
+        chatnumber:extractCellphone(message.to),
         message: response,
         type: "to"
       });

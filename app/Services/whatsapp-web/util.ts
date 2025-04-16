@@ -90,14 +90,6 @@ async function ClearFolder(folderPath) {
 
 }
 
-// function ValidatePhone(cellphone: string): Promise<boolean> {
-//   // Remove espaços e normaliza a entrada
-//   const sanitizedCellphone = cellphone.trim();
-//   // Expressão regular para validar números de celular brasileiros
-//   const brazilianPhoneRegex = /^(\+55|55)?\s?(?:\(?0?[1-9]{2}\)?)?\s?(?:9\s?)?[6789]\d{3}[-\s]?\d{4}$/;
-//   // Testa o número de telefone contra o regex
-//   return brazilianPhoneRegex.test(sanitizedCellphone);
-// }
 function ValidatePhone(cellphone: string): string | null {
   if (!cellphone) return null;
   // Remove tudo que não for número
@@ -133,13 +125,6 @@ async function validAgent(agent) {
     .update({ statusconnected: false })
 }
 
-
-//Pega um pedaço do telefone para buscas
-// async function chunckPhone(cellphone:string) {
-//   const match = cellphone.match(/(\d{8})@c\.us$/); // Captura os últimos 8 números antes do "@c.us"
-//   return match ? match[1] : "";
-// }
-
 async function chunckPhone(cellphone: string): Promise<string> {
   const match = cellphone.match(/(\d{8})@c\.us$/);
   if (match) {
@@ -153,5 +138,8 @@ async function chunckPhone(cellphone: string): Promise<string> {
   return cellphone.split('@')[0];
 }
 
+async function extractCellphone(mascara: string): string {
+  return mascara.replace(/^55/, '').replace(/@.*/, '')
+}
 
-export { stateTyping, DateFormat, GenerateRandomTime, TimeSchedule, PositiveResponse, NegativeResponse, ClearFolder, ValidatePhone, RandomResponse, validAgent, chunckPhone }
+export { stateTyping, DateFormat, GenerateRandomTime, TimeSchedule, PositiveResponse, NegativeResponse, ClearFolder, ValidatePhone, RandomResponse, validAgent, chunckPhone, extractCellphone }

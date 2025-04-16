@@ -1,3 +1,4 @@
+import Database from '@ioc:Adonis/Lucid/Database'
 import { test } from '@japa/runner'
 // import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 // import Shippingcampaign from 'App/Models/Shippingcampaign'
@@ -8,32 +9,26 @@ import { test } from '@japa/runner'
 // import ResponsesController from './ResponsesController'
 // import { DateTime } from 'luxon'
 // import Response from 'App/Models/Response'
-import { responderPergunta } from 'App/Services/Ai/aiResponder'
-import fs from 'fs'
-import path from 'path'
-import Chat from 'App/Models/Chat'
-import Shippingcampaign from 'App/Models/Shippingcampaign'
-import { chunckPhone } from 'App/Services/whatsapp-web/util'
-import { NlpManager } from 'node-nlp'
-import { responderPergunta } from 'App/Services/Ai/aiResponder'
-import {interpretAnswer} from 'App/Services/whatsapp-web/IdentifyAnswer'
-import Application from '@ioc:Adonis/Core/Application'
-const fs = require('fs')
+// import { responderPergunta } from 'App/Services/Ai/aiResponder'
+// import fs from 'fs'
+// import path from 'path'
+// import Chat from 'App/Models/Chat'
+// import Shippingcampaign from 'App/Models/Shippingcampaign'
+import { chunckPhone, extractCellphone } from 'App/Services/whatsapp-web/util'
+// import { NlpManager } from 'node-nlp'
+// import { responderPergunta } from 'App/Services/Ai/aiResponder'
+// import { interpretAnswer } from 'App/Services/whatsapp-web/IdentifyAnswer'
+// import Application from '@ioc:Adonis/Core/Application'
+// const fs = require('fs')
 
 test('display welcome page', async ({ client }) => {
-
-  console.log('*******TESTES')
-  // const answer = await interpretAnswer("nao 2 confirmar")
-  //   console.log("::::::", answer)
   try {
-    //const modelPath = path.resolve(__dirname, '../../nlp/model.nlp')
+    const teste = await extractCellphone('')
+    console.log('*******TESTES', teste)
 
-    const filePath = Application.makePath(`app/Services/Ai/model.nlp`)
-
-    const teste = fs.existsSync(filePath)
-    console.log("::::::path:", filePath)
-    console.log("::::::", teste)
   } catch (error) {
-    console.log("ERRO:", error)
+    console.error('Erro no teste:', error)
   }
+
+
 })

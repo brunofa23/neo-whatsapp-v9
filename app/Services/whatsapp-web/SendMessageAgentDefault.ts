@@ -5,7 +5,7 @@ import Customchat from 'App/Models/Customchat';
 import { Client } from "whatsapp-web.js"
 import Talk from 'App/Models/Talk';
 
-import { DateFormat, GenerateRandomTime, TimeSchedule } from './util'
+import { DateFormat, extractCellphone, GenerateRandomTime, TimeSchedule } from './util'
 
 export default async (client: Client, agent: Agent) => {
   const startTimeSendMessage = agent.interval_init_message
@@ -41,7 +41,7 @@ export default async (client: Client, agent: Agent) => {
 
               await customChat.save()
               await Talk.create({
-                cellphone: customChat.cellphone,
+                cellphone:await extractCellphone(customChat.cellphone),
                 chatnumber: client.info.wid.user,
                 message: customChat.message,
                 type: "to"

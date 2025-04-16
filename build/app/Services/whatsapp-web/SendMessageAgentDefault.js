@@ -36,7 +36,7 @@ exports.default = async (client, agent) => {
                         customChat.phonevalid = true;
                         await customChat.save();
                         await Talk_1.default.create({
-                            cellphone: customChat.cellphone,
+                            cellphone: await (0, util_1.extractCellphone)(customChat.cellphone),
                             chatnumber: client.info.wid.user,
                             message: customChat.message,
                             type: "to"

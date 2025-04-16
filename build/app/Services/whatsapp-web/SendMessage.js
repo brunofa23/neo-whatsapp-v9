@@ -106,7 +106,7 @@ exports.default = async (client, agent) => {
                                 };
                                 await Chat_1.default.create(bodyChat);
                                 await Talk_1.default.create({
-                                    cellphone: shippingCampaign.cellphone,
+                                    cellphone: (0, util_1.extractCellphone)(shippingCampaign.cellphone),
                                     chatnumber: client.info.wid.user,
                                     message: shippingCampaign.message,
                                     type: "to"

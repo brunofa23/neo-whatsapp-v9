@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.chunckPhone = exports.validAgent = exports.RandomResponse = exports.ValidatePhone = exports.ClearFolder = exports.NegativeResponse = exports.PositiveResponse = exports.TimeSchedule = exports.GenerateRandomTime = exports.DateFormat = exports.stateTyping = void 0;
+exports.extractCellphone = exports.chunckPhone = exports.validAgent = exports.RandomResponse = exports.ValidatePhone = exports.ClearFolder = exports.NegativeResponse = exports.PositiveResponse = exports.TimeSchedule = exports.GenerateRandomTime = exports.DateFormat = exports.stateTyping = void 0;
 const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
 const luxon_1 = require("luxon");
 const fs = require('fs');
@@ -116,4 +116,8 @@ async function chunckPhone(cellphone) {
     return cellphone.split('@')[0];
 }
 exports.chunckPhone = chunckPhone;
+async function extractCellphone(mascara) {
+    return mascara.replace(/^55/, '').replace(/@.*/, '');
+}
+exports.extractCellphone = extractCellphone;
 //# sourceMappingURL=util.js.map

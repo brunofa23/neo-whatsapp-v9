@@ -76,7 +76,7 @@ async function startAgent(_agent) {
         console.log(`AUTHENTICATED ${agent.name}`);
         agent.status = 'Authentication';
         agent.statusconnected = true;
-        agent.number_phone = client.info.wid.user;
+        agent.number_phone = client.info?.wid?.user || null;
         agent.qrcode = null;
         agent.save();
     });

@@ -115,7 +115,7 @@ export default async (client: Client, agent: Agent) => {
                   }
                   await Chat.create(bodyChat)
                   await Talk.create({
-                    cellphone: extractCellphone(shippingCampaign.cellphone),
+                    cellphone: await extractCellphone(shippingCampaign.cellphone),
                     chatnumber: client.info.wid.user,
                     message: shippingCampaign.message,
                     type: "to"

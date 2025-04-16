@@ -73,8 +73,8 @@ export default class Monitoring {
 
         // Insere a conversa na tabela
         await Talk.create({
-          cellphone: extractCellphone(message.from),
-          chatnumber: extractCellphone(message.to),
+          cellphone: await extractCellphone(message.from),
+          chatnumber: await extractCellphone(message.to),
           message: message.body,
           type: "from"
         });
@@ -188,8 +188,8 @@ async function handleNewMessage(client: Client, message: any) {
       await stateTyping(message);
       await client.sendMessage(message.from, response);
       await Talk.create({
-        cellphone:extractCellphone(message.from),
-        chatnumber:extractCellphone(message.to),
+        cellphone: await extractCellphone(message.from),
+        chatnumber: await extractCellphone(message.to),
         message: response,
         type: "to"
       });

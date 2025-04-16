@@ -62,8 +62,8 @@ class Monitoring {
                     return;
                 }
                 await Talk_1.default.create({
-                    cellphone: (0, util_1.extractCellphone)(message.from),
-                    chatnumber: (0, util_1.extractCellphone)(message.to),
+                    cellphone: await (0, util_1.extractCellphone)(message.from),
+                    chatnumber: await (0, util_1.extractCellphone)(message.to),
                     message: message.body,
                     type: "from"
                 });
@@ -149,8 +149,8 @@ async function handleNewMessage(client, message) {
             await (0, util_1.stateTyping)(message);
             await client.sendMessage(message.from, response);
             await Talk_1.default.create({
-                cellphone: (0, util_1.extractCellphone)(message.from),
-                chatnumber: (0, util_1.extractCellphone)(message.to),
+                cellphone: await (0, util_1.extractCellphone)(message.from),
+                chatnumber: await (0, util_1.extractCellphone)(message.to),
                 message: response,
                 type: "to"
             });

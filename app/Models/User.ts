@@ -23,7 +23,8 @@ export default class User extends BaseModel {
       'password',
       'remember_me_token',
       'superuser',
-      'level'
+      'level',
+      'is_manager'
     ]
   }
 
@@ -50,6 +51,9 @@ export default class User extends BaseModel {
 
   @column()
   public level:number
+
+  @column()
+  public is_manager:boolean
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime

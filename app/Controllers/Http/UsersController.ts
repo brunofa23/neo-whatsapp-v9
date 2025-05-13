@@ -5,17 +5,23 @@ import Hash from "@ioc:Adonis/Core/Hash"
 
 export default class UsersController {
 
-  public async index({auth, response }: HttpContextContract) {
+  public async index({ auth, request, response }: HttpContextContract) {
     await auth.use('api').authenticate()
+    const { is_manager } = request.only(['is_manager'])
+
     try {
-      const data = await User.query()
+      const query = User.query()
+      query.if(is_manager, query => query.where('is_manager', true))
+        console.log(query.toQuery())
+      const data = await query
+
       return response.status(200).send(data)
     } catch (error) {
       return error
     }
 
   }
-  public async store({auth, request, response }: HttpContextContract) {
+  public async store({ auth, request, response }: HttpContextContract) {
     await auth.use('api').authenticate()
     const body = request.only(User.fillable)
     try {
@@ -27,7 +33,7 @@ export default class UsersController {
 
   }
 
-  public async update({auth, params, request, response }: HttpContextContract) {
+  public async update({ auth, params, request, response }: HttpContextContract) {
     await auth.use('api').authenticate()
     const body = request.only(User.fillable)
     try {
@@ -49,12 +55,12 @@ export default class UsersController {
       .first()
 
     if (!user) {
-      throw new BadRequest("Invalid username",401,"InvalidUsername")
+      throw new BadRequest("Invalid username", 401, "InvalidUsername")
     }
 
     // Verify password
     if (!(await Hash.verify(user.password, body.password))) {
-      throw new BadRequest("Invalid password",401,"InvalidPassword")
+      throw new BadRequest("Invalid password", 401, "InvalidPassword")
     }
 
     // Generate token

@@ -1,17 +1,76 @@
-<h1>Registro de Manifesto<h1>
-<h2> id:{{ id }} </h2>
-<h2> Chat:{{ chat_id }} </h2>
-<h2> Registro:{{ reg }} </h2>
-<h2> Celular:{{ cellphone }} </h2>
-<h2> Paciente:{{ name_pac }} </h2>
-<h2> Médico:{{ medic_einvolved }} </h2>
-<h2> Recepcionista:{{ employee_einvolved }} </h2>
-<h2> Título:{{ mainsubject }} </h2>
-<h2> Gestor Responsável:{{ user_resposible }} </h2>
-<h2> Assunto Principal:{{ mainsubject }} </h2>
-<h2> Data Limite:{{ date_limit }} </h2>
-<h2> Causa Raiz:{{ root_cause }} </h2>
-<h2> Ação:{{ action }} </h2>
-<h2> Obs:{{ Obs }} </h2>
-
-
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Registro de Manifesto</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f6f9fc;
+      margin: 0;
+      padding: 0;
+    }
+    .email-container {
+      max-width: 700px;
+      margin: 0 auto;
+      background-color: #ffffff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .header {
+      background-color: #004085;
+      color: #ffffff;
+      padding: 20px;
+      text-align: center;
+    }
+    .header h1 {
+      margin: 0;
+    }
+    .content {
+      padding: 20px;
+    }
+    .content h2, .content h3 {
+      color: #333333;
+      margin: 10px 0 5px;
+    }
+    .content p {
+      margin: 5px 0;
+      color: #555555;
+    }
+    .footer {
+      background-color: #e9ecef;
+      text-align: center;
+      padding: 10px;
+      font-size: 12px;
+      color: #666666;
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="header">
+      <h1>Registro de Manifesto</h1>
+    </div>
+    <div class="content">
+      <h3>Registro: {{ reg }}</h3>
+      <h3>Paciente: {{ name_pac }}</h3>
+      <h3>Celular: {{ cellphone }}</h3>
+      <p><strong>Médico:</strong> {{ medic_einvolved }}</p>
+      <p><strong>Recepcionista:</strong> {{ employee_einvolved }}</p>
+      <p><strong>Título:</strong> {{ mainsubject }}</p>
+      <p><strong>Gestor Responsável:</strong> {{ user_resposible }}</p>
+      <p><strong>Assunto Principal:</strong> {{ mainsubject }}</p>
+      <p><strong>Relato do Paciente:</strong></p>
+       <p> {{{report}}}</p>
+      <p><strong>Data Limite:</strong> {{ date_limit }}</p>
+      <p><strong>Causa Raiz:</strong> {{ root_cause }}</p>
+      <p><strong>Ação:</strong> {{ action }}</p>
+      <p><strong>Obs:</strong> {{ Obs }}</p>
+    </div>
+    <div class="footer">
+      Este e-mail foi gerado automaticamente. Por favor, não responda.
+    </div>
+  </div>
+</body>
+</html>

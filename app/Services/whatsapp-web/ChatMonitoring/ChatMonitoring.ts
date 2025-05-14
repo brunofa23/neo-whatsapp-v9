@@ -75,7 +75,7 @@ export default class Monitoring {
         await Talk.create({
           cellphone: await extractCellphone(message.from),
           chatnumber: await extractCellphone(message.to),
-          message: message.body,
+          message: message.body.slice(0,999),
           type: "from"
         });
 
@@ -190,7 +190,7 @@ async function handleNewMessage(client: Client, message: any) {
       await Talk.create({
         cellphone: await extractCellphone(message.from),
         chatnumber: await extractCellphone(message.to),
-        message: response,
+        message: response.slice(0,999),
         type: "to"
       });
     } else {

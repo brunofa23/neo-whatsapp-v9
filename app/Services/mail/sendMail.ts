@@ -1,31 +1,29 @@
 import Mail from '@ioc:Adonis/Addons/Mail'
 import BadRequest from 'App/Exceptions/BadRequestException'
 import Manifest from 'App/Models/Manifest'
+import { DateTime } from 'luxon'
 
-export async function sendMailManifest(bodyManifest: Manifest) {
-
-  console.log(">>>>>>", bodyManifest?.mainsubject)
+export async function sendMailManifest(bodyManifest: Manifest, report: string = "") {
 
   try {
-
     const body = {
-      id: bodyManifest.id,
-      chat_id: bodyManifest.chat_id,
-      reg: bodyManifest.chat.reg,
-      name_pac: bodyManifest?.chat.name,
-      cellphone: bodyManifest?.chat.cellphone,
-      mainsubject: bodyManifest?.mainsubject.description,
-      user_resposible: bodyManifest?.user.name,
-      report: bodyManifest.report,
-      employee_involved: bodyManifest.employee_involved,
-      medic_einvolved: bodyManifest.medic_einvolved,
-      date_limit: bodyManifest.date_limit,
-      root_cause: bodyManifest.root_cause,
-      action: bodyManifest.action,
-      obs: bodyManifest.obs
-    }
-
-    console.log("$$$$$$$$$$", body)
+      id: bodyManifest.id || 'ID não disponível',
+      chat_id: bodyManifest.chat_id || 'Chat ID não disponível',
+      reg: bodyManifest.chat?.reg || 'Registro não disponível',
+      name_pac: bodyManifest.chat?.name || 'Nome do paciente não disponível',
+      cellphone: bodyManifest.chat?.cellphone || 'Celular não disponível',
+      mainsubject: bodyManifest.mainsubject?.description || 'Assunto não disponível',
+      user_resposible: bodyManifest.user?.name || 'Gestor não disponível',
+      report: report.replace(/\r?\n/g, '<br>') || 'Relato não disponível',
+      employee_involved: bodyManifest.employee_involved || 'Recepcionista não disponível',
+      medic_einvolved: bodyManifest.medic_einvolved || 'Médico não disponível',
+      date_limit: bodyManifest.date_limit
+                  ? DateTime.fromISO(bodyManifest.date_limit).toFormat("dd/MM/yyyy")
+                  : 'Data limite não disponível',
+      root_cause: bodyManifest.root_cause || 'Causa raiz não disponível',
+      action: bodyManifest.action || 'Ação não disponível',
+      obs: bodyManifest.obs || 'Observação não disponível'
+    };
 
     const send = await Mail.use('smtp').send((message) => {
       message

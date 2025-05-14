@@ -1,5 +1,8 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column } from '@ioc:Adonis/Lucid/Orm'
+import { BaseModel, column, HasOne, hasOne } from '@ioc:Adonis/Lucid/Orm'
+import User from './User'
+import Mainsubject from './Mainsubject'
+import Chat from './Chat'
 
 export default class Manifest extends BaseModel {
 
@@ -27,6 +30,24 @@ export default class Manifest extends BaseModel {
     ]
   }
 
+  @hasOne(() => User, {
+    foreignKey: 'id',
+    localKey: 'user_responsible_id'
+  })
+  public user: HasOne<typeof User>
+
+  @hasOne(() => Mainsubject, {
+    foreignKey: 'id',
+    localKey: 'mainsubject_id'
+  })
+  public mainsubject: HasOne<typeof Mainsubject>
+
+  @hasOne(() => Chat, {
+    foreignKey: 'id',
+    localKey: 'chat_id'
+  })
+  public chat: HasOne<typeof Chat>
+
 
   @column({ isPrimary: true })
   public id: number
@@ -35,10 +56,10 @@ export default class Manifest extends BaseModel {
   public chat_id: number
 
   @column()
-  public mainsubject_id:number
+  public mainsubject_id: number
 
   @column()
-  public user_responsible_id:number
+  public user_responsible_id: number
 
   @column()
   public responsible: string

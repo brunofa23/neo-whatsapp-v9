@@ -1,19 +1,42 @@
 import Mail from '@ioc:Adonis/Addons/Mail'
 import BadRequest from 'App/Exceptions/BadRequestException'
+import Manifest from 'App/Models/Manifest'
 
-export async function sendMailManifest() {
+export async function sendMailManifest(bodyManifest: Manifest) {
 
-  const body = { user: { fullname: "Bruno favato" }, url: "www.digi3.com.br.teste" }
+  console.log(">>>>>>", bodyManifest?.mainsubject)
+
   try {
+
+    const body = {
+      id: bodyManifest.id,
+      chat_id: bodyManifest.chat_id,
+      reg: bodyManifest.chat.reg,
+      name_pac: bodyManifest?.chat.name,
+      cellphone: bodyManifest?.chat.cellphone,
+      mainsubject: bodyManifest?.mainsubject.description,
+      user_resposible: bodyManifest?.user.name,
+      report: bodyManifest.report,
+      employee_involved: bodyManifest.employee_involved,
+      medic_einvolved: bodyManifest.medic_einvolved,
+      date_limit: bodyManifest.date_limit,
+      root_cause: bodyManifest.root_cause,
+      action: bodyManifest.action,
+      obs: bodyManifest.obs
+    }
+
+    console.log("$$$$$$$$$$", body)
+
     const send = await Mail.use('smtp').send((message) => {
       message
         .from(process.env.SMTP_USERNAME!)
-        .subject('Easytalk')
+        .subject('Registro de Manifesto - Easytalk')
       // TO + Template
-      message.to('brunofa23@gmail.com')
+      message.to(bodyManifest.user.email)
       message.htmlView('emails/manifest', body)
     })
 
+    console.log("email enviado!!!!!!!!!!!!!")
     return send
   } catch (error) {
     console.error('Erro ao enviar email:', error)

@@ -45,4 +45,25 @@ export default class ManifestsController {
   }
 
 
+  public async sendMailManifest({ auth, params, response }: HttpContextContract) {
+    await auth.use('api').authenticate()
+    console.log("entrei aqui", params.id)
+    try {
+      const data = await Manifest.query()
+        .where('id', params.id)
+        .preload('user')
+        .preload('mainsubject')
+        .preload('chat')
+        .first()
+
+      console.log(">>>>>>", data?.chat)
+      const sendmail = await sendMailManifest(data)
+      //console.log("@@@@@", sendmail)
+      return response.status(201).send(sendmail)
+    } catch (error) {
+      return error
+    }
+  }
+
+
 }

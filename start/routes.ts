@@ -117,6 +117,7 @@ Route.group(() => {
 
   //MANIFESTS
   Route.resource("/manifests", "ManifestsController").apiOnly()
+  Route.post("/sendmailmanifest/:id","ManifestsController.sendMailManifest")
 
   //MIDIAS
   Route.get('/midia/:filename', 'MidiasController.midia')

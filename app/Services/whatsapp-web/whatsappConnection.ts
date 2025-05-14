@@ -36,7 +36,7 @@ async function startAgent(_agent: Agent) {
     return
   }
   const client = new Client({
-    authStrategy: new LocalAuth({ clientId: _agent.id, dataPath:Application.tmpPath('/sessions') }),
+    authStrategy: new LocalAuth({ clientId: _agent.id, dataPath: Application.tmpPath('/sessions') }),
     //authStrategy: new LocalAuth({ clientId: _agent.id }),
     puppeteer: {
       args: ['--no-sandbox',
@@ -48,6 +48,10 @@ async function startAgent(_agent: Agent) {
         '--no-zygote',
         '--disable-gpu'
       ],
+
+      dumpio: false,
+      timeout: 60000,
+
       headless: true,
       setRequestInterception: true,
       setBypassCSP: true,
@@ -86,7 +90,7 @@ async function startAgent(_agent: Agent) {
     console.log(`AUTHENTICATED ${agent.name}`);
     agent.status = 'Authentication'
     agent.statusconnected = true
-    agent.number_phone = client.info?.wid?.user|| null
+    agent.number_phone = client.info?.wid?.user || null
     agent.qrcode = null
     agent.save()
   });
@@ -176,12 +180,12 @@ async function startAgent(_agent: Agent) {
     */
     // console.log("ack:",ack)
     // console.log("MENSAGEM>>>>>", msg)
-    if(ack>=2){
-     await Chat.query()
-    .where('message', msg.body)
-    .andWhere('cellphoneserialized', msg.to)
-    .andWhere('chatnumber','like',String(msg.from).replace(/\D/g,''))
-    .update({ack:msg.ack})
+    if (ack >= 2) {
+      await Chat.query()
+        .where('message', msg.body)
+        .andWhere('cellphoneserialized', msg.to)
+        .andWhere('chatnumber', 'like', String(msg.from).replace(/\D/g, ''))
+        .update({ ack: msg.ack })
     }
   });
 

@@ -108,7 +108,7 @@ exports.default = async (client, agent) => {
                                 await Talk_1.default.create({
                                     cellphone: await (0, util_1.extractCellphone)(shippingCampaign.cellphone),
                                     chatnumber: client.info.wid.user,
-                                    message: shippingCampaign.message,
+                                    message: shippingCampaign.message.slice(0, 999),
                                     type: "to"
                                 });
                                 console.log("Mensagem enviada:", shippingCampaign.name, "cellphone", shippingCampaign.cellphoneserialized, "agent", agent.name);

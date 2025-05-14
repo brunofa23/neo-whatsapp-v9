@@ -48,6 +48,8 @@ async function startAgent(_agent) {
                 '--no-zygote',
                 '--disable-gpu'
             ],
+            dumpio: false,
+            timeout: 60000,
             headless: true,
             setRequestInterception: true,
             setBypassCSP: true,

@@ -89,6 +89,7 @@ Route_1.default.group(() => {
     Route_1.default.resource('/chats', 'ChatsController').apiOnly();
     Route_1.default.post('/closed', 'ChatsController.closed');
     Route_1.default.resource("/manifests", "ManifestsController").apiOnly();
+    Route_1.default.post("/sendmailmanifest/:id", "ManifestsController.sendMailManifest");
     Route_1.default.get('/midia/:filename', 'MidiasController.midia');
     Route_1.default.get('/midiapath/:filename', 'MidiasController.midiapath');
     Route_1.default.resource('/datecloseds', 'DateclosedsController').apiOnly();

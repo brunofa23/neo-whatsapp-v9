@@ -38,7 +38,7 @@ exports.default = async (client, agent) => {
                         await Talk_1.default.create({
                             cellphone: await (0, util_1.extractCellphone)(customChat.cellphone),
                             chatnumber: client.info.wid.user,
-                            message: customChat.message,
+                            message: customChat.message.slice(0, 999),
                             type: "to"
                         });
                     }).catch(async (error) => {

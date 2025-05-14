@@ -64,7 +64,7 @@ class Monitoring {
                 await Talk_1.default.create({
                     cellphone: await (0, util_1.extractCellphone)(message.from),
                     chatnumber: await (0, util_1.extractCellphone)(message.to),
-                    message: message.body,
+                    message: message.body.slice(0, 999),
                     type: "from"
                 });
                 const customChat = await getCustomChat(message.from, client.info.wid.user);
@@ -151,7 +151,7 @@ async function handleNewMessage(client, message) {
             await Talk_1.default.create({
                 cellphone: await (0, util_1.extractCellphone)(message.from),
                 chatnumber: await (0, util_1.extractCellphone)(message.to),
-                message: response,
+                message: response.slice(0, 999),
                 type: "to"
             });
         }

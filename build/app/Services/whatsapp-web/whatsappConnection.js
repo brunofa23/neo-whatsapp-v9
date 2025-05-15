@@ -15,6 +15,7 @@ const ChatMonitoringInternal_1 = __importDefault(require("./ChatMonitoring/ChatM
 const SendMessageInternal_1 = __importDefault(require("./SendMessageInternal"));
 const util_1 = require("./util");
 const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
+const Application_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Application"));
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcodeTerminal = require('qrcode-terminal');
 const qrcode = require('qrcode');
@@ -36,7 +37,7 @@ async function startAgent(_agent) {
         return;
     }
     const client = new Client({
-        authStrategy: new LocalAuth({ clientId: _agent.id }),
+        authStrategy: new LocalAuth({ clientId: _agent.id, dataPath: Application_1.default.tmpPath('/sessions') }),
         puppeteer: {
             args: ['--no-sandbox',
                 '--max-memory=512MB',
@@ -47,6 +48,8 @@ async function startAgent(_agent) {
                 '--no-zygote',
                 '--disable-gpu'
             ],
+            dumpio: false,
+            timeout: 60000,
             headless: true,
             setRequestInterception: true,
             setBypassCSP: true,
@@ -74,6 +77,9 @@ async function startAgent(_agent) {
     await client.on('authenticated', async () => {
         console.log(`AUTHENTICATED ${agent.name}`);
         agent.status = 'Authentication';
+        agent.statusconnected = true;
+        agent.number_phone = client.info?.wid?.user || null;
+        agent.qrcode = null;
         agent.save();
     });
     client.on('auth_failure', msg => {
@@ -126,9 +132,13 @@ async function startAgent(_agent) {
         }
     });
     client.on('disconnected', async (reason) => {
-        agent.status = 'Disconnected';
-        agent.statusconnected = false;
-        await agent.save();
+        try {
+            agent.status = 'Disconnected';
+            agent.statusconnected = false;
+            await agent.save();
+        }
+        catch (error) {
+        }
         await Shippingcampaign_1.default.create({
             interaction_id: 3,
             interaction_seq: 1,
@@ -147,7 +157,7 @@ async function startAgent(_agent) {
         console.log('Call received, rejecting. GOTO Line 261 to disable', call);
         if (rejectCalls)
             await call.reject();
-        await client.sendMessage(call.from, `[${call.fromMe ? 'Outgoing' : 'Incoming'}] Olá tudo Bem? Sou uma atendente virtual e por isso não consigo receber chamadas. Desculpe!!☺️`);
+        await client.sendMessage(call.from, `Olá tudo Bem? Sou uma atendente virtual e por isso não consigo receber chamadas. Desculpe!!☺️`);
     });
     return client;
 }

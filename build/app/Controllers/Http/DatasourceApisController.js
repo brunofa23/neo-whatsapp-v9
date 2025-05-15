@@ -71,6 +71,7 @@ async function returnIdExternal(chatObject) {
 class DatasourceApisController {
     async getSchedulesInternal(date) {
         const schedule_list = await prepareSchedules(await (0, request_1.getSchedulesApi)(date));
+        const date_start = luxon_1.DateTime.now().startOf('day').toFormat("yyyy-MM-dd HH:mm");
         for (const data of schedule_list) {
             try {
                 const reg = String(data.id_paciente).replace(/[^0-9.-]/g, "");
@@ -92,7 +93,8 @@ class DatasourceApisController {
                 shipping.covenant = '';
                 shipping.idexternal_array = String(data.idexternal_array);
                 const verifyExist = await Shippingcampaign_1.default.query().where('reg', reg)
-                    .andWhere('dateshedule', data.datahora).first();
+                    .andWhere('dateshedule', data.datahora)
+                    .andWhere('created_at', '>=', date_start).first();
                 if (!verifyExist) {
                     await Shippingcampaign_1.default.create(shipping);
                 }

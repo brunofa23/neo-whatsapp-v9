@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validAgent = exports.RandomResponse = exports.ValidatePhone = exports.ClearFolder = exports.NegativeResponse = exports.PositiveResponse = exports.TimeSchedule = exports.GenerateRandomTime = exports.DateFormat = exports.stateTyping = void 0;
+exports.extractCellphone = exports.chunckPhone = exports.validAgent = exports.RandomResponse = exports.ValidatePhone = exports.ClearFolder = exports.NegativeResponse = exports.PositiveResponse = exports.TimeSchedule = exports.GenerateRandomTime = exports.DateFormat = exports.stateTyping = void 0;
 const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
 const luxon_1 = require("luxon");
 const fs = require('fs');
@@ -77,10 +77,25 @@ async function ClearFolder(folderPath) {
     }
 }
 exports.ClearFolder = ClearFolder;
-async function ValidatePhone(cellphone) {
-    const sanitizedCellphone = cellphone.trim();
-    const brazilianPhoneRegex = /^(\+55|55)?\s?(?:\(?0?[1-9]{2}\)?)?\s?(?:9\s?)?[6789]\d{3}[-\s]?\d{4}$/;
-    return brazilianPhoneRegex.test(sanitizedCellphone);
+function ValidatePhone(cellphone) {
+    if (!cellphone)
+        return null;
+    const digits = cellphone.replace(/\D/g, '');
+    if (digits.length < 10)
+        return null;
+    let normalized = digits;
+    if (digits.length === 11) {
+        normalized = '55' + digits;
+    }
+    else if (digits.length === 13 && digits.startsWith('55')) {
+    }
+    else {
+        return null;
+    }
+    const celularRegex = /^55[1-9]{2}9[6-9]\d{7}$/;
+    if (!celularRegex.test(normalized))
+        return null;
+    return normalized;
 }
 exports.ValidatePhone = ValidatePhone;
 async function validAgent(agent) {
@@ -90,4 +105,19 @@ async function validAgent(agent) {
         .update({ statusconnected: false });
 }
 exports.validAgent = validAgent;
+async function chunckPhone(cellphone) {
+    const match = cellphone.match(/(\d{8})@c\.us$/);
+    if (match) {
+        return match[1];
+    }
+    if (!cellphone.includes('@')) {
+        return cellphone;
+    }
+    return cellphone.split('@')[0];
+}
+exports.chunckPhone = chunckPhone;
+async function extractCellphone(mascara) {
+    return mascara.replace(/^55/, '').replace(/@.*/, '');
+}
+exports.extractCellphone = extractCellphone;
 //# sourceMappingURL=util.js.map

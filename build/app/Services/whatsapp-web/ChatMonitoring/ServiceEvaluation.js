@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const Helpers_1 = global[Symbol.for('ioc.use')]("Adonis/Core/Helpers");
 const util_1 = require("../util");
+const luxon_1 = require("luxon");
 exports.default = async (client, message, chat) => {
     if (message.hasMedia) {
         await (0, util_1.stateTyping)(message);
@@ -26,6 +27,7 @@ exports.default = async (client, message, chat) => {
             chat.absoluteresp = parseInt(notes[0]);
             chat.interaction_seq = 2;
             chat.closed = false;
+            chat.date_return = luxon_1.DateTime.now();
             await chat.save();
             await (0, util_1.stateTyping)(message);
             client.sendMessage(message.from, `Consegue nos dizer o que motivou a sua nota ${notes[0]}? Tudo bem se não quiser responder, digite 9 para finalizar essa etapa.`);
@@ -38,6 +40,7 @@ exports.default = async (client, message, chat) => {
             return;
         }
         await (0, util_1.stateTyping)(message);
+        chat.date_return = luxon_1.DateTime.now();
         chat.response = message.body.slice(0, 599);
         chat.closed = false;
         await chat.save();

@@ -86,10 +86,9 @@ export default class DatasourceApisController {
   //FUNÇÃO PARA BUSCAR OS PACIENTES AGENDADOS NO KLINGO
   public async getSchedulesInternal(date: string) {
     const schedule_list = await prepareSchedules(await getSchedulesApi(date))
+    const date_start = DateTime.now().startOf('day').toFormat("yyyy-MM-dd HH:mm");
     for (const data of schedule_list) {
-
-      //if (data.id_paciente !== 823) continue
-
+            //if (data.id_paciente !== 823) continue
         try {
           const reg = String(data.id_paciente).replace(/[^0-9.-]/g, "")
 
@@ -111,8 +110,10 @@ export default class DatasourceApisController {
           shipping.covenant = ''
           shipping.idexternal_array = String(data.idexternal_array)
 
-          const verifyExist = await Shippingcampaign.query().where('reg', reg)
-            .andWhere('dateshedule', data.datahora).first()
+          const verifyExist  =await Shippingcampaign.query().where('reg', reg)
+          .andWhere('dateshedule', data.datahora)
+          .andWhere('created_at','>=',date_start).first()
+
           if (!verifyExist) {
             await Shippingcampaign.create(shipping)
           }

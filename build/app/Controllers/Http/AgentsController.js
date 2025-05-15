@@ -10,7 +10,20 @@ const util_1 = require("../../Services/whatsapp-web/util");
 const luxon_1 = require("luxon");
 const whatsapp_1 = require("../../Services/whatsapp-web/whatsapp");
 const Config_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Config"));
-const fs = require('fs');
+const Application_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Application"));
+const fs_1 = __importDefault(require("fs"));
+function deleteFolder(pathFolder) {
+    return new Promise((resolve, reject) => {
+        fs_1.default.rm(pathFolder, { recursive: true }, (err) => {
+            if (err) {
+                reject(err);
+            }
+            else {
+                resolve();
+            }
+        });
+    });
+}
 class AgentsController {
     async index({ auth, response }) {
         await auth.use('api').authenticate();
@@ -135,6 +148,27 @@ class AgentsController {
     async destroy({ auth, params, response }) {
         await auth.use('api').authenticate();
         console.log("passei no destroy....");
+        await new Promise((resolve) => {
+            setTimeout(async () => {
+                console.log("Excluindo pasta...");
+                const pathFolder = Application_1.default.tmpPath(`/sessions/session-${params.id}`);
+                if (fs_1.default.existsSync(pathFolder)) {
+                    try {
+                        await deleteFolder(pathFolder);
+                        console.log(`DIRETÓRIO DELETADO: session-${params.id}`);
+                        await Agent_1.default.query().where('id', params.id).delete();
+                        resolve();
+                    }
+                    catch (err) {
+                        console.error(err);
+                        resolve();
+                    }
+                }
+                else {
+                    resolve();
+                }
+            }, 10000);
+        });
         const data = await Agent_1.default.query().where('id', params.id)
             .update({ deleted: true, active: null, status: null, number_phone: null, qrcode: null });
         return response.status(201).send(data);
@@ -142,21 +176,29 @@ class AgentsController {
     async destroyFullAgents() {
         const agents = await Agent_1.default.query().where('deleted', true);
         for (const agent of agents) {
-            setTimeout(() => {
-                console.log("Excluindo pasta...");
-                const pathFolder = `.wwebjs_auth/session-${agent.id}`;
-                if (fs.existsSync(pathFolder)) {
-                    fs.rm(pathFolder, { recursive: true }, (err) => {
-                        if (err) {
+            await new Promise((resolve) => {
+                setTimeout(async () => {
+                    console.log("Excluindo pasta...");
+                    const pathFolder = Application_1.default.tmpPath(`/sessions/session-${agent.id}`);
+                    if (fs_1.default.existsSync(pathFolder)) {
+                        try {
+                            await deleteFolder(pathFolder);
+                            console.log(`DIRETÓRIO DELETADO: session-${agent.id}`);
+                            await Agent_1.default.query().where('id', agent.id).delete();
+                            resolve();
+                        }
+                        catch (err) {
                             console.error(err);
+                            resolve();
                         }
-                        else {
-                            console.log(`DIRETORIO DELETADO: session-${agent.id}`);
-                        }
-                    });
-                }
-            }, 10000);
+                    }
+                    else {
+                        resolve();
+                    }
+                }, 10000);
+            });
         }
+        await Agent_1.default.query().where('deleted', true).delete();
     }
 }
 exports.default = AgentsController;

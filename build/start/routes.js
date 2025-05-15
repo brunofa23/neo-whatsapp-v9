@@ -6,14 +6,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const Route_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Route"));
 const PersistShippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/PersistShippingcampaign"));
 const events_1 = require("./events");
-console.log("***CHAT BOT V-125***04/10/2024");
+console.log("***CHAT BOT V-125***04/10/2024", process.env.SERVER);
 function operacaoAssincrona(callback) {
+    console.log("ENTREI PASSO 1", callback);
     if (process.env.SERVER === 'true') {
         console.log("INICIALIZANDO EASYTALK SERVIDOR");
         (0, events_1.sendRepeatedMessage)();
         return;
     }
-    if (process.env.SERVER === 'false') {
+    if (process.env.SERVER?.toLowerCase() === 'false') {
         console.log("INICIALIZANDO EASYTALK SMART");
         (0, events_1.destroyFullAgents)();
         (0, events_1.resetStatusConnected)();
@@ -87,10 +88,13 @@ Route_1.default.group(() => {
     Route_1.default.post('/resend/:id', 'ShippingcampaignsController.resend');
     Route_1.default.resource('/chats', 'ChatsController').apiOnly();
     Route_1.default.post('/closed', 'ChatsController.closed');
+    Route_1.default.resource("/manifests", "ManifestsController").apiOnly();
+    Route_1.default.post("/sendmailmanifest/:id", "ManifestsController.sendMailManifest");
     Route_1.default.get('/midia/:filename', 'MidiasController.midia');
     Route_1.default.get('/midiapath/:filename', 'MidiasController.midiapath');
     Route_1.default.resource('/datecloseds', 'DateclosedsController').apiOnly();
     Route_1.default.get('/getschedules', 'DatasourceApisController.getSchedules');
     Route_1.default.post('/confirmorcancelscheduleapi', 'DatasourceApisController.confirmOrCancelSchedule');
+    Route_1.default.resource('/mainsubjects', 'MainsubjectsController').apiOnly();
 }).prefix('/api');
 //# sourceMappingURL=routes.js.map

@@ -3,15 +3,16 @@ import PersistShippingcampaign from "App/Services/whatsapp-web/PersistShippingca
 
 import { connectionAll, destroyFullAgents, resetStatusConnected, sendRepeatedMessage, sendRepeatedMessageKlingo } from './events'
 
-console.log("***CHAT BOT V-125***04/10/2024")
+console.log("***CHAT BOT V-125***04/10/2024",process.env.SERVER)
 function operacaoAssincrona(callback) {
+  console.log("ENTREI PASSO 1", callback)
   if (process.env.SERVER === 'true') {
     console.log("INICIALIZANDO EASYTALK SERVIDOR")
     sendRepeatedMessage()
     return
   }
 
-  if (process.env.SERVER === 'false') {
+  if (process.env.SERVER?.toLowerCase() === 'false') {
     console.log("INICIALIZANDO EASYTALK SMART")
     destroyFullAgents()
     resetStatusConnected()
@@ -120,6 +121,10 @@ Route.group(() => {
   Route.resource('/chats', 'ChatsController').apiOnly()
   Route.post('/closed', 'ChatsController.closed')
 
+  //MANIFESTS
+  Route.resource("/manifests", "ManifestsController").apiOnly()
+  Route.post("/sendmailmanifest/:id","ManifestsController.sendMailManifest")
+
   //MIDIAS
   Route.get('/midia/:filename', 'MidiasController.midia')
   Route.get('/midiapath/:filename', 'MidiasController.midiapath')
@@ -127,11 +132,12 @@ Route.group(() => {
   //DATECLOSED
   Route.resource('/datecloseds', 'DateclosedsController').apiOnly()
 
-
   //ROUTES FOR KLINGO / APIS
   Route.get('/getschedules', 'DatasourceApisController.getSchedules')
   Route.post('/confirmorcancelscheduleapi', 'DatasourceApisController.confirmOrCancelSchedule')
 
+  //MAINSUBJECT
+  Route.resource('/mainsubjects', 'MainsubjectsController').apiOnly()
 
 }).prefix('/api')
 

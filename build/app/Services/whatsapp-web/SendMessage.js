@@ -10,6 +10,7 @@ const VerifyNumber_1 = global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/
 const luxon_1 = require("luxon");
 const util_1 = require("./util");
 const Log_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Log"));
+const Talk_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Talk"));
 global.contSend = 0;
 const dayBefore5 = luxon_1.DateTime.local().minus({ days: 5 }).toFormat('yyyy-MM-dd 00:00');
 let resetContSend = luxon_1.DateTime.local();
@@ -104,11 +105,18 @@ exports.default = async (client, agent) => {
                                     chatnumber: client.info.wid.user
                                 };
                                 await Chat_1.default.create(bodyChat);
+                                await Talk_1.default.create({
+                                    cellphone: await (0, util_1.extractCellphone)(shippingCampaign.cellphone),
+                                    chatnumber: client.info.wid.user,
+                                    message: shippingCampaign.message.slice(0, 999),
+                                    type: "to"
+                                });
                                 console.log("Mensagem enviada:", shippingCampaign.name, "cellphone", shippingCampaign.cellphoneserialized, "agent", agent.name);
-                                if (agent.statusconnected == false)
-                                    await Agent_1.default.query().where('id', agent.id).update({ statusconnected: true });
+                                if (agent.statusconnected == false || agent.status !== 'CONNECTED')
+                                    await Agent_1.default.query().where('id', agent.id).update({ statusconnected: true, status: 'CONNECTED' });
                             }).catch(async (error) => {
-                                await Agent_1.default.query().where('id', agent.id).update({ statusconnected: false });
+                                const state = await client.getState();
+                                await Agent_1.default.query().where('id', agent.id).update({ statusconnected: false, status: state });
                                 await Log_1.default.create({ name: 'sendMessage', message: error, description: "SendMessage.ts. linha:120 - Whatsapp Bugado catch" });
                             });
                             if (Object.keys(returnResponse).length === 0) {

@@ -42,7 +42,9 @@ class Chat extends Orm_1.BaseModel {
             'chatnumber',
             'chat_finished',
             'company_id',
-            'closed'
+            'closed',
+            'date_return',
+            'last_response'
         ];
     }
 }
@@ -137,6 +139,14 @@ __decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", Boolean)
 ], Chat.prototype, "closed", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", Number)
+], Chat.prototype, "last_response", void 0);
+__decorate([
+    Orm_1.column.dateTime(),
+    __metadata("design:type", luxon_1.DateTime)
+], Chat.prototype, "date_return", void 0);
 __decorate([
     Orm_1.column.dateTime({ autoCreate: true }),
     __metadata("design:type", luxon_1.DateTime)

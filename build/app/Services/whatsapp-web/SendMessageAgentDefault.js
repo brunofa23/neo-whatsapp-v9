@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
 const Customchat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Customchat"));
+const Talk_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Talk"));
 const util_1 = require("./util");
 exports.default = async (client, agent) => {
     const startTimeSendMessage = agent.interval_init_message;
@@ -34,6 +35,12 @@ exports.default = async (client, agent) => {
                         customChat.read = false;
                         customChat.phonevalid = true;
                         await customChat.save();
+                        await Talk_1.default.create({
+                            cellphone: await (0, util_1.extractCellphone)(customChat.cellphone),
+                            chatnumber: client.info.wid.user,
+                            message: customChat.message.slice(0, 999),
+                            type: "to"
+                        });
                     }).catch(async (error) => {
                         console.log("ERRO 1452:::", error);
                     });

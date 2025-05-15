@@ -10,6 +10,7 @@ const ChatMonitoring_1 = __importDefault(require("./ChatMonitoring/ChatMonitorin
 const ChatMonitoringInternal_1 = __importDefault(require("./ChatMonitoring/ChatMonitoringInternal"));
 const SendMessageAgentDefault_1 = __importDefault(require("./SendMessageAgentDefault"));
 const Customchat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Customchat"));
+const Application_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Application"));
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcodeTerminal = require('qrcode-terminal');
 const qrcode = require('qrcode');
@@ -20,7 +21,7 @@ async function startAgentChat(_agent) {
         return;
     }
     const clientChat = new Client({
-        authStrategy: new LocalAuth({ clientId: _agent.id }),
+        authStrategy: new LocalAuth({ clientId: _agent.id, dataPath: Application_1.default.tmpPath('/sessions') }),
         puppeteer: {
             args: ['--no-sandbox',
                 '--max-memory=512MB',

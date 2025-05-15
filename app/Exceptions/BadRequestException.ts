@@ -20,6 +20,7 @@ export default class BadRequestException extends Exception {
       message: error.message,
       status: error.status,
     })
+
   }
 
 }

@@ -4,7 +4,8 @@
     "./commands",
     "@adonisjs/core/build/commands/index.js",
     "@adonisjs/repl/build/commands",
-    "@adonisjs/lucid/build/commands"
+    "@adonisjs/lucid/build/commands",
+    "@adonisjs/mail/build/commands"
   ],
   "exceptionHandlerNamespace": "App/Exceptions/Handler",
   "aliases": {
@@ -21,7 +22,9 @@
     "./providers/AppProvider",
     "@adonisjs/core",
     "@adonisjs/lucid",
-    "@adonisjs/auth"
+    "@adonisjs/auth",
+    "@adonisjs/mail",
+    "@adonisjs/view"
   ],
   "aceProviders": [
     "@adonisjs/repl"
@@ -41,7 +44,11 @@
     "@japa/preset-adonis/TestsProvider"
   ],
   "metaFiles": [
-    "qrcode"
+    "qrcode",
+    {
+      "pattern": "resources/views/**/*.edge",
+      "reloadServer": false
+    }
   ],
-  "lastCompiledAt": "2025-01-22T18:42:38.388Z"
+  "lastCompiledAt": "2025-05-14T20:07:53.695Z"
 }

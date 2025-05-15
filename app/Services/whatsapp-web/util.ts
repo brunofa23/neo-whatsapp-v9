@@ -38,14 +38,7 @@ async function TimeSchedule() {
   return timeSchedule
 }
 
-// async function PositiveResponse(inputString) {
-//   const regex = /(1|sim|ok|pode sim|confirma)/i;
-//   if (regex.test(inputString)) {
-//     return true
-//   } else {
-//     return false
-//   }
-// }
+
 async function PositiveResponse(inputString: string): Promise<boolean> {
   const positiveResponses = [
     "1", "sim", "ok", "pode sim", "confirma", "com certeza",
@@ -57,15 +50,7 @@ async function PositiveResponse(inputString: string): Promise<boolean> {
   return positiveResponses.some(response => normalizedInput.includes(response));
 }
 
-// async function NegativeResponse(stringResp) {
-//   const positive = /(2|não|nao|cancelar|reagenda|desmarcar)/i;
-//   if (positive.test(stringResp)) {
-//     return true
-//   } else {
-//     return false
-//   }
 
-// }
 async function NegativeResponse(stringResp: string): Promise<boolean> {
   const negativeResponses = [
     "2", "não", "nao", "cancelar", "reagenda", "desmarcar", "não pode",
@@ -77,20 +62,6 @@ async function NegativeResponse(stringResp: string): Promise<boolean> {
   return negativeResponses.some(response => normalizedInput.includes(response));
 }
 
-
-// async function InvalidResponse(stringResp) {
-
-//   //console.log("DENTRO DO INVALID RESPONSE>>", stringResp)
-//   const positive = /sim|não|1|2|pode confirmar|confirmada/ig;
-//   if (positive.test(stringResp)) {
-//     //console.log("RETORNOU TRUE")
-//     return true
-//   } else {
-//     //console.log("RETORNOU FALSE")
-//     return false
-//   }
-
-// }
 
 
 async function RandomResponse(arrayResponse: String[]) {
@@ -119,19 +90,31 @@ async function ClearFolder(folderPath) {
 
 }
 
+function ValidatePhone(cellphone: string): string | null {
+  if (!cellphone) return null;
+  // Remove tudo que não for número
+  const digits = cellphone.replace(/\D/g, '');
 
-// async function ValidatePhone(cellphone) {
-//   // Expressão regular para validar o formato de um número de celular no Brasil
-//   const regexTelefoneCelular = /^(\+55|55)?\s?(?:\(?0?[1-9]{2}\)?)?\s?(?:9\s?)?[6789]\d{3}[-\s]?\d{4}$/;
-//   return regexTelefoneCelular.test(cellphone);
-// }
-async function ValidatePhone(cellphone: string): Promise<boolean> {
-  // Remove espaços e normaliza a entrada
-  const sanitizedCellphone = cellphone.trim();
-  // Expressão regular para validar números de celular brasileiros
-  const brazilianPhoneRegex = /^(\+55|55)?\s?(?:\(?0?[1-9]{2}\)?)?\s?(?:9\s?)?[6789]\d{3}[-\s]?\d{4}$/;
-  // Testa o número de telefone contra o regex
-  return brazilianPhoneRegex.test(sanitizedCellphone);
+  // Ex: 911234567 (sem DDD) → inválido
+  if (digits.length < 10) return null;
+
+  // Adiciona +55 se não tiver (código do Brasil)
+  let normalized = digits;
+
+  if (digits.length === 11) {
+    // Ex: 11912345678
+    normalized = '55' + digits;
+  } else if (digits.length === 13 && digits.startsWith('55')) {
+    // já está no formato correto
+  } else {
+    // número não esperado
+
+    return null;
+  }
+  // Validação básica: deve ter 13 dígitos e ser celular (começa com 9 após DDD)
+  const celularRegex = /^55[1-9]{2}9[6-9]\d{7}$/;
+  if (!celularRegex.test(normalized)) return null;
+  return normalized; // exemplo: 5511912345678
 }
 
 
@@ -142,4 +125,21 @@ async function validAgent(agent) {
     .update({ statusconnected: false })
 }
 
-export { stateTyping, DateFormat, GenerateRandomTime, TimeSchedule, PositiveResponse, NegativeResponse, ClearFolder, ValidatePhone, RandomResponse, validAgent }
+async function chunckPhone(cellphone: string): Promise<string> {
+  const match = cellphone.match(/(\d{8})@c\.us$/);
+  if (match) {
+    return match[1]; // Se casar com o padrão, retorna os 8 dígitos
+  }
+  // Caso não tenha '@c.us', retorna o número inteiro como está
+  if (!cellphone.includes('@')) {
+    return cellphone;
+  }
+  // Se tiver algo como '@g.us' ou outro sufixo, remove o que vem depois de '@'
+  return cellphone.split('@')[0];
+}
+
+async function extractCellphone(mascara: string): string {
+  return mascara.replace(/^55/, '').replace(/@.*/, '')
+}
+
+export { stateTyping, DateFormat, GenerateRandomTime, TimeSchedule, PositiveResponse, NegativeResponse, ClearFolder, ValidatePhone, RandomResponse, validAgent, chunckPhone, extractCellphone }

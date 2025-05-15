@@ -28,7 +28,8 @@ export default class Customchat extends BaseModel {
       'viewed',
       'phonevalid',
       'ack',
-      'path_media'
+      'path_media',
+      'created_at'
     ]
   }
 

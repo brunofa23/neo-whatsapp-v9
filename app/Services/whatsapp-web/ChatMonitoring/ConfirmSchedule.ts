@@ -2,12 +2,15 @@ import { NegativeResponse, PositiveResponse, stateTyping } from '../util'
 import Chat from 'App/Models/Chat';
 import Response from 'App/Models/Response';
 import { Client, Message } from 'whatsapp-web.js';
+import { interpretAnswer } from 'App/Services/whatsapp-web/IdentifyAnswer'
+
+
 
 export default async (client: Client, message: Message, chat: Chat) => {
 
   // Função para substituir os placeholders na mensagem
   const formatMessage = (template, fields) => {
-       return template
+    return template
       .replace('{name_unit}', fields.name_unit)
       .replace('{address_unit}', fields.address_unit || 'Endereço indisponível')
       .replace('{medic}', fields.medic || 'Médico não informado')
@@ -30,9 +33,8 @@ export default async (client: Client, message: Message, chat: Chat) => {
   }
   if (chat.interaction_seq == 1) {
     const chatOtherFields = JSON.parse(chat.shippingcampaign.otherfields)
-
-    
-    if (await PositiveResponse(message.body)) {//presença confirmada
+    const answer = await interpretAnswer(message.body)
+    if (answer == 1) {//presença confirmada
       await stateTyping(message)//status de digitando...
       try {
         // Busca a mensagem personalizada ou usa a mensagem padrão
@@ -41,8 +43,7 @@ export default async (client: Client, message: Message, chat: Chat) => {
           .where('local', 'response1schedule')
           .andWhere('inactive', false)
           .first();
-
-        const defaultMessage = `Muito obrigada 😀, seu agendamento foi confirmado, o endereço da sua consulta é ${chat.shippingcampaign.address}. Esperamos por você. Ótimo dia. Lembrando que para qualquer dúvida, estamos disponíveis pelo whatsapp ${chat.shippingcampaign.phone_unit}.`;
+        const defaultMessage = `Muito obrigada 😀, seu agendamento foi confirmado, o endereço da sua consulta é ${chatOtherFields.address}. Esperamos por você. Ótimo dia. Lembrando que para qualquer dúvida, estamos disponíveis pelo whatsapp ${chatOtherFields.phone_unit}.`;
 
         const response1message = response1schedule
           ? formatMessage(response1schedule.message, chatOtherFields)
@@ -59,6 +60,7 @@ export default async (client: Client, message: Message, chat: Chat) => {
           externalstatus: 'A',
           company_id: chat.shippingcampaign.company_id,
         });
+        console.log("verificar:", chat.shippingcamapgn)
         await chat.save();
       } catch (error) {
         console.error("Erro ao enviar a mensagem de agendamento:", error.message, error.stack);
@@ -66,7 +68,7 @@ export default async (client: Client, message: Message, chat: Chat) => {
       //Salvar no Smart e marcar presença
     } else
       //CANCELAR AGENDAMENTO******************************************************************
-      if (await NegativeResponse(message.body)) {
+      if (answer == 2) {
         try {
           Object.assign(chat, {
             response: message.body,
@@ -98,7 +100,7 @@ export default async (client: Client, message: Message, chat: Chat) => {
             //.andWhere('inactive', false)
             .first();
           if (response2schedule2) {
-            if (response2schedule2.inactive===false) {
+            if (response2schedule2.inactive === false) {
               const linkRedirect = messageLink(response2schedule2.message, chatOtherFields.phone_unit)
               await client.sendMessage(message.from, linkRedirect)
             }
@@ -132,7 +134,19 @@ export default async (client: Client, message: Message, chat: Chat) => {
           console.log("Erro:", error)
         }
 
-      } else {
+      }
+      else if (answer == 3) {
+        await stateTyping(message)//status de digitando...
+        try {
+          const defaultMessage = `Desculpe pelo engano, vou pedir para corrigir nosso cadastro.`;
+          // Envia a mensagem ao cliente
+          await client.sendMessage(message.from, defaultMessage);
+          // Atualiza o chat com os dados de resposta
+        } catch (error) {
+          console.error("Erro ao enviar a mensagem de agendamento:", error.message, error.stack);
+        }
+      }
+      else {
         await stateTyping(message)
         client.sendMessage(message.from, 'Oi, desculpe mas não consegui identificar uma resposta, por favor responda \n*1* para Confirmar o agendamento. \n*2* para Reagendamento ou Cancelamento.')
       }

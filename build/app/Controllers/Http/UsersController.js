@@ -7,10 +7,14 @@ const User_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/User"))
 const BadRequestException_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Exceptions/BadRequestException"));
 const Hash_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Hash"));
 class UsersController {
-    async index({ auth, response }) {
+    async index({ auth, request, response }) {
         await auth.use('api').authenticate();
+        const { is_manager } = request.only(['is_manager']);
         try {
-            const data = await User_1.default.query();
+            const query = User_1.default.query();
+            query.if(is_manager, query => query.where('is_manager', true));
+            console.log(query.toQuery());
+            const data = await query;
             return response.status(200).send(data);
         }
         catch (error) {
@@ -47,10 +51,10 @@ class UsersController {
             .where('username', body.username)
             .first();
         if (!user) {
-            throw new BadRequestException_1.default("error", 401, "Invalid User");
+            throw new BadRequestException_1.default("Invalid username", 401, "InvalidUsername");
         }
         if (!(await Hash_1.default.verify(user.password, body.password))) {
-            throw new BadRequestException_1.default("error", 401, "Invalid Password");
+            throw new BadRequestException_1.default("Invalid password", 401, "InvalidPassword");
         }
         const token = await auth.use('api').generate(user, {
             expiresIn: '7 days',

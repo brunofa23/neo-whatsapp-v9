@@ -26,12 +26,15 @@
     "@adonisjs/lucid": "^18.4.0",
     "@adonisjs/mail": "^8.2.1",
     "@adonisjs/repl": "^3.1.11",
+    "@adonisjs/view": "^6.2.0",
     "axios": "^1.6.8",
     "fs-extra": "^11.2.0",
     "luxon": "^3.3.0",
     "moment": "^2.30.1",
     "mssql": "^4.1.0",
     "mysql2": "^3.6.5",
+    "node-nlp": "^5.0.0-alpha.5",
+    "openai": "^4.91.1",
     "phc-argon2": "^1.1.4",
     "proxy-addr": "^2.0.7",
     "puppeteer": "^21.6.0",
@@ -39,6 +42,7 @@
     "qrcode-terminal": "^0.12.0",
     "reflect-metadata": "^0.1.13",
     "source-map-support": "^0.5.21",
+    "string-similarity": "^4.0.4",
     "tedious": "^16.1.0",
     "whatsapp-web.js": "github:pedroslopez/whatsapp-web.js#webpack-exodus"
   }

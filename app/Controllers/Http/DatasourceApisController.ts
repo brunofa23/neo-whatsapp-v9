@@ -117,15 +117,13 @@ export default class DatasourceApisController {
         if (!verifyExist) {
           await Shippingcampaign.create(shipping)
         }
+
+
+
       } catch (error) {
         console.log("Erro 44454>>>>", error)
         return false
       }
-
-
-
-
-
     }
     return true
   }
@@ -135,6 +133,12 @@ export default class DatasourceApisController {
     const date_end = DateTime.now().endOf('day').toFormat("yyyy-MM-dd HH:mm");
 
     try {
+
+        await Shippingcampaign.query()
+        .where('phonevalid',0)
+        .whereBetween('created_at', [date_start, date_end])
+        .update({phonevalid:null})
+
       const confirmCancel = await Chat.query()
         .preload('shippingcamapgn', (query) => {
           query.select('idexternal_array')
@@ -185,39 +189,8 @@ export default class DatasourceApisController {
 
 
 
-  // public async confirmOrCancelScheduleInternal() {
-  //   //await auth.use('api').authenticate()
-  //   //chmamar a API DO KLINGO
-  //   const date_start = DateTime.now().startOf('day').toFormat("yyyy-MM-dd HH:mm")
-  //   const date_end = DateTime.now().endOf('day').toFormat("yyyy-MM-dd HH:mm")
-  //   try {
-  //     const confirmCancel = await Chat.query()
-  //       .whereBetween('created_at', [date_start, date_end])
-  //       .andWhere('externalstatus', 'A')
-  //       .andWhere('interaction_id', 1)
+  //RESETA PHONEVALID PARA NULL
 
-  //     if (!confirmCancel || confirmCancel.length === 0) return
-  //     let result
-  //     for (const data of confirmCancel) {
-  //       console.log("Executando Confirmação e Cancelamento no Klingo")
-  //       if (data.absoluteresp === 1) {
-  //         //FAZ A CONFIRMAÇÃO - STATUS C
-
-  //         result = await confirmOrCancelScheduleApi(data.idexternal, 'C', 'Confirmado')
-  //       } else if (data.absoluteresp === 2) {
-  //         //FAZ O CANCELAMENTO - STATUS N
-  //         result = await confirmOrCancelScheduleApi(data.idexternal, 'N', 'Não Confirmada')
-  //       }
-  //       if (result)
-  //         await Chat.query().where("id", data.id).update({ externalstatus: 'B' })
-  //     }
-
-  //   } catch (error) {
-  //     console.error("Erro ao processar confirmações ou cancelamentos:", error);
-
-  //   }
-
-  // }
 
   /****************************************************************** */
   //END POINT BUSCAR OS PACIENTES DE AGENDAMENTO NO KLINGO

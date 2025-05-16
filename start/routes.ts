@@ -3,7 +3,7 @@ import PersistShippingcampaign from "App/Services/whatsapp-web/PersistShippingca
 
 import { connectionAll, destroyFullAgents, resetStatusConnected, sendRepeatedMessage, sendRepeatedMessageKlingo } from './events'
 
-console.log("***CHAT BOT V-125***04/10/2024",process.env.SERVER)
+console.log("***CHAT BOT V-126***16/05/2025", process.env.SERVER)
 function operacaoAssincrona(callback) {
   console.log("ENTREI PASSO 1", callback)
   if (process.env.SERVER === 'true') {
@@ -117,7 +117,7 @@ Route.group(() => {
 
   //MANIFESTS
   Route.resource("/manifests", "ManifestsController").apiOnly()
-  Route.post("/sendmailmanifest/:id","ManifestsController.sendMailManifest")
+  Route.post("/sendmailmanifest/:id", "ManifestsController.sendMailManifest")
 
   //MIDIAS
   Route.get('/midia/:filename', 'MidiasController.midia')

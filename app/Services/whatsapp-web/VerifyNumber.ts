@@ -22,6 +22,9 @@ import Log from 'App/Models/Log'
   }
 
   try {
+
+    
+
     const verifiedPhone = await client.getNumberId(cellphone);
     if (verifiedPhone) {
       return verifiedPhone._serialized;

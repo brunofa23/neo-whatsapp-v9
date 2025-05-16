@@ -83,11 +83,15 @@ function ValidatePhone(cellphone) {
     const digits = cellphone.replace(/\D/g, '');
     if (digits.length < 10)
         return null;
-    let normalized = digits;
+    let normalized = '';
     if (digits.length === 11) {
         normalized = '55' + digits;
     }
+    else if (digits.length === 10) {
+        normalized = '55' + digits.slice(0, 2) + '9' + digits.slice(2);
+    }
     else if (digits.length === 13 && digits.startsWith('55')) {
+        normalized = digits;
     }
     else {
         return null;

@@ -56,6 +56,7 @@ async function sendRepeatedMessage() {
         const datasourcesController = new DatasourcesController
         await datasourcesController.confirmScheduleAll()
         await datasourcesController.cancelScheduleAll()
+        await datasourcesController.resetCellphone()
 
       }
     }

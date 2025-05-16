@@ -8,6 +8,7 @@ import moment from 'moment';
 import { cancelSchedule, session } from '../../Services/requestExternal/request'
 import { DateFormat } from '../../Services/whatsapp-web/util'
 import ResponsesController from './ResponsesController';
+import Shippingcampaign from 'App/Models/Shippingcampaign';
 export default class DatasourcesController {
 
 
@@ -44,8 +45,8 @@ export default class DatasourcesController {
 
     async function greeting(message: String) {
       const responseList = new ResponsesController()
-      const greeting = await responseList.index({local:'greeting'}) //['Olá!😀', 'Oi tudo bem?😀', 'Saudações!😀', 'Oi como vai?😀']
-      const presentation = await responseList.index({local:'presentation'})//['Eu me chamo Iris', 'Eu sou a Iris', 'Aqui é a Iris']
+      const greeting = await responseList.index({ local: 'greeting' }) //['Olá!😀', 'Oi tudo bem?😀', 'Saudações!😀', 'Oi como vai?😀']
+      const presentation = await responseList.index({ local: 'presentation' })//['Eu me chamo Iris', 'Eu sou a Iris', 'Aqui é a Iris']
       return message.replace('{greeting}', greeting[Math.floor(Math.random() * greeting.length)]).replace('{presentation}', presentation[Math.floor(Math.random() * presentation.length)])
     }
     const pacQueryModel = await Interaction.query().where('id', 1).first()
@@ -227,11 +228,11 @@ export default class DatasourcesController {
     }
   }
 
- async serviceEvaluation() {
+  async serviceEvaluation() {
     async function greeting(message: String) {
       //const greeting = ['Olá!😀', 'Oi tudo bem?😀', 'Saudações!😀', 'Oi como vai?😀']
       const responseList = new ResponsesController()
-      const greeting = await responseList.index({local:'greeting'})
+      const greeting = await responseList.index({ local: 'greeting' })
       const question = ['em uma escala de *0 a 10*, o quanto você indicaria o nosso Núcleo de Excelência em Oftalmologia a um amigo ou parente?',
         'em uma escala de *0 a 10*, o quanto você recomendaria o Núcleo de Excelência em Oftalmologia para um amigo ou membro da família?',
         'em uma escala de *0 a 10*, o quanto você indicaria o Núcleo de Excelência em Oftalmologia a alguém que você conhece?',
@@ -263,6 +264,22 @@ export default class DatasourcesController {
 
   }
 
+
+  async resetCellphone() {
+    const date_start = DateTime.now().startOf('day').toFormat("yyyy-MM-dd HH:mm");
+    const date_end = DateTime.now().endOf('day').toFormat("yyyy-MM-dd HH:mm");
+
+    try {
+      await Shippingcampaign.query()
+        .where('phonevalid', 0)
+        .whereBetween('created_at', [date_start, date_end])
+        .update({ phonevalid: null })
+    } catch (error) {
+      return { "ERRO": "ERRO 21221", error }
+    }
+
+
+  }
 
 
 

@@ -90,32 +90,66 @@ async function ClearFolder(folderPath) {
 
 }
 
+// function ValidatePhone(cellphone: string): string | null {
+
+//   if (!cellphone) return null;
+//   // Remove tudo que não for número
+//   const digits = cellphone.replace(/\D/g, '');
+
+//   // Ex: 911234567 (sem DDD) → inválido
+//   if (digits.length < 10) return null;
+
+//   // Adiciona +55 se não tiver (código do Brasil)
+//   let normalized = digits;
+
+//   if (digits.length === 11) {
+//     // Ex: 11912345678
+//     normalized = '55' + digits;
+//   } else if (digits.length === 13 && digits.startsWith('55')) {
+//     // já está no formato correto
+//   } else {
+//     // número não esperado
+//     return null;
+//   }
+//   // Validação básica: deve ter 13 dígitos e ser celular (começa com 9 após DDD)
+//   const celularRegex = /^55[1-9]{2}9[6-9]\d{7}$/;
+//   if (!celularRegex.test(normalized)) return null;
+//   return normalized; // exemplo: 5511912345678
+// }
 function ValidatePhone(cellphone: string): string | null {
   if (!cellphone) return null;
-  // Remove tudo que não for número
+
   const digits = cellphone.replace(/\D/g, '');
 
-  // Ex: 911234567 (sem DDD) → inválido
   if (digits.length < 10) return null;
 
-  // Adiciona +55 se não tiver (código do Brasil)
-  let normalized = digits;
+  let normalized = '';
 
   if (digits.length === 11) {
-    // Ex: 11912345678
+    // Ex: 31985228619 (DDD + 9 + número)
     normalized = '55' + digits;
+  } else if (digits.length === 10) {
+    // Ex: 3185228619 (DDD + número sem 9)
+    // Adiciona o 9 depois do DDD para celular (considerando celular válido)
+    normalized = '55' + digits.slice(0, 2) + '9' + digits.slice(2);
   } else if (digits.length === 13 && digits.startsWith('55')) {
-    // já está no formato correto
+    normalized = digits;
   } else {
-    // número não esperado
-
-    return null;
+    return null; // formato não esperado
   }
-  // Validação básica: deve ter 13 dígitos e ser celular (começa com 9 após DDD)
+
+  // Regex para validar:
+  // - começa com 55
+  // - DDD válido (01 a 99, não 00)
+  // - número começa com 9
+  // - número tem 9 dígitos após o DDD+9
   const celularRegex = /^55[1-9]{2}9[6-9]\d{7}$/;
+
   if (!celularRegex.test(normalized)) return null;
-  return normalized; // exemplo: 5511912345678
+
+  return normalized;
 }
+
 
 
 async function validAgent(agent) {

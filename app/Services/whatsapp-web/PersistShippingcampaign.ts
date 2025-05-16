@@ -22,7 +22,6 @@ export default async () => {
   }
   for (const data of dataSourceList) {
     try {
-
       const shipping = new Shippingcampaign()
       shipping.interaction_id = data.interaction_id
       shipping.interaction_seq = data.interaction_seq

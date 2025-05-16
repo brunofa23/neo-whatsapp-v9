@@ -20,15 +20,11 @@ import { chunckPhone, extractCellphone } from 'App/Services/whatsapp-web/util'
 // import { interpretAnswer } from 'App/Services/whatsapp-web/IdentifyAnswer'
 // import Application from '@ioc:Adonis/Core/Application'
 // const fs = require('fs')
+import { ValidatePhone } from 'App/Services/whatsapp-web/util'
 
 test('display welcome page', async ({ client }) => {
-  try {
-    const teste = await extractCellphone('')
-    console.log('*******TESTES', teste)
 
-  } catch (error) {
-    console.error('Erro no teste:', error)
-  }
-
+  const teste = await ValidatePhone('31971534700')
+  console.log("TESTE:", teste)
 
 })

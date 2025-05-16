@@ -88,39 +88,39 @@ export default class DatasourceApisController {
     const schedule_list = await prepareSchedules(await getSchedulesApi(date))
     const date_start = DateTime.now().startOf('day').toFormat("yyyy-MM-dd HH:mm");
     for (const data of schedule_list) {
-            //if (data.id_paciente !== 823) continue
-        try {
-          const reg = String(data.id_paciente).replace(/[^0-9.-]/g, "")
+      //if (data.id_paciente !== 823) continue
+      try {
+        const reg = String(data.id_paciente).replace(/[^0-9.-]/g, "")
 
-          const shipping = new Shippingcampaign()
-          shipping.interaction_id = 1
-          shipping.interaction_seq = 1
-          shipping.reg = parseInt(reg)
-          shipping.dateshedule = data.datahora
-          shipping.idexternal = data.id_marcacao
-          shipping.name = String(data.nome).trim()
-          shipping.cellphone =String(data.celular).replace(/[^0-9]+/g, ''); //data.cellphone.replace("(", "").replace("-", "")
-          if (!await ValidatePhone(shipping.cellphone))
-            shipping.phonevalid = false
-          shipping.messagesent = false
-          shipping.message = await greeting(String(`{greeting} {presentation} {askschedule}`), data)
-          shipping.otherfields = String(await otherFields(data))
-          shipping.doctor = String(data.medico).trim()
-          shipping.unit = String(data.unidade).trim()
-          shipping.covenant = ''
-          shipping.idexternal_array = String(data.idexternal_array)
+        const shipping = new Shippingcampaign()
+        shipping.interaction_id = 1
+        shipping.interaction_seq = 1
+        shipping.reg = parseInt(reg)
+        shipping.dateshedule = data.datahora
+        shipping.idexternal = data.id_marcacao
+        shipping.name = String(data.nome).trim()
+        shipping.cellphone = String(data.celular).replace(/[^0-9]+/g, ''); //data.cellphone.replace("(", "").replace("-", "")
+        // if (!await ValidatePhone(shipping.cellphone))
+        //   shipping.phonevalid = false
+        shipping.messagesent = false
+        shipping.message = await greeting(String(`{greeting} {presentation} {askschedule}`), data)
+        shipping.otherfields = String(await otherFields(data))
+        shipping.doctor = String(data.medico).trim()
+        shipping.unit = String(data.unidade).trim()
+        shipping.covenant = ''
+        shipping.idexternal_array = String(data.idexternal_array)
 
-          const verifyExist  =await Shippingcampaign.query().where('reg', reg)
+        const verifyExist = await Shippingcampaign.query().where('reg', reg)
           .andWhere('dateshedule', data.datahora)
-          .andWhere('created_at','>=',date_start).first()
+          .andWhere('created_at', '>=', date_start).first()
 
-          if (!verifyExist) {
-            await Shippingcampaign.create(shipping)
-          }
-        } catch (error) {
-          console.log("Erro 44454>>>>", error)
-          return false
+        if (!verifyExist) {
+          await Shippingcampaign.create(shipping)
         }
+      } catch (error) {
+        console.log("Erro 44454>>>>", error)
+        return false
+      }
 
 
 

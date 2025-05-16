@@ -100,8 +100,8 @@ export default class DatasourceApisController {
         shipping.idexternal = data.id_marcacao
         shipping.name = String(data.nome).trim()
         shipping.cellphone = String(data.celular).replace(/[^0-9]+/g, ''); //data.cellphone.replace("(", "").replace("-", "")
-        // if (!await ValidatePhone(shipping.cellphone))
-        //   shipping.phonevalid = false
+        if (!await ValidatePhone(shipping.cellphone))
+          shipping.phonevalid = false
         shipping.messagesent = false
         shipping.message = await greeting(String(`{greeting} {presentation} {askschedule}`), data)
         shipping.otherfields = String(await otherFields(data))

@@ -8,6 +8,7 @@ import { startAgentChat } from "../../Services/whatsapp-web/whatsapp"
 import Config from 'App/Models/Config'
 import Application from '@ioc:Adonis/Core/Application'
 import fs from 'fs';
+import WhatsAppClientManager from 'App/Services/whatsapp-web/WhatsAppClientManager'
 
 //const fs = require('fs');
 //const path = require('path');
@@ -95,7 +96,7 @@ export default class AgentsController {
     }
   }
 
-  public async connection({auth,params, response }: HttpContextContract) {
+  public async connection({ auth, params, response }: HttpContextContract) {
     await auth.use('api').authenticate()
     try {
       const valuedatetime = DateTime.local().toFormat('yyyy-MM-dd HH:mm:ss')
@@ -124,7 +125,7 @@ export default class AgentsController {
   }
 
 
-  public async connectionAll({auth, params, request, response }: HttpContextContract) {
+  public async connectionAll({ auth, params, request, response }: HttpContextContract) {
     await auth.use('api').authenticate()
     try {
       console.log("connection all acionado...")
@@ -162,7 +163,7 @@ export default class AgentsController {
     await new Promise((resolve) => {
       setTimeout(async () => {
         console.log("Excluindo pasta...");
-        const pathFolder =Application.tmpPath(`/sessions/session-${params.id}`) //`.wwebjs_auth/session-${agent.id}`;
+        const pathFolder = Application.tmpPath(`/sessions/session-${params.id}`) //`.wwebjs_auth/session-${agent.id}`;
 
         if (fs.existsSync(pathFolder)) {
           try {
@@ -219,7 +220,7 @@ export default class AgentsController {
       await new Promise((resolve) => {
         setTimeout(async () => {
           console.log("Excluindo pasta...");
-          const pathFolder =Application.tmpPath(`/sessions/session-${agent.id}`) //`.wwebjs_auth/session-${agent.id}`;
+          const pathFolder = Application.tmpPath(`/sessions/session-${agent.id}`) //`.wwebjs_auth/session-${agent.id}`;
           if (fs.existsSync(pathFolder)) {
             try {
               await deleteFolder(pathFolder); // Função que aguarda a exclusão da pasta
@@ -241,6 +242,150 @@ export default class AgentsController {
     await Agent.query().where('deleted', true).delete()
   }
 
+  public async verifyStatusAgent({ request, response }) {
+    const { option, cellphone } = request.only(['option', 'cellphone'])
+    const client = WhatsAppClientManager.getClient('75');
+
+    console.log("option:", option);
+
+    if (option == 2) {
+      // Informações básicas do client (usuário, número etc.)
+      console.log("OPÇÃO 2 - Info do cliente");
+      const result = client.info;
+      return response.send({ retorno: result });
+    }
+
+    if (option == 3) {
+      // Estado atual da sessão (conectado, desconectado, etc.)
+      console.log("OPÇÃO 3 - Estado da sessão");
+      const result = await client.getState();
+      return response.send({ retorno: result });
+    }
+
+    if (option == 4) {
+      // Retorna todos os contatos
+      console.log("OPÇÃO 4 - Todos os contatos");
+      const result = await client.getContacts();
+      return response.send({ retorno: result });
+    }
+
+    if (option == 5) {
+      // Retorna o número formatado internacionalmente
+      console.log("OPÇÃO 5 - Número formatado");
+      const result = await client.getFormattedNumber(`${cellphone}`);
+      return response.send({ retorno: result });
+    }
+
+    if (option == 6) {
+      // Verifica se o número está registrado no WhatsApp
+      console.log("OPÇÃO 6 - Verificar se é usuário WhatsApp");
+      const result = await client.isRegisteredUser(`${cellphone}@c.us`);
+      return response.send({ retorno: result });
+    }
+
+    if (option == 7) {
+      // Busca um contato específico
+      console.log("OPÇÃO 7 - Buscar contato");
+      const result = await client.getContactById(`${cellphone}@c.us`);
+      return response.send({ retorno: result });
+    }
+
+    if (option == 8) {
+      // Envia uma mensagem simples de texto
+      console.log("OPÇÃO 8 - Enviar mensagem");
+      const result = await client.sendMessage('31985228619@c.us', 'Olá! Esta é uma mensagem automática.');
+      return response.send({ retorno: result });
+    }
+
+    if (option == 9) {
+      // Marca um chat como visualizado (visto)
+      console.log("OPÇÃO 9 - Marcar como visto");
+      const result = await client.sendSeen('31985228619@c.us');
+      return response.send({ retorno: result });
+    }
+
+    if (option == 10) {
+      // Obter todos os chats
+      console.log("OPÇÃO 10 - Obter todos os chats");
+      const result = await client.getChats();
+      return response.send({ retorno: result });
+    }
+
+    if (option == 11) {
+      // Obter um chat específico
+      console.log("OPÇÃO 11 - Obter chat por ID");
+      const result = await client.getChatById(`${cellphone}@c.us`);
+      return response.send({ retorno: result });
+    }
+
+    if (option == 12) {
+      // Obter a URL da foto de perfil de um contato
+      console.log("OPÇÃO 12 - Obter foto de perfil");
+      const result = await client.getProfilePicUrl(`${cellphone}@c.us`);
+      return response.send({ retorno: result });
+    }
+
+    if (option == 13) {
+      // Desconectar da sessão sem apagar dados
+      console.log("OPÇÃO 13 - Destroy (desconectar)");
+      const result = await client.destroy();
+      return response.send({ retorno: result });
+    }
+
+    if (option == 14) {
+      // Obter versão do WhatsApp Web
+      console.log("OPÇÃO 14 - Versão do WhatsApp Web");
+      const result = await client.getWWebVersion();
+      return response.send({ retorno: result });
+    }
+
+
+    if (option == 15) {
+      // Logout da conta (remove a sessão)
+      console.log("OPÇÃO 1 - Logout");
+      const result = await client.logout();
+      return response.send({ retorno: result });
+    }
+
+    if (option == 16) {
+      // Desconectar da sessão sem apagar dados
+      console.log("OPÇÃO 13 - Destroy (desconectar)");
+      const result = await client.destroy();
+      return response.send({ retorno: result });
+    }
+
+    if (option == 17) {
+      // Desconectar da sessão sem apagar dados
+      console.log("OPÇÃO 17 - TROCA O NOME");
+      const result = await client.setDisplayName('Novo Nome');
+      return response.send({ retorno: result });
+    }
+
+    if (option == 18) {
+      // Desconectar da sessão sem apagar dados
+      console.log("OPÇÃO 18 - TROCA O STATUS");
+      const result = await client.setStatus('Disponível para atendimento!');
+      return response.send({ retorno: result });
+    }
+
+    if (option == 19) {
+      // Desconectar da sessão sem apagar dados
+      console.log("OPÇÃO 18 - reiniciar");
+      const result = await client.initialize();
+      return response.send({ retorno: result });
+    }
+
+    // if (client) {
+    //   const state = await client.getState();
+    //   const info = client.info;
+    //   console.log(">>>", state, "info:", info)
+    //   // ou envie uma mensagem
+    //   await client.sendMessage('553185228619@c.us', `Status:${state} - Info:${info}`);
+    // } else {
+    //   return response.status(404).send('Cliente não conectado ou não inicializado');
+    // }
+
+  }
 
 
 }

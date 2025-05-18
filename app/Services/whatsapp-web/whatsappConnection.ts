@@ -10,6 +10,7 @@ import SendMessageInternal from './SendMessageInternal';
 import { GenerateRandomTime } from './util'
 import Chat from 'App/Models/Chat';
 import Application from '@ioc:Adonis/Core/Application'
+import WhatsAppClientManager from './WhatsAppClientManager';
 
 
 const { Client, LocalAuth } = require('whatsapp-web.js');
@@ -216,6 +217,9 @@ async function startAgent(_agent: Agent) {
     console.log("REASON>>>", reason)
     return
   });
+
+
+  WhatsAppClientManager.addClient(agent.id.toString(), client);
 
 
   let rejectCalls = true;

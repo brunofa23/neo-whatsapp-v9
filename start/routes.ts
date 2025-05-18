@@ -71,6 +71,8 @@ Route.group(() => {
   Route.delete("/agents/:id", "AgentsController.destroy")
   Route.post("/agents/destroyfullagents", "AgentsController.destroyFullAgents")
 
+  Route.get("/verifystatusagent", "AgentsController.verifyStatusAgent")
+
   //CUSTOM CHATS
   Route.post("/customchat/sendmessage", "CustomchatsController.sendMessage")
   Route.get("/customchat/:id", "CustomchatsController.show")

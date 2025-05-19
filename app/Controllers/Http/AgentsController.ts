@@ -243,8 +243,9 @@ export default class AgentsController {
   }
 
   public async verifyStatusAgent({ request, response }) {
-    const { option, cellphone } = request.only(['option', 'cellphone'])
-    const client = WhatsAppClientManager.getClient('75');
+    const { option, cellphone, agent } = request.only(['option', 'cellphone', 'agent'])
+
+    const client = WhatsAppClientManager.getClient(agent);
 
     console.log("option:", option);
 

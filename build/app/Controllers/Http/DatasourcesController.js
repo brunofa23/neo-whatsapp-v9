@@ -11,6 +11,7 @@ const moment_1 = __importDefault(require("moment"));
 const request_1 = require("../../Services/requestExternal/request");
 const util_1 = require("../../Services/whatsapp-web/util");
 const ResponsesController_1 = __importDefault(require("./ResponsesController"));
+const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Shippingcampaign"));
 class DatasourcesController {
     async DataSource() {
         const interactionList = await Interaction_1.default.query().where('status', '=', 1);
@@ -231,6 +232,19 @@ class DatasourcesController {
             }
             await Database_1.default.manager.close('mssql');
             return result;
+        }
+        catch (error) {
+            return { "ERRO": "ERRO 21221", error };
+        }
+    }
+    async resetCellphone() {
+        const date_start = luxon_1.DateTime.now().startOf('day').toFormat("yyyy-MM-dd HH:mm");
+        const date_end = luxon_1.DateTime.now().endOf('day').toFormat("yyyy-MM-dd HH:mm");
+        try {
+            await Shippingcampaign_1.default.query()
+                .where('phonevalid', 0)
+                .whereBetween('created_at', [date_start, date_end])
+                .update({ phonevalid: null });
         }
         catch (error) {
             return { "ERRO": "ERRO 21221", error };

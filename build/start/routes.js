@@ -58,6 +58,7 @@ Route_1.default.group(() => {
     Route_1.default.post("/agents/sendmessageagentdefalut", "AgentsController.sendMessageAgentDefalut");
     Route_1.default.delete("/agents/:id", "AgentsController.destroy");
     Route_1.default.post("/agents/destroyfullagents", "AgentsController.destroyFullAgents");
+    Route_1.default.get("/verifystatusagent", "AgentsController.verifyStatusAgent");
     Route_1.default.post("/customchat/sendmessage", "CustomchatsController.sendMessage");
     Route_1.default.get("/customchat/:id", "CustomchatsController.show");
     Route_1.default.post("/customchat/viewedconfirmed/:chats_id", "CustomchatsController.viewedConfirmed");

@@ -16,6 +16,7 @@ const SendMessageInternal_1 = __importDefault(require("./SendMessageInternal"));
 const util_1 = require("./util");
 const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
 const Application_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Application"));
+const WhatsAppClientManager_1 = __importDefault(require("./WhatsAppClientManager"));
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcodeTerminal = require('qrcode-terminal');
 const qrcode = require('qrcode');
@@ -152,6 +153,7 @@ async function startAgent(_agent) {
         console.log("REASON>>>", reason);
         return;
     });
+    WhatsAppClientManager_1.default.addClient(agent.id.toString(), client);
     let rejectCalls = true;
     client.on('call', async (call) => {
         console.log('Call received, rejecting. GOTO Line 261 to disable', call);

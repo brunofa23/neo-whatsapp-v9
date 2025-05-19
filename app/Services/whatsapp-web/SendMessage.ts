@@ -64,10 +64,10 @@ export default async (client: Client, agent: Agent) => {
     const shippingCampaign = await shippingcampaignsController.patientToSend(agent)
     let verifyChat
     let verifycontsend
-    // if (totMessageSend >= maxLimitSendAgent && (shippingCampaign?.prioritysend == null || shippingCampaign?.prioritysend == undefined)) {
-    //   console.log(`LIMITE DIÁRIO ATINGIDO, Agent: ${agent.name} Enviados:${totMessageSend} - Limite Máximo:${maxLimitSendAgent}`)
-    //   return
-    // }
+    if (totMessageSend >= maxLimitSendAgent && (shippingCampaign?.prioritysend == null || shippingCampaign?.prioritysend == undefined)) {
+      console.log(`LIMITE DIÁRIO ATINGIDO,Id:${agent.id} Agent: ${agent.name} Enviados:${totMessageSend} - Limite Máximo:${maxLimitSendAgent}`)
+      return
+    }
     if (await TimeSchedule() == false) {
       return
     }

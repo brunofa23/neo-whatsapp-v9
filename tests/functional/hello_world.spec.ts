@@ -21,10 +21,14 @@ import { chunckPhone, extractCellphone } from 'App/Services/whatsapp-web/util'
 // import Application from '@ioc:Adonis/Core/Application'
 // const fs = require('fs')
 import { ValidatePhone } from 'App/Services/whatsapp-web/util'
+import Agent from 'App/Models/Agent'
 
 test('display welcome page', async ({ client }) => {
 
-  const teste = await ValidatePhone('31971534700')
-  console.log("TESTE:", teste)
+  const agentMaxLimitSend = await Agent.query().where('id', 75).first()
+  //console.log(agentMaxLimitSend)
+  if (agentMaxLimitSend == undefined || agentMaxLimitSend?.max_limit_message == undefined)
+    console.log("SEM RETORNO VALOR ZERO:::")
+  else console.log("limite maximo:",agentMaxLimitSend?.max_limit_message)
 
 })

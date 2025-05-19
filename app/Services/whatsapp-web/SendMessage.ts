@@ -64,10 +64,10 @@ export default async (client: Client, agent: Agent) => {
     const shippingCampaign = await shippingcampaignsController.patientToSend(agent)
     let verifyChat
     let verifycontsend
-    if (totMessageSend >= maxLimitSendAgent && (shippingCampaign?.prioritysend == null || shippingCampaign?.prioritysend == undefined)) {
-      console.log(`LIMITE DIÁRIO ATINGIDO, Agent: ${agent.name} Enviados:${totMessageSend} - Limite Máximo:${maxLimitSendAgent}`)
-      return
-    }
+    // if (totMessageSend >= maxLimitSendAgent && (shippingCampaign?.prioritysend == null || shippingCampaign?.prioritysend == undefined)) {
+    //   console.log(`LIMITE DIÁRIO ATINGIDO, Agent: ${agent.name} Enviados:${totMessageSend} - Limite Máximo:${maxLimitSendAgent}`)
+    //   return
+    // }
     if (await TimeSchedule() == false) {
       return
     }
@@ -117,7 +117,7 @@ export default async (client: Client, agent: Agent) => {
                   await Talk.create({
                     cellphone: await extractCellphone(shippingCampaign.cellphone),
                     chatnumber: client.info.wid.user,
-                    message: shippingCampaign.message.slice(0,999),
+                    message: shippingCampaign.message.slice(0, 999),
                     type: "to"
                   })
 

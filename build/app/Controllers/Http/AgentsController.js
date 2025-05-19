@@ -202,8 +202,8 @@ class AgentsController {
         await Agent_1.default.query().where('deleted', true).delete();
     }
     async verifyStatusAgent({ request, response }) {
-        const { option, cellphone } = request.only(['option', 'cellphone']);
-        const client = WhatsAppClientManager_1.default.getClient('75');
+        const { option, cellphone, agent } = request.only(['option', 'cellphone', 'agent']);
+        const client = WhatsAppClientManager_1.default.getClient(agent);
         console.log("option:", option);
         if (option == 2) {
             console.log("OPÇÃO 2 - Info do cliente");

@@ -28,8 +28,9 @@ async function GenerateRandomTime(min, max, method = "") {
 }
 exports.GenerateRandomTime = GenerateRandomTime;
 async function TimeSchedule() {
-    const timeSchedule = (luxon_1.DateTime.local().hour > 5 && luxon_1.DateTime.local().hour < 21) ? true : false;
-    const message = !timeSchedule ? `Fora do Horario de Envio 7 às 19:${luxon_1.DateTime.local()}` : undefined;
+    const now = luxon_1.DateTime.local().setZone('America/Sao_Paulo');
+    const timeSchedule = (now.hour > 5 && now.hour < 21);
+    const message = !timeSchedule ? `Fora do Horario de Envio 7 às 19: ${now.toFormat('dd/MM/yyyy HH:mm:ss')}` : undefined;
     if (message)
         console.log(message);
     return timeSchedule;

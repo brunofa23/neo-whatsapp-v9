@@ -11,7 +11,7 @@ const util_1 = require("./util");
 async function sendRepeatedMessage(agent) {
     const executingSendMessage = await Config_1.default.find('executingSendMessage');
     setInterval(async () => {
-        const date = await (0, util_1.DateFormat)("dd/MM/yyyy HH:mm:ss", luxon_1.DateTime.local());
+        const date = await (0, util_1.DateFormat)("dd/MM/yyyy HH:mm:ss", luxon_1.DateTime.local().setZone('America/Sao_Paulo'));
         if (!executingSendMessage?.valuebool) {
             if (await (0, util_1.TimeSchedule)()) {
                 console.log(`Buscando dados no Smart: ${date}`);

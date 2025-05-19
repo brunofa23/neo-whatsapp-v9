@@ -8,7 +8,9 @@ import { DateFormat, GenerateRandomTime, TimeSchedule } from './util'
 async function sendRepeatedMessage(agent: Agent) {
   const executingSendMessage = await Config.find('executingSendMessage')
   setInterval(async () => {
-    const date = await DateFormat("dd/MM/yyyy HH:mm:ss", DateTime.local())
+    //const date = await DateFormat("dd/MM/yyyy HH:mm:ss", DateTime.local())
+    const date = await DateFormat("dd/MM/yyyy HH:mm:ss", DateTime.local().setZone('America/Sao_Paulo'))
+
     if (!executingSendMessage?.valuebool) {
       if (await TimeSchedule()) {
         console.log(`Buscando dados no Smart: ${date}`)

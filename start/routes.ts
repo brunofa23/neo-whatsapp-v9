@@ -20,7 +20,7 @@ function operacaoAssincrona(callback) {
     return
   }
 
-  if (process.env.SERVER === String("Klingo").toLowerCase()) {
+  if (process.env.SERVER?.toLowerCase() === "klingo") {
     //FAZ INTEGRAÇÃO COM O SISTEMA KLINGO
     console.log("INICIALIZANDO EASYTALK KLINGO....")
     destroyFullAgents()

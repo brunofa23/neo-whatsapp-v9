@@ -8,7 +8,7 @@ const PersistShippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')](
 const events_1 = require("./events");
 console.log("***CHAT BOT V-126***16/05/2025", process.env.SERVER);
 function operacaoAssincrona(callback) {
-    console.log("ENTREI PASSO 1", callback);
+    console.log("ENTREI PASSO 1", process.env.SERVER);
     if (process.env.SERVER === 'true') {
         console.log("INICIALIZANDO EASYTALK SERVIDOR");
         (0, events_1.sendRepeatedMessage)();
@@ -21,7 +21,7 @@ function operacaoAssincrona(callback) {
         (0, events_1.connectionAll)();
         return;
     }
-    if (process.env.SERVER === "Klingo") {
+    if (process.env.SERVER === String("Klingo").toLowerCase()) {
         console.log("INICIALIZANDO EASYTALK KLINGO....");
         (0, events_1.destroyFullAgents)();
         (0, events_1.sendRepeatedMessageKlingo)();

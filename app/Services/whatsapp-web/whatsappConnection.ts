@@ -40,7 +40,7 @@ async function startAgent(_agent: Agent) {
     authStrategy: new LocalAuth({ clientId: _agent.id, dataPath: Application.tmpPath('/sessions') }),
     //authStrategy: new LocalAuth({ clientId: _agent.id }),
     puppeteer: {
-       executablePath: '/usr/bin/chromium-browser',
+      executablePath: '/usr/bin/chromium-browser',
       args: ['--no-sandbox',
         '--max-memory=512MB',
         '--disable-setuid-sandbox',
@@ -55,10 +55,6 @@ async function startAgent(_agent: Agent) {
       timeout: 60000,
 
       headless: true,
-      setRequestInterception: true,
-      setBypassCSP: true,
-      setJavaScriptEnabled: false
-
     }
 
   });
@@ -139,22 +135,22 @@ async function startAgent(_agent: Agent) {
 
   const startTimeSendMessage = agent.interval_init_message
   const endTimeSendMessage = agent.interval_final_message
-  setInterval(async () => {
-    const statusSendMessage = await getStatusSendMessage()//await Config.query().select('valuebool', 'valuedatetime').where('id', 'statusSendMessage').first()
-    if (statusSendMessage) {
-      SendMessage(client, agent)
-    }
-  }, await GenerateRandomTime(startTimeSendMessage, endTimeSendMessage, '----Time Send Message'))
+  // setInterval(async () => {
+  //   const statusSendMessage = await getStatusSendMessage()//await Config.query().select('valuebool', 'valuedatetime').where('id', 'statusSendMessage').first()
+  //   if (statusSendMessage) {
+  //     SendMessage(client, agent)
+  //   }
+  // }, await GenerateRandomTime(startTimeSendMessage, endTimeSendMessage, '----Time Send Message'))
 
 
-  setInterval(async () => {
-    const statusSendMessage = await getStatusSendMessage() //Config.query().select('valuebool', 'valuedatetime').where('id', 'statusSendMessage').first()
-    if (statusSendMessage) {
-      if (process.env.SELF_CONVERSATION?.toLocaleLowerCase() === "true") {
-        await SendMessageInternal(client)
-      }
-    }
-  }, await GenerateRandomTime(600, 900, '----Time Send Message'))
+  // setInterval(async () => {
+  //   const statusSendMessage = await getStatusSendMessage() //Config.query().select('valuebool', 'valuedatetime').where('id', 'statusSendMessage').first()
+  //   if (statusSendMessage) {
+  //     if (process.env.SELF_CONVERSATION?.toLocaleLowerCase() === "true") {
+  //       await SendMessageInternal(client)
+  //     }
+  //   }
+  // }, await GenerateRandomTime(600, 900, '----Time Send Message'))
 
 
   if (process.env.SERVER === 'true') {
@@ -220,6 +216,7 @@ async function startAgent(_agent: Agent) {
   });
 
 
+  console.log("FINAL DO ZAP CONECTIONS &&&&&&&")
   WhatsAppClientManager.addClient(agent.id.toString(), client);
 
 

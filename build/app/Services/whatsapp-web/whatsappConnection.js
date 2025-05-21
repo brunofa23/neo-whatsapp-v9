@@ -40,6 +40,7 @@ async function startAgent(_agent) {
     const client = new Client({
         authStrategy: new LocalAuth({ clientId: _agent.id, dataPath: Application_1.default.tmpPath('/sessions') }),
         puppeteer: {
+            executablePath: '/usr/bin/chromium-browser',
             args: ['--no-sandbox',
                 '--max-memory=512MB',
                 '--disable-setuid-sandbox',

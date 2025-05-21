@@ -237,7 +237,7 @@ class AgentsController {
         }
         if (option == 8) {
             console.log("OPÇÃO 8 - Enviar mensagem");
-            const result = await client.sendMessage('31985228619@c.us', 'Olá! Esta é uma mensagem automática.');
+            const result = await client.sendMessage(`${cellphone}@c.us`, 'Olá! Esta é uma mensagem automática.');
             return response.send({ retorno: result });
         }
         if (option == 9) {

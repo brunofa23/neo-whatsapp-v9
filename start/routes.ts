@@ -5,7 +5,7 @@ import { connectionAll, destroyFullAgents, resetStatusConnected, sendRepeatedMes
 
 console.log("***CHAT BOT V-126***16/05/2025", process.env.SERVER)
 function operacaoAssincrona(callback) {
-  console.log("ENTREI PASSO 1", callback)
+  console.log("ENTREI PASSO 1", process.env.SERVER)
   if (process.env.SERVER === 'true') {
     console.log("INICIALIZANDO EASYTALK SERVIDOR")
     sendRepeatedMessage()
@@ -20,7 +20,7 @@ function operacaoAssincrona(callback) {
     return
   }
 
-  if (process.env.SERVER === "Klingo") {
+  if (process.env.SERVER === String("Klingo").toLowerCase()) {
     //FAZ INTEGRAÇÃO COM O SISTEMA KLINGO
     console.log("INICIALIZANDO EASYTALK KLINGO....")
     destroyFullAgents()

@@ -53,6 +53,7 @@ exports.default = async (client, agent) => {
         return agentMaxLimitSend?.max_limit_message;
     }
     async function sendMessages() {
+        console.log("passei no send message passo 1");
         const totMessageSend = await countLimitSendMessage();
         const maxLimitSendAgent = await maxLimitSendMessageAgent(agent.id);
         const shippingCampaign = await shippingcampaignsController.patientToSend(agent);
@@ -85,6 +86,7 @@ exports.default = async (client, agent) => {
                             let returnResponse = {};
                             await client.sendMessage(validationCellPhone, shippingCampaign.message)
                                 .then(async (response) => {
+                                console.log("PASSO 2.... ENVIO DE MENSAGEM");
                                 returnResponse = response;
                                 global.contSend++;
                                 shippingCampaign.messagesent = true;

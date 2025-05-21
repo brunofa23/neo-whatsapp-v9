@@ -21,7 +21,7 @@ function operacaoAssincrona(callback) {
         (0, events_1.connectionAll)();
         return;
     }
-    if (process.env.SERVER === String("Klingo").toLowerCase()) {
+    if (process.env.SERVER?.toLowerCase() === "klingo") {
         console.log("INICIALIZANDO EASYTALK KLINGO....");
         (0, events_1.destroyFullAgents)();
         (0, events_1.sendRepeatedMessageKlingo)();

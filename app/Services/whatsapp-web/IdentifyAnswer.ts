@@ -54,9 +54,9 @@ export async function interpretAnswer(respostaUsuario: string) {
   const manager = await treinarGerenciador()
   const result = await manager.process('pt', respostaUsuario)
 
-  console.log('Intent:', result.intent)
-  console.log('Score:', result.score)
-  console.log('Resposta sugerida:', result.answer)
+  // console.log('Intent:', result.intent)
+  // console.log('Score:', result.score)
+  // console.log('Resposta sugerida:', result.answer)
 
   // Aqui você pode decidir com base na intent
   if (result.intent === 'confirmar.consulta' && result.score > 0.75) {

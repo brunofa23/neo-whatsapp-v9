@@ -248,6 +248,7 @@ export default class AgentsController {
     const client = WhatsAppClientManager.getClient(agent);
 
     console.log("option:", option);
+    //console.log("cliente 1600:", client);
 
     if (option == 2) {
       // Informações básicas do client (usuário, número etc.)

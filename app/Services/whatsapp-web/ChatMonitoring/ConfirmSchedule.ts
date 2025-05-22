@@ -60,7 +60,7 @@ export default async (client: Client, message: Message, chat: Chat) => {
           externalstatus: 'A',
           company_id: chat.shippingcampaign.company_id,
         });
-        console.log("verificar:", chat.shippingcamapgn)
+       // console.log("verificar:", chat.shippingcamapgn)
         await chat.save();
       } catch (error) {
         console.error("Erro ao enviar a mensagem de agendamento:", error.message, error.stack);

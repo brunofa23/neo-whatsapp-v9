@@ -56,7 +56,7 @@ async function sendRepeatedMessage() {
         const datasourcesController = new DatasourcesController
         await datasourcesController.confirmScheduleAll()
         await datasourcesController.cancelScheduleAll()
-        await datasourcesController.resetCellphone()
+        //await datasourcesController.resetCellphone()
 
       }
     }
@@ -94,7 +94,6 @@ async function sendRepeatedMessageKlingo() {
       const datasourceApisController = new DatasourceApisController
       datasourceApisController.confirmOrCancelScheduleInternal()
     }
-
   }, await GenerateRandomTime(200, 250, '****Send Message Repeated')
   )
 

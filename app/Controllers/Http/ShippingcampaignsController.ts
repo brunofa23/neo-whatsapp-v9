@@ -77,7 +77,7 @@ export default class ShippingcampaignsController {
     const body = request.only(Shippingcampaign.fillable)
     body.id = params.id
     delete body.created_at
-    if(body.date_first_return)
+    if (body.date_first_return)
       body.date_first_return = DateTime.fromFormat(body.date_first_return, "dd/MM/yyyy HH:mm").toFormat("yyyy-MM-dd HH:mm")
     try {
       const data = await Shippingcampaign.query().where('id', params.id).update(body)
@@ -130,7 +130,7 @@ export default class ShippingcampaignsController {
       }
 
     } catch (error) {
-        throw new BadRequest('Bad Request', 401, error)
+      throw new BadRequest('Bad Request', 401, error)
     }
 
 
@@ -692,9 +692,9 @@ export default class ShippingcampaignsController {
 
     query.whereNotExists((subquery) => {
       subquery.select('*').from('chats').whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id');
-    }).orderBy('prioritysend', "desc")
+    }).orderByRaw('RAND()') //.orderBy('prioritysend', "desc")
 
-
+    console.log("****QUERY QUE BUSCA PACIENTE 778:", query.toQuery())
     const shippingCampaign = await query.first()
     return shippingCampaign
 

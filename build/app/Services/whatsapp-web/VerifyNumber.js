@@ -7,7 +7,9 @@ exports.verifyNumber = void 0;
 const util_1 = require("../whatsapp-web/util");
 const Log_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Log"));
 async function verifyNumber(client, cellphone) {
-    const formattedPhone = (0, util_1.ValidatePhone)(cellphone);
+    const formattedPhone = await (0, util_1.ValidatePhone)(cellphone);
+    console.log("***PASSO 1 - VERIFICANDO TELEFONE:", cellphone);
+    console.log("***PASSO 2 - VERIFICANDO TELEFONE:", formattedPhone);
     if (!formattedPhone) {
         await Log_1.default.create({
             name: 'VerifyNumber',

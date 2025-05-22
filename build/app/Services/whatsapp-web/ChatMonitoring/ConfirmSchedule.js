@@ -49,7 +49,6 @@ exports.default = async (client, message, chat) => {
                     externalstatus: 'A',
                     company_id: chat.shippingcampaign.company_id,
                 });
-                console.log("verificar:", chat.shippingcamapgn);
                 await chat.save();
             }
             catch (error) {

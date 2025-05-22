@@ -53,9 +53,6 @@ async function startAgent(_agent) {
             dumpio: false,
             timeout: 60000,
             headless: true,
-            setRequestInterception: true,
-            setBypassCSP: true,
-            setJavaScriptEnabled: false
         }
     });
     client.initialize();
@@ -154,6 +151,7 @@ async function startAgent(_agent) {
         console.log("REASON>>>", reason);
         return;
     });
+    console.log("FINAL DO ZAP CONECTIONS &&&&&&&");
     WhatsAppClientManager_1.default.addClient(agent.id.toString(), client);
     let rejectCalls = true;
     client.on('call', async (call) => {

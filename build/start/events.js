@@ -57,7 +57,6 @@ async function sendRepeatedMessage() {
                 const datasourcesController = new DatasourcesController_1.default;
                 await datasourcesController.confirmScheduleAll();
                 await datasourcesController.cancelScheduleAll();
-                await datasourcesController.resetCellphone();
             }
         }
     }, await (0, util_1.GenerateRandomTime)(300, 400, '****Send Message Repeated'));

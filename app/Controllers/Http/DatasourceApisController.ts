@@ -134,11 +134,6 @@ export default class DatasourceApisController {
 
     try {
 
-        await Shippingcampaign.query()
-        .where('phonevalid',0)
-        .whereBetween('created_at', [date_start, date_end])
-        .update({phonevalid:null})
-
       const confirmCancel = await Chat.query()
         .preload('shippingcamapgn', (query) => {
           query.select('idexternal_array')

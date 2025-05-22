@@ -40,7 +40,7 @@ async function startAgent(_agent: Agent) {
     authStrategy: new LocalAuth({ clientId: _agent.id, dataPath: Application.tmpPath('/sessions') }),
     //authStrategy: new LocalAuth({ clientId: _agent.id }),
     puppeteer: {
-       executablePath: '/usr/bin/chromium-browser',
+      executablePath: '/usr/bin/chromium-browser',
       args: ['--no-sandbox',
         '--max-memory=512MB',
         '--disable-setuid-sandbox',
@@ -55,10 +55,6 @@ async function startAgent(_agent: Agent) {
       timeout: 60000,
 
       headless: true,
-      setRequestInterception: true,
-      setBypassCSP: true,
-      setJavaScriptEnabled: false
-
     }
 
   });
@@ -220,8 +216,9 @@ async function startAgent(_agent: Agent) {
   });
 
 
+  console.log("FINAL DO ZAP CONECTIONS &&&&&&&")
   WhatsAppClientManager.addClient(agent.id.toString(), client);
-
+  //console.log("1300@@@@:", client)
 
   let rejectCalls = true;
   client.on('call', async (call) => {

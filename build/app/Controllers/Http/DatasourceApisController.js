@@ -110,10 +110,6 @@ class DatasourceApisController {
         const date_start = luxon_1.DateTime.now().startOf('day').toFormat("yyyy-MM-dd HH:mm");
         const date_end = luxon_1.DateTime.now().endOf('day').toFormat("yyyy-MM-dd HH:mm");
         try {
-            await Shippingcampaign_1.default.query()
-                .where('phonevalid', 0)
-                .whereBetween('created_at', [date_start, date_end])
-                .update({ phonevalid: null });
             const confirmCancel = await Chat_1.default.query()
                 .preload('shippingcamapgn', (query) => {
                 query.select('idexternal_array');

@@ -125,7 +125,7 @@ async function ClearFolder(folderPath) {
 //   if (!celularRegex.test(normalized)) return null;
 //   return normalized; // exemplo: 5511912345678
 // }
-function ValidatePhone(cellphone: string): string | null {
+async function ValidatePhone(cellphone: string): string | null {
   if (!cellphone) return null;
 
   const digits = cellphone.replace(/\D/g, '');

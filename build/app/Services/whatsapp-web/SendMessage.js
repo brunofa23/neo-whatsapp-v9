@@ -18,11 +18,13 @@ let resetContSendBool = false;
 const shippingcampaignsController = new ShippingcampaignsController_1.default();
 exports.default = async (client, agent) => {
     async function verifyClientSend(client, cellphone) {
+        console.log("*** PASSO 5.1.1");
         if (client?.info?.wid) {
             const query = Chat_1.default.query()
                 .where('cellphone', cellphone)
                 .andWhere('created_at', '>', dayBefore5)
                 .andWhere('chatnumber', client.info.wid.user);
+            console.log("*** PASSO 5.1.2:", query.toQuery());
             return await query.first();
         }
         else {
@@ -78,6 +80,7 @@ exports.default = async (client, agent) => {
                     console.log("*** PASSO 5");
                     if (!shippingCampaign.prioritysend)
                         verifycontsend = await verifyClientSend(client, shippingCampaign?.cellphone);
+                    console.log("*** PASSO 5.0", verifycontsend);
                     if (verifycontsend)
                         return;
                     console.log("*** PASSO 5.1");

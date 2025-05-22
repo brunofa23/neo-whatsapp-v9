@@ -152,8 +152,7 @@ function ValidatePhone(cellphone: string): string | null {
   // - DDD válido (01 a 99, não 00)
   // - número começa com 9
   // - número tem 9 dígitos após o DDD+9
-  const celularRegex = /^55[1-9]{2}9[6-9]\d{7}$/;
-
+  const celularRegex = /^55[1-9]{2}9\d{8}$/;
   if (!celularRegex.test(normalized)) return null;
 
   return normalized;

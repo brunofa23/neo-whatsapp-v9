@@ -493,8 +493,8 @@ class ShippingcampaignsController {
             query.whereNull('company_id');
         query.whereNotExists((subquery) => {
             subquery.select('*').from('chats').whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id');
-        }).orderBy('prioritysend', "desc");
-        console.log("****QUERY QUE BUSCA PACIENTEE 778:", query.toQuery());
+        }).orderByRaw('RAND()');
+        console.log("****QUERY QUE BUSCA PACIENTE 778:", query.toQuery());
         const shippingCampaign = await query.first();
         return shippingCampaign;
     }

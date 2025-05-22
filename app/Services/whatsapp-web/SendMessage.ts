@@ -37,7 +37,7 @@ export default async (client: Client, agent: Agent) => {
   async function verifyContSend() {
     if (global.contSend >= 3) {
       if (resetContSendBool == false) {
-        resetContSend = DateTime.local().plus({ minutes: 6 })
+        resetContSend = DateTime.local().plus({ minutes: 4 })
         resetContSendBool = true
       }
       else if (resetContSend <= DateTime.local()) {

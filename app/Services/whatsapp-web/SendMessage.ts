@@ -152,7 +152,7 @@ export default async (client: Client, agent: Agent) => {
           } else {//número é inválido
             shippingCampaign.phonevalid = false
             const result = await shippingCampaign.save()
-            console.log("*** PASSO 10", result)
+            console.log(`*** PASSO 10: id:${result.id}, nome:${result.name}, fone:${result.cellphone}, phonevalid:${result.phonevalid}`)
           }
         }
         catch (error) {

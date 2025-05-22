@@ -94,7 +94,6 @@ async function sendRepeatedMessageKlingo() {
       const datasourceApisController = new DatasourceApisController
       datasourceApisController.confirmOrCancelScheduleInternal()
     }
-
   }, await GenerateRandomTime(200, 250, '****Send Message Repeated')
   )
 

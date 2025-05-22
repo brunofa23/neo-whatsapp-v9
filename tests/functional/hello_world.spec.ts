@@ -25,6 +25,7 @@ import Agent from 'App/Models/Agent'
 
 test('display welcome page', async ({ client }) => {
 
-  
+  const teste = await ValidatePhone('31934982241')
+  console.log("TESTE:", teste)
 
 })

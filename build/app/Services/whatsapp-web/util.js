@@ -97,7 +97,7 @@ async function ValidatePhone(cellphone) {
     else {
         return null;
     }
-    const celularRegex = /^55[1-9]{2}9[6-9]\d{7}$/;
+    const celularRegex = /^55[1-9]{2}9\d{8}$/;
     if (!celularRegex.test(normalized))
         return null;
     return normalized;

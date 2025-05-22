@@ -25,10 +25,6 @@ import Agent from 'App/Models/Agent'
 
 test('display welcome page', async ({ client }) => {
 
-  const agentMaxLimitSend = await Agent.query().where('id', 75).first()
-  //console.log(agentMaxLimitSend)
-  if (agentMaxLimitSend == undefined || agentMaxLimitSend?.max_limit_message == undefined)
-    console.log("SEM RETORNO VALOR ZERO:::")
-  else console.log("limite maximo:",agentMaxLimitSend?.max_limit_message)
+  
 
 })

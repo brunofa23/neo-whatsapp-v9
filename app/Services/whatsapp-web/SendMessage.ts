@@ -90,7 +90,7 @@ export default async (client: Client, agent: Agent) => {
           console.log("*** PASSO 5")
           if (!shippingCampaign.prioritysend)
             verifycontsend = await verifyClientSend(client, shippingCampaign?.cellphone)
-          console.log("*** PASSO 5.0", verifycontsend.id, "cellphone:", verifycontsend.cellphone, "name", verifycontsend.name)
+          //console.log("*** PASSO 5.0", verifycontsend.id, "cellphone:", verifycontsend.cellphone, "name", verifycontsend.name)
           if (verifycontsend)
             return
           console.log("*** PASSO 5.1")
@@ -161,7 +161,7 @@ export default async (client: Client, agent: Agent) => {
         }
         catch (error) {
           console.log("ERRO 1500:::", error)
-          await Log.create({ name: 'sendMessageGeneral', message: error, description: "SendMessage.ts. linha:131" })
+          await Log.create({ name: 'sendMessageGeneral', message: "error", description: "SendMessage.ts. linha:131" })
         }
       }
     }

@@ -89,8 +89,11 @@ export default async (client: Client, agent: Agent) => {
             verifycontsend = await verifyClientSend(client, shippingCampaign?.cellphone)
           if (verifycontsend)
             return
+          console.log("*** PASSO 5.1")
           const validationCellPhone = await verifyNumber(client, shippingCampaign?.cellphone)
+          console.log("*** PASSO 5.2")
           if (validationCellPhone) {
+            console.log("*** PASSO 5.3")
             verifyChat = await Chat.query()
               .where('interaction_id', shippingCampaign?.interaction_id)
               .andWhere('interaction_seq', shippingCampaign?.interaction_seq)
@@ -147,9 +150,9 @@ export default async (client: Client, agent: Agent) => {
             }
 
           } else {//número é inválido
-            console.log("*** PASSO 10")
             shippingCampaign.phonevalid = false
-            await shippingCampaign.save()
+            const result = await shippingCampaign.save()
+            console.log("*** PASSO 10", result)
           }
         }
         catch (error) {

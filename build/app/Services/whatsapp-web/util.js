@@ -78,7 +78,7 @@ async function ClearFolder(folderPath) {
     }
 }
 exports.ClearFolder = ClearFolder;
-function ValidatePhone(cellphone) {
+async function ValidatePhone(cellphone) {
     if (!cellphone)
         return null;
     const digits = cellphone.replace(/\D/g, '');

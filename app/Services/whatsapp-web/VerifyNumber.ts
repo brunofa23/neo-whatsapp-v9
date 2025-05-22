@@ -11,7 +11,10 @@ import Log from 'App/Models/Log'
   //   });
   //   return null;
   // }
-  const formattedPhone = ValidatePhone(cellphone);
+  const formattedPhone =await ValidatePhone(cellphone);
+  console.log("***PASSO 1 - VERIFICANDO TELEFONE:", cellphone)
+  console.log("***PASSO 2 - VERIFICANDO TELEFONE:", formattedPhone)
+
   if (!formattedPhone) {
     await Log.create({
       name: 'VerifyNumber',
@@ -22,9 +25,6 @@ import Log from 'App/Models/Log'
   }
 
   try {
-
-    
-
     const verifiedPhone = await client.getNumberId(cellphone);
     if (verifiedPhone) {
       return verifiedPhone._serialized;

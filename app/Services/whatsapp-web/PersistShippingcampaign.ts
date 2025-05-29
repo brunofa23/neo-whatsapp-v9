@@ -35,8 +35,8 @@ export default async () => {
       shipping.messagesent = false
       shipping.message = String(data.message).replace(/@p[0-9]/g, '?')
       shipping.otherfields = data.otherfields
-      shipping.doctor =String(data.doctor).trim()
-      shipping.unit =String(data.unit).trim()
+      shipping.doctor = String(data.doctor).trim()
+      shipping.unit = String(data.unit).trim()
       shipping.attendant = String(data.attendant).trim()
       shipping.covenant = ''
       shipping.dateservice = data.dateservice
@@ -54,6 +54,7 @@ export default async () => {
         .first()
 
       if (!verifyExist) {
+        console.log("@@@##>>>>12333:", shipping)
         await Shippingcampaign.create(shipping)
       }
 

@@ -494,7 +494,6 @@ class ShippingcampaignsController {
         query.whereNotExists((subquery) => {
             subquery.select('*').from('chats').whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id');
         }).orderByRaw('RAND()');
-        console.log("****QUERY QUE BUSCA PACIENTE 778:", query.toQuery());
         const shippingCampaign = await query.first();
         return shippingCampaign;
     }

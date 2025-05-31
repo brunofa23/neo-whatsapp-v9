@@ -694,7 +694,6 @@ export default class ShippingcampaignsController {
       subquery.select('*').from('chats').whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id');
     }).orderByRaw('RAND()') //.orderBy('prioritysend', "desc")
 
-    console.log("****QUERY QUE BUSCA PACIENTE 778:", query.toQuery())
     const shippingCampaign = await query.first()
     return shippingCampaign
 

@@ -53,7 +53,7 @@ async function fallbackParaIA(perguntaUsuario, perguntas, informationContext) {
             },
         ];
         const response = await axios_1.default.post('https://api.groq.com/openai/v1/chat/completions', {
-            model: 'llama3-70b-8192',
+            model: 'llama-3.1-8b-instant',
             messages,
             temperature: 0.5,
             max_tokens: 500,

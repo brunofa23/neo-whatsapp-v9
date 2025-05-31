@@ -78,9 +78,7 @@ class AgentsController {
         }
     }
     async update({ auth, params, request, response }) {
-        console.log("conections.....", auth);
         await auth.use('api').authenticate();
-        console.log("conections.....UPDATE");
         const body = request.only(Agent_1.default.fillable);
         try {
             const data = await Agent_1.default.query().where('id', params.id)

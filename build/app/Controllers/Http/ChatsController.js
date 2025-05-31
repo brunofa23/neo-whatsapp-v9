@@ -40,7 +40,6 @@ class ChatsController {
     async closed({ auth, request, response }) {
         await auth.use('api').authenticate();
         const { start_date, end_date } = request.only(['start_date', 'end_date']);
-        console.log("passei no closed", start_date, end_date);
         try {
             const data = await Chat_1.default.query()
                 .where('created_at', '>=', start_date)

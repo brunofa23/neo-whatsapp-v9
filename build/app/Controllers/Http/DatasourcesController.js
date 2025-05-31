@@ -119,7 +119,6 @@ class DatasourcesController {
                     AGM_CONFIRM_USR: process.env.SERVER_API_USER
                 });
                 if (query > 0) {
-                    console.log("update realizado sucesso");
                     await Chat_1.default.query().where('reg', chat.reg).andWhere('idexternal', chat.idexternal).update({ externalstatus: 'B' });
                 }
             }

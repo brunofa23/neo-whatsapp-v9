@@ -83,9 +83,7 @@ export default class AgentsController {
   }
 
   public async update({ auth, params, request, response }: HttpContextContract) {
-    console.log("conections.....", auth)
     await auth.use('api').authenticate()
-    console.log("conections.....UPDATE")
     const body = request.only(Agent.fillable)
     try {
       const data = await Agent.query().where('id', params.id)
@@ -244,9 +242,7 @@ export default class AgentsController {
 
   public async verifyStatusAgent({ request, response }) {
     const { option, cellphone, agent } = request.only(['option', 'cellphone', 'agent'])
-
     const client = WhatsAppClientManager.getClient(agent);
-
     console.log("option:", option);
     //console.log("cliente 1600:", client);
 

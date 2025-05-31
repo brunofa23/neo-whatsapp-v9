@@ -26,8 +26,6 @@ export default class Monitoring {
     try {
       console.log("MONITORANDO CHAT DEFAULT")
       client.on('message', async message => {
-        console.log("CHAT PASSO 2", message.body)
-
         if (message.body === '1') {
           console.log("getContacts")
           const getContact = await client.getContacts()

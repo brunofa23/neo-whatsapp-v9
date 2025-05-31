@@ -42,7 +42,7 @@ export default class ChatsController {
   public async closed({auth, request, response }: HttpContextContract) {
     await auth.use('api').authenticate()
     const {start_date,end_date} = request.only(['start_date','end_date'])
-    console.log("passei no closed",start_date,end_date )
+    //console.log("passei no closed",start_date,end_date )
     //return
     //await auth.use('api').authenticate()
     try {

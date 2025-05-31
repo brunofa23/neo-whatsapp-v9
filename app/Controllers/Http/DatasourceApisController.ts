@@ -148,7 +148,6 @@ export default class DatasourceApisController {
       const processSchedule = async (idExternal, status, message) => {
         for (const id of idExternal) {
           const result = await confirmOrCancelScheduleApi(id, status, message);
-          console.log(`${message} para ID - 2025442:`, id);
           if (!result) {
             console.error(`659569 - Falha ao processar ${message} para ID:`, id);
           }
@@ -161,7 +160,7 @@ export default class DatasourceApisController {
         if (!idExternal || idExternal.length === 0) {
           continue;
         }
-        console.log("Executando Confirmação e Cancelamento no Klingo", data.name);
+        //console.log("Executando Confirmação e Cancelamento no Klingo", data.name);
         if (data.absoluteresp === 1) {
           // Faz a confirmação - STATUS C
           await processSchedule(idExternal, 'C', 'Confirmado');

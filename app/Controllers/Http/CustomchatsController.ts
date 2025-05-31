@@ -22,9 +22,6 @@ export default class CustomchatsController {
           .select('id', 'reg', 'cellphone', 'cellphoneserialized', 'message', 'response', 'response', 'returned', 'chatname', 'messagesent', 'chatnumber', 'phonevalid', 'read', 'viewed', 'ack', 'path_media', 'created_at')
           .where('chats_id', params.id)
       })
-
-      //console.log(query.toQuery())
-
     const data = await query
     return response.status(200).send(data)
   }

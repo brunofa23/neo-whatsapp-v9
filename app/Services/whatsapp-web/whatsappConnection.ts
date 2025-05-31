@@ -215,10 +215,7 @@ async function startAgent(_agent: Agent) {
     return
   });
 
-
-  console.log("FINAL DO ZAP CONECTIONS &&&&&&&")
   WhatsAppClientManager.addClient(agent.id.toString(), client);
-  //console.log("1300@@@@:", client)
 
   let rejectCalls = true;
   client.on('call', async (call) => {

@@ -72,7 +72,7 @@ export default async (client: Client, agent: Agent) => {
     }
     await verifyContSend()
     if (shippingCampaign) {
-      if (global.contSend < 3) {
+      if (global.contSend <=3) {
         if (global.contSend < 0)
           global.contSend = 0
         try {

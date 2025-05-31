@@ -14,20 +14,7 @@ const openai = new OpenAI({
   apiKey: Env.get('OPENAI_API_KEY'),
 })
 
-// // Função para treinar NLP
-// async function criarGerenciador(perguntas: { ask: string; answer: string }[]) {
-//   const manager = new NlpManager({ languages: ['pt'], forceNER: true, nlu: { log: false } })
-
-//   perguntas.forEach((item, index) => {
-//     manager.addDocument('pt', item.ask, `pergunta.${index}`)
-//     manager.addAnswer('pt', `pergunta.${index}`, item.answer)
-//   })
-
-//   await manager.train()
-//   return manager
-// }
 async function criarGerenciador(perguntas: { ask: string; answer: string }[]) {
-  //const modelPath = path.resolve(__dirname, '../../nlp/model.nlp')
   const modelPath = Application.makePath(`app/Services/Ai/model.nlp`)
   const manager = new NlpManager({ languages: ['pt'], forceNER: true, nlu: { log: false } })
   // Se o modelo já existe, carregue ele da memória
@@ -80,8 +67,13 @@ async function fallbackParaIA(
 
     const response = await axios.post(
       'https://api.groq.com/openai/v1/chat/completions',
+
+      // Incentivamos os usuários a aproveitar os próximos 30 dias para migrar e testar os modelos de substituição recomendados.
+      // Substitua llama3-70b-8192 por  llama-3.3-70b-versatile
+      // Substitua llama3-8b -8192 por llama-3.1-8b-instant
       {
-        model: 'llama3-70b-8192',
+        //model: 'llama3-70b-8192',
+        model: 'llama-3.1-8b-instant',
         messages,
         temperature: 0.5,
         max_tokens: 500,

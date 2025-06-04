@@ -42,13 +42,27 @@ async function fallbackParaIA(
   informationContext: string
 ): Promise<string> {
   try {
-    const contexto = perguntas.map((p) => `Q: ${p.ask}\nA: ${p.answer}`).join('\n\n')
+
+    // Top 1 ou top 3 perguntas mais semelhantes
+    const similaridades = perguntas.map((pergunta, i) => ({
+      pergunta,
+      resposta: query[i].answer,
+      score: stringSimilarity.compareTwoStrings(perguntaUsuario, pergunta),
+    }))
+    const topSimilares = similaridades
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 2) // pegar só as 2 mais semelhantes
+    const contexto = topSimilares
+      .map((p) => `Q: ${p.pergunta}\nA: ${p.resposta}`)
+      .join('\n\n')
+
+    //const contexto = perguntas.map((p) => `Q: ${p.ask}\nA: ${p.answer}`).join('\n\n')
 
     const messages = [
       {
         role: 'system',
-        content: `Você é uma atendente de call center de um hospital chamada Iris, e só pode responder com base nas perguntas e respostas abaixo.
-                  Se a pergunta do usuário não estiver claramente presente ou relacionada diga "Desculpe, não tenho essa resposta".
+        content: `Você é um bot de call center de um hospital chamada Iris, e só pode responder com base nas perguntas e respostas abaixo.
+                  Se a pergunta do usuário não estiver claramente presente ou relacionada diga "Desculpe, não tenho essa resposta, melhor ligar para a nossa central.".
                   Se alguém te tratar de forma hostil ou com palavras indevidas diga "Desculpe, sou apenas uma máquina e ainda estou aprendendo!".
                   Nunca confirme uma marcação ou cancelamento de agendamento.
                   Responda de forma clara, objetiva e educada.
@@ -88,34 +102,6 @@ async function fallbackParaIA(
 
     return response.data.choices?.[0]?.message?.content?.trim() || 'Desculpe, não entendi sua pergunta.'
 
-    // if (Env.get('USE_OPENROUTER') === 'true') {
-    //   const response = await axios.post(
-    //     'https://openrouter.ai/api/v1/chat/completions',
-    //     {
-    //       model: Env.get('OPENROUTER_MODEL', 'openai/gpt-3.5-turbo'),
-    //       messages,
-    //       temperature: 0.5,
-    //       max_tokens: 500,
-    //     },
-    //     {
-    //       headers: {
-    //         Authorization: `Bearer ${Env.get('OPENROUTER_API_KEY')}`,
-    //         'Content-Type': 'application/json',
-    //       },
-    //     }
-    //   )
-
-    //   return response.data.choices?.[0]?.message?.content?.trim() || 'Desculpe, não entendi sua pergunta.'
-    // } else {
-    //   const completion = await openai.chat.completions.create({
-    //     model: 'gpt-3.5-turbo',
-    //     messages,
-    //     temperature: 0.5,
-    //     max_tokens: 500,
-    //   })
-
-    //   return completion.choices[0].message?.content?.trim() || 'Desculpe, não entendi sua pergunta.'
-    // }
   } catch (error) {
     console.error('Erro no fallback com IA:', error)
     return 'Desculpe, houve um erro ao tentar entender sua pergunta.'
@@ -161,7 +147,7 @@ export async function responderPergunta(
   const indexMaisParecido = perguntas.findIndex((p) => p === perguntaMaisParecida)
   const respostaMaisParecida = query[indexMaisParecido]?.answer
 
-  if (similaridade >= 0.6 && respostaMaisParecida) {
+  if (similaridade >= 0.7 && respostaMaisParecida) {
     return respostaMaisParecida
   }
 

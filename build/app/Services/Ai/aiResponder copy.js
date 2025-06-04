@@ -10,61 +10,70 @@ const Env_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Env"));
 const Faq_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Faq"));
 const axios_1 = __importDefault(require("axios"));
 const openai_1 = require("openai");
+const Application_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Application"));
+const fs_1 = __importDefault(require("fs"));
 const openai = new openai_1.OpenAI({
     apiKey: Env_1.default.get('OPENAI_API_KEY'),
 });
 async function criarGerenciador(perguntas) {
+    const modelPath = Application_1.default.makePath(`app/Services/Ai/model.nlp`);
     const manager = new node_nlp_1.NlpManager({ languages: ['pt'], forceNER: true, nlu: { log: false } });
+    if (fs_1.default.existsSync(modelPath)) {
+        await manager.load(modelPath);
+        return manager;
+    }
     perguntas.forEach((item, index) => {
         manager.addDocument('pt', item.ask, `pergunta.${index}`);
         manager.addAnswer('pt', `pergunta.${index}`, item.answer);
     });
     await manager.train();
+    await manager.save(modelPath);
     return manager;
 }
 async function fallbackParaIA(perguntaUsuario, perguntas, informationContext) {
     try {
-        const contexto = perguntas.map((p) => `Q: ${p.ask}\nA: ${p.answer}`).join('\n\n');
+        const similaridades = perguntas.map((pergunta, i) => ({
+            pergunta,
+            resposta: query[i].answer,
+            score: string_similarity_1.default.compareTwoStrings(perguntaUsuario, pergunta),
+        }));
+        const topSimilares = similaridades
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 2);
+        const contexto = topSimilares
+            .map((p) => `Q: ${p.pergunta}\nA: ${p.resposta}`)
+            .join('\n\n');
         const messages = [
             {
                 role: 'system',
-                content: `Você é uma atendente de call center de um hospital e só pode responder com base nas perguntas e respostas abaixo.
-Se a pergunta do usuário não estiver claramente presente ou relacionada diga "Desculpe, não tenho essa resposta".
-Responda de forma clara, objetiva e educada.
-Se tiver o nome chame-o pelo nome.
-Sempre responda em português.`,
+                content: `Você é um bot de call center de um hospital chamada Iris, e só pode responder com base nas perguntas e respostas abaixo.
+                  Se a pergunta do usuário não estiver claramente presente ou relacionada diga "Desculpe, não tenho essa resposta, melhor ligar para a nossa central.".
+                  Se alguém te tratar de forma hostil ou com palavras indevidas diga "Desculpe, sou apenas uma máquina e ainda estou aprendendo!".
+                  Nunca confirme uma marcação ou cancelamento de agendamento.
+                  Responda de forma clara, objetiva e educada.
+                  Se tiver o nome chame-o apenas pelo primeiro nome.
+                  Sempre responda em português.`,
             },
             {
                 role: 'user',
                 content: `Baseado nas perguntas abaixo, responda de forma direta:
-${contexto}
-Informações adicionais do paciente: ${informationContext}
-Pergunta: ${perguntaUsuario}`,
+                  ${contexto}
+                  Informações adicionais do paciente: ${informationContext}
+                  Pergunta: ${perguntaUsuario}`,
             },
         ];
-        if (Env_1.default.get('USE_OPENROUTER') === 'true') {
-            const response = await axios_1.default.post('https://openrouter.ai/api/v1/chat/completions', {
-                model: Env_1.default.get('OPENROUTER_MODEL', 'openai/gpt-3.5-turbo'),
-                messages,
-                temperature: 0.5,
-                max_tokens: 500,
-            }, {
-                headers: {
-                    Authorization: `Bearer ${Env_1.default.get('OPENROUTER_API_KEY')}`,
-                    'Content-Type': 'application/json',
-                },
-            });
-            return response.data.choices?.[0]?.message?.content?.trim() || 'Desculpe, não entendi sua pergunta.';
-        }
-        else {
-            const completion = await openai.chat.completions.create({
-                model: 'gpt-3.5-turbo',
-                messages,
-                temperature: 0.5,
-                max_tokens: 500,
-            });
-            return completion.choices[0].message?.content?.trim() || 'Desculpe, não entendi sua pergunta.';
-        }
+        const response = await axios_1.default.post('https://api.groq.com/openai/v1/chat/completions', {
+            model: 'llama-3.1-8b-instant',
+            messages,
+            temperature: 0.5,
+            max_tokens: 500,
+        }, {
+            headers: {
+                Authorization: `Bearer ${Env_1.default.get('GROQ_API_KEY')}`,
+                'Content-Type': 'application/json',
+            },
+        });
+        return response.data.choices?.[0]?.message?.content?.trim() || 'Desculpe, não entendi sua pergunta.';
     }
     catch (error) {
         console.error('Erro no fallback com IA:', error);
@@ -102,7 +111,7 @@ async function responderPergunta(perguntaUsuario, informationContext = '') {
     const perguntaMaisParecida = match.bestMatch.target;
     const indexMaisParecido = perguntas.findIndex((p) => p === perguntaMaisParecida);
     const respostaMaisParecida = query[indexMaisParecido]?.answer;
-    if (similaridade >= 0.6 && respostaMaisParecida) {
+    if (similaridade >= 0.7 && respostaMaisParecida) {
         return respostaMaisParecida;
     }
     return await fallbackParaIA(perguntaUsuario, query, informationContext);

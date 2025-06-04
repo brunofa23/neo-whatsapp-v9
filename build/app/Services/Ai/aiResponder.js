@@ -39,7 +39,7 @@ async function fallbackParaIA(perguntaUsuario, perguntas, informationContext) {
         }));
         const topSimilares = similaridades
             .sort((a, b) => b.score - a.score)
-            .slice(0, 2);
+            .slice(0, 1);
         const contexto = topSimilares
             .map((p) => `Q: ${p.pergunta}\nA: ${p.resposta}`)
             .join('\n\n');
@@ -50,6 +50,7 @@ async function fallbackParaIA(perguntaUsuario, perguntas, informationContext) {
 Se a pergunta do usuário não estiver claramente presente ou relacionada diga "Desculpe, não tenho essa resposta, melhor ligar para a nossa central.".
 Se alguém te tratar de forma hostil ou com palavras indevidas diga "Desculpe, sou apenas uma máquina e ainda estou aprendendo!".
 Nunca confirme uma marcação ou cancelamento de agendamento.
+Nunca combine respostas de diferentes tópicos. Não crie ou assuma informações.
 Responda de forma clara, objetiva e educada.
 Se tiver o nome chame-o apenas pelo primeiro nome.
 Sempre responda em português.`,
@@ -111,7 +112,7 @@ async function responderPergunta(perguntaUsuario, informationContext = '') {
     const perguntaMaisParecida = match.bestMatch.target;
     const indexMaisParecido = perguntas.findIndex((p) => p === perguntaMaisParecida);
     const respostaMaisParecida = query[indexMaisParecido]?.answer;
-    if (similaridade >= 0.7 && respostaMaisParecida) {
+    if (similaridade >= 0.8 && respostaMaisParecida) {
         return respostaMaisParecida;
     }
     return await fallbackParaIA(perguntaUsuario, query, informationContext);

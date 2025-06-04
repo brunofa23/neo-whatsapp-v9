@@ -32,12 +32,22 @@ async function criarGerenciador(perguntas) {
 }
 async function fallbackParaIA(perguntaUsuario, perguntas, informationContext) {
     try {
-        const contexto = perguntas.map((p) => `Q: ${p.ask}\nA: ${p.answer}`).join('\n\n');
+        const similaridades = perguntas.map((pergunta, i) => ({
+            pergunta,
+            resposta: query[i].answer,
+            score: string_similarity_1.default.compareTwoStrings(perguntaUsuario, pergunta),
+        }));
+        const topSimilares = similaridades
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 2);
+        const contexto = topSimilares
+            .map((p) => `Q: ${p.pergunta}\nA: ${p.resposta}`)
+            .join('\n\n');
         const messages = [
             {
                 role: 'system',
-                content: `Você é uma atendente de call center de um hospital chamada Iris, e só pode responder com base nas perguntas e respostas abaixo.
-                  Se a pergunta do usuário não estiver claramente presente ou relacionada diga "Desculpe, não tenho essa resposta".
+                content: `Você é um bot de call center de um hospital chamada Iris, e só pode responder com base nas perguntas e respostas abaixo.
+                  Se a pergunta do usuário não estiver claramente presente ou relacionada diga "Desculpe, não tenho essa resposta, melhor ligar para a nossa central.".
                   Se alguém te tratar de forma hostil ou com palavras indevidas diga "Desculpe, sou apenas uma máquina e ainda estou aprendendo!".
                   Nunca confirme uma marcação ou cancelamento de agendamento.
                   Responda de forma clara, objetiva e educada.
@@ -101,7 +111,7 @@ async function responderPergunta(perguntaUsuario, informationContext = '') {
     const perguntaMaisParecida = match.bestMatch.target;
     const indexMaisParecido = perguntas.findIndex((p) => p === perguntaMaisParecida);
     const respostaMaisParecida = query[indexMaisParecido]?.answer;
-    if (similaridade >= 0.6 && respostaMaisParecida) {
+    if (similaridade >= 0.7 && respostaMaisParecida) {
         return respostaMaisParecida;
     }
     return await fallbackParaIA(perguntaUsuario, query, informationContext);

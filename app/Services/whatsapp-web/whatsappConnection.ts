@@ -153,9 +153,9 @@ async function startAgent(_agent: Agent) {
   }, await GenerateRandomTime(600, 900, '----Time Send Message'))
 
 
-  if (process.env.SERVER === 'true') {
-    await sendRepeatedMessage(agent)
-  }
+  // if (process.env.SERVER === 'true') {
+  //   await sendRepeatedMessage(agent)
+  // }
 
   const chatMonitoring = new ChatMonitoring
   await chatMonitoring.monitoring(client, agent)

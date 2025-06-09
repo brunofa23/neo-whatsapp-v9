@@ -2,11 +2,10 @@ import AgentsController from "App/Controllers/Http/AgentsController";
 import DatasourcesController from "App/Controllers/Http/DatasourcesController";
 import DatasourceApisController from "App/Controllers/Http/DatasourceApisController";
 import Agent from "App/Models/Agent"
-import Config from "App/Models/Config"
 import PersistShippingcampaign from "App/Services/whatsapp-web/PersistShippingcampaign"
 import { DateTime } from 'luxon';
 
-import { DateFormat, GenerateRandomTime, TimeSchedule } from '../app/Services/whatsapp-web/util'
+import { getTargetDates, GenerateRandomTime, TimeSchedule } from '../app/Services/whatsapp-web/util'
 import { startAgentChat } from "../app/Services/whatsapp-web/whatsapp"
 import { startAgent } from "../app/Services/whatsapp-web/whatsappConnection"
 
@@ -45,21 +44,23 @@ async function connectionAll() {
 }
 
 async function sendRepeatedMessage() {
-  //console.log("EXECUTANDO BUSCA SMART")
-  const executingSendMessage = await Config.find('executingSendMessage')
+  console.log("EXECUTANDO BUSCA SMART")
+  //const executingSendMessage = await Config.find('executingSendMessage')
   setInterval(async () => {
-    const date = await DateFormat("dd/MM/yyyy HH:mm:ss", DateTime.local())
-    if (!executingSendMessage?.valuebool) {
-      if (await TimeSchedule()) {
-        console.log(`Buscando dados no Smart(Server): ${date}`)
-        await PersistShippingcampaign()
-        const datasourcesController = new DatasourcesController
-        await datasourcesController.confirmScheduleAll()
-        await datasourcesController.cancelScheduleAll()
-        //await datasourcesController.resetCellphone()
-
+    const targetDates = getTargetDates()
+    //if (!executingSendMessage?.valuebool) {
+    if (await TimeSchedule()) {
+      for (const date of targetDates) {
+        const formatted = date.toFormat('yyyy-MM-dd')
+        console.log(`Buscando dados no Smart(Server): ${formatted}`)
+        await PersistShippingcampaign(formatted)
       }
+      const datasourcesController = new DatasourcesController
+      await datasourcesController.confirmScheduleAll()
+      await datasourcesController.cancelScheduleAll()
+      //await datasourcesController.resetCellphone()
     }
+    //}
   }, await GenerateRandomTime(300, 400, '****Send Message Repeated'))
 }
 
@@ -69,7 +70,7 @@ async function sendRepeatedMessageKlingo() {
   console.log("EXECUTANDO BUSCA KLINGO")
   //const executingSendMessage = await Config.find('executingSendMessage')
   setInterval(async () => {
-    let date = DateTime.now().plus({ days: 3 });
+    let date = DateTime.local().setZone('America/Sao_Paulo').plus({ days: 3 });
     if (date.weekday === 6) {
       date = date.plus({ days: 2 }); // Passa para segunda-feira
     } else if (date.weekday === 7) {

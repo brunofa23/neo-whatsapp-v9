@@ -2,6 +2,7 @@ import Route from '@ioc:Adonis/Core/Route'
 import PersistShippingcampaign from "App/Services/whatsapp-web/PersistShippingcampaign"
 
 import { connectionAll, destroyFullAgents, resetStatusConnected, sendRepeatedMessage, sendRepeatedMessageKlingo } from './events'
+import { DateTime } from 'luxon'
 
 console.log("***CHAT BOT V-126***16/05/2025", process.env.SERVER)
 function operacaoAssincrona(callback) {
@@ -47,10 +48,21 @@ Route.get('/', async () => {
 })
 
 Route.group(() => {
+
   //Executa busca no Smart
-  Route.get('/executequery', async () => {
-    console.log("EXECUTANDO BUSCA NO SMART")
-    await PersistShippingcampaign()
+  Route.get('/executequery', async ({ request }) => {
+    const { unit, date } = request.only(['unit', 'date'])
+    const dateQuery = DateTime.fromFormat(date, 'yyyy-MM-dd', { zone: 'America/Sao_Paulo' });
+    console.log("EXECUTANDO BUSCA NO SMART", dateQuery)
+
+    if (dateQuery.isValid) {
+      console.log('Data válida:', dateQuery.toISODate());
+      await PersistShippingcampaign(dateQuery.toFormat('yyyy-MM-dd'), true, 1, unit)
+      return
+    } else {
+      console.log('Data inválida!');
+    }
+
   })
 
   //USERS
@@ -84,7 +96,7 @@ Route.group(() => {
   Route.get("/configs/restartsystem", "ConfigsController.restartSystem")
 
 
-  Route.get("/smart", "DatasourcesController.scheduledPatients")
+  Route.get("/scheduledPatients", "DatasourcesController.scheduledPatients")
   Route.get("/cancelscheduleall", "DatasourcesController.cancelScheduleAll")
   Route.get("/confirmscheduleall", "DatasourcesController.confirmScheduleAll")
 

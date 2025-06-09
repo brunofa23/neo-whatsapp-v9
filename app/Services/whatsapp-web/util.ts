@@ -31,12 +31,7 @@ async function GenerateRandomTime(min: number, max: number, method: String = "")
 
 }
 
-// async function TimeSchedule() {
-//   const timeSchedule = (DateTime.local().hour > 5 && DateTime.local().hour < 21) ? true : false
-//   const message = !timeSchedule ? `Fora do Horario de Envio 7 às 19:${DateTime.local()}` : undefined
-//   if (message) console.log(message)
-//   return timeSchedule
-// }
+
 async function TimeSchedule() {
   const now = DateTime.local().setZone('America/Sao_Paulo');
 
@@ -99,32 +94,7 @@ async function ClearFolder(folderPath) {
 
 }
 
-// function ValidatePhone(cellphone: string): string | null {
 
-//   if (!cellphone) return null;
-//   // Remove tudo que não for número
-//   const digits = cellphone.replace(/\D/g, '');
-
-//   // Ex: 911234567 (sem DDD) → inválido
-//   if (digits.length < 10) return null;
-
-//   // Adiciona +55 se não tiver (código do Brasil)
-//   let normalized = digits;
-
-//   if (digits.length === 11) {
-//     // Ex: 11912345678
-//     normalized = '55' + digits;
-//   } else if (digits.length === 13 && digits.startsWith('55')) {
-//     // já está no formato correto
-//   } else {
-//     // número não esperado
-//     return null;
-//   }
-//   // Validação básica: deve ter 13 dígitos e ser celular (começa com 9 após DDD)
-//   const celularRegex = /^55[1-9]{2}9[6-9]\d{7}$/;
-//   if (!celularRegex.test(normalized)) return null;
-//   return normalized; // exemplo: 5511912345678
-// }
 async function ValidatePhone(cellphone: string): string | null {
   if (!cellphone) return null;
 
@@ -184,4 +154,36 @@ async function extractCellphone(mascara: string): string {
   return mascara.replace(/^55/, '').replace(/@.*/, '')
 }
 
-export { stateTyping, DateFormat, GenerateRandomTime, TimeSchedule, PositiveResponse, NegativeResponse, ClearFolder, ValidatePhone, RandomResponse, validAgent, chunckPhone, extractCellphone }
+
+//RETORNA O DIA DA SEMANA PARA BUSCAR NO SISTEMA COM 2 DIAS
+function getTargetDates(): DateTime[] {
+  const today = DateTime.local().setZone('America/Sao_Paulo');
+  const weekday = today.weekday; // 1 = segunda, ..., 7 = domingo
+  let dates: DateTime[] = [];
+
+  switch (weekday) {
+    case 1: // Segunda → Quarta
+      dates.push(today.plus({ days: 2 }));
+      break;
+    case 2: // Terça → Quinta
+      dates.push(today.plus({ days: 2 }));
+      break;
+    case 3: // Quarta → Sexta
+      dates.push(today.plus({ days: 2 }));
+      break;
+    case 4: // Quinta → Sábado e Segunda
+      dates.push(today.plus({ days: 2 })); // Sábado
+      dates.push(today.plus({ days: 4 })); // Segunda
+      break;
+    case 5: // Sexta → Terça
+      dates.push(today.plus({ days: 4 }));
+      break;
+    default:
+      console.warn("Hoje não é um dia útil esperado (segunda a sexta).");
+      break;
+  }
+
+  return dates;
+}
+
+export {getTargetDates, stateTyping, DateFormat, GenerateRandomTime, TimeSchedule, PositiveResponse, NegativeResponse, ClearFolder, ValidatePhone, RandomResponse, validAgent, chunckPhone, extractCellphone }

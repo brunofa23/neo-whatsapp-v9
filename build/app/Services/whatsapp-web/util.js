@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.extractCellphone = exports.chunckPhone = exports.validAgent = exports.RandomResponse = exports.ValidatePhone = exports.ClearFolder = exports.NegativeResponse = exports.PositiveResponse = exports.TimeSchedule = exports.GenerateRandomTime = exports.DateFormat = exports.stateTyping = void 0;
+exports.extractCellphone = exports.chunckPhone = exports.validAgent = exports.RandomResponse = exports.ValidatePhone = exports.ClearFolder = exports.NegativeResponse = exports.PositiveResponse = exports.TimeSchedule = exports.GenerateRandomTime = exports.DateFormat = exports.stateTyping = exports.getTargetDates = void 0;
 const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
 const luxon_1 = require("luxon");
 const fs = require('fs');
@@ -125,4 +125,32 @@ async function extractCellphone(mascara) {
     return mascara.replace(/^55/, '').replace(/@.*/, '');
 }
 exports.extractCellphone = extractCellphone;
+function getTargetDates() {
+    const today = luxon_1.DateTime.local().setZone('America/Sao_Paulo');
+    const weekday = today.weekday;
+    let dates = [];
+    switch (weekday) {
+        case 1:
+            dates.push(today.plus({ days: 2 }));
+            break;
+        case 2:
+            dates.push(today.plus({ days: 2 }));
+            break;
+        case 3:
+            dates.push(today.plus({ days: 2 }));
+            break;
+        case 4:
+            dates.push(today.plus({ days: 2 }));
+            dates.push(today.plus({ days: 4 }));
+            break;
+        case 5:
+            dates.push(today.plus({ days: 4 }));
+            break;
+        default:
+            console.warn("Hoje não é um dia útil esperado (segunda a sexta).");
+            break;
+    }
+    return dates;
+}
+exports.getTargetDates = getTargetDates;
 //# sourceMappingURL=util.js.map

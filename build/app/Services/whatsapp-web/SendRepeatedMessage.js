@@ -4,21 +4,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendRepeatedMessage = void 0;
-const Config_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Config"));
-const luxon_1 = require("luxon");
 const PersistShippingcampaign_1 = __importDefault(require("./PersistShippingcampaign"));
 const util_1 = require("./util");
 async function sendRepeatedMessage(agent) {
-    const executingSendMessage = await Config_1.default.find('executingSendMessage');
     setInterval(async () => {
-        const date = await (0, util_1.DateFormat)("dd/MM/yyyy HH:mm:ss", luxon_1.DateTime.local().setZone('America/Sao_Paulo'));
-        if (!executingSendMessage?.valuebool) {
-            if (await (0, util_1.TimeSchedule)()) {
-                console.log(`Buscando dados no Smart: ${date}`);
-                await (0, PersistShippingcampaign_1.default)();
+        const targetDates = (0, util_1.getTargetDates)();
+        if (await (0, util_1.TimeSchedule)()) {
+            for (const date of targetDates) {
+                const formatted = date.toFormat('yyyy-MM-dd');
+                console.log(`Buscando dados no Smart(Server): ${formatted}`);
+                await (0, PersistShippingcampaign_1.default)(formatted);
             }
         }
-    }, await (0, util_1.GenerateRandomTime)(500, 800, '****Send Message Repeated'));
+    }, await (0, util_1.GenerateRandomTime)(300, 400, '****Send Message Repeated'));
 }
 exports.sendRepeatedMessage = sendRepeatedMessage;
 //# sourceMappingURL=SendRepeatedMessage.js.map

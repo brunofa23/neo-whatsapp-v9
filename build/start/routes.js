@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const Route_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Route"));
 const PersistShippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/PersistShippingcampaign"));
 const events_1 = require("./events");
+const luxon_1 = require("luxon");
 console.log("***CHAT BOT V-126***16/05/2025", process.env.SERVER);
 function operacaoAssincrona(callback) {
     console.log("ENTREI PASSO 1", process.env.SERVER);
@@ -42,9 +43,18 @@ Route_1.default.get('/', async () => {
     return { hello: 'world' };
 });
 Route_1.default.group(() => {
-    Route_1.default.get('/executequery', async () => {
-        console.log("EXECUTANDO BUSCA NO SMART");
-        await (0, PersistShippingcampaign_1.default)();
+    Route_1.default.get('/executequery', async ({ request }) => {
+        const { unit, date } = request.only(['unit', 'date']);
+        const dateQuery = luxon_1.DateTime.fromFormat(date, 'yyyy-MM-dd', { zone: 'America/Sao_Paulo' });
+        console.log("EXECUTANDO BUSCA NO SMART", dateQuery);
+        if (dateQuery.isValid) {
+            console.log('Data válida:', dateQuery.toISODate());
+            await (0, PersistShippingcampaign_1.default)(dateQuery.toFormat('yyyy-MM-dd'), true, 1, unit);
+            return;
+        }
+        else {
+            console.log('Data inválida!');
+        }
     });
     Route_1.default.resource("/users", "UsersController").apiOnly();
     Route_1.default.post("/login", "UsersController.login");
@@ -64,7 +74,7 @@ Route_1.default.group(() => {
     Route_1.default.post("/customchat/viewedconfirmed/:chats_id", "CustomchatsController.viewedConfirmed");
     Route_1.default.resource("/config", "ConfigsController").apiOnly();
     Route_1.default.get("/configs/restartsystem", "ConfigsController.restartSystem");
-    Route_1.default.get("/smart", "DatasourcesController.scheduledPatients");
+    Route_1.default.get("/scheduledPatients", "DatasourcesController.scheduledPatients");
     Route_1.default.get("/cancelscheduleall", "DatasourcesController.cancelScheduleAll");
     Route_1.default.get("/confirmscheduleall", "DatasourcesController.confirmScheduleAll");
     Route_1.default.post('/logout', 'ShippingcampaignsController.logout');

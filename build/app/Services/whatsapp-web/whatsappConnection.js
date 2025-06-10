@@ -8,7 +8,6 @@ const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"
 const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Shippingcampaign"));
 const Config_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Config"));
 const SendMessage_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/SendMessage"));
-const SendRepeatedMessage_1 = global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/SendRepeatedMessage");
 const luxon_1 = require("luxon");
 const ChatMonitoring_1 = __importDefault(require("./ChatMonitoring/ChatMonitoring"));
 const ChatMonitoringInternal_1 = __importDefault(require("./ChatMonitoring/ChatMonitoringInternal"));
@@ -112,9 +111,6 @@ async function startAgent(_agent) {
             }
         }
     }, await (0, util_1.GenerateRandomTime)(600, 900, '----Time Send Message'));
-    if (process.env.SERVER === 'true') {
-        await (0, SendRepeatedMessage_1.sendRepeatedMessage)(agent);
-    }
     const chatMonitoring = new ChatMonitoring_1.default;
     await chatMonitoring.monitoring(client, agent);
     if (process.env.SELF_CONVERSATION?.toLowerCase() === "true") {

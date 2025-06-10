@@ -8,7 +8,6 @@ const AgentsController_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Co
 const DatasourcesController_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Controllers/Http/DatasourcesController"));
 const DatasourceApisController_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Controllers/Http/DatasourceApisController"));
 const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
-const Config_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Config"));
 const PersistShippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/PersistShippingcampaign"));
 const luxon_1 = require("luxon");
 const util_1 = require("../app/Services/whatsapp-web/util");
@@ -47,17 +46,18 @@ async function connectionAll() {
 }
 exports.connectionAll = connectionAll;
 async function sendRepeatedMessage() {
-    const executingSendMessage = await Config_1.default.find('executingSendMessage');
+    console.log("EXECUTANDO BUSCA SMART");
     setInterval(async () => {
-        const date = await (0, util_1.DateFormat)("dd/MM/yyyy HH:mm:ss", luxon_1.DateTime.local());
-        if (!executingSendMessage?.valuebool) {
-            if (await (0, util_1.TimeSchedule)()) {
-                console.log(`Buscando dados no Smart(Server): ${date}`);
-                await (0, PersistShippingcampaign_1.default)();
-                const datasourcesController = new DatasourcesController_1.default;
-                await datasourcesController.confirmScheduleAll();
-                await datasourcesController.cancelScheduleAll();
+        const targetDates = (0, util_1.getTargetDates)();
+        if (await (0, util_1.TimeSchedule)()) {
+            for (const date of targetDates) {
+                const formatted = date.toFormat('yyyy-MM-dd');
+                console.log(`Buscando dados no Smart(Server): ${formatted}`);
+                await (0, PersistShippingcampaign_1.default)(formatted);
             }
+            const datasourcesController = new DatasourcesController_1.default;
+            await datasourcesController.confirmScheduleAll();
+            await datasourcesController.cancelScheduleAll();
         }
     }, await (0, util_1.GenerateRandomTime)(300, 400, '****Send Message Repeated'));
 }
@@ -65,7 +65,7 @@ exports.sendRepeatedMessage = sendRepeatedMessage;
 async function sendRepeatedMessageKlingo() {
     console.log("EXECUTANDO BUSCA KLINGO");
     setInterval(async () => {
-        let date = luxon_1.DateTime.now().plus({ days: 3 });
+        let date = luxon_1.DateTime.local().setZone('America/Sao_Paulo').plus({ days: 3 });
         if (date.weekday === 6) {
             date = date.plus({ days: 2 });
         }

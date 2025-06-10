@@ -15,9 +15,9 @@ function isIterable(obj) {
         return false;
     }
 }
-exports.default = async () => {
+exports.default = async (date, prioritysend = false, interaction_id = 0, unit = 0) => {
     const dataSource = new DatasourcesController_1.default;
-    const dataSourceList = await dataSource.DataSource();
+    const dataSourceList = await dataSource.DataSource(date, interaction_id, unit);
     if (!isIterable(dataSourceList)) {
         console.log("Algum erro ocorrido, não é iterable", dataSourceList);
         return;
@@ -39,12 +39,14 @@ exports.default = async () => {
             shipping.otherfields = data.otherfields;
             shipping.doctor = String(data.doctor).trim();
             shipping.unit = String(data.unit).trim();
+            shipping.unit_cod = String(data.unit_cod).trim();
             shipping.attendant = String(data.attendant).trim();
             shipping.covenant = '';
             shipping.dateservice = data.dateservice;
             shipping.company_id = data.company_id;
             shipping.phone_unit = data.phone_unit;
             shipping.type_service = data.type_service;
+            shipping.prioritysend = prioritysend ? true : false;
             const yesterday = moment().subtract(5, 'day').format('YYYY-MM-DD');
             const verifyExist = await Shippingcampaign_1.default.query()
                 .where('reg', '=', data.reg)

@@ -38,6 +38,7 @@ class Shippingcampaign extends Orm_1.BaseModel {
             'dateshedule',
             'doctor',
             'unit',
+            'unit_cod',
             'attendant',
             'covenant',
             'dateservice',
@@ -117,6 +118,10 @@ __decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", String)
 ], Shippingcampaign.prototype, "unit", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", String)
+], Shippingcampaign.prototype, "unit_cod", void 0);
 __decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", String)

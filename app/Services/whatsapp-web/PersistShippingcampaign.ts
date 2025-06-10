@@ -38,6 +38,7 @@ export default async (date:string, prioritysend:boolean=false, interaction_id:nu
       shipping.otherfields = data.otherfields
       shipping.doctor = String(data.doctor).trim()
       shipping.unit = String(data.unit).trim()
+      shipping.unit_cod = String(data.unit_cod).trim()
       shipping.attendant = String(data.attendant).trim()
       shipping.covenant = ''
       shipping.dateservice = data.dateservice

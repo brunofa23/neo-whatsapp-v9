@@ -30,6 +30,7 @@ export default class Shippingcampaign extends BaseModel {
       'dateshedule',
       'doctor',
       'unit',
+      'unit_cod',
       'attendant',
       'covenant',
       'dateservice',
@@ -92,6 +93,9 @@ export default class Shippingcampaign extends BaseModel {
 
   @column()
   public unit: string
+
+  @column()
+  public unit_cod:string
 
   @column()
   public attendant: string

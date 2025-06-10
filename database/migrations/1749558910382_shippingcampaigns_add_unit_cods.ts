@@ -5,7 +5,7 @@ export default class extends BaseSchema {
 
   public async up() {
     this.schema.alterTable(this.tableName, (table) => {
-      table.string('unit_cod',5).after('unit')
+      table.string('unit_cod', 15).after('unit')
     })
   }
 

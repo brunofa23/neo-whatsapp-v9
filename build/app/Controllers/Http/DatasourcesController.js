@@ -211,7 +211,7 @@ class DatasourcesController {
                 'em uma escala de *0 a 10*, o quanto você indicaria o Núcleo de Excelência em Oftalmologia a alguém que você conhece?',
                 'em uma escala de *0 a 10*, o quanto você recomendaria o Núcleo de Excelência em Oftalmologia para um amigo ou familiar?',
             ];
-            return message.replace('{greeting}', greeting[Math.floor(Math.random() * greeting.length)]).replace('{question}', question[Math.floor(Math.random() * question.length)]);
+            return message.replace('{greeting}', greeting).replace('{question}', question[Math.floor(Math.random() * question.length)]);
         }
         const pacQueryModel = await Interaction_1.default.find(2);
         const env = process.env.NODE_ENV;

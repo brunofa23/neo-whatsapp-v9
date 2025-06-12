@@ -59,7 +59,7 @@ async function sendRepeatedMessage() {
             await datasourcesController.confirmScheduleAll();
             await datasourcesController.cancelScheduleAll();
         }
-    }, await (0, util_1.GenerateRandomTime)(10, 15, '****Send Message Repeated'));
+    }, await (0, util_1.GenerateRandomTime)(300, 400, '****Send Message Repeated'));
 }
 exports.sendRepeatedMessage = sendRepeatedMessage;
 async function sendRepeatedMessageKlingo() {

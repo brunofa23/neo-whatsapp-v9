@@ -57,7 +57,14 @@ export default async (client: Client, agent: Agent) => {
     return agentMaxLimitSend?.max_limit_message
   }
 
-  
+  async function VerifyChat(shippingCampaign) {
+    return await Chat.query()
+      .where('interaction_id', shippingCampaign?.interaction_id)
+      .andWhere('interaction_seq', shippingCampaign?.interaction_seq)
+      .andWhere('shippingcampaigns_id', shippingCampaign?.id).first()
+
+  }
+
 
   //********************************************************************* */
   async function sendMessages() {
@@ -76,7 +83,7 @@ export default async (client: Client, agent: Agent) => {
     }
     await verifyContSend()
     if (shippingCampaign) {
-      if (global.contSend <=3) {
+      if (global.contSend <= 3) {
         if (global.contSend < 0)
           global.contSend = 0
         try {
@@ -88,10 +95,11 @@ export default async (client: Client, agent: Agent) => {
             return
           const validationCellPhone = await verifyNumber(client, shippingCampaign?.cellphone)
           if (validationCellPhone) {
-            verifyChat = await Chat.query()
-              .where('interaction_id', shippingCampaign?.interaction_id)
-              .andWhere('interaction_seq', shippingCampaign?.interaction_seq)
-              .andWhere('shippingcampaigns_id', shippingCampaign?.id).first()
+            verifyChat = await VerifyChat(shippingCampaign)
+            // verifyChat = await Chat.query()
+            //   .where('interaction_id', shippingCampaign?.interaction_id)
+            //   .andWhere('interaction_seq', shippingCampaign?.interaction_seq)
+            //   .andWhere('shippingcampaigns_id', shippingCampaign?.id).first()
 
             if (verifyChat == undefined) {
               let returnResponse: any = {}

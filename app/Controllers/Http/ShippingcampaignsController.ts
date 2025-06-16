@@ -760,7 +760,7 @@ export default class ShippingcampaignsController {
      const params = await validateParams(request)
      console.log("ÇÇÇÇ",params)
      const result = await PersistShippingcampaign(params.date, false, params.interaction_id,params?.unit)
-     return response.
+     return response.status(200).send(result)
 
   }
 

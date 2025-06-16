@@ -6,7 +6,7 @@ import Env from '@ioc:Adonis/Core/Env'
 import { DateFormat } from '../../Services/whatsapp-web/util'
 import { DateTime } from 'luxon'
 import BadRequest from 'App/Exceptions/BadRequestException'
-
+import axios from 'axios'
 import Agent from 'App/Models/Agent';
 
 export default class ShippingcampaignsController {
@@ -172,8 +172,6 @@ export default class ShippingcampaignsController {
       //throw new BadRequest('Bad Request', 401, 'erro')
     }
   }
-
-
 
   public async maxLimitSendMessage(agent: Agent) {
     const dateStart = await DateFormat("yyyy-MM-dd 00:00:00", DateTime.local())
@@ -700,6 +698,28 @@ export default class ShippingcampaignsController {
 
   }
 
+
+  public async searchSchedulePatient({ auth, request, response }) {
+    console.log("INICIANDO A BUSCA COM WEBHOOK")
+    //vai buscar os pacientes que estão no smart
+    //WEBHOOK
+
+      try {
+        //const response = await axios.post(`${process.env.SERVER_EASYTALK}/searchschedulepatient`, { id_marcacao, status, obs }, { headers })
+        const response = await axios.get(`http://192.140.15.170:3334/api/executequery?date=2025-06-17`)
+        console.log(response)
+        return
+        //console.log("RESPONSE:", process.env.SERVER_EASYTALK)
+        if (response.status === 200 ) {
+          return true
+        }
+        return response.data
+      } catch (error) {
+        console.log("error:", error)
+        return error
+      }
+
+  }
 
 }
 

@@ -57,7 +57,7 @@ Route.group(() => {
 
     if (dateQuery.isValid) {
       console.log('Data válida:', dateQuery.toISODate());
-      await PersistShippingcampaign(dateQuery.toFormat('yyyy-MM-dd'), true, 1, unit)
+      await PersistShippingcampaign(dateQuery.toFormat('yyyy-MM-dd'), false, 1, unit)
       return
     } else {
       console.log('Data inválida!');
@@ -124,6 +124,7 @@ Route.group(() => {
   Route.get('/shippingcampaigns', 'ShippingcampaignsController.index')
   Route.post('/shippingcampaigns', 'ShippingcampaignsController.store')
   Route.post('/resend/:id', 'ShippingcampaignsController.resend')
+  Route.post('/searchschedulepatient','ShippingcampaignsController.searchSchedulePatient')
 
   //chats
   Route.resource('/chats', 'ChatsController').apiOnly()

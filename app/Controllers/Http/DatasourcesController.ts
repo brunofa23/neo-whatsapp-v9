@@ -31,7 +31,7 @@ export default class DatasourcesController {
       for (const interaction of interactionList) {
         switch (interaction.id) {
           case 1:
-            schedulePatientsArray = await this.scheduledPatients(date);
+            schedulePatientsArray = await this.scheduledPatients(date, unit);
             break;
           case 2:
             serviceEvaluationArray = await this.serviceEvaluation();
@@ -119,6 +119,7 @@ export default class DatasourcesController {
     }
   }
 
+  
 
   async confirmSchedule(chat: Chat, chatOtherFields: String = "") {
 
@@ -187,6 +188,7 @@ export default class DatasourcesController {
       return error
     }
   }
+
 
   // async cancelScheduleAll1() {
 

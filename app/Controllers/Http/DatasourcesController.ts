@@ -62,6 +62,7 @@ export default class DatasourcesController {
 
 
   public async scheduledPatients(dateStr: string, unit: number = 0): Promise<any[]> {
+
     const date = DateTime.fromFormat(dateStr, 'yyyy-MM-dd', { zone: 'America/Sao_Paulo' });
     if (!date.isValid) {
       throw new Error('Formato de data inválido. Use yyyy-MM-dd');
@@ -101,6 +102,8 @@ export default class DatasourcesController {
       if (unit > 0)
         query = query.replace('1=1', ` emp_cod=${unit}`)
 
+        console.log("ENTREI NO 5444>>>>",query )
+
       const result = await Database.connection('mssql')
         .rawQuery(query)
 
@@ -119,7 +122,7 @@ export default class DatasourcesController {
     }
   }
 
-  
+
 
   async confirmSchedule(chat: Chat, chatOtherFields: String = "") {
 

@@ -8,6 +8,31 @@ import { DateTime } from 'luxon'
 import BadRequest from 'App/Exceptions/BadRequestException'
 import axios from 'axios'
 import Agent from 'App/Models/Agent';
+import { schema } from '@ioc:Adonis/Core/Validator'
+import { getHeaders } from 'App/util/header'
+import PersistShippingcampaign from 'App/Services/whatsapp-web/PersistShippingcampaign'
+
+
+async function validateParams(request: HttpContextContract['request']) {
+  const payload = await request.validate({
+    schema: schema.create({
+      date: schema.string(), // ou schema.date()
+      interaction_id: schema.number(),
+      unit: schema.string.nullableAndOptional(),
+    }),
+  })
+
+  //const { date, interaction_id, unit } = payload
+  return payload
+  // const params = new URLSearchParams()
+
+  // if (date) params.append('date', date)
+  // if (interaction_id) params.append('interaction_id', interaction_id.toString())
+  // if (unit) params.append('unit', unit)
+
+  // return params
+}
+
 
 export default class ShippingcampaignsController {
 
@@ -699,29 +724,53 @@ export default class ShippingcampaignsController {
   }
 
 
-  public async searchSchedulePatient({ auth, request, response }) {
+  //CHAMA OUTRO ENDPOINT PARA EXECUTAR A BUSCA DOS PACIENTES
+  public async searchSchedulePatients({ auth, request, response }) {
     console.log("INICIANDO A BUSCA COM WEBHOOK")
     //vai buscar os pacientes que estão no smart
     //WEBHOOK
+    const payload =await validateParams(request)
+    const params = new URLSearchParams()
+    if (payload.date)
+       params.append('date', payload.date)
+    if (payload.interaction_id)
+      params.append('interaction_id', payload.interaction_id)
+    if (payload.unit)
+      params.append('unit', payload.unit)
+    const url = `${process.env.SERVER_EASYTALK}/executeschedulepatients?${params.toString()}`
 
-      try {
-        //const response = await axios.post(`${process.env.SERVER_EASYTALK}/searchschedulepatient`, { id_marcacao, status, obs }, { headers })
-        const response = await axios.get(`http://192.140.15.170:3334/api/executequery?date=2025-06-17`)
-        console.log(response)
-        return
-        //console.log("RESPONSE:", process.env.SERVER_EASYTALK)
-        if (response.status === 200 ) {
-          return true
-        }
-        return response.data
-      } catch (error) {
-        console.log("error:", error)
-        return error
+    try {
+      const response = await axios.get(url)
+      //console.log("RESPONSE:", process.env.SERVER_EASYTALK)
+      if (response.status === 200) {
+        return true
       }
+      return response.data
+    } catch (error) {
+      console.log("error:", error)
+      return error
+    }
 
   }
 
+
+  public async executeSchedulePatients({ auth, request, response }) {
+     console.log("INICIANDO A BUSCA COM WEBHOOK")
+     //const {date, interaction_id, unit} = request
+     const params = await validateParams(request)
+     console.log("ÇÇÇÇ",params)
+     const result = await PersistShippingcampaign(params.date, false, params.interaction_id,params?.unit)
+     return response.
+
+  }
+
+
+
+
+
 }
+
+
 
 
 

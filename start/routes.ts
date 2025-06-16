@@ -124,7 +124,8 @@ Route.group(() => {
   Route.get('/shippingcampaigns', 'ShippingcampaignsController.index')
   Route.post('/shippingcampaigns', 'ShippingcampaignsController.store')
   Route.post('/resend/:id', 'ShippingcampaignsController.resend')
-  Route.post('/searchschedulepatient','ShippingcampaignsController.searchSchedulePatient')
+  Route.get('/searchschedulepatients','ShippingcampaignsController.searchSchedulePatients')
+  Route.get('/executeschedulepatients','ShippingcampaignsController.executeSchedulePatients')
 
   //chats
   Route.resource('/chats', 'ChatsController').apiOnly()

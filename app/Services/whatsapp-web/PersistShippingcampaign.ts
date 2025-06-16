@@ -13,9 +13,9 @@ function isIterable(obj) {
 }
 
 
-export default async (date:string, prioritysend:boolean=false, interaction_id:number=0, unit:number=0) => {
+export default async (date:string, prioritysend:boolean=false, interaction_id:number=0, unit_cod:number=0) => {
   const dataSource = new DatasourcesController
-  const dataSourceList = await dataSource.DataSource(date, interaction_id,unit)
+  const dataSourceList = await dataSource.DataSource(date, interaction_id,unit_cod)
   if (!isIterable(dataSourceList)) {
     console.log("Algum erro ocorrido, não é iterable", dataSourceList)
     return

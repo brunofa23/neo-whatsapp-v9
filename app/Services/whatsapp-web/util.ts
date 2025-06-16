@@ -171,15 +171,17 @@ function getTargetDates(): DateTime[] {
     case 3: // Quarta → Sexta
       dates.push(today.plus({ days: 2 }));
       break;
-    case 4: // Quinta → Sábado e Segunda
-      dates.push(today.plus({ days: 2 })); // Sábado
-      dates.push(today.plus({ days: 4 })); // Segunda
+    case 4: // Quinta → Sábado
+      dates.push(today.plus({ days: 2 }));
       break;
-    case 5: // Sexta → Terça
-      dates.push(today.plus({ days: 4 }));
+    case 5: // Sexta → Segunda
+      dates.push(today.plus({ days: 3 }));
+      break;
+    case 6: // Sábado → Terça
+      dates.push(today.plus({ days: 3 }));
       break;
     default:
-      console.warn("Hoje não é um dia útil esperado (segunda a sexta).");
+      console.warn("Hoje é domingo, sem regra definida.");
       break;
   }
 

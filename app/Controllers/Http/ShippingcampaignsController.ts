@@ -18,7 +18,7 @@ async function validateParams(request: HttpContextContract['request']) {
     schema: schema.create({
       date: schema.string(), // ou schema.date()
       interaction_id: schema.number(),
-      unit: schema.string.nullableAndOptional(),
+      unit_cod: schema.string.nullableAndOptional(),
     }),
   })
 
@@ -715,7 +715,7 @@ export default class ShippingcampaignsController {
 
     query.whereNotExists((subquery) => {
       subquery.select('*').from('chats').whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id');
-    }).orderByRaw('RAND()') //.orderBy('prioritysend', "desc")
+    }).orderBy('prioritysend', "desc").orderBy('dateshedule').orderByRaw('RAND()').limit(5)
 
     const shippingCampaign = await query.first()
     return shippingCampaign
@@ -729,18 +729,21 @@ export default class ShippingcampaignsController {
     console.log("INICIANDO A BUSCA COM WEBHOOK")
     //vai buscar os pacientes que estão no smart
     //WEBHOOK
-    const payload =await validateParams(request)
+    const payload = await validateParams(request)
     const params = new URLSearchParams()
     if (payload.date)
-       params.append('date', payload.date)
+      params.append('date', payload.date)
     if (payload.interaction_id)
       params.append('interaction_id', payload.interaction_id)
-    if (payload.unit)
-      params.append('unit', payload.unit)
+    if (payload.unit_cod)
+      params.append('unit', payload.unit_cod)
     const url = `${process.env.SERVER_EASYTALK}/executeschedulepatients?${params.toString()}`
 
+    console.log("url", url)
+
+
     try {
-      const response = await axios.get(url)
+      const response = await axios.get(url, getHeaders())
       //console.log("RESPONSE:", process.env.SERVER_EASYTALK)
       if (response.status === 200) {
         return true
@@ -755,12 +758,12 @@ export default class ShippingcampaignsController {
 
 
   public async executeSchedulePatients({ auth, request, response }) {
-     console.log("INICIANDO A BUSCA COM WEBHOOK")
-     //const {date, interaction_id, unit} = request
-     const params = await validateParams(request)
-     console.log("ÇÇÇÇ",params)
-     const result = await PersistShippingcampaign(params.date, false, params.interaction_id,params?.unit)
-     return response.status(200).send(result)
+    console.log("INICIANDO A BUSCA COM WEBHOOK")
+    //const {date, interaction_id, unit} = request
+    const params = await validateParams(request)
+    console.log("ÇÇÇÇ", params)
+    const result = await PersistShippingcampaign(params.date, false, params.interaction_id, params?.unit_cod)
+    return response.status(200).send(result)
 
   }
 

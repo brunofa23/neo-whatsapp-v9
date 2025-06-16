@@ -17,6 +17,7 @@ const shippingcampaignsController = new ShippingcampaignsController()
 
 export default async (client: Client, agent: Agent) => {
 
+  //vai verificar se o whatsapp não enviou no mesmo numero para o mesmo paciente
   async function verifyClientSend(client, cellphone) {
     if (client?.info?.wid) {
       const query = Chat.query()
@@ -56,11 +57,14 @@ export default async (client: Client, agent: Agent) => {
     return agentMaxLimitSend?.max_limit_message
   }
 
+  
+
   //********************************************************************* */
   async function sendMessages() {
     const totMessageSend = await countLimitSendMessage()
     const maxLimitSendAgent = await maxLimitSendMessageAgent(agent.id)
     const shippingCampaign = await shippingcampaignsController.patientToSend(agent)
+
     let verifyChat
     let verifycontsend
     if (totMessageSend >= maxLimitSendAgent && (shippingCampaign?.prioritysend == null || shippingCampaign?.prioritysend == undefined)) {

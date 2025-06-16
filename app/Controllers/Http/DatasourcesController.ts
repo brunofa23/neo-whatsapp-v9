@@ -12,14 +12,14 @@ import Shippingcampaign from 'App/Models/Shippingcampaign';
 export default class DatasourcesController {
 
 
-  async DataSource(date: string, interaction_id: number = 0, unit: number = 0): Promise<any[]> {
+  async DataSource(date: string, interaction_id: number = 0, unit_cod: number = 0): Promise<any[]> {
     try {
       let schedulePatientsArray: any[] = [];
       let serviceEvaluationArray: any[] = [];
 
       // Executa interações específicas diretamente
       if (interaction_id === 1) {
-        return await this.scheduledPatients(date, unit);
+        return await this.scheduledPatients(date, unit_cod);
       }
 
       if (interaction_id === 2) {
@@ -31,7 +31,7 @@ export default class DatasourcesController {
       for (const interaction of interactionList) {
         switch (interaction.id) {
           case 1:
-            schedulePatientsArray = await this.scheduledPatients(date, unit);
+            schedulePatientsArray = await this.scheduledPatients(date, unit_cod);
             break;
           case 2:
             serviceEvaluationArray = await this.serviceEvaluation();
@@ -61,7 +61,7 @@ export default class DatasourcesController {
   }
 
 
-  public async scheduledPatients(dateStr: string, unit: number = 0): Promise<any[]> {
+  public async scheduledPatients(dateStr: string, unit_cod: number = 0): Promise<any[]> {
 
     const date = DateTime.fromFormat(dateStr, 'yyyy-MM-dd', { zone: 'America/Sao_Paulo' });
     if (!date.isValid) {
@@ -99,11 +99,8 @@ export default class DatasourcesController {
       let query = pacQuery
         .replace(/\{dateStart\}/g, dateStart)
         .replace(/\{dateEnd\}/g, dateEnd)
-      if (unit > 0)
-        query = query.replace('1=1', ` emp_cod=${unit}`)
-
-        console.log("ENTREI NO 5444>>>>",query )
-
+      if (unit_cod > 0)
+        query = query.replace('1=1', ` emp_cod=${unit_cod}`)
       const result = await Database.connection('mssql')
         .rawQuery(query)
 

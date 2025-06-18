@@ -121,40 +121,8 @@ export default class DatasourcesController {
   // }
 
   public async scheduledPatients(dateStr: string, unit_cod: number = 0): Promise<any[]> {
-
     //verifica se existe na tabela config a variável scheduledPatients para controlar a busca dos pacientes
     // Aguardar até que esteja liberado para rodar
-    let waitAttempts = 0;
-    while (true) {
-      const config = await Config.find('scheduledPatients');
-
-      if (!config) {
-        console.log("Config não encontrada. Criando...");
-        await Config.create({
-          id: 'scheduledPatients',
-          name: 'Verifica se está rodando a função SchedulePatients',
-          valuebool: true
-        });
-        break;
-      }
-
-      if (config.valuebool === false) {
-        console.log("Liberado para executar. Marcando como em execução...");
-        config.valuebool = true;
-        await config.save();
-        break;
-      }
-
-      // Já está sendo executado
-      console.log("Já está em execução, aguardando...");
-      waitAttempts++;
-      if (waitAttempts > 90) {
-        throw new Error('Tempo de espera excedido: já está sendo executado por muito tempo.');
-      }
-      // Aguarda 5 segundos antes de tentar novamente
-      await new Promise(resolve => setTimeout(resolve, 5000));
-    }
-
 
     const date = DateTime.fromFormat(dateStr, 'yyyy-MM-dd', { zone: 'America/Sao_Paulo' });
     if (!date.isValid) {
@@ -189,25 +157,41 @@ export default class DatasourcesController {
       query = query.replace('1=1', `emp_cod=${unit_cod}`);
     }
 
-    try {
-      const result = await Database.connection('mssql').rawQuery(query);
 
+    const configId = 'scheduledPatients'
+    // Aguarda até que valuebool seja false
+    async function waitUntilFree() {
+      while (true) {
+        const config = await Config.find(configId)
+        if (!config || config.valuebool === false) break
+        await new Promise(resolve => setTimeout(resolve, 1000)) // espera 1 segundo
+      }
+    }
+    // Esperar se já estiver rodando
+    await waitUntilFree()
+    const queryIsExecuting = await Config.find(configId)
+
+    try {
+      if (queryIsExecuting) {
+        queryIsExecuting.valuebool = true
+        await queryIsExecuting.save()
+      }
+      const result = await Database.connection('mssql').rawQuery(query);
       for (const data of result) {
         if (data.message && typeof data.message === 'string') {
           data.message = await greeting(data.message);
         }
       }
-
       return result;
+
     } catch (error) {
       console.error('Erro em scheduledPatients:', error);
       throw error;
     } finally {
-      // Libera a flag ao terminar
-      const config = await Config.find('scheduledPatients');
+      const config = await Config.find(configId)
       if (config) {
-        config.valuebool = false;
-        await config.save();
+        config.valuebool = false
+        await config.save()
       }
     }
   }

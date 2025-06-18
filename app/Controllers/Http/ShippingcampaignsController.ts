@@ -752,9 +752,8 @@ export default class ShippingcampaignsController {
       const response = await axios.get(url, getHeaders())
       //console.log("RESPONSE:", process.env.SERVER_EASYTALK)
       if (response.status === 200) {
-        return true
+        return response.data
       }
-      return response.data
     } catch (error) {
       console.log("error:", error)
       return error
@@ -769,6 +768,7 @@ export default class ShippingcampaignsController {
     const params = await validateParams(request)
     console.log("ÇÇÇÇ", params)
     const result = await PersistShippingcampaign(params.date, false, params.interaction_id, params?.unit_cod)
+    console.log(">>>>>>>>", result)
     return response.status(200).send(result)
 
   }

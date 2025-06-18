@@ -13,9 +13,13 @@ function isIterable(obj) {
 }
 
 
-export default async (date:string, prioritysend:boolean=false, interaction_id:number=0, unit_cod:number=0) => {
+export default async (date: string, prioritysend: boolean = false, interaction_id: number = 0, unit_cod: number = 0) => {
   const dataSource = new DatasourcesController
-  const dataSourceList = await dataSource.DataSource(date, interaction_id,unit_cod)
+  const dataSourceList = await dataSource.DataSource(date, interaction_id, unit_cod)
+
+  const result: Shippingcampaign[] = [];
+
+
   if (!isIterable(dataSourceList)) {
     console.log("Algum erro ocorrido, não é iterable", dataSourceList)
     return
@@ -45,7 +49,7 @@ export default async (date:string, prioritysend:boolean=false, interaction_id:nu
       shipping.company_id = data.company_id
       shipping.phone_unit = data.phone_unit
       shipping.type_service = data.type_service
-      shipping.prioritysend = prioritysend?true:false
+      shipping.prioritysend = prioritysend ? true : false
 
 
       const yesterday = moment().subtract(5, 'day').format('YYYY-MM-DD');
@@ -58,16 +62,16 @@ export default async (date:string, prioritysend:boolean=false, interaction_id:nu
 
       if (!verifyExist) {
         await Shippingcampaign.create(shipping)
-        //console.log("shippin criado::",shipping)
+        result.push(shipping)
       }
 
     } catch (error) {
       console.log("Erro 44454>>>>", error)
-
     }
 
   }
 
+  return result
 
 }
 

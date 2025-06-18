@@ -9,6 +9,7 @@ import { cancelSchedule, session } from '../../Services/requestExternal/request'
 import { DateFormat } from '../../Services/whatsapp-web/util'
 import ResponsesController from './ResponsesController';
 import Shippingcampaign from 'App/Models/Shippingcampaign';
+import Config from 'App/Models/Config';
 export default class DatasourcesController {
 
 
@@ -61,63 +62,157 @@ export default class DatasourcesController {
   }
 
 
+  // public async scheduledPatients(dateStr: string, unit_cod: number = 0): Promise<any[]> {
+
+  //   const date = DateTime.fromFormat(dateStr, 'yyyy-MM-dd', { zone: 'America/Sao_Paulo' });
+  //   if (!date.isValid) {
+  //     throw new Error('Formato de data inválido. Use yyyy-MM-dd');
+  //   }
+  //   const dateStart = date.startOf('day').toFormat('yyyy-MM-dd HH:mm')
+  //   const dateEnd = date.endOf('day').toFormat('yyyy-MM-dd HH:mm')
+  //   // Separar função greeting para método da classe
+  //   const greeting = async (message: string): Promise<string> => {
+  //     const responseList = new ResponsesController();
+  //     // Pega array de strings
+  //     const greetings = await responseList.index({ local: 'greeting' });
+  //     const presentations = await responseList.index({ local: 'presentation' });
+  //     // Substituir placeholders na mensagem
+  //     return message
+  //       .replace('{greeting}', greetings)
+  //       .replace('{presentation}', presentations);
+  //   };
+
+  //   const pacQueryModel = await Interaction.query().where('id', 1).first();
+
+  //   if (!pacQueryModel) {
+  //     throw new Error('Consulta para scheduledPatients não encontrada');
+  //   }
+
+  //   // Definir query de acordo com o ambiente
+  //   const env = process.env.NODE_ENV;
+  //   const pacQuery = env === 'development' ? pacQueryModel.querydev : pacQueryModel.query;
+
+  //   if (!pacQuery) {
+  //     throw new Error('Query inválida para scheduledPatients');
+  //   }
+
+  //   try {
+  //     let query = pacQuery
+  //       .replace(/\{dateStart\}/g, dateStart)
+  //       .replace(/\{dateEnd\}/g, dateEnd)
+  //     if (unit_cod > 0)
+  //       query = query.replace('1=1', ` emp_cod=${unit_cod}`)
+  //     const result = await Database.connection('mssql')
+  //       .rawQuery(query)
+
+  //     // Processar mensagens com greeting
+  //     for (const data of result) {
+  //       if (data.message && typeof data.message === 'string') {
+  //         data.message = await greeting(data.message);
+  //       }
+  //     }
+  //     return result;
+  //   } catch (error) {
+  //     console.error('Erro em scheduledPatients:', error);
+  //     throw error;
+  //   } finally {
+  //     await Database.manager.close('mssql');
+  //   }
+  // }
+
   public async scheduledPatients(dateStr: string, unit_cod: number = 0): Promise<any[]> {
+
+    //verifica se existe na tabela config a variável scheduledPatients para controlar a busca dos pacientes
+    // Aguardar até que esteja liberado para rodar
+    let waitAttempts = 0;
+    while (true) {
+      const config = await Config.find('scheduledPatients');
+
+      if (!config) {
+        console.log("Config não encontrada. Criando...");
+        await Config.create({
+          id: 'scheduledPatients',
+          name: 'Verifica se está rodando a função SchedulePatients',
+          valuebool: true
+        });
+        break;
+      }
+
+      if (config.valuebool === false) {
+        console.log("Liberado para executar. Marcando como em execução...");
+        config.valuebool = true;
+        await config.save();
+        break;
+      }
+
+      // Já está sendo executado
+      console.log("Já está em execução, aguardando...");
+      waitAttempts++;
+      if (waitAttempts > 90) {
+        throw new Error('Tempo de espera excedido: já está sendo executado por muito tempo.');
+      }
+      // Aguarda 5 segundos antes de tentar novamente
+      await new Promise(resolve => setTimeout(resolve, 5000));
+    }
+
 
     const date = DateTime.fromFormat(dateStr, 'yyyy-MM-dd', { zone: 'America/Sao_Paulo' });
     if (!date.isValid) {
       throw new Error('Formato de data inválido. Use yyyy-MM-dd');
     }
-    const dateStart = date.startOf('day').toFormat('yyyy-MM-dd HH:mm')
-    const dateEnd = date.endOf('day').toFormat('yyyy-MM-dd HH:mm')
-    // Separar função greeting para método da classe
+
+    const dateStart = date.startOf('day').toFormat('yyyy-MM-dd HH:mm');
+    const dateEnd = date.endOf('day').toFormat('yyyy-MM-dd HH:mm');
+
+    // Função auxiliar para mensagens
     const greeting = async (message: string): Promise<string> => {
       const responseList = new ResponsesController();
-      // Pega array de strings
       const greetings = await responseList.index({ local: 'greeting' });
       const presentations = await responseList.index({ local: 'presentation' });
-      // Substituir placeholders na mensagem
       return message
         .replace('{greeting}', greetings)
         .replace('{presentation}', presentations);
     };
 
     const pacQueryModel = await Interaction.query().where('id', 1).first();
+    if (!pacQueryModel) throw new Error('Consulta para scheduledPatients não encontrada');
 
-    if (!pacQueryModel) {
-      throw new Error('Consulta para scheduledPatients não encontrada');
-    }
-
-    // Definir query de acordo com o ambiente
     const env = process.env.NODE_ENV;
     const pacQuery = env === 'development' ? pacQueryModel.querydev : pacQueryModel.query;
+    if (!pacQuery) throw new Error('Query inválida para scheduledPatients');
 
-    if (!pacQuery) {
-      throw new Error('Query inválida para scheduledPatients');
+    let query = pacQuery
+      .replace(/\{dateStart\}/g, dateStart)
+      .replace(/\{dateEnd\}/g, dateEnd);
+
+    if (unit_cod > 0) {
+      query = query.replace('1=1', `emp_cod=${unit_cod}`);
     }
 
     try {
-      let query = pacQuery
-        .replace(/\{dateStart\}/g, dateStart)
-        .replace(/\{dateEnd\}/g, dateEnd)
-      if (unit_cod > 0)
-        query = query.replace('1=1', ` emp_cod=${unit_cod}`)
-      const result = await Database.connection('mssql')
-        .rawQuery(query)
+      const result = await Database.connection('mssql').rawQuery(query);
 
-      // Processar mensagens com greeting
       for (const data of result) {
         if (data.message && typeof data.message === 'string') {
           data.message = await greeting(data.message);
         }
       }
+
       return result;
     } catch (error) {
       console.error('Erro em scheduledPatients:', error);
       throw error;
     } finally {
-      await Database.manager.close('mssql');
+      // Libera a flag ao terminar
+      const config = await Config.find('scheduledPatients');
+      if (config) {
+        config.valuebool = false;
+        await config.save();
+      }
     }
   }
+
+
 
 
 

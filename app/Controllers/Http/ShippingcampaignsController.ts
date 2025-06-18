@@ -731,7 +731,7 @@ export default class ShippingcampaignsController {
 
   //CHAMA OUTRO ENDPOINT PARA EXECUTAR A BUSCA DOS PACIENTES
   public async searchSchedulePatients({ auth, request, response }) {
-    await auth.use('api').authenticate()
+    //await auth.use('api').authenticate()
     console.log("INICIANDO A BUSCA COM WEBHOOK")
     //vai buscar os pacientes que estão no smart
     //WEBHOOK

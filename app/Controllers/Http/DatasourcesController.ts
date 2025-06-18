@@ -157,25 +157,7 @@ export default class DatasourcesController {
       query = query.replace('1=1', `emp_cod=${unit_cod}`);
     }
 
-
-    const configId = 'scheduledPatients'
-    // Aguarda até que valuebool seja false
-    async function waitUntilFree() {
-      while (true) {
-        const config = await Config.find(configId)
-        if (!config || config.valuebool === false) break
-        await new Promise(resolve => setTimeout(resolve, 1000)) // espera 1 segundo
-      }
-    }
-    // Esperar se já estiver rodando
-    await waitUntilFree()
-    const queryIsExecuting = await Config.find(configId)
-
     try {
-      if (queryIsExecuting) {
-        queryIsExecuting.valuebool = true
-        await queryIsExecuting.save()
-      }
       const result = await Database.connection('mssql').rawQuery(query);
       for (const data of result) {
         if (data.message && typeof data.message === 'string') {
@@ -187,12 +169,6 @@ export default class DatasourcesController {
     } catch (error) {
       console.error('Erro em scheduledPatients:', error);
       throw error;
-    } finally {
-      const config = await Config.find(configId)
-      if (config) {
-        config.valuebool = false
-        await config.save()
-      }
     }
   }
 

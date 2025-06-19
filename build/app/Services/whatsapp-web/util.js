@@ -141,13 +141,15 @@ function getTargetDates() {
             break;
         case 4:
             dates.push(today.plus({ days: 2 }));
-            dates.push(today.plus({ days: 4 }));
             break;
         case 5:
-            dates.push(today.plus({ days: 4 }));
+            dates.push(today.plus({ days: 3 }));
+            break;
+        case 6:
+            dates.push(today.plus({ days: 3 }));
             break;
         default:
-            console.warn("Hoje não é um dia útil esperado (segunda a sexta).");
+            console.warn("Hoje é domingo, sem regra definida.");
             break;
     }
     return dates;

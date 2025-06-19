@@ -49,7 +49,7 @@ Route_1.default.group(() => {
         console.log("EXECUTANDO BUSCA NO SMART", dateQuery);
         if (dateQuery.isValid) {
             console.log('Data válida:', dateQuery.toISODate());
-            await (0, PersistShippingcampaign_1.default)(dateQuery.toFormat('yyyy-MM-dd'), true, 1, unit);
+            await (0, PersistShippingcampaign_1.default)(dateQuery.toFormat('yyyy-MM-dd'), false, 1, unit);
             return;
         }
         else {
@@ -97,6 +97,8 @@ Route_1.default.group(() => {
     Route_1.default.get('/shippingcampaigns', 'ShippingcampaignsController.index');
     Route_1.default.post('/shippingcampaigns', 'ShippingcampaignsController.store');
     Route_1.default.post('/resend/:id', 'ShippingcampaignsController.resend');
+    Route_1.default.get('/searchschedulepatients', 'ShippingcampaignsController.searchSchedulePatients');
+    Route_1.default.get('/executeschedulepatients', 'ShippingcampaignsController.executeSchedulePatients');
     Route_1.default.resource('/chats', 'ChatsController').apiOnly();
     Route_1.default.post('/closed', 'ChatsController.closed');
     Route_1.default.resource("/manifests", "ManifestsController").apiOnly();

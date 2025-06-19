@@ -15,9 +15,10 @@ function isIterable(obj) {
         return false;
     }
 }
-exports.default = async (date, prioritysend = false, interaction_id = 0, unit = 0) => {
+exports.default = async (date, prioritysend = false, interaction_id = 0, unit_cod = 0) => {
     const dataSource = new DatasourcesController_1.default;
-    const dataSourceList = await dataSource.DataSource(date, interaction_id, unit);
+    const dataSourceList = await dataSource.DataSource(date, interaction_id, unit_cod);
+    const result = [];
     if (!isIterable(dataSourceList)) {
         console.log("Algum erro ocorrido, não é iterable", dataSourceList);
         return;
@@ -55,11 +56,13 @@ exports.default = async (date, prioritysend = false, interaction_id = 0, unit = 
                 .first();
             if (!verifyExist) {
                 await Shippingcampaign_1.default.create(shipping);
+                result.push(shipping);
             }
         }
         catch (error) {
             console.log("Erro 44454>>>>", error);
         }
     }
+    return result;
 };
 //# sourceMappingURL=PersistShippingcampaign.js.map

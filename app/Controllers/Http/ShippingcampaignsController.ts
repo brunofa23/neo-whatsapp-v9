@@ -18,7 +18,7 @@ async function validateParams(request: HttpContextContract['request']) {
     schema: schema.create({
       date: schema.string(), // ou schema.date()
       interaction_id: schema.number(),
-      unit_cod: schema.string.nullableAndOptional(),
+      unit_cod: schema.number.nullableAndOptional(),
     }),
   })
 
@@ -671,11 +671,14 @@ export default class ShippingcampaignsController {
     if (name)
       query += ` and  shippingcampaigns.name like '%${name}%' `
 
-    if (!DateTime.fromISO(initialdate).isValid || !DateTime.fromISO(finaldate).isValid) {
+    const initial = DateTime.fromISO(initialdate, { zone: 'America/Sao_Paulo' }).startOf('day')
+    const final = DateTime.fromISO(finaldate, { zone: 'America/Sao_Paulo' }).endOf('day')
+    if (!initial.isValid || !final.isValid) {
       throw new Error("Datas inválidas.")
     }
+
     try {
-      const result = await Database.connection(Env.get('DB_CONNECTION_MAIN')).query()
+      const queryAll = Database.connection(Env.get('DB_CONNECTION_MAIN')).query()
         .from('shippingcampaigns')
         .select(
           'shippingcampaigns.interaction_id',
@@ -694,11 +697,14 @@ export default class ShippingcampaignsController {
           'absoluteresp'
         )
         .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
-        .whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
+        .whereBetween('shippingcampaigns.created_at', [initial.toISO(), final.toISO()])
         .where('shippingcampaigns.interaction_id', 1)
         .whereRaw(query)
 
-      return response.status(201).send(result)
+      console.log(queryAll.toQuery())
+
+      const queryResult = await queryAll
+      return response.status(201).send(queryResult)
     } catch (error) {
       throw new Error(error)
     }
@@ -742,12 +748,10 @@ export default class ShippingcampaignsController {
     if (payload.interaction_id)
       params.append('interaction_id', payload.interaction_id)
     if (payload.unit_cod)
-      params.append('unit', payload.unit_cod)
+      params.append('unit_cod', payload.unit_cod)
+
     const url = `${process.env.SERVER_EASYTALK}/executeschedulepatients?${params.toString()}`
-
     console.log("url", url)
-
-
     try {
       const response = await axios.get(url, getHeaders())
       //console.log("RESPONSE:", process.env.SERVER_EASYTALK)
@@ -766,9 +770,7 @@ export default class ShippingcampaignsController {
     console.log("INICIANDO A BUSCA COM WEBHOOK")
     //const {date, interaction_id, unit} = request
     const params = await validateParams(request)
-    console.log("ÇÇÇÇ", params)
     const result = await PersistShippingcampaign(params.date, false, params.interaction_id, params?.unit_cod)
-    console.log(">>>>>>>>", result)
     return response.status(200).send(result)
 
   }

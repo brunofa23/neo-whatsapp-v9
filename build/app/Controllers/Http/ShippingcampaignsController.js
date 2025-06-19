@@ -10,7 +10,21 @@ const Env_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Env"));
 const util_1 = require("../../Services/whatsapp-web/util");
 const luxon_1 = require("luxon");
 const BadRequestException_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Exceptions/BadRequestException"));
+const axios_1 = __importDefault(require("axios"));
 const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
+const Validator_1 = global[Symbol.for('ioc.use')]("Adonis/Core/Validator");
+const header_1 = global[Symbol.for('ioc.use')]("App/util/header");
+const PersistShippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/PersistShippingcampaign"));
+async function validateParams(request) {
+    const payload = await request.validate({
+        schema: Validator_1.schema.create({
+            date: Validator_1.schema.string(),
+            interaction_id: Validator_1.schema.number(),
+            unit_cod: Validator_1.schema.number.nullableAndOptional(),
+        }),
+    });
+    return payload;
+}
 class ShippingcampaignsController {
     static get connection() {
         return 'mysql';
@@ -132,8 +146,13 @@ class ShippingcampaignsController {
     }
     async unitList({ response }) {
         try {
+            const excludedUnitCods = ['undefined'].filter(Boolean);
             const shippingCampaign = await Shippingcampaign_1.default.query()
-                .distinct('unit')
+                .distinct('unit', 'unit_cod')
+                .whereNotNull('unit_cod')
+                .if(excludedUnitCods.length > 0, (query) => {
+                query.whereNotIn('unit_cod', excludedUnitCods);
+            })
                 .orderBy('unit', 'asc');
             return response.status(200).send(shippingCampaign);
         }
@@ -462,18 +481,22 @@ class ShippingcampaignsController {
             query += ` and  shippingcampaigns.reg=${reg}`;
         if (name)
             query += ` and  shippingcampaigns.name like '%${name}%' `;
-        if (!luxon_1.DateTime.fromISO(initialdate).isValid || !luxon_1.DateTime.fromISO(finaldate).isValid) {
+        const initial = luxon_1.DateTime.fromISO(initialdate, { zone: 'America/Sao_Paulo' }).startOf('day');
+        const final = luxon_1.DateTime.fromISO(finaldate, { zone: 'America/Sao_Paulo' }).endOf('day');
+        if (!initial.isValid || !final.isValid) {
             throw new Error("Datas inválidas.");
         }
         try {
-            const result = await Database_1.default.connection(Env_1.default.get('DB_CONNECTION_MAIN')).query()
+            const queryAll = Database_1.default.connection(Env_1.default.get('DB_CONNECTION_MAIN')).query()
                 .from('shippingcampaigns')
                 .select('shippingcampaigns.interaction_id', 'shippingcampaigns.reg', 'shippingcampaigns.name', 'shippingcampaigns.dateshedule', 'shippingcampaigns.cellphone', 'otherfields', 'phonevalid', 'messagesent', 'chats.created_at', 'response', 'returned', 'invalidresponse', 'chatname', 'absoluteresp')
                 .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
-                .whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
+                .whereBetween('shippingcampaigns.created_at', [initial.toISO(), final.toISO()])
                 .where('shippingcampaigns.interaction_id', 1)
                 .whereRaw(query);
-            return response.status(201).send(result);
+            console.log(queryAll.toQuery());
+            const queryResult = await queryAll;
+            return response.status(201).send(queryResult);
         }
         catch (error) {
             throw new Error(error);
@@ -493,9 +516,38 @@ class ShippingcampaignsController {
             query.whereNull('company_id');
         query.whereNotExists((subquery) => {
             subquery.select('*').from('chats').whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id');
-        }).orderByRaw('RAND()');
+        }).orderBy('prioritysend', "desc").orderBy('dateshedule').orderByRaw('RAND()').limit(5);
         const shippingCampaign = await query.first();
         return shippingCampaign;
+    }
+    async searchSchedulePatients({ auth, request, response }) {
+        console.log("INICIANDO A BUSCA COM WEBHOOK");
+        const payload = await validateParams(request);
+        const params = new URLSearchParams();
+        if (payload.date)
+            params.append('date', payload.date);
+        if (payload.interaction_id)
+            params.append('interaction_id', payload.interaction_id);
+        if (payload.unit_cod)
+            params.append('unit_cod', payload.unit_cod);
+        const url = `${process.env.SERVER_EASYTALK}/executeschedulepatients?${params.toString()}`;
+        console.log("url", url);
+        try {
+            const response = await axios_1.default.get(url, (0, header_1.getHeaders)());
+            if (response.status === 200) {
+                return response.data;
+            }
+        }
+        catch (error) {
+            console.log("error:", error);
+            return error;
+        }
+    }
+    async executeSchedulePatients({ auth, request, response }) {
+        console.log("INICIANDO A BUSCA COM WEBHOOK");
+        const params = await validateParams(request);
+        const result = await (0, PersistShippingcampaign_1.default)(params.date, false, params.interaction_id, params?.unit_cod);
+        return response.status(200).send(result);
     }
 }
 exports.default = ShippingcampaignsController;

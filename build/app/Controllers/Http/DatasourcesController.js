@@ -13,12 +13,12 @@ const util_1 = require("../../Services/whatsapp-web/util");
 const ResponsesController_1 = __importDefault(require("./ResponsesController"));
 const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Shippingcampaign"));
 class DatasourcesController {
-    async DataSource(date, interaction_id = 0, unit = 0) {
+    async DataSource(date, interaction_id = 0, unit_cod = 0) {
         try {
             let schedulePatientsArray = [];
             let serviceEvaluationArray = [];
             if (interaction_id === 1) {
-                return await this.scheduledPatients(date, unit);
+                return await this.scheduledPatients(date, unit_cod);
             }
             if (interaction_id === 2) {
                 return await this.serviceEvaluation();
@@ -27,7 +27,7 @@ class DatasourcesController {
             for (const interaction of interactionList) {
                 switch (interaction.id) {
                     case 1:
-                        schedulePatientsArray = await this.scheduledPatients(date);
+                        schedulePatientsArray = await this.scheduledPatients(date, unit_cod);
                         break;
                     case 2:
                         serviceEvaluationArray = await this.serviceEvaluation();
@@ -55,7 +55,7 @@ class DatasourcesController {
             }
         }
     }
-    async scheduledPatients(dateStr, unit = 0) {
+    async scheduledPatients(dateStr, unit_cod = 0) {
         const date = luxon_1.DateTime.fromFormat(dateStr, 'yyyy-MM-dd', { zone: 'America/Sao_Paulo' });
         if (!date.isValid) {
             throw new Error('Formato de data inválido. Use yyyy-MM-dd');
@@ -71,22 +71,20 @@ class DatasourcesController {
                 .replace('{presentation}', presentations);
         };
         const pacQueryModel = await Interaction_1.default.query().where('id', 1).first();
-        if (!pacQueryModel) {
+        if (!pacQueryModel)
             throw new Error('Consulta para scheduledPatients não encontrada');
-        }
         const env = process.env.NODE_ENV;
         const pacQuery = env === 'development' ? pacQueryModel.querydev : pacQueryModel.query;
-        if (!pacQuery) {
+        if (!pacQuery)
             throw new Error('Query inválida para scheduledPatients');
+        let query = pacQuery
+            .replace(/\{dateStart\}/g, dateStart)
+            .replace(/\{dateEnd\}/g, dateEnd);
+        if (unit_cod > 0) {
+            query = query.replace('1=1', `emp_cod=${unit_cod}`);
         }
         try {
-            let query = pacQuery
-                .replace(/\{dateStart\}/g, dateStart)
-                .replace(/\{dateEnd\}/g, dateEnd);
-            if (unit > 0)
-                query = query.replace('1=1', ` emp_cod=${unit}`);
-            const result = await Database_1.default.connection('mssql')
-                .rawQuery(query);
+            const result = await Database_1.default.connection('mssql').rawQuery(query);
             for (const data of result) {
                 if (data.message && typeof data.message === 'string') {
                     data.message = await greeting(data.message);
@@ -97,9 +95,6 @@ class DatasourcesController {
         catch (error) {
             console.error('Erro em scheduledPatients:', error);
             throw error;
-        }
-        finally {
-            await Database_1.default.manager.close('mssql');
         }
     }
     async confirmSchedule(chat, chatOtherFields = "") {

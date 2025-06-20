@@ -770,7 +770,9 @@ export default class ShippingcampaignsController {
     console.log("INICIANDO A BUSCA COM WEBHOOK")
     //const {date, interaction_id, unit} = request
     const params = await validateParams(request)
+    console.time('PersistShippingcampaign');
     const result = await PersistShippingcampaign(params.date, false, params.interaction_id, params?.unit_cod)
+    console.timeEnd('PersistShippingcampaign');
     return response.status(200).send(result)
 
   }

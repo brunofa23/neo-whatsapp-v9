@@ -17,7 +17,7 @@ export default async (date: string, prioritysend: boolean = false, interaction_i
   const dataSource = new DatasourcesController
   const dataSourceList = await dataSource.DataSource(date, interaction_id, unit_cod)
 
-  const result: Shippingcampaign[] = [];
+  let count:number=0
 
 
   if (!isIterable(dataSourceList)) {
@@ -62,7 +62,7 @@ export default async (date: string, prioritysend: boolean = false, interaction_i
 
       if (!verifyExist) {
         await Shippingcampaign.create(shipping)
-        result.push(shipping)
+        count++
       }
 
     } catch (error) {
@@ -71,7 +71,7 @@ export default async (date: string, prioritysend: boolean = false, interaction_i
 
   }
 
-  return result
+  return count
 
 }
 

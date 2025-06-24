@@ -773,6 +773,8 @@ export default class ShippingcampaignsController {
     console.time('PersistShippingcampaign');
     const result = await PersistShippingcampaign(params.date, false, params.interaction_id, params?.unit_cod)
     console.timeEnd('PersistShippingcampaign');
+    console.timeEnd('Rodei a busca manual');
+
     return response.status(200).send(result)
 
   }

@@ -26,7 +26,7 @@ async function sendRepeatedMessage(agent: Agent) {
       }
     }
     //}
-  }, await GenerateRandomTime(300, 400, '****Send Message Repeated'))
+  }, await GenerateRandomTime(800, 900, '****Send Message Repeated'))
 
 }
 

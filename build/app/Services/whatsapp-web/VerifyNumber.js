@@ -6,6 +6,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.verifyNumber = void 0;
 const util_1 = require("../whatsapp-web/util");
 const Log_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Log"));
+async function isClientReady(client) {
+    try {
+        const state = await client.getState();
+        return state === 'CONNECTED' || state === 'READY';
+    }
+    catch (err) {
+        return false;
+    }
+}
 async function verifyNumber(client, cellphone) {
     const formattedPhone = await (0, util_1.ValidatePhone)(cellphone);
     if (!formattedPhone) {
@@ -13,6 +22,15 @@ async function verifyNumber(client, cellphone) {
             name: 'VerifyNumber',
             message: `Erro 12211: Número inválido ou não validado - ${cellphone}`,
             description: "Função validateAndFormatPhone falhou. Arquivo: VerifyNumber.ts"
+        });
+        return null;
+    }
+    const ready = await isClientReady(client);
+    if (!ready) {
+        await Log_1.default.create({
+            name: 'VerifyNumber',
+            message: `Erro 70001: Cliente WhatsApp não está pronto`,
+            description: "client.getState() não retornou estado válido. Arquivo: VerifyNumber.ts"
         });
         return null;
     }

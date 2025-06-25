@@ -52,6 +52,7 @@ async function verifyNumber(client, cellphone) {
             message: `Erro 999999: Falha ao verificar número - ${cellphone}`,
             description: `Erro capturado: ${error.message}. Arquivo: VerifyNumber.ts`
         });
+        return 'repeat';
     }
 }
 exports.verifyNumber = verifyNumber;

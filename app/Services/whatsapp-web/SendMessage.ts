@@ -94,13 +94,10 @@ export default async (client: Client, agent: Agent) => {
           if (verifycontsend)
             return
           const validationCellPhone = await verifyNumber(client, shippingCampaign?.cellphone)
+          if (validationCellPhone === 'repeat') return
+
           if (validationCellPhone) {
             verifyChat = await VerifyChat(shippingCampaign)
-            // verifyChat = await Chat.query()
-            //   .where('interaction_id', shippingCampaign?.interaction_id)
-            //   .andWhere('interaction_seq', shippingCampaign?.interaction_seq)
-            //   .andWhere('shippingcampaigns_id', shippingCampaign?.id).first()
-
             if (verifyChat == undefined) {
               let returnResponse: any = {}
               await client.sendMessage(validationCellPhone, shippingCampaign.message)

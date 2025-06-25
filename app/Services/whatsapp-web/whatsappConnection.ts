@@ -42,7 +42,6 @@ async function startAgent(_agent: Agent) {
     puppeteer: {
       executablePath: '/usr/bin/chromium-browser',
       args: ['--no-sandbox',
-        '--max-memory=512MB',
         '--disable-setuid-sandbox',
         '--disable-dev-shm-usage',
         '--disable-accelerated-2d-canvas',

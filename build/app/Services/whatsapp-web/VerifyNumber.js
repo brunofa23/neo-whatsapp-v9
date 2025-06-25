@@ -47,11 +47,16 @@ async function verifyNumber(client, cellphone) {
         return null;
     }
     catch (error) {
-        await Log_1.default.create({
-            name: 'VerifyNumber',
-            message: `Erro 999999: Falha ao verificar número - ${cellphone}`,
-            description: `Erro capturado: ${error.message}. Arquivo: VerifyNumber.ts`
-        });
+        try {
+            await Log_1.default.create({
+                name: 'VerifyNumber',
+                message: `Erro 999999: Falha ao verificar número - ${cellphone}`,
+                description: `Erro capturado: ${error.message}. Arquivo: VerifyNumber.ts`
+            });
+        }
+        catch (logError) {
+            console.error('Erro ao gravar log do erro:', logError.message);
+        }
         return 'repeat';
     }
 }

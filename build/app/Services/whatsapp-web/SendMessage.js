@@ -82,8 +82,8 @@ exports.default = async (client, agent) => {
                     if (verifycontsend)
                         return;
                     const validationCellPhone = await (0, VerifyNumber_1.verifyNumber)(client, shippingCampaign?.cellphone);
+                    console.log("VERIFICANDO VALIDATIONCELL77788>>", validationCellPhone);
                     if (validationCellPhone == 'repeat') {
-                        console.log("REPETINDO O NUMERO");
                         return;
                     }
                     if (validationCellPhone) {

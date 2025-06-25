@@ -516,7 +516,8 @@ class ShippingcampaignsController {
             query.whereNull('company_id');
         query.whereNotExists((subquery) => {
             subquery.select('*').from('chats').whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id');
-        }).orderBy('prioritysend', "desc").orderBy('dateshedule').orderByRaw('RAND()').limit(5);
+        })
+            .orderBy('prioritysend', "desc").orderByRaw('RAND()').limit(5);
         const shippingCampaign = await query.first();
         return shippingCampaign;
     }

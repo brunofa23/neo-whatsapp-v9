@@ -145,7 +145,7 @@ export default async (client: Client, agent: Agent) => {
                   await Agent.query().where('id', agent.id).update({ statusconnected: false, status: state })
                   await Log.create({ name: 'sendMessage', message: error, description: "SendMessage.ts. linha:120 - Whatsapp Bugado catch" })
                 })
-              if (Object.keys(returnResponse).length === 0) {
+              if (returnResponse && Object.keys(returnResponse).length === 0) {
                 await Log.create({ name: 'sendMessage', message: error, description: "SendMessage.ts. linha:120 - Whatsapp Bugado depois deo catch" })
                 await Agent.query().where('id', agent.id).update({ statusconnected: false })
               }

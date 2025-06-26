@@ -93,14 +93,18 @@ export default async (client: Client, agent: Agent) => {
           //console.log("*** PASSO 5.0", verifycontsend.id, "cellphone:", verifycontsend.cellphone, "name", verifycontsend.name)
           if (verifycontsend)
             return
+
           const validationCellPhone = await verifyNumber(client, shippingCampaign?.cellphone)
           console.log("VERIFICANDO VALIDATIONCELL77788>>", validationCellPhone)
 
-          if (validationCellPhone == 'repeat') {
+          if (validationCellPhone === 'INVALID') {
+            console.log("NÚMERO INVÁLIDO", validationCellPhone)
+            shippingCampaign.phonevalid = false
+            await shippingCampaign.save()
             return
-          }
-
-          if (validationCellPhone) {
+          } else if (validationCellPhone === null) {
+            console.log("Erro Temporário, repetir:", shippingCampaign.cellphone)
+          } else {
             verifyChat = await VerifyChat(shippingCampaign)
             if (verifyChat == undefined) {
               let returnResponse: any = {}
@@ -148,10 +152,6 @@ export default async (client: Client, agent: Agent) => {
 
             }
 
-          } else {//número é inválido
-            shippingCampaign.phonevalid = false
-            const result = await shippingCampaign.save()
-            //console.log(`*** PASSO 10: id:${result.id}, nome:${result.name}, fone:${result.cellphone}, phonevalid:${result.phonevalid}`)
           }
         }
         catch (error) {

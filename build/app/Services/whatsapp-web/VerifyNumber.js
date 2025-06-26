@@ -23,7 +23,7 @@ async function verifyNumber(client, cellphone) {
             message: `Erro 12211: Número inválido ou não validado - ${cellphone}`,
             description: "Função validateAndFormatPhone falhou. Arquivo: VerifyNumber.ts"
         });
-        return null;
+        return 'INVALID';
     }
     const ready = await isClientReady(client);
     if (!ready) {
@@ -44,20 +44,15 @@ async function verifyNumber(client, cellphone) {
             message: `Erro 568541: Número não identificado no WhatsApp - ${cellphone}`,
             description: "Função client.getNumberId retornou null. Arquivo: VerifyNumber.ts"
         });
-        return null;
+        return 'INVALID';
     }
     catch (error) {
-        try {
-            await Log_1.default.create({
-                name: 'VerifyNumber',
-                message: `Erro 999999: Falha ao verificar número - ${cellphone}`,
-                description: `Erro capturado: ${error.message}. Arquivo: VerifyNumber.ts`
-            });
-        }
-        catch (logError) {
-            console.error('Erro ao gravar log do erro:', logError.message);
-        }
-        return 'repeat';
+        await Log_1.default.create({
+            name: 'VerifyNumber',
+            message: `Erro 999999: Falha ao verificar número - ${cellphone}`,
+            description: `Erro capturado: ${error.message}. Arquivo: VerifyNumber.ts`
+        });
+        return null;
     }
 }
 exports.verifyNumber = verifyNumber;

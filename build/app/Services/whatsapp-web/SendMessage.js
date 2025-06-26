@@ -83,10 +83,16 @@ exports.default = async (client, agent) => {
                         return;
                     const validationCellPhone = await (0, VerifyNumber_1.verifyNumber)(client, shippingCampaign?.cellphone);
                     console.log("VERIFICANDO VALIDATIONCELL77788>>", validationCellPhone);
-                    if (validationCellPhone == 'repeat') {
+                    if (validationCellPhone === 'INVALID') {
+                        console.log("NÚMERO INVÁLIDO", validationCellPhone);
+                        shippingCampaign.phonevalid = false;
+                        await shippingCampaign.save();
                         return;
                     }
-                    if (validationCellPhone) {
+                    else if (validationCellPhone === null) {
+                        console.log("Erro Temporário, repetir:", shippingCampaign.cellphone);
+                    }
+                    else {
                         verifyChat = await VerifyChat(shippingCampaign);
                         if (verifyChat == undefined) {
                             let returnResponse = {};
@@ -126,15 +132,11 @@ exports.default = async (client, agent) => {
                                 await Agent_1.default.query().where('id', agent.id).update({ statusconnected: false, status: state });
                                 await Log_1.default.create({ name: 'sendMessage', message: error, description: "SendMessage.ts. linha:120 - Whatsapp Bugado catch" });
                             });
-                            if (Object.keys(returnResponse).length === 0) {
+                            if (returnResponse && Object.keys(returnResponse).length === 0) {
                                 await Log_1.default.create({ name: 'sendMessage', message: error, description: "SendMessage.ts. linha:120 - Whatsapp Bugado depois deo catch" });
                                 await Agent_1.default.query().where('id', agent.id).update({ statusconnected: false });
                             }
                         }
-                    }
-                    else {
-                        shippingCampaign.phonevalid = false;
-                        const result = await shippingCampaign.save();
                     }
                 }
                 catch (error) {

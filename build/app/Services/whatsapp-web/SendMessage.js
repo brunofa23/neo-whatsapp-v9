@@ -69,7 +69,7 @@ exports.default = async (client, agent) => {
         console.log("PASSO 4 1200:prioritysend", shippingCampaign?.prioritysend);
         let verifyChat;
         let verifycontsend;
-        if (totMessageSend >= maxLimitSendAgent && (shippingCampaign?.prioritysend == null || shippingCampaign?.prioritysend == undefined)) {
+        if (totMessageSend >= maxLimitSendAgent && (shippingCampaign?.prioritysend == null || shippingCampaign?.prioritysend == undefined || shippingCampaign?.prioritysend == false)) {
             console.log(`LIMITE DIÁRIO ATINGIDO,Id:${agent.id} Agent: ${agent.name} Enviados:${totMessageSend} - Limite Máximo:${maxLimitSendAgent}`);
             return;
         }

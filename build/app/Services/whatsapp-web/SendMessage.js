@@ -62,6 +62,10 @@ exports.default = async (client, agent) => {
         const totMessageSend = await countLimitSendMessage();
         const maxLimitSendAgent = await maxLimitSendMessageAgent(agent.id);
         const shippingCampaign = await shippingcampaignsController.patientToSend(agent);
+        console.log("PASSO 1 1200:totMessageSend", totMessageSend);
+        console.log("PASSO 2 1200:MAXLIMITSENDAGEND", maxLimitSendAgent);
+        const teste = totMessageSend >= maxLimitSendAgent && (shippingCampaign?.prioritysend == null || shippingCampaign?.prioritysend == undefined);
+        console.log("PASSO 3 1200:teste", teste);
         let verifyChat;
         let verifycontsend;
         if (totMessageSend >= maxLimitSendAgent && (shippingCampaign?.prioritysend == null || shippingCampaign?.prioritysend == undefined)) {

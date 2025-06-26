@@ -59,7 +59,7 @@ async function sendRepeatedMessage() {
             await datasourcesController.confirmScheduleAll();
             await datasourcesController.cancelScheduleAll();
         }
-    }, await (0, util_1.GenerateRandomTime)(30, 40, '****Send Message Repeated'));
+    }, await (0, util_1.GenerateRandomTime)(500, 600, '****Send Message Repeated'));
 }
 exports.sendRepeatedMessage = sendRepeatedMessage;
 async function sendRepeatedMessageKlingo() {
@@ -85,7 +85,7 @@ async function sendRepeatedMessageKlingo() {
             const datasourceApisController = new DatasourceApisController_1.default;
             datasourceApisController.confirmOrCancelScheduleInternal();
         }
-    }, await (0, util_1.GenerateRandomTime)(200, 250, '****Send Message Repeated'));
+    }, await (0, util_1.GenerateRandomTime)(500, 550, '****Send Message Repeated'));
 }
 exports.sendRepeatedMessageKlingo = sendRepeatedMessageKlingo;
 async function resetStatusConnected() {

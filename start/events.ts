@@ -61,7 +61,7 @@ async function sendRepeatedMessage() {
       //await datasourcesController.resetCellphone()
     }
     //}
-  }, await GenerateRandomTime(300, 400, '****Send Message Repeated'))
+  }, await GenerateRandomTime(30, 40, '****Send Message Repeated'))
 }
 
 

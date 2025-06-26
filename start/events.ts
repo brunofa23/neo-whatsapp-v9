@@ -45,10 +45,8 @@ async function connectionAll() {
 
 async function sendRepeatedMessage() {
   console.log("EXECUTANDO BUSCA SMART")
-  //const executingSendMessage = await Config.find('executingSendMessage')
   setInterval(async () => {
     const targetDates = getTargetDates()
-    //if (!executingSendMessage?.valuebool) {
     if (await TimeSchedule()) {
       for (const date of targetDates) {
         const formatted = date.toFormat('yyyy-MM-dd')
@@ -58,17 +56,15 @@ async function sendRepeatedMessage() {
       const datasourcesController = new DatasourcesController
       await datasourcesController.confirmScheduleAll()
       await datasourcesController.cancelScheduleAll()
-      //await datasourcesController.resetCellphone()
+
     }
-    //}
-  }, await GenerateRandomTime(30, 40, '****Send Message Repeated'))
+  }, await GenerateRandomTime(500, 600, '****Send Message Repeated'))
 }
 
 
 //BUSCANDO NO KLINGO
 async function sendRepeatedMessageKlingo() {
   console.log("EXECUTANDO BUSCA KLINGO")
-  //const executingSendMessage = await Config.find('executingSendMessage')
   setInterval(async () => {
     let date = DateTime.local().setZone('America/Sao_Paulo').plus({ days: 3 });
     if (date.weekday === 6) {
@@ -95,7 +91,7 @@ async function sendRepeatedMessageKlingo() {
       const datasourceApisController = new DatasourceApisController
       datasourceApisController.confirmOrCancelScheduleInternal()
     }
-  }, await GenerateRandomTime(200, 250, '****Send Message Repeated')
+  }, await GenerateRandomTime(500, 550, '****Send Message Repeated')
   )
 
 

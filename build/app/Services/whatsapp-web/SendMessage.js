@@ -64,8 +64,9 @@ exports.default = async (client, agent) => {
         const shippingCampaign = await shippingcampaignsController.patientToSend(agent);
         console.log("PASSO 1 1200:totMessageSend", totMessageSend);
         console.log("PASSO 2 1200:MAXLIMITSENDAGEND", maxLimitSendAgent);
-        const teste = totMessageSend >= maxLimitSendAgent && (shippingCampaign?.prioritysend == null || shippingCampaign?.prioritysend == undefined);
+        const teste = totMessageSend >= maxLimitSendAgent;
         console.log("PASSO 3 1200:teste", teste);
+        console.log("PASSO 4 1200:prioritysend", shippingCampaign?.prioritysend);
         let verifyChat;
         let verifycontsend;
         if (totMessageSend >= maxLimitSendAgent && (shippingCampaign?.prioritysend == null || shippingCampaign?.prioritysend == undefined)) {

@@ -25,16 +25,16 @@ jobs:
 
 
       # Supondo que você deseje realizar o deploy a partir da branch main-production
-      - name: Checkout main-one-production
-        run: git checkout main-one-production
+      - name: Checkout production-ai-cob
+        run: git checkout production-ai-cob
       - name: Pull latest changes from main-production
         run: git pull
 
       - name: Merge changes from main
-        run: git merge main-one
+        run: git merge main-ai-cob
 
       - name: Push changes to GitHub
-        run: git push origin main-one-production
+        run: git push origin production-ai-cob
 
       - name: Install dependencies
         run: npm install
@@ -53,7 +53,7 @@ jobs:
         run: git commit -m 'nova versão'
 
       - name: Git push na production
-        run: git push origin main-one-production
+        run: git push origin production-ai-cob
       #- name: Executing build...
       #  run: cd ./build
 

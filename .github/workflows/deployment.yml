@@ -2,7 +2,7 @@ name: Build and deploy api
 on:
   push:
     branches:
-      - main-one
+      - main-ai-cob
 
 jobs:
   build:
@@ -15,7 +15,7 @@ jobs:
 
       - uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 20
 
       # Configurar o e-mail e nome do usuário do Git
       - name: Set up Git user

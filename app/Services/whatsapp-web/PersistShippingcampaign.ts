@@ -1,8 +1,8 @@
 import DatasourcesController from 'App/Controllers/Http/DatasourcesController'
 import Shippingcampaign from 'App/Models/Shippingcampaign'
 import { ValidatePhone } from '../whatsapp-web/util'
+import { DateTime } from 'luxon';
 
-import moment = require('moment');
 
 function isIterable(obj) {
   try {
@@ -16,8 +16,8 @@ function isIterable(obj) {
 export default async (date: string, prioritysend: boolean = false, interaction_id: number = 0, unit_cod: number = 0) => {
   //const dataSource = new DatasourcesController
   const dataSourceList = await new DatasourcesController().DataSource(date, interaction_id, unit_cod)
+  const patientList: { reg: any, name: string, unit: string }[] = []
 
-  let count:number=0
 
   if (!isIterable(dataSourceList)) {
     console.log("Algum erro ocorrido, não é iterable", dataSourceList)
@@ -51,17 +51,20 @@ export default async (date: string, prioritysend: boolean = false, interaction_i
       shipping.prioritysend = prioritysend ? true : false
 
 
-      const yesterday = moment().subtract(5, 'day').format('YYYY-MM-DD');
+      const yesterday = DateTime.now()
+        .setZone('America/Sao_Paulo')
+        .minus({ days: 5 })
+        .toFormat('yyyy-MM-dd');
       const verifyExist = await Shippingcampaign.query()
         .where('reg', '=', data.reg)
         .andWhere('created_at', '>=', yesterday)
         .andWhere('interaction_id', '=', data.interaction_id)
-        .andWhere('phonevalid',true)
+        .andWhere('phonevalid', true)
         .first()
 
       if (!verifyExist) {
         await Shippingcampaign.create(shipping)
-        count++
+        patientList.push({ reg: shipping.reg, name: shipping.name, unit: shipping.unit })
       }
 
     } catch (error) {
@@ -70,7 +73,7 @@ export default async (date: string, prioritysend: boolean = false, interaction_i
 
   }
 
-  return count
+  return patientList
 
 }
 

@@ -14,11 +14,10 @@ function isIterable(obj) {
 
 
 export default async (date: string, prioritysend: boolean = false, interaction_id: number = 0, unit_cod: number = 0) => {
-  const dataSource = new DatasourcesController
-  const dataSourceList = await dataSource.DataSource(date, interaction_id, unit_cod)
+  //const dataSource = new DatasourcesController
+  const dataSourceList = await new DatasourcesController().DataSource(date, interaction_id, unit_cod)
 
   let count:number=0
-
 
   if (!isIterable(dataSourceList)) {
     console.log("Algum erro ocorrido, não é iterable", dataSourceList)
@@ -55,9 +54,9 @@ export default async (date: string, prioritysend: boolean = false, interaction_i
       const yesterday = moment().subtract(5, 'day').format('YYYY-MM-DD');
       const verifyExist = await Shippingcampaign.query()
         .where('reg', '=', data.reg)
-        //.andWhere('idexternal', data.idexternal)
         .andWhere('created_at', '>=', yesterday)
         .andWhere('interaction_id', '=', data.interaction_id)
+        .andWhere('phonevalid',true)
         .first()
 
       if (!verifyExist) {

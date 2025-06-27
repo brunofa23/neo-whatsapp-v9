@@ -72,13 +72,6 @@ export default async (client: Client, agent: Agent) => {
     const maxLimitSendAgent = await maxLimitSendMessageAgent(agent.id)
     const shippingCampaign = await shippingcampaignsController.patientToSend(agent)
 
-    console.log("PASSO 1 1200:totMessageSend", totMessageSend)
-    console.log("PASSO 2 1200:MAXLIMITSENDAGEND", maxLimitSendAgent)
-    const teste = totMessageSend >= maxLimitSendAgent
-    console.log("PASSO 3 1200:teste", teste)
-    console.log("PASSO 4 1200:prioritysend", shippingCampaign?.prioritysend)
-
-
     let verifyChat
     let verifycontsend
     if (totMessageSend >= maxLimitSendAgent && (shippingCampaign?.prioritysend == null || shippingCampaign?.prioritysend == undefined || shippingCampaign?.prioritysend == false)) {
@@ -102,10 +95,10 @@ export default async (client: Client, agent: Agent) => {
             return
 
           const validationCellPhone = await verifyNumber(client, shippingCampaign?.cellphone)
-          console.log("VERIFICANDO VALIDATIONCELL77788>>", validationCellPhone)
+          //console.log("VERIFICANDO VALIDATIONCELL77788>>", validationCellPhone)
 
           if (validationCellPhone === 'INVALID') {
-            console.log("NÚMERO INVÁLIDO", validationCellPhone)
+            //console.log("NÚMERO INVÁLIDO", validationCellPhone)
             shippingCampaign.phonevalid = false
             await shippingCampaign.save()
             return
@@ -162,7 +155,7 @@ export default async (client: Client, agent: Agent) => {
           }
         }
         catch (error) {
-          console.log("ERRO 1500:::", error)
+          //console.log("ERRO 1500:::", error)
           await Log.create({ name: 'sendMessageGeneral', message: "error", description: "SendMessage.ts. linha:131" })
         }
       }

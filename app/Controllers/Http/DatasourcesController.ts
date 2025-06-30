@@ -46,7 +46,8 @@ export default class DatasourcesController {
         }
       }
 
-      return [...schedulePatientsArray, ...serviceEvaluationArray];
+      //return [...schedulePatientsArray, ...serviceEvaluationArray];
+      return [...schedulePatientsArray];
 
     } catch (error) {
       console.error('Erro na DataSource:', error);

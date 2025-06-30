@@ -46,8 +46,7 @@ export default class DatasourcesController {
         }
       }
 
-      //return [...schedulePatientsArray, ...serviceEvaluationArray];
-      return [...schedulePatientsArray];
+      return [...schedulePatientsArray, ...serviceEvaluationArray];
 
     } catch (error) {
       console.error('Erro na DataSource:', error);
@@ -62,64 +61,6 @@ export default class DatasourcesController {
     }
   }
 
-
-  // public async scheduledPatients(dateStr: string, unit_cod: number = 0): Promise<any[]> {
-
-  //   const date = DateTime.fromFormat(dateStr, 'yyyy-MM-dd', { zone: 'America/Sao_Paulo' });
-  //   if (!date.isValid) {
-  //     throw new Error('Formato de data inválido. Use yyyy-MM-dd');
-  //   }
-  //   const dateStart = date.startOf('day').toFormat('yyyy-MM-dd HH:mm')
-  //   const dateEnd = date.endOf('day').toFormat('yyyy-MM-dd HH:mm')
-  //   // Separar função greeting para método da classe
-  //   const greeting = async (message: string): Promise<string> => {
-  //     const responseList = new ResponsesController();
-  //     // Pega array de strings
-  //     const greetings = await responseList.index({ local: 'greeting' });
-  //     const presentations = await responseList.index({ local: 'presentation' });
-  //     // Substituir placeholders na mensagem
-  //     return message
-  //       .replace('{greeting}', greetings)
-  //       .replace('{presentation}', presentations);
-  //   };
-
-  //   const pacQueryModel = await Interaction.query().where('id', 1).first();
-
-  //   if (!pacQueryModel) {
-  //     throw new Error('Consulta para scheduledPatients não encontrada');
-  //   }
-
-  //   // Definir query de acordo com o ambiente
-  //   const env = process.env.NODE_ENV;
-  //   const pacQuery = env === 'development' ? pacQueryModel.querydev : pacQueryModel.query;
-
-  //   if (!pacQuery) {
-  //     throw new Error('Query inválida para scheduledPatients');
-  //   }
-
-  //   try {
-  //     let query = pacQuery
-  //       .replace(/\{dateStart\}/g, dateStart)
-  //       .replace(/\{dateEnd\}/g, dateEnd)
-  //     if (unit_cod > 0)
-  //       query = query.replace('1=1', ` emp_cod=${unit_cod}`)
-  //     const result = await Database.connection('mssql')
-  //       .rawQuery(query)
-
-  //     // Processar mensagens com greeting
-  //     for (const data of result) {
-  //       if (data.message && typeof data.message === 'string') {
-  //         data.message = await greeting(data.message);
-  //       }
-  //     }
-  //     return result;
-  //   } catch (error) {
-  //     console.error('Erro em scheduledPatients:', error);
-  //     throw error;
-  //   } finally {
-  //     await Database.manager.close('mssql');
-  //   }
-  // }
 
   public async scheduledPatients(dateStr: string, unit_cod: number = 0): Promise<any[]> {
     //verifica se existe na tabela config a variável scheduledPatients para controlar a busca dos pacientes
@@ -165,17 +106,13 @@ export default class DatasourcesController {
           data.message = await greeting(data.message);
         }
       }
-      return result;
+      return result||[];
 
     } catch (error) {
       console.error('Erro em scheduledPatients:', error);
-      throw error;
+      return []
     }
   }
-
-
-
-
 
   async confirmSchedule(chat: Chat, chatOtherFields: String = "") {
 
@@ -245,51 +182,6 @@ export default class DatasourcesController {
     }
   }
 
-
-  // async cancelScheduleAll1() {
-
-  //   console.log("Executando Cancelamentos no Smart...")
-  //   const dateNow = await DateFormat("dd/MM/yyyy HH:mm:ss", DateTime.local())
-  //   const startOfDay = await DateFormat("yyyy-MM-dd 00:00", DateTime.local())
-  //   const endOfDay = await DateFormat("yyyy-MM-dd 23:59", DateTime.local())
-  //   const returnChats = await Chat.query()
-  //     .preload('shippingcampaign')
-  //     .whereBetween('created_at', [startOfDay, endOfDay])
-  //     .andWhere('externalstatus', 'A')
-  //     .andWhere('absoluteresp', 2)
-  //     .andWhere('interaction_id', 1)
-  //   try {
-  //     for (const chat of returnChats) {
-  //       const momentDate = moment(chat.shippingcampaign.dateshedule)
-  //       const dateStart = momentDate.format('YYYY-MM-DD 00:00:00')
-  //       const dateEnd = momentDate.format('YYYY-MM-DD 23:59:00')
-  //       const query = await Database.connection('mssql')
-  //         .from('agm')
-  //         .where('agm_pac', chat.reg)
-  //         .andWhereBetween('agm_hini', [dateStart, dateEnd])
-  //         .whereNotIn('agm_stat', ['C', 'B'])
-  //         .whereNotIn('agm_confirm_stat', ['C'])
-  //         .update({
-  //           AGM_CONFIRM_STAT: 'N',
-  //           AGM_CONFIRM_OBS: chat.invalidresponse + ` (Desmarcado por NEO CONFIRMA by CONFIRMA ou CANCELA - WhatsApp em ${dateNow})`,
-  //           AGM_CONFIRM_USR: 'NEOCONFIRM',
-  //           AGM_CONFIRM_MOC: 'IRI'
-  //         })
-
-  //       if (query > 0) {
-  //         console.log("cancelamento realizado sucesso")
-  //         await Chat.query().where('reg', chat.reg).andWhere('idexternal', chat.idexternal).update({ externalstatus: 'B' })
-  //       }
-
-  //       //await Database.manager.close('mssql')
-
-  //       //return query
-
-  //     }
-  //   } catch (error) {
-  //     return error
-  //   }
-  // }
 
   async cancelScheduleAll() {
     console.log("Executando Cancelamentos no Smart...")
@@ -362,9 +254,10 @@ export default class DatasourcesController {
       }
       //console.log("RESULTADO", result)
       await Database.manager.close('mssql')
-      return result
+      return result || []
     } catch (error) {
-      return { "ERRO": "ERRO 21221", error }
+      console.error('Erro na serviceEvaluation:', error)
+      return [] // <- retorna array vazio, não objeto
     }
 
   }

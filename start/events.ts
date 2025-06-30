@@ -58,7 +58,7 @@ async function sendRepeatedMessage() {
       await datasourcesController.cancelScheduleAll()
 
     }
-  }, await GenerateRandomTime(500, 600, '****Send Message Repeated'))
+  }, Number(process.env.TIME_SENDREPEATEDMESSAGE || 5000))
 }
 
 

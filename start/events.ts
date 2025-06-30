@@ -53,9 +53,9 @@ async function sendRepeatedMessage() {
         console.log(`Buscando dados no Smart(Server): ${formatted}`)
         await PersistShippingcampaign(formatted)
       }
-      const datasourcesController = new DatasourcesController
-      await datasourcesController.confirmScheduleAll()
-      await datasourcesController.cancelScheduleAll()
+      // const datasourcesController = new DatasourcesController
+      // await datasourcesController.confirmScheduleAll()
+      // await datasourcesController.cancelScheduleAll()
 
     }
   }, Number(process.env.TIME_SENDREPEATEDMESSAGE || 5000))

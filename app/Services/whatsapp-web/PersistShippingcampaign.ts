@@ -59,7 +59,7 @@ export default async (date: string, prioritysend: boolean = false, interaction_i
         .where('reg', '=', data.reg)
         .andWhere('created_at', '>=', yesterday)
         .andWhere('interaction_id', '=', data.interaction_id)
-        .andWhere('phonevalid', true)
+        //.andWhere('phonevalid', true)
         .first()
 
       if (!verifyExist) {

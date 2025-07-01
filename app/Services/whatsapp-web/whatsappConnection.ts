@@ -143,19 +143,15 @@ async function startAgent(_agent: Agent) {
   }, await GenerateRandomTime(startTimeSendMessage, endTimeSendMessage, '----Time Send Message'))
 
 
-  setInterval(async () => {
-    const statusSendMessage = await getStatusSendMessage() //Config.query().select('valuebool', 'valuedatetime').where('id', 'statusSendMessage').first()
-    if (statusSendMessage) {
-      if (process.env.SELF_CONVERSATION?.toLocaleLowerCase() === "true") {
-        await SendMessageInternal(client)
-      }
-    }
-  }, await GenerateRandomTime(600, 900, '----Time Send Message'))
+  // setInterval(async () => {
+  //   const statusSendMessage = await getStatusSendMessage() //Config.query().select('valuebool', 'valuedatetime').where('id', 'statusSendMessage').first()
+  //   if (statusSendMessage) {
+  //     if (process.env.SELF_CONVERSATION?.toLocaleLowerCase() === "true") {
+  //       await SendMessageInternal(client)
+  //     }
+  //   }
+  // }, await GenerateRandomTime(600, 900, '----Time Send Message'))
 
-
-  // if (process.env.SERVER === 'true') {
-  //   await sendRepeatedMessage(agent)
-  // }
 
   const chatMonitoring = new ChatMonitoring
   await chatMonitoring.monitoring(client, agent)

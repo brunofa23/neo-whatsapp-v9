@@ -23,15 +23,15 @@ async function verifyNumber(client, cellphone) {
   }
 
   // Verificar se o cliente está pronto antes de chamar getNumberId
-  const ready = await isClientReady(client);
-  if (!ready) {
-    await Log.create({
-      name: 'VerifyNumber',
-      message: `Erro 70001: Cliente WhatsApp não está pronto`,
-      description: "client.getState() não retornou estado válido. Arquivo: VerifyNumber.ts"
-    });
-    return null;
-  }
+  // const ready = await isClientReady(client);
+  // if (!ready) {
+  //   await Log.create({
+  //     name: 'VerifyNumber',
+  //     message: `Erro 70001: Cliente WhatsApp não está pronto`,
+  //     description: "client.getState() não retornou estado válido. Arquivo: VerifyNumber.ts"
+  //   });
+  //   return null;
+  // }
 
   try {
     const verifiedPhone = await client.getNumberId(cellphone);

@@ -13,6 +13,13 @@ import Application from '@ioc:Adonis/Core/Application'
 import WhatsAppClientManager from './WhatsAppClientManager';
 
 
+import fs from 'fs';
+// Caminhos de sessão e perfil do Chrome
+
+
+
+
+
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcodeTerminal = require('qrcode-terminal');
 const qrcode = require('qrcode')
@@ -31,6 +38,11 @@ async function getStatusSendMessage() {
 
 async function startAgent(_agent: Agent) {
   console.log("whatsappConnections.....")
+
+  const chromeProfilePath = Application.tmpPath(`chrome-profiles/${_agent.id}`);
+  // Garante que os diretórios existem
+  fs.mkdirSync(chromeProfilePath, { recursive: true });
+
   const agent = await Agent.findOrFail(_agent.id)
   if (!_agent) {
     console.log("CHATNAME INVÁLIDO - Verifique o .env Chatname está igual ao name tabela Agents")

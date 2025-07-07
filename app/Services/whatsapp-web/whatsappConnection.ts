@@ -48,7 +48,8 @@ async function startAgent(_agent: Agent) {
         '--disable-accelerated-2d-canvas',
         '--no-first-run',
         '--no-zygote',
-        '--disable-gpu'
+        '--disable-gpu',
+        `--user-data-dir=${Application.tmpPath('/chrome-profiles/' + _agent.id)}`
       ],
 
       dumpio: false,

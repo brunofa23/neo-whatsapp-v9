@@ -23,7 +23,7 @@ async function startAgentChat(_agent) {
     const clientChat = new Client({
         authStrategy: new LocalAuth({ clientId: _agent.id, dataPath: Application_1.default.tmpPath('/sessions') }),
         puppeteer: {
-            executablePath: '/usr/bin/google-chrome',
+            executablePath: '/snap/bin/chromium',
             args: ['--no-sandbox',
                 '--disable-setuid-sandbox',
                 '--disable-dev-shm-usage',

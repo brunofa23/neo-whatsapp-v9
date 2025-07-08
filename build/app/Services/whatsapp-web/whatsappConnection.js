@@ -41,6 +41,7 @@ async function startAgent(_agent) {
     const client = new Client({
         authStrategy: new LocalAuth({ clientId: _agent.id, dataPath: Application_1.default.tmpPath('/sessions') }),
         puppeteer: {
+            executablePath: '/snap/bin/chromium',
             args: ['--no-sandbox',
                 '--disable-setuid-sandbox',
                 '--disable-dev-shm-usage',

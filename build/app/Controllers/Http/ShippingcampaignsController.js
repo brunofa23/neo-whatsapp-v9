@@ -547,9 +547,7 @@ class ShippingcampaignsController {
     async executeSchedulePatients({ auth, request, response }) {
         console.log("INICIANDO A BUSCA COM WEBHOOK");
         const params = await validateParams(request);
-        console.time('PersistShippingcampaign');
         const result = await (0, PersistShippingcampaign_1.default)(params.date, false, params.interaction_id, params?.unit_cod);
-        console.timeEnd('PersistShippingcampaign');
         console.timeEnd('Rodei a busca manual');
         return response.status(200).send(result);
     }

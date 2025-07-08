@@ -11,11 +11,11 @@ const SendMessage_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Service
 const luxon_1 = require("luxon");
 const ChatMonitoring_1 = __importDefault(require("./ChatMonitoring/ChatMonitoring"));
 const ChatMonitoringInternal_1 = __importDefault(require("./ChatMonitoring/ChatMonitoringInternal"));
-const SendMessageInternal_1 = __importDefault(require("./SendMessageInternal"));
 const util_1 = require("./util");
 const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
 const Application_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Application"));
 const WhatsAppClientManager_1 = __importDefault(require("./WhatsAppClientManager"));
+const fs_1 = __importDefault(require("fs"));
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcodeTerminal = require('qrcode-terminal');
 const qrcode = require('qrcode');
@@ -31,6 +31,8 @@ async function getStatusSendMessage() {
 }
 async function startAgent(_agent) {
     console.log("whatsappConnections.....");
+    const chromeProfilePath = Application_1.default.tmpPath(`chrome-profiles/${_agent.id}`);
+    fs_1.default.mkdirSync(chromeProfilePath, { recursive: true });
     const agent = await Agent_1.default.findOrFail(_agent.id);
     if (!_agent) {
         console.log("CHATNAME INVÁLIDO - Verifique o .env Chatname está igual ao name tabela Agents");
@@ -39,17 +41,15 @@ async function startAgent(_agent) {
     const client = new Client({
         authStrategy: new LocalAuth({ clientId: _agent.id, dataPath: Application_1.default.tmpPath('/sessions') }),
         puppeteer: {
-            executablePath: '/usr/bin/chromium-browser',
             args: ['--no-sandbox',
                 '--disable-setuid-sandbox',
                 '--disable-dev-shm-usage',
                 '--disable-accelerated-2d-canvas',
                 '--no-first-run',
                 '--no-zygote',
-                '--disable-gpu'
+                '--disable-gpu',
             ],
             dumpio: false,
-            timeout: 60000,
             headless: true,
         }
     });
@@ -102,14 +102,6 @@ async function startAgent(_agent) {
             (0, SendMessage_1.default)(client, agent);
         }
     }, await (0, util_1.GenerateRandomTime)(startTimeSendMessage, endTimeSendMessage, '----Time Send Message'));
-    setInterval(async () => {
-        const statusSendMessage = await getStatusSendMessage();
-        if (statusSendMessage) {
-            if (process.env.SELF_CONVERSATION?.toLocaleLowerCase() === "true") {
-                await (0, SendMessageInternal_1.default)(client);
-            }
-        }
-    }, await (0, util_1.GenerateRandomTime)(600, 900, '----Time Send Message'));
     const chatMonitoring = new ChatMonitoring_1.default;
     await chatMonitoring.monitoring(client, agent);
     if (process.env.SELF_CONVERSATION?.toLowerCase() === "true") {

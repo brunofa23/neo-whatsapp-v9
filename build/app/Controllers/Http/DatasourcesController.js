@@ -90,11 +90,11 @@ class DatasourcesController {
                     data.message = await greeting(data.message);
                 }
             }
-            return result;
+            return result || [];
         }
         catch (error) {
             console.error('Erro em scheduledPatients:', error);
-            throw error;
+            return [];
         }
     }
     async confirmSchedule(chat, chatOtherFields = "") {
@@ -222,10 +222,11 @@ class DatasourcesController {
                 data.message = message;
             }
             await Database_1.default.manager.close('mssql');
-            return result;
+            return result || [];
         }
         catch (error) {
-            return { "ERRO": "ERRO 21221", error };
+            console.error('Erro na serviceEvaluation:', error);
+            return [];
         }
     }
     async resetCellphone() {

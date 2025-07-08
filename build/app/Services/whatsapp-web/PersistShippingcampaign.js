@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const DatasourcesController_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Controllers/Http/DatasourcesController"));
 const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Shippingcampaign"));
 const util_1 = require("../whatsapp-web/util");
-const moment = require("moment");
+const luxon_1 = require("luxon");
 function isIterable(obj) {
     try {
         return obj !== null && typeof obj[Symbol.iterator] === 'function';
@@ -16,9 +16,8 @@ function isIterable(obj) {
     }
 }
 exports.default = async (date, prioritysend = false, interaction_id = 0, unit_cod = 0) => {
-    const dataSource = new DatasourcesController_1.default;
-    const dataSourceList = await dataSource.DataSource(date, interaction_id, unit_cod);
-    let count = 0;
+    const dataSourceList = await new DatasourcesController_1.default().DataSource(date, interaction_id, unit_cod);
+    const patientList = [];
     if (!isIterable(dataSourceList)) {
         console.log("Algum erro ocorrido, não é iterable", dataSourceList);
         return;
@@ -48,7 +47,10 @@ exports.default = async (date, prioritysend = false, interaction_id = 0, unit_co
             shipping.phone_unit = data.phone_unit;
             shipping.type_service = data.type_service;
             shipping.prioritysend = prioritysend ? true : false;
-            const yesterday = moment().subtract(5, 'day').format('YYYY-MM-DD');
+            const yesterday = luxon_1.DateTime.now()
+                .setZone('America/Sao_Paulo')
+                .minus({ days: 5 })
+                .toFormat('yyyy-MM-dd');
             const verifyExist = await Shippingcampaign_1.default.query()
                 .where('reg', '=', data.reg)
                 .andWhere('created_at', '>=', yesterday)
@@ -56,13 +58,13 @@ exports.default = async (date, prioritysend = false, interaction_id = 0, unit_co
                 .first();
             if (!verifyExist) {
                 await Shippingcampaign_1.default.create(shipping);
-                count++;
+                patientList.push({ reg: shipping.reg, name: shipping.name, unit: shipping.unit });
             }
         }
         catch (error) {
             console.log("Erro 44454>>>>", error);
         }
     }
-    return count;
+    return patientList;
 };
 //# sourceMappingURL=PersistShippingcampaign.js.map

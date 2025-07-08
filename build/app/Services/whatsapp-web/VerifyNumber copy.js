@@ -25,15 +25,6 @@ async function verifyNumber(client, cellphone) {
         });
         return 'INVALID';
     }
-    const ready = await isClientReady(client);
-    if (!ready) {
-        await Log_1.default.create({
-            name: 'VerifyNumber',
-            message: `Erro 70001: Cliente WhatsApp não está pronto`,
-            description: "client.getState() não retornou estado válido. Arquivo: VerifyNumber.ts"
-        });
-        return null;
-    }
     try {
         const verifiedPhone = await client.getNumberId(cellphone);
         if (verifiedPhone) {
@@ -47,18 +38,13 @@ async function verifyNumber(client, cellphone) {
         return 'INVALID';
     }
     catch (error) {
-        const isSessionClosed = error.message?.includes('Session closed');
-        const isProtocolError = error.message?.includes('Protocol error');
         await Log_1.default.create({
             name: 'VerifyNumber',
             message: `Erro 999999: Falha ao verificar número - ${cellphone}`,
-            description: `Erro capturado: ${error.message}${isSessionClosed ? ' (Sessão encerrada)' : ''}. Arquivo: VerifyNumber.ts`
+            description: `Erro capturado: ${error.message}. Arquivo: VerifyNumber.ts`
         });
-        if (isSessionClosed || isProtocolError) {
-            console.warn(`A sessão do cliente pode ter sido encerrada. Considere reinicializar.`);
-        }
         return null;
     }
 }
 exports.verifyNumber = verifyNumber;
-//# sourceMappingURL=VerifyNumber.js.map
+//# sourceMappingURL=VerifyNumber%20copy.js.map

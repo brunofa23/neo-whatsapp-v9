@@ -16,10 +16,6 @@ import WhatsAppClientManager from './WhatsAppClientManager';
 import fs from 'fs';
 // Caminhos de sessão e perfil do Chrome
 
-
-
-
-
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcodeTerminal = require('qrcode-terminal');
 const qrcode = require('qrcode')
@@ -53,7 +49,7 @@ async function startAgent(_agent: Agent) {
     //authStrategy: new LocalAuth({ clientId: _agent.id }),
     puppeteer: {
       //executablePath: '/usr/bin/chromium-browser',
-      executablePath: '/usr/bin/google-chrome',
+      //executablePath: '/usr/bin/google-chrome',
       args: ['--no-sandbox',
         '--disable-setuid-sandbox',
         '--disable-dev-shm-usage',
@@ -61,11 +57,11 @@ async function startAgent(_agent: Agent) {
         '--no-first-run',
         '--no-zygote',
         '--disable-gpu',
-        `--user-data-dir=${Application.tmpPath('/chrome-profiles/' + _agent.id)}`
+        //`--user-data-dir=${Application.tmpPath('/chrome-profiles/' + _agent.id)}`
       ],
 
       dumpio: false,
-      timeout: 60000,
+      //timeout: 60000,
 
       headless: true,
     }

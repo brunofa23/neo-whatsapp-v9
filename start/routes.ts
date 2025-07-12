@@ -29,7 +29,13 @@ function operacaoAssincrona(callback) {
     resetStatusConnected()
     connectionAll()
     return
+  }
 
+  if (process.env.SERVER?.toLowerCase() === "klingoServer") {
+    //FAZ INTEGRAÇÃO COM O SISTEMA KLINGO
+    console.log("INICIALIZANDO EASYTALK KLINGO SERVER....")
+    sendRepeatedMessageKlingo()
+    return
   }
 
 }
@@ -124,8 +130,8 @@ Route.group(() => {
   Route.get('/shippingcampaigns', 'ShippingcampaignsController.index')
   Route.post('/shippingcampaigns', 'ShippingcampaignsController.store')
   Route.post('/resend/:id', 'ShippingcampaignsController.resend')
-  Route.get('/searchschedulepatients','ShippingcampaignsController.searchSchedulePatients')
-  Route.get('/executeschedulepatients','ShippingcampaignsController.executeSchedulePatients')
+  Route.get('/searchschedulepatients', 'ShippingcampaignsController.searchSchedulePatients')
+  Route.get('/executeschedulepatients', 'ShippingcampaignsController.executeSchedulePatients')
 
   //chats
   Route.resource('/chats', 'ChatsController').apiOnly()

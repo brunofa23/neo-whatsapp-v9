@@ -44,7 +44,7 @@ async function otherFields(schedule: Object) {
 //FUNÇÃO PARA PREPARAR OS DADOS ARRAY BUSCADO DO KLINGO ANTES DE ARMAZENAR O SHIPPINGCAMPAIGN
 function prepareSchedules(records: object[]): object[] {
   // Filtra apenas registros com status_confirmacao igual a "A Confirmar"
-  records = records.filter(item => item.status_confirmacao === "A Confirmar");
+  records = records.filter(item => item.status_confirmacao_id == null);
   // Agrupa os registros por id_paciente
   const groupedByPatient = records.reduce<Record<string, object[]>>((acc, record) => {
     const key = record.id_paciente.toString();
@@ -88,7 +88,6 @@ export default class DatasourceApisController {
     const schedule_list = await prepareSchedules(await getSchedulesApi(date))
     const date_start = DateTime.now().startOf('day').toFormat("yyyy-MM-dd HH:mm");
     for (const data of schedule_list) {
-      //if (data.id_paciente !== 823) continue
       try {
         const reg = String(data.id_paciente).replace(/[^0-9.-]/g, "")
 
@@ -117,8 +116,6 @@ export default class DatasourceApisController {
         if (!verifyExist) {
           await Shippingcampaign.create(shipping)
         }
-
-
 
       } catch (error) {
         console.log("Erro 44454>>>>", error)
@@ -163,10 +160,10 @@ export default class DatasourceApisController {
         //console.log("Executando Confirmação e Cancelamento no Klingo", data.name);
         if (data.absoluteresp === 1) {
           // Faz a confirmação - STATUS C
-          await processSchedule(idExternal, 'C', 'Confirmado');
+          await processSchedule(idExternal, 'C', 'Confirmado pelo EasyTalk');
         } else if (data.absoluteresp === 2) {
           // Faz o cancelamento - STATUS N
-          await processSchedule(idExternal, 'N', 'Não Confirmada');
+          await processSchedule(idExternal, 'N', 'Não Confirmada pelo EasyTalk');
         } else {
           //console.warn(`Resposta absoluta inválida para o registro:${data.id}`, data.id);
           await Log.create({ name: 'DataSourceApiController', message: error, description: `Resposta absoluta inválida para o registro:${data.id}` })

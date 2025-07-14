@@ -58,7 +58,7 @@ async function sendRepeatedMessage() {
       await datasourcesController.cancelScheduleAll()
 
     }
-  }, Number(process.env.TIME_SENDREPEATEDMESSAGE || 5000))
+  }, Number(process.env.TIME_SENDREPEATEDMESSAGE || 50000))
 }
 
 
@@ -80,8 +80,8 @@ async function sendRepeatedMessageKlingo() {
       datasourceApisController.getSchedulesInternal(date)
     }
 
-  }, await GenerateRandomTime(500, 600, '****Send Message Repeated')
-  )
+  }, Number(process.env.TIME_SENDREPEATEDMESSAGE || 5000))
+
 
   //Atualiza os confirmados e cancelados
   //console.log("CONFIRM OR CANCEL DESABILITADO ****************")
@@ -93,8 +93,6 @@ async function sendRepeatedMessageKlingo() {
     }
   }, await GenerateRandomTime(500, 550, '****Send Message Repeated')
   )
-
-
 
 }
 

@@ -1,5 +1,4 @@
 node_modules
-build
 build/node_modules
 build/model.nlp
 coverage

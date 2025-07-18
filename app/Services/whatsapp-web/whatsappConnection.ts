@@ -12,7 +12,6 @@ import Chat from 'App/Models/Chat';
 import Application from '@ioc:Adonis/Core/Application'
 import WhatsAppClientManager from './WhatsAppClientManager';
 
-
 import fs from 'fs';
 // Caminhos de sessão e perfil do Chrome
 
@@ -34,10 +33,9 @@ async function getStatusSendMessage() {
 
 async function startAgent(_agent: Agent) {
   console.log("whatsappConnections.....")
-
-  const chromeProfilePath = Application.tmpPath(`chrome-profiles/${_agent.id}`);
+  //const chromeProfilePath = Application.tmpPath(`chrome-profiles/${_agent.id}`);
   // Garante que os diretórios existem
-  fs.mkdirSync(chromeProfilePath, { recursive: true });
+  //fs.mkdirSync(chromeProfilePath, { recursive: true });
 
   const agent = await Agent.findOrFail(_agent.id)
   if (!_agent) {
@@ -74,7 +72,6 @@ async function startAgent(_agent: Agent) {
     //agent.status = `Carregando: ${_agent.name} - ${percent} - ${message}`
     //agent.save()
   });
-
 
   client.on('qr', async (qr) => {
     agent.status = "Qrcode require"
@@ -220,6 +217,7 @@ async function startAgent(_agent: Agent) {
   });
 
   WhatsAppClientManager.addClient(agent.id.toString(), client);
+  console.log("150011>>>>>>",WhatsAppClientManager)
 
   let rejectCalls = true;
   client.on('call', async (call) => {

@@ -55,8 +55,9 @@ async function getChat(cellphone: String, agentPhone: String) {
 export default class Monitoring {
   async monitoring(client: Client) {
     try {
+      console.log("passo 156")
       client.on('message', async (message) => {
-
+        console.log("passo 157")
         if (await shouldIgnoreMessage(message)) return;
 
         if (message.hasMedia) {
@@ -75,7 +76,7 @@ export default class Monitoring {
         await Talk.create({
           cellphone: await extractCellphone(message.from),
           chatnumber: await extractCellphone(message.to),
-          message: message.body.slice(0,999),
+          message: message.body.slice(0, 999),
           type: "from"
         });
 
@@ -190,7 +191,7 @@ async function handleNewMessage(client: Client, message: any) {
       await Talk.create({
         cellphone: await extractCellphone(message.from),
         chatnumber: await extractCellphone(message.to),
-        message: response.slice(0,999),
+        message: response.slice(0, 999),
         type: "to"
       });
     } else {

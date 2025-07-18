@@ -205,23 +205,6 @@ async function handleNewMessage(client: Client, message: any) {
 
 }
 //********************************************************************
-
-// Processa mensagens de verificação
-// async function handleVerification(client: Client, message: any) {
-//   const numbers = message.body.match(/\d/g)?.join("") || "";
-//   await stateTyping(message);
-
-//   try {
-//     const result = await client.getNumberId(numbers);
-//     const responseMessage = result
-//       ? `Número de Whatsapp validado: ${result._serialized}`
-//       : "Número não identificado para o Whatsapp.";
-//     client.sendMessage(message.from, responseMessage);
-//   } catch (error) {
-//     console.error("Erro ao verificar número:", error);
-//   }
-// }
-
 // Envia mensagem final aleatória
 async function sendRandomFinalMessage(client: Client, message: any) {
 

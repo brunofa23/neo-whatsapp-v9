@@ -1,13 +1,11 @@
-import { NegativeResponse, PositiveResponse, stateTyping } from '../util'
+import { extractCellphone, stateTyping } from '../util'
 import Chat from 'App/Models/Chat';
 import Response from 'App/Models/Response';
 import { Client, Message } from 'whatsapp-web.js';
 import { interpretAnswer } from 'App/Services/whatsapp-web/IdentifyAnswer'
-
-
+import Talk from 'App/Models/Talk';
 
 export default async (client: Client, message: Message, chat: Chat) => {
-
   // Função para substituir os placeholders na mensagem
   const formatMessage = (template, fields) => {
     return template
@@ -51,6 +49,12 @@ export default async (client: Client, message: Message, chat: Chat) => {
 
         // Envia a mensagem ao cliente
         await client.sendMessage(message.from, response1message);
+        await Talk.create({
+          cellphone: await extractCellphone(message.from),
+          chatnumber: await extractCellphone(message.to),
+          message: response1message.slice(0, 999),
+          type: "to"
+        });
 
         // Atualiza o chat com os dados de resposta
         Object.assign(chat, {
@@ -60,7 +64,7 @@ export default async (client: Client, message: Message, chat: Chat) => {
           externalstatus: 'A',
           company_id: chat.shippingcampaign.company_id,
         });
-       // console.log("verificar:", chat.shippingcamapgn)
+        // console.log("verificar:", chat.shippingcamapgn)
         await chat.save();
       } catch (error) {
         console.error("Erro ao enviar a mensagem de agendamento:", error.message, error.stack);
@@ -93,6 +97,12 @@ export default async (client: Client, message: Message, chat: Chat) => {
           const default2Message = `Entendi 😉, sabemos que nosso dia está muito atarefado! Sua consulta foi desmarcada, se deseja reagendar, clique no link que estou enviando para conversar com uma de nossas atendentes e podermos agendar novo horário mais conveniente para você.`
           const message2 = response2schedule ? formatMessage(response2schedule.message, chatOtherFields) : default2Message
           await client.sendMessage(message.from, message2)
+          await Talk.create({
+            cellphone: await extractCellphone(message.from),
+            chatnumber: await extractCellphone(message.to),
+            message: message2.slice(0, 999),
+            type: "to"
+          });
 
           //MANDA UMA SEGUNDA MENSAGEM CONTENDO O LINK
           const response2schedule2 = await Response.query()
@@ -103,6 +113,12 @@ export default async (client: Client, message: Message, chat: Chat) => {
             if (response2schedule2.inactive === false) {
               const linkRedirect = messageLink(response2schedule2.message, chatOtherFields.phone_unit)
               await client.sendMessage(message.from, linkRedirect)
+              await Talk.create({
+                cellphone: await extractCellphone(message.from),
+                chatnumber: await extractCellphone(message.to),
+                message: linkRedirect.slice(0, 999),
+                type: "to"
+              });
             }
           }
           else
@@ -111,6 +127,13 @@ export default async (client: Client, message: Message, chat: Chat) => {
               const encodedMessage = encodeURIComponent(messageLink);
               const linkRedirect = `https://api.whatsapp.com/send?phone=${chat.shippingcampaign.phone_unit}&text=${encodedMessage}`;
               await client.sendMessage(message.from, linkRedirect)
+              await Talk.create({
+                cellphone: await extractCellphone(message.from),
+                chatnumber: await extractCellphone(message.to),
+                message: linkRedirect.slice(0, 999),
+                type: "to"
+              });
+
             }
 
           const chat2 = new Chat()
@@ -141,6 +164,12 @@ export default async (client: Client, message: Message, chat: Chat) => {
           const defaultMessage = `Desculpe pelo engano, vou pedir para corrigir nosso cadastro.`;
           // Envia a mensagem ao cliente
           await client.sendMessage(message.from, defaultMessage);
+          await Talk.create({
+            cellphone: await extractCellphone(message.from),
+            chatnumber: await extractCellphone(message.to),
+            message: defaultMessage.slice(0, 999),
+            type: "to"
+          });
           // Atualiza o chat com os dados de resposta
         } catch (error) {
           console.error("Erro ao enviar a mensagem de agendamento:", error.message, error.stack);
@@ -149,6 +178,12 @@ export default async (client: Client, message: Message, chat: Chat) => {
       else {
         await stateTyping(message)
         client.sendMessage(message.from, 'Oi, desculpe mas não consegui identificar uma resposta, por favor responda \n*1* para Confirmar o agendamento. \n*2* para Reagendamento ou Cancelamento.')
+        await Talk.create({
+          cellphone: await extractCellphone(message.from),
+          chatnumber: await extractCellphone(message.to),
+          message: 'Oi, desculpe mas não consegui identificar uma resposta, por favor responda \n*1* para Confirmar o agendamento. \n*2* para Reagendamento ou Cancelamento.',
+          type: "to"
+        });
       }
 
   }

@@ -1,8 +1,9 @@
 import { types } from '@ioc:Adonis/Core/Helpers'
 import Chat from 'App/Models/Chat';
 import { Client, Message } from 'whatsapp-web.js';
-import { stateTyping } from '../util'
+import { stateTyping, extractCellphone } from '../util'
 import { DateTime } from 'luxon';
+import Talk from 'App/Models/Talk';
 
 export default async (client: Client, message: Message, chat: Chat) => {
 
@@ -12,7 +13,7 @@ export default async (client: Client, message: Message, chat: Chat) => {
     return
   }
 
-  
+
 
   //PERGUNTA 1 - AVALIAÇÃO DE ATENDIMENTO
   if (chat.interaction_seq == 1) {
@@ -39,6 +40,12 @@ export default async (client: Client, message: Message, chat: Chat) => {
       await chat.save()
       await stateTyping(message)//status de digitando...
       client.sendMessage(message.from, `Consegue nos dizer o que motivou a sua nota ${notes[0]}? Tudo bem se não quiser responder, digite 9 para finalizar essa etapa.`)
+       await Talk.create({
+        cellphone: await extractCellphone(message.from),
+        chatnumber: await extractCellphone(message.to),
+        message: `Consegue nos dizer o que motivou a sua nota ${notes[0]}? Tudo bem se não quiser responder, digite 9 para finalizar essa etapa.`,
+        type: "to"
+      });
       return
     }
   }
@@ -47,6 +54,12 @@ export default async (client: Client, message: Message, chat: Chat) => {
 
       if (message.body == '9') {
         client.sendMessage(message.from, `Tudo bem, vamos finalizar nossa conversa.🙏Obrigado!`)
+        await Talk.create({
+        cellphone: await extractCellphone(message.from),
+        chatnumber: await extractCellphone(message.to),
+        message: `Tudo bem, vamos finalizar nossa conversa.🙏Obrigado!`,
+        type: "to"
+      });
         return
       }
 
@@ -56,6 +69,13 @@ export default async (client: Client, message: Message, chat: Chat) => {
       chat.closed=false
       await chat.save()
       client.sendMessage(message.from, `Obrigado pela sua resposta!😀 Agradecemos sua avaliação.🙏`)
+      await Talk.create({
+        cellphone: await extractCellphone(message.from),
+        chatnumber: await extractCellphone(message.to),
+        message: `Obrigado pela sua resposta!😀 Agradecemos sua avaliação.🙏`,
+        type: "to"
+      });
+
     }
 
 

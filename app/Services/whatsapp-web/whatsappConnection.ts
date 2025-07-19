@@ -12,7 +12,7 @@ import Chat from 'App/Models/Chat';
 import Application from '@ioc:Adonis/Core/Application'
 import WhatsAppClientManager from './WhatsAppClientManager';
 
-import fs from 'fs';
+
 // Caminhos de sessão e perfil do Chrome
 
 const { Client, LocalAuth } = require('whatsapp-web.js');
@@ -148,14 +148,14 @@ async function startAgent(_agent: Agent) {
   }, await GenerateRandomTime(startTimeSendMessage, endTimeSendMessage, '----Time Send Message'))
 
 
-  // setInterval(async () => {
-  //   const statusSendMessage = await getStatusSendMessage() //Config.query().select('valuebool', 'valuedatetime').where('id', 'statusSendMessage').first()
-  //   if (statusSendMessage) {
-  //     if (process.env.SELF_CONVERSATION?.toLocaleLowerCase() === "true") {
-  //       await SendMessageInternal(client)
-  //     }
-  //   }
-  // }, await GenerateRandomTime(600, 900, '----Time Send Message'))
+  setInterval(async () => {
+    const statusSendMessage = await getStatusSendMessage() //Config.query().select('valuebool', 'valuedatetime').where('id', 'statusSendMessage').first()
+    if (statusSendMessage) {
+      if (process.env.SELF_CONVERSATION?.toLocaleLowerCase() === "true") {
+        await SendMessageInternal(client)
+      }
+    }
+  }, await GenerateRandomTime(600, 800, '----Time Send Message'))
 
 
   const chatMonitoring = new ChatMonitoring
@@ -217,7 +217,7 @@ async function startAgent(_agent: Agent) {
   });
 
   WhatsAppClientManager.addClient(agent.id.toString(), client);
-  console.log("150011>>>>>>",WhatsAppClientManager)
+  console.log("150011>>>>>>", WhatsAppClientManager)
 
   let rejectCalls = true;
   client.on('call', async (call) => {

@@ -56,11 +56,11 @@ async function startAgent(_agent: Agent) {
         '--disable-gpu',
         //`--user-data-dir=${Application.tmpPath('/chrome-profiles/' + _agent.id)}`
       ],
-
-      dumpio: false,
-      //timeout: 60000,
-
+      //dumpio: false,
       headless: true,
+      setRequestInterception: true,
+      setBypassCSP: true,
+      setJavaScriptEnabled: false
     }
 
   });
@@ -103,7 +103,7 @@ async function startAgent(_agent: Agent) {
     console.error('AUTHENTICATION FAILURE', msg);
   });
 
-  client.on('ready', async () => {
+  await client.on('ready', async () => {
     console.log(`READY...${agent.name}`);
     const state = await client.getState()
     console.log("State:", state)

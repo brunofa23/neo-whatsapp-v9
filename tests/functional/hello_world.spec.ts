@@ -7,14 +7,23 @@ import Config from 'App/Models/Config'
 import Chat from 'App/Models/Chat'
 
 test('display welcome page', async ({ client }) => {
-  const data = await Chat.query()
-    .preload('shippingcampaign')
-    .where('cellphoneserialized', '5516991474606@c.us')
-    .andWhere('chatnumber', '553198849340').first()
-    //.andWhere('returned', false).first()
-    //.whereNull('response').first()
+  // const data = await Chat.query()
+  //   .preload('shippingcampaign')
+  //   .where('cellphoneserialized', '5516991474606@c.us')
+  //   .andWhere('chatnumber', '553198849340').first()
+  //   //.andWhere('returned', false).first()
+  //   //.whereNull('response').first()
 
-  console.log(data?.$preloaded.shippingcampaign)
+  const data = Chat.query()
+    .preload('shippingcampaign')
+    .where('cellphoneserialized', '553198726269@c.us')
+    .andWhere('chatnumber', '553171331794')
+    //.andWhere('returned', false).first()
+    //.whereNull('response')//.first()
+
+  const data1 = await data.first()
+  //console.log(">>>>>>7777777777", data.toQuery())
+  console.log(">>>>>>7777777777",data1?.$preloaded.shippingcampaign)
 
 
 })

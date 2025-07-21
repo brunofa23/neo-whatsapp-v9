@@ -49,6 +49,7 @@ async function getChat(cellphone: String, agentPhone: String) {
     .where('cellphoneserialized', cellphone)
     .andWhere('chatnumber', phoneAgent)
     //.andWhere('returned', false).first()
+    .orderBy('created_at', 'desc')
     .whereNull('response').first()
 }
 

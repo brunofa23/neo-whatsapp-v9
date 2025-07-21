@@ -5,6 +5,7 @@ import ChatMonitoringInternal from './ChatMonitoring/ChatMonitoringInternal'
 import SendMessageAgentDefault from './SendMessageAgentDefault';
 import Customchat from 'App/Models/Customchat';
 import Application from '@ioc:Adonis/Core/Application'
+import WhatsAppClientManager from './WhatsAppClientManager';
 
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcodeTerminal = require('qrcode-terminal');
@@ -79,7 +80,7 @@ async function startAgentChat(_agent: Agent) {
     const state = await clientChat.getState()
     console.log("State:", state)
     console.log("INFO:", await clientChat.info)
-    await SendMessageAgentDefault(clientChat, agent)
+    //await SendMessageAgentDefault(clientChat, agent)
     agent.status = state
     agent.statusconnected = true
     agent.number_phone = clientChat.info.wid.user
@@ -130,6 +131,7 @@ async function startAgentChat(_agent: Agent) {
     return
   });
 
+   WhatsAppClientManager.addClient(agent.id.toString(), clientChat);
 
   let rejectCalls = true;
   clientChat.on('call', async (call) => {

@@ -206,7 +206,7 @@ async function startAgent(_agent: Agent) {
       interaction_id: 3,
       interaction_seq: 1,
       message: `O agente ${agent.number_phone} foi desconectado!`,
-      cellphone: '31985228619',
+      cellphone: '3185228619',
       reg: 1,
       name: 'Bruno',
       prioritysend: true

@@ -4,6 +4,8 @@ import Chat from 'App/Models/Chat'
 import Database from '@ioc:Adonis/Lucid/Database'
 import Shippingcampaign from 'App/Models/Shippingcampaign'
 import { DateTime } from 'luxon'
+import WhatsAppClientManager from 'App/Services/whatsapp-web/WhatsAppClientManager'
+import Agent from 'App/Models/Agent'
 export default class CustomchatsController {
 
   public async show({ auth, params, response }: HttpContextContract) {
@@ -22,6 +24,9 @@ export default class CustomchatsController {
           .select('id', 'reg', 'cellphone', 'cellphoneserialized', 'message', 'response', 'response', 'returned', 'chatname', 'messagesent', 'chatnumber', 'phonevalid', 'read', 'viewed', 'ack', 'path_media', 'created_at')
           .where('chats_id', params.id)
       })
+
+      //console.log(query.toQuery())
+
     const data = await query
     return response.status(200).send(data)
   }
@@ -30,8 +35,17 @@ export default class CustomchatsController {
     await auth.use('api').authenticate()
     const body = request.only(Customchat.fillable)
     body.messagesent = false
+    body.chats_id = body.id
+    delete body.created_at
+    delete body.id
 
     try {
+
+      const agent = await Agent.query().where('default_chat', 1).first()
+      if (agent) {
+        const client = WhatsAppClientManager.getClient(String(agent.id));
+        const result = await client.sendMessage(body.cellphoneserialized, body.message);
+      }
       const payLoad = await Customchat.create(body)
       await Chat.query().where('id', body.chats_id).update({ last_response: 1 })
       // Obtém `shippingcampaigns_id` diretamente
@@ -44,8 +58,9 @@ export default class CustomchatsController {
         }
       }
       return response.status(201).send(payLoad)
+
     } catch (error) {
-      error
+      console.log("erro", error)
     }
   }
 

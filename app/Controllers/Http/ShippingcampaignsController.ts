@@ -452,6 +452,7 @@ export default class ShippingcampaignsController {
           'shippingcampaigns.reg',
           'shippingcampaigns.name',
           'shippingcampaigns.cellphone',
+          'shippingcampaigns.cellphoneserialized',
           'chats.id',
           'otherfields',
           'phonevalid',

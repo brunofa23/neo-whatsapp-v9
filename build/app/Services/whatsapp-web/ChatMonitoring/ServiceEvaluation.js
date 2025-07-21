@@ -1,8 +1,12 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const Helpers_1 = global[Symbol.for('ioc.use')]("Adonis/Core/Helpers");
 const util_1 = require("../util");
 const luxon_1 = require("luxon");
+const Talk_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Talk"));
 exports.default = async (client, message, chat) => {
     if (message.hasMedia) {
         await (0, util_1.stateTyping)(message);
@@ -31,12 +35,24 @@ exports.default = async (client, message, chat) => {
             await chat.save();
             await (0, util_1.stateTyping)(message);
             client.sendMessage(message.from, `Consegue nos dizer o que motivou a sua nota ${notes[0]}? Tudo bem se não quiser responder, digite 9 para finalizar essa etapa.`);
+            await Talk_1.default.create({
+                cellphone: await (0, util_1.extractCellphone)(message.from),
+                chatnumber: await (0, util_1.extractCellphone)(message.to),
+                message: `Consegue nos dizer o que motivou a sua nota ${notes[0]}? Tudo bem se não quiser responder, digite 9 para finalizar essa etapa.`,
+                type: "to"
+            });
             return;
         }
     }
     else if (chat.interaction_seq == 2) {
         if (message.body == '9') {
             client.sendMessage(message.from, `Tudo bem, vamos finalizar nossa conversa.🙏Obrigado!`);
+            await Talk_1.default.create({
+                cellphone: await (0, util_1.extractCellphone)(message.from),
+                chatnumber: await (0, util_1.extractCellphone)(message.to),
+                message: `Tudo bem, vamos finalizar nossa conversa.🙏Obrigado!`,
+                type: "to"
+            });
             return;
         }
         await (0, util_1.stateTyping)(message);
@@ -45,6 +61,12 @@ exports.default = async (client, message, chat) => {
         chat.closed = false;
         await chat.save();
         client.sendMessage(message.from, `Obrigado pela sua resposta!😀 Agradecemos sua avaliação.🙏`);
+        await Talk_1.default.create({
+            cellphone: await (0, util_1.extractCellphone)(message.from),
+            chatnumber: await (0, util_1.extractCellphone)(message.to),
+            message: `Obrigado pela sua resposta!😀 Agradecemos sua avaliação.🙏`,
+            type: "to"
+        });
     }
 };
 //# sourceMappingURL=ServiceEvaluation.js.map

@@ -202,6 +202,9 @@ class AgentsController {
     async verifyStatusAgent({ request, response }) {
         const { option, cellphone, agent } = request.only(['option', 'cellphone', 'agent']);
         const client = WhatsAppClientManager_1.default.getClient(agent);
+        console.log("CLIENTE:", client);
+        console.log("Agent recebido:", agent);
+        console.log("Todos os clients no manager:", WhatsAppClientManager_1.default.getAllClients());
         console.log("option:", option);
         if (option == 2) {
             console.log("OPÇÃO 2 - Info do cliente");

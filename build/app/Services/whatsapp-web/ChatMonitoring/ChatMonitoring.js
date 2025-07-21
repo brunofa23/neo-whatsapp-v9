@@ -43,12 +43,15 @@ async function getChat(cellphone, agentPhone) {
         .preload('shippingcampaign')
         .where('cellphoneserialized', cellphone)
         .andWhere('chatnumber', phoneAgent)
+        .orderBy('created_at', 'desc')
         .whereNull('response').first();
 }
 class Monitoring {
     async monitoring(client) {
         try {
+            console.log("passo 156");
             client.on('message', async (message) => {
+                console.log("passo 157");
                 if (await shouldIgnoreMessage(message))
                     return;
                 if (message.hasMedia) {

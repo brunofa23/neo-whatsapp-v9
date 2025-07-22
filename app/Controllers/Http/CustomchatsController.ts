@@ -24,12 +24,12 @@ export default class CustomchatsController {
           .select('id', 'reg', 'cellphone', 'cellphoneserialized', 'message', 'response', 'response', 'returned', 'chatname', 'messagesent', 'chatnumber', 'phonevalid', 'read', 'viewed', 'ack', 'path_media', 'created_at')
           .where('chats_id', params.id)
       })
-
       //console.log(query.toQuery())
-
     const data = await query
     return response.status(200).send(data)
   }
+
+
 
   public async sendMessage({ auth, request, response }: HttpContextContract) {
     await auth.use('api').authenticate()
@@ -38,9 +38,7 @@ export default class CustomchatsController {
     body.chats_id = body.id
     delete body.created_at
     delete body.id
-
     try {
-
       const agent = await Agent.query().where('default_chat', 1).first()
       if (agent) {
         const client = WhatsAppClientManager.getClient(String(agent.id));

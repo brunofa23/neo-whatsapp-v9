@@ -32,12 +32,15 @@ async function verifyNumberInternal(phoneVerify: string): Promise<boolean> {
 
 async function getCustomChat(cellphone: String, chatnumber: String) {
   chatnumber = chatnumber.replace(/@.*$/, '');
-  const customChat = await Customchat.query()
+  const query = Customchat.query()
     .where('cellphoneserialized', cellphone)
     .andWhere('chatnumber', chatnumber)
     .andWhereNull('returned')
     .orderBy('created_at', 'desc')
-    .first()
+  //.first()
+
+  console.log(query.toQuery())
+  const customChat = await query.first()
   return customChat
 }
 

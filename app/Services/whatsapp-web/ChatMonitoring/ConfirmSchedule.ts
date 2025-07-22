@@ -50,8 +50,8 @@ export default async (client: Client, message: Message, chat: Chat) => {
         // Envia a mensagem ao cliente
         await client.sendMessage(message.from, response1message);
         await Talk.create({
-          cellphone: await extractCellphone(message.from),
-          chatnumber: await extractCellphone(message.to),
+          cellphone: message.from,
+          chatnumber: message.to,
           message: response1message.slice(0, 999),
           type: "to"
         });
@@ -98,8 +98,8 @@ export default async (client: Client, message: Message, chat: Chat) => {
           const message2 = response2schedule ? formatMessage(response2schedule.message, chatOtherFields) : default2Message
           await client.sendMessage(message.from, message2)
           await Talk.create({
-            cellphone: await extractCellphone(message.from),
-            chatnumber: await extractCellphone(message.to),
+            cellphone: message.from,
+            chatnumber: message.to,
             message: message2.slice(0, 999),
             type: "to"
           });
@@ -114,8 +114,8 @@ export default async (client: Client, message: Message, chat: Chat) => {
               const linkRedirect = messageLink(response2schedule2.message, chatOtherFields.phone_unit)
               await client.sendMessage(message.from, linkRedirect)
               await Talk.create({
-                cellphone: await extractCellphone(message.from),
-                chatnumber: await extractCellphone(message.to),
+                cellphone: message.from,
+                chatnumber: message.to,
                 message: linkRedirect.slice(0, 999),
                 type: "to"
               });
@@ -128,8 +128,8 @@ export default async (client: Client, message: Message, chat: Chat) => {
               const linkRedirect = `https://api.whatsapp.com/send?phone=${chat.shippingcampaign.phone_unit}&text=${encodedMessage}`;
               await client.sendMessage(message.from, linkRedirect)
               await Talk.create({
-                cellphone: await extractCellphone(message.from),
-                chatnumber: await extractCellphone(message.to),
+                cellphone: message.from,
+                chatnumber: message.to,
                 message: linkRedirect.slice(0, 999),
                 type: "to"
               });
@@ -165,8 +165,8 @@ export default async (client: Client, message: Message, chat: Chat) => {
           // Envia a mensagem ao cliente
           await client.sendMessage(message.from, defaultMessage);
           await Talk.create({
-            cellphone: await extractCellphone(message.from),
-            chatnumber: await extractCellphone(message.to),
+            cellphone: message.from,
+            chatnumber: message.to,
             message: defaultMessage.slice(0, 999),
             type: "to"
           });
@@ -179,8 +179,8 @@ export default async (client: Client, message: Message, chat: Chat) => {
         await stateTyping(message)
         client.sendMessage(message.from, 'Oi, desculpe mas não consegui identificar uma resposta, por favor responda \n*1* para Confirmar o agendamento. \n*2* para Reagendamento ou Cancelamento.')
         await Talk.create({
-          cellphone: await extractCellphone(message.from),
-          chatnumber: await extractCellphone(message.to),
+          cellphone: message.from,
+          chatnumber: message.to,
           message: 'Oi, desculpe mas não consegui identificar uma resposta, por favor responda \n*1* para Confirmar o agendamento. \n*2* para Reagendamento ou Cancelamento.',
           type: "to"
         });

@@ -41,9 +41,9 @@ export default async (client: Client, agent: Agent) => {
 
               await customChat.save()
               await Talk.create({
-                cellphone: await extractCellphone(customChat.cellphone),
-                chatnumber: client.info.wid.user,
-                message: customChat.message.slice(0,999),
+                cellphone: validationCellPhone._serialized,
+                chatnumber: client.info.wid._serialized,
+                message: customChat.message.slice(0, 999),
                 type: "to"
               })
 

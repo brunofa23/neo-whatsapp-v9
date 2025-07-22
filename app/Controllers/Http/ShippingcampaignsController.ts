@@ -463,6 +463,7 @@ export default class ShippingcampaignsController {
           'returned',
           'invalidresponse',
           'chatname',
+          'chatnumber',
           'absoluteresp',
           'prioritysend',
           'excluded',
@@ -730,7 +731,6 @@ export default class ShippingcampaignsController {
     })
       .orderByRaw('RAND()').limit(10)
     //.orderBy('prioritysend', "desc").orderBy('dateshedule').orderByRaw('RAND()').limit(5)
-
     const shippingCampaign = await query.first()
     return shippingCampaign
 

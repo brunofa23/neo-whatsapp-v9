@@ -24,11 +24,10 @@ export default class CustomchatsController {
           .select('id', 'reg', 'cellphone', 'cellphoneserialized', 'message', 'response', 'response', 'returned', 'chatname', 'messagesent', 'chatnumber', 'phonevalid', 'read', 'viewed', 'ack', 'path_media', 'created_at')
           .where('chats_id', params.id)
       })
-      //console.log(query.toQuery())
+    //console.log(query.toQuery())
     const data = await query
     return response.status(200).send(data)
   }
-
 
 
   public async sendMessage({ auth, request, response }: HttpContextContract) {
@@ -36,27 +35,33 @@ export default class CustomchatsController {
     const body = request.only(Customchat.fillable)
     body.messagesent = false
     body.chats_id = body.id
+    delete body.returned
     delete body.created_at
     delete body.id
+    delete body.response
+
+
+    console.log("BODY>>", body)
+
     try {
-      const agent = await Agent.query().where('default_chat', 1).first()
+      const agent = await Agent.query().where('default_chat', true).first()
       if (agent) {
         const client = WhatsAppClientManager.getClient(String(agent.id));
-        const result = await client.sendMessage(body.cellphoneserialized, body.message);
-      }
-      const payLoad = await Customchat.create(body)
-      await Chat.query().where('id', body.chats_id).update({ last_response: 1 })
-      // Obtém `shippingcampaigns_id` diretamente
-      const chat = await Chat.find(body.chats_id)
-      if (chat?.shippingcampaigns_id) {
-        const shippingcampaign = await Shippingcampaign.find(chat.shippingcampaigns_id)
-        if (shippingcampaign && !shippingcampaign.date_first_return) {
-          shippingcampaign.date_first_return = DateTime.local().toFormat("yyyy-MM-dd HH:mm")
-          await shippingcampaign.save()
-        }
-      }
-      return response.status(201).send(payLoad)
+        await client.sendMessage(body.cellphoneserialized, body.message);
 
+        const payLoad = await Customchat.create({ ...body, chatnumber: agent.number_phone })
+        await Chat.query().where('id', body.chats_id).update({ last_response: 1 })
+        // Obtém `shippingcampaigns_id` diretamente
+        const chat = await Chat.find(body.chats_id)
+        if (chat?.shippingcampaigns_id) {
+          const shippingcampaign = await Shippingcampaign.find(chat.shippingcampaigns_id)
+          if (shippingcampaign && !shippingcampaign.date_first_return) {
+            shippingcampaign.date_first_return = DateTime.local().toFormat("yyyy-MM-dd HH:mm")
+            await shippingcampaign.save()
+          }
+        }
+        return response.status(201).send(payLoad)
+      }
     } catch (error) {
       console.log("erro", error)
     }

@@ -58,17 +58,18 @@ export default async (client: Client, agent: Agent) => {
   }
 
   async function VerifyChat(shippingCampaign) {
-    return await Chat.query()
+    const query = Chat.query()
       .where('interaction_id', shippingCampaign?.interaction_id)
       .andWhere('interaction_seq', shippingCampaign?.interaction_seq)
-      .andWhere('shippingcampaigns_id', shippingCampaign?.id).first()
+      .andWhere('shippingcampaigns_id', shippingCampaign?.id)
+    return await query.first()
 
   }
 
 
   //********************************************************************* */
   async function sendMessages() {
-    
+
     const totMessageSend = await countLimitSendMessage()
     const maxLimitSendAgent = await maxLimitSendMessageAgent(agent.id)
     const shippingCampaign = await shippingcampaignsController.patientToSend(agent)
@@ -132,8 +133,8 @@ export default async (client: Client, agent: Agent) => {
                   }
                   await Chat.create(bodyChat)
                   await Talk.create({
-                    cellphone: await extractCellphone(shippingCampaign.cellphone),
-                    chatnumber: client.info.wid.user,
+                    cellphone: validationCellPhone,//await extractCellphone(shippingCampaign.cellphone),
+                    chatnumber: client.info.wid._serialized,
                     message: shippingCampaign.message.slice(0, 999),
                     type: "to"
                   })

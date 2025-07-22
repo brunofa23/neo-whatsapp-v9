@@ -59,16 +59,8 @@ async function getChat(cellphone: String, agentPhone: String) {
 export default class Monitoring {
   async monitoring(client: Client) {
     try {
-      console.log("passo 156")
       client.on('message', async (message) => {
-        console.log("passo 157")
         if (await shouldIgnoreMessage(message)) return;
-
-        if (message.hasMedia) {
-          await stateTyping(message)
-          client.sendMessage(message.from, 'Por favor não envie áudio, imagens ou vídeos apenas textos. Obrigada!')
-          return
-        }
 
         const isInternalNumber = await verifyNumberInternal(message.from);
         if (isInternalNumber) {
@@ -78,8 +70,8 @@ export default class Monitoring {
 
         // Insere a conversa na tabela
         await Talk.create({
-          cellphone: await extractCellphone(message.from),
-          chatnumber: await extractCellphone(message.to),
+          cellphone: message.from,
+          chatnumber: message.to,
           message: message.body.slice(0, 999),
           type: "from"
         });
@@ -88,6 +80,12 @@ export default class Monitoring {
         if (customChat) {
           await handleCustomChatMessage(message, customChat);
           return;
+        }
+
+         if (message.hasMedia) {
+          await stateTyping(message)
+          client.sendMessage(message.from, 'Por favor não envie áudio, imagens ou vídeos apenas textos. Obrigada!')
+          return
         }
 
         const chat = await getChat(message.from, message.to);
@@ -193,8 +191,8 @@ async function handleNewMessage(client: Client, message: any) {
       await stateTyping(message);
       await client.sendMessage(message.from, response);
       await Talk.create({
-        cellphone: await extractCellphone(message.from),
-        chatnumber: await extractCellphone(message.to),
+        cellphone: message.from,
+        chatnumber: message.to,
         message: response.slice(0, 999),
         type: "to"
       });

@@ -17,7 +17,7 @@ export default async (client: Client, message: Message, chat: Chat) => {
 
   //PERGUNTA 1 - AVALIAÇÃO DE ATENDIMENTO
   if (chat.interaction_seq == 1) {
-    const notes = message.body.replace('1o','10').match(/\d+/g);
+    const notes = message.body.replace('1o', '10').match(/\d+/g);
     let invalidNote
     let invalidNoteNegative
     if (notes) {
@@ -30,19 +30,23 @@ export default async (client: Client, message: Message, chat: Chat) => {
       return
     }
 
+    console.log(message)
+
+
+
     if (types.isInteger(parseInt(notes[0]))) {
       //const chatOtherFields = JSON.parse(chat.shippingcampaign.otherfields)
       chat.returned = true
       chat.absoluteresp = parseInt(notes[0])
       chat.interaction_seq = 2
-      chat.closed=false
-      chat.date_return =DateTime.now()
+      chat.closed = false
+      chat.date_return = DateTime.now()
       await chat.save()
       await stateTyping(message)//status de digitando...
       client.sendMessage(message.from, `Consegue nos dizer o que motivou a sua nota ${notes[0]}? Tudo bem se não quiser responder, digite 9 para finalizar essa etapa.`)
-       await Talk.create({
-        cellphone: await extractCellphone(message.from),
-        chatnumber: await extractCellphone(message.to),
+      await Talk.create({
+        cellphone: message.from,
+        chatnumber: message.to,
         message: `Consegue nos dizer o que motivou a sua nota ${notes[0]}? Tudo bem se não quiser responder, digite 9 para finalizar essa etapa.`,
         type: "to"
       });
@@ -55,23 +59,23 @@ export default async (client: Client, message: Message, chat: Chat) => {
       if (message.body == '9') {
         client.sendMessage(message.from, `Tudo bem, vamos finalizar nossa conversa.🙏Obrigado!`)
         await Talk.create({
-        cellphone: await extractCellphone(message.from),
-        chatnumber: await extractCellphone(message.to),
-        message: `Tudo bem, vamos finalizar nossa conversa.🙏Obrigado!`,
-        type: "to"
-      });
+          cellphone: message.from,
+          chatnumber: message.to,
+          message: `Tudo bem, vamos finalizar nossa conversa.🙏Obrigado!`,
+          type: "to"
+        });
         return
       }
 
       await stateTyping(message)//status de digitando...
-      chat.date_return =DateTime.now()
+      chat.date_return = DateTime.now()
       chat.response = message.body.slice(0, 599)
-      chat.closed=false
+      chat.closed = false
       await chat.save()
       client.sendMessage(message.from, `Obrigado pela sua resposta!😀 Agradecemos sua avaliação.🙏`)
       await Talk.create({
-        cellphone: await extractCellphone(message.from),
-        chatnumber: await extractCellphone(message.to),
+        cellphone: message.from,
+        chatnumber: message.to,
         message: `Obrigado pela sua resposta!😀 Agradecemos sua avaliação.🙏`,
         type: "to"
       });

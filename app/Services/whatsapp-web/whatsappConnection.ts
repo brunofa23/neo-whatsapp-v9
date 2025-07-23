@@ -199,7 +199,6 @@ async function startAgent(_agent: Agent) {
 
   //************************************************ */
   client.on('disconnected', async (reason) => {
-
     try {
       agent.status = 'Disconnected'
       agent.statusconnected = false
@@ -209,15 +208,6 @@ async function startAgent(_agent: Agent) {
 
     }
 
-    await Shippingcampaign.create({
-      interaction_id: 3,
-      interaction_seq: 1,
-      message: `O agente ${agent.number_phone} foi desconectado!`,
-      cellphone: '3185228619',
-      reg: 1,
-      name: 'Bruno',
-      prioritysend: true
-    })
     console.log("EXECUTANDO DISCONECT")
     console.log("REASON>>>", reason)
     return

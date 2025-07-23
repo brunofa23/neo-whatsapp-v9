@@ -1,5 +1,3 @@
-import { typeServerConfig } from '@ioc:Adonis/Core/Server';
-import { verifyNumber } from 'App/Services/whatsapp-web/VerifyNumber';
 import { Client } from "whatsapp-web.js"
 
 import ListInternalPhrases from './ListInternalPhrases';

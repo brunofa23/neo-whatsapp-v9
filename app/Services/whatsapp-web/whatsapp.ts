@@ -114,24 +114,19 @@ async function startAgentChat(_agent: Agent) {
   }
   //************************************************ */
   clientChat.on('disconnected', async (reason) => {
-    agent.status = 'Disconnected'
-    agent.statusconnected = false
-    await agent.save()
-    await Shippingcampaign.create({
-      interaction_id: 3,
-      interaction_seq: 1,
-      message: `O agente ${agent.number_phone} foi desconectado!`,
-      cellphone: '31985228619',
-      reg: 1,
-      name: 'Bruno',
-      prioritysend: true
-    })
+    try {
+      agent.status = 'Disconnected'
+      agent.statusconnected = false
+      await agent.save()
+    } catch (error) {
+
+    }
     console.log("EXECUTANDO DISCONECT")
     console.log("REASON>>>", reason)
     return
   });
 
-   WhatsAppClientManager.addClient(agent.id.toString(), clientChat);
+  WhatsAppClientManager.addClient(agent.id.toString(), clientChat);
 
   let rejectCalls = true;
   clientChat.on('call', async (call) => {

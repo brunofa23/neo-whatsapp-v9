@@ -1,9 +1,9 @@
 import Chat from 'App/Models/Chat';
 import Response from 'App/Models/Response';
 import Customchat from 'App/Models/Customchat';
-import { Client, MessageMedia } from 'whatsapp-web.js';
+import { Client, MessageMedia, Message } from 'whatsapp-web.js';
 import MidiasController from 'App/Controllers/Http/MidiasController';
-import { chunckPhone, extractCellphone, RandomResponse, stateTyping } from '../util'
+import { chunckPhone, RandomResponse, stateTyping } from '../util'
 import ConfirmSchedule from './ConfirmSchedule'
 import ServiceEvaluation from './ServiceEvaluation';
 import Agent from 'App/Models/Agent';
@@ -38,14 +38,13 @@ async function getCustomChat(cellphone: String, chatnumber: String) {
     .andWhereNull('returned')
     .orderBy('created_at', 'desc')
   //.first()
-
-  console.log(query.toQuery())
   const customChat = await query.first()
   return customChat
 }
 
 async function getChat(cellphone: String, agentPhone: String) {
-  const phoneAgent = agentPhone.match(/\d/g).join("");
+  const match = agentPhone.match(/\d/g);
+  const phoneAgent = match ? match.join('') : '';
 
   return await Chat.query()
     .preload('shippingcampaign')
@@ -68,21 +67,13 @@ export default class Monitoring {
           return;
         }
 
-        // Insere a conversa na tabela
-        await Talk.create({
-          cellphone: message.from,
-          chatnumber: message.to,
-          message: message.body.slice(0, 999),
-          type: "from"
-        });
-
         const customChat = await getCustomChat(message.from, client.info.wid.user);
         if (customChat) {
           await handleCustomChatMessage(message, customChat);
           return;
         }
 
-         if (message.hasMedia) {
+        if (message.hasMedia) {
           await stateTyping(message)
           client.sendMessage(message.from, 'Por favor não envie áudio, imagens ou vídeos apenas textos. Obrigada!')
           return
@@ -102,16 +93,7 @@ export default class Monitoring {
   }
 }
 // Verifica se a mensagem deve ser ignorada
-// async function shouldIgnoreMessage(message: any): Promise<boolean> {
-//   const isGroup = (await message.getChat()).isGroup;
-//   const isE2ENotification = message.type.toLowerCase() === "e2e_notification";
-//   const isEmptyMessage = message.body === "" && !message.hasMedia;
-//   const isGroupMessage = message.from.includes("@g.us");
-//   const isOnlyPerson = !message.from.includes('@c.us')
-
-//   return isGroup || isE2ENotification || isEmptyMessage || isGroupMessage || isOnlyPerson;
-// }
-function shouldIgnoreMessage(message: any): boolean {
+function shouldIgnoreMessage(message: Message): boolean {
   const isE2ENotification = message.type?.toLowerCase() === "e2e_notification";
   const isEmptyMessage = message.body === "" && !message.hasMedia;
   // Verificações baseadas no campo `from`
@@ -125,7 +107,7 @@ function shouldIgnoreMessage(message: any): boolean {
 
 
 // Processa mensagens personalizadas
-async function handleCustomChatMessage(message: any, customChat: any) {
+async function handleCustomChatMessage(message: Message, customChat: any) {
   let pathMedia: string | undefined = "";
   if (message.hasMedia) {
     const media = await message.downloadMedia();
@@ -149,10 +131,30 @@ async function handleCustomChatMessage(message: any, customChat: any) {
 
   await Customchat.create(bodyResponse);
   await Chat.query().where('id', customChat.chats_id).update({ date_return: DateTime.now().toFormat("yyyy-MM-dd HH:mm"), last_response: 2 })
+  await Talk.create({
+    chat_id: customChat.chats_id,
+    reg: customChat.reg,
+    cellphone: message.from,
+    chatnumber: message.to,
+    message_ack: message.ack,
+    message: message.body.slice(0, 999),
+    type: "to"
+  });
 }
 
 // Processa mensagens de chat existentes
-async function handleChatMessage(client: Client, message: any, chat: any) {
+async function handleChatMessage(client: Client, message: Message, chat: any) {
+  await Talk.create({
+    chat_id: chat.id,
+    reg: chat.reg,
+    cellphone: message.from,
+    chatnumber: message.to,
+    message_ack: message.ack,
+    message: message.body.slice(0, 999),
+    type: "to"
+  });
+
+
   if (!chat.returned) {
     chat.invalidresponse = message.body.slice(0, 348);
     chat.returned = true;
@@ -168,10 +170,12 @@ async function handleChatMessage(client: Client, message: any, chat: any) {
 }
 
 // Processa mensagens novas
-async function handleNewMessage(client: Client, message: any) {
+async function handleNewMessage(client: Client, message: Message) {
   //AI EM AÇÃO *******************************************************
-  //************************************************************************
   try {
+
+    
+
     const query = await Shippingcampaign.query()
       .where('cellphone', 'like', `%${await chunckPhone(message.from)}%`)
       .where('interaction_id', 1)
@@ -193,6 +197,7 @@ async function handleNewMessage(client: Client, message: any) {
       await Talk.create({
         cellphone: message.from,
         chatnumber: message.to,
+        message_ack: message.ack,
         message: response.slice(0, 999),
         type: "to"
       });
@@ -209,7 +214,7 @@ async function handleNewMessage(client: Client, message: any) {
 }
 //********************************************************************
 // Envia mensagem final aleatória
-async function sendRandomFinalMessage(client: Client, message: any) {
+async function sendRandomFinalMessage(client: Client, message: Message) {
 
   let responseArray: String[]
   const responsesChatfinish = await Response.query().select('message')

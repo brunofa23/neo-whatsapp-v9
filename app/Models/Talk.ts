@@ -6,7 +6,10 @@ export default class Talk extends BaseModel {
   public static get fillable() {
     return [
       'id',
+      'chat_id',
+      'reg',
       'cellphone',
+      'cellphoneserialized',
       'message',
       'message_ack',
       'chatnumber',
@@ -20,7 +23,13 @@ export default class Talk extends BaseModel {
   @column({ isPrimary: true })
   public id: number
   @column()
+  public chat_id: number
+  @column()
+  public reg: number
+  @column()
   public cellphone: string
+  @column()
+  public cellphoneserialized: string
   @column()
   public message: string
   @column()

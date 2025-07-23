@@ -6,6 +6,7 @@ import Shippingcampaign from 'App/Models/Shippingcampaign'
 import { DateTime } from 'luxon'
 import WhatsAppClientManager from 'App/Services/whatsapp-web/WhatsAppClientManager'
 import Agent from 'App/Models/Agent'
+import Talk from 'App/Models/Talk'
 export default class CustomchatsController {
 
   public async show({ auth, params, response }: HttpContextContract) {
@@ -30,42 +31,118 @@ export default class CustomchatsController {
   }
 
 
+  // public async sendMessage({ auth, request, response }: HttpContextContract) {
+  //   await auth.use('api').authenticate()
+  //   const body = request.only(Customchat.fillable)
+  //   body.messagesent = false
+  //   body.chats_id = body.id
+  //   delete body.returned
+  //   delete body.created_at
+  //   delete body.id
+  //   delete body.response
+
+  //   console.log("BODY>>", body)
+
+  //   try {
+  //     const agent = await Agent.query().where('default_chat', true).first()
+  //     if (agent) {
+  //       const client = WhatsAppClientManager.getClient(String(agent.id));
+  //       await client.sendMessage(body.cellphoneserialized, body.message);
+
+  //       const payLoad = await Customchat.create({ ...body, chatnumber: agent.number_phone })
+  //       await Talk.create({ chat_id: body.chats_id, reg: body.reg, cellphone: body.cellphoneserialized, message: body.message, chatnumber: client.to, type: 'to' })
+  //       await Chat.query().where('id', body.chats_id).update({ last_response: 1 })
+  //       // Obtém `shippingcampaigns_id` diretamente
+  //       const chat = await Chat.find(body.chats_id)
+  //       if (chat?.shippingcampaigns_id) {
+  //         const shippingcampaign = await Shippingcampaign.find(chat.shippingcampaigns_id)
+  //         if (shippingcampaign && !shippingcampaign.date_first_return) {
+  //           shippingcampaign.date_first_return = DateTime.local().toFormat("yyyy-MM-dd HH:mm")
+  //           await shippingcampaign.save()
+  //         }
+  //       }
+  //       return response.status(201).send(payLoad)
+  //     }
+  //   } catch (error) {
+  //     console.log("erro", error)
+  //     return response.status(500).send({ error: 'Erro ao enviar mensagem.' })
+
+  //   }
+  // }
   public async sendMessage({ auth, request, response }: HttpContextContract) {
     await auth.use('api').authenticate()
-    const body = request.only(Customchat.fillable)
-    body.messagesent = false
-    body.chats_id = body.id
-    delete body.returned
-    delete body.created_at
-    delete body.id
-    delete body.response
 
+    // Captura apenas os campos permitidos
+    const rawBody = request.only(Customchat.fillable)
 
-    console.log("BODY>>", body)
+    // Validação básica de campos obrigatórios
+    if (!rawBody.id || !rawBody.cellphoneserialized || !rawBody.message) {
+      return response.badRequest({ error: 'Campos obrigatórios ausentes (id, message ou cellphoneserialized).' })
+    }
+
+    // Preparação do corpo formatado para salvar e enviar
+    const formattedBody = {
+      ...rawBody,
+      messagesent: false,
+      chats_id: rawBody.id,
+    }
+
+    // Remoção de campos não permitidos ou que serão tratados separadamente
+    delete formattedBody.returned
+    delete formattedBody.created_at
+    delete formattedBody.id
+    delete formattedBody.response
+
+    //console.log("BODY>>", formattedBody)
 
     try {
-      const agent = await Agent.query().where('default_chat', true).first()
-      if (agent) {
-        const client = WhatsAppClientManager.getClient(String(agent.id));
-        await client.sendMessage(body.cellphoneserialized, body.message);
+      const agent = await Agent.query().where('default_chat', true).firstOrFail()
+      const client = WhatsAppClientManager.getClient(String(agent.id))
 
-        const payLoad = await Customchat.create({ ...body, chatnumber: agent.number_phone })
-        await Chat.query().where('id', body.chats_id).update({ last_response: 1 })
-        // Obtém `shippingcampaigns_id` diretamente
-        const chat = await Chat.find(body.chats_id)
-        if (chat?.shippingcampaigns_id) {
-          const shippingcampaign = await Shippingcampaign.find(chat.shippingcampaigns_id)
-          if (shippingcampaign && !shippingcampaign.date_first_return) {
-            shippingcampaign.date_first_return = DateTime.local().toFormat("yyyy-MM-dd HH:mm")
-            await shippingcampaign.save()
-          }
-        }
-        return response.status(201).send(payLoad)
+      if (!client) {
+        return response.status(500).send({ error: 'Cliente WhatsApp não encontrado para o agente.' })
       }
+
+      // Envia a mensagem para o número de telefone
+      await client.sendMessage(formattedBody.cellphoneserialized, formattedBody.message)
+
+      // Salva o registro da mensagem
+      const payLoad = await Customchat.create({
+        ...formattedBody,
+        chatnumber: agent.number_phone,
+      })
+
+      console.log(">>>>", client.info.wid._serialized)
+
+      await Talk.create({
+        chat_id: formattedBody.chats_id,
+        reg: formattedBody.reg,
+        cellphone: formattedBody.cellphoneserialized,
+        message: formattedBody.message,
+        chatnumber: client.info.wid._serialized,
+        type: 'to',
+      })
+
+      // Atualiza a resposta no chat
+      await Chat.query().where('id', formattedBody.chats_id).update({ last_response: 1 })
+
+      // Verifica e atualiza o primeiro retorno da campanha, se aplicável
+      const chat = await Chat.find(formattedBody.chats_id)
+      if (chat?.shippingcampaigns_id) {
+        const shippingcampaign = await Shippingcampaign.find(chat.shippingcampaigns_id)
+        if (shippingcampaign && !shippingcampaign.date_first_return) {
+          shippingcampaign.date_first_return = DateTime.local().toISO()
+          await shippingcampaign.save()
+        }
+      }
+
+      return response.status(201).send(payLoad)
     } catch (error) {
-      console.log("erro", error)
+      console.error('Erro ao enviar mensagem:', error)
+      return response.status(500).send({ error: 'Falha ao enviar mensagem. Verifique o servidor.' })
     }
   }
+
 
 
   public async viewedConfirmed({ auth, params, response }: HttpContextContract) {

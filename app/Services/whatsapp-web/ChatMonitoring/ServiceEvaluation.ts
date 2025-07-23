@@ -6,14 +6,11 @@ import { DateTime } from 'luxon';
 import Talk from 'App/Models/Talk';
 
 export default async (client: Client, message: Message, chat: Chat) => {
-
   if (message.hasMedia) {
     await stateTyping(message)
     client.sendMessage(message.from, 'Por favor não envie áudio, imagens ou vídeos, apenas digite uma nota de 0 a 10.')
     return
   }
-
-
 
   //PERGUNTA 1 - AVALIAÇÃO DE ATENDIMENTO
   if (chat.interaction_seq == 1) {
@@ -27,12 +24,17 @@ export default async (client: Client, message: Message, chat: Chat) => {
     if (notes === null || notes.length == 0 || notes == undefined || invalidNote || invalidNoteNegative) {
       await stateTyping(message)//status de digitando...
       client.sendMessage(message.from, `Desculpe,😔 não consegui identificar sua nota. Por favor poderia responder uma nota entre 0 a 10?`)
+      await Talk.create({
+        chat_id: chat.id,
+        reg: chat.reg,
+        cellphone: message.from,
+        chatnumber: message.to,
+        message_ack: message.ack,
+        message: `Desculpe,😔 não consegui identificar sua nota. Por favor poderia responder uma nota entre 0 a 10?`,
+        type: "to"
+      });
       return
     }
-
-    console.log(message)
-
-
 
     if (types.isInteger(parseInt(notes[0]))) {
       //const chatOtherFields = JSON.parse(chat.shippingcampaign.otherfields)
@@ -45,8 +47,11 @@ export default async (client: Client, message: Message, chat: Chat) => {
       await stateTyping(message)//status de digitando...
       client.sendMessage(message.from, `Consegue nos dizer o que motivou a sua nota ${notes[0]}? Tudo bem se não quiser responder, digite 9 para finalizar essa etapa.`)
       await Talk.create({
+        chat_id: chat.id,
+        reg: chat.reg,
         cellphone: message.from,
         chatnumber: message.to,
+        message_ack: message.ack,
         message: `Consegue nos dizer o que motivou a sua nota ${notes[0]}? Tudo bem se não quiser responder, digite 9 para finalizar essa etapa.`,
         type: "to"
       });
@@ -59,6 +64,8 @@ export default async (client: Client, message: Message, chat: Chat) => {
       if (message.body == '9') {
         client.sendMessage(message.from, `Tudo bem, vamos finalizar nossa conversa.🙏Obrigado!`)
         await Talk.create({
+          chat_id: chat.id,
+          reg: chat.reg,
           cellphone: message.from,
           chatnumber: message.to,
           message: `Tudo bem, vamos finalizar nossa conversa.🙏Obrigado!`,
@@ -74,6 +81,8 @@ export default async (client: Client, message: Message, chat: Chat) => {
       await chat.save()
       client.sendMessage(message.from, `Obrigado pela sua resposta!😀 Agradecemos sua avaliação.🙏`)
       await Talk.create({
+        chat_id: chat.id,
+        reg: chat.reg,
         cellphone: message.from,
         chatnumber: message.to,
         message: `Obrigado pela sua resposta!😀 Agradecemos sua avaliação.🙏`,

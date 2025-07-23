@@ -11,6 +11,7 @@ import { GenerateRandomTime } from './util'
 import Chat from 'App/Models/Chat';
 import Application from '@ioc:Adonis/Core/Application'
 import WhatsAppClientManager from './WhatsAppClientManager';
+import Talk from 'App/Models/Talk';
 
 
 // Caminhos de sessão e perfil do Chrome
@@ -185,6 +186,12 @@ async function startAgent(_agent: Agent) {
         .andWhere('cellphoneserialized', msg.to)
         .andWhere('chatnumber', 'like', String(msg.from).replace(/\D/g, ''))
         .update({ ack: msg.ack })
+
+        await Talk.query()
+        .where('message', msg.body)
+        .andWhere('cellphoneserialized', msg.to)
+        .andWhere('chatnumber', 'like', String(msg.from).replace(/\D/g, ''))
+        .update({ message_ack: msg.ack })
     }
   });
 

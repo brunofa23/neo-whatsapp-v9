@@ -138,7 +138,7 @@ async function handleCustomChatMessage(message: Message, customChat: any) {
     chatnumber: message.to,
     message_ack: message.ack,
     message: message.body.slice(0, 999),
-    type: "to"
+    type: "from"
   });
 }
 
@@ -151,7 +151,7 @@ async function handleChatMessage(client: Client, message: Message, chat: any) {
     chatnumber: message.to,
     message_ack: message.ack,
     message: message.body.slice(0, 999),
-    type: "to"
+    type: "from"
   });
 
 
@@ -173,11 +173,17 @@ async function handleChatMessage(client: Client, message: Message, chat: any) {
 async function handleNewMessage(client: Client, message: Message) {
   //AI EM AÇÃO *******************************************************
   try {
-
-    
+    await Talk.create({
+      cellphone: message.from,
+      chatnumber: message.to,
+      message_ack: message.ack,
+      message: message.body.slice(0, 999),
+      type: "from"
+    });
 
     const query = await Shippingcampaign.query()
-      .where('cellphone', 'like', `%${await chunckPhone(message.from)}%`)
+      //.where('cellphone', 'like', `%${await chunckPhone(message.from)}%`)
+      .where('cellphoneserialized', message.from)
       .where('interaction_id', 1)
       .select('otherfields', 'name');
 
@@ -215,7 +221,6 @@ async function handleNewMessage(client: Client, message: Message) {
 //********************************************************************
 // Envia mensagem final aleatória
 async function sendRandomFinalMessage(client: Client, message: Message) {
-
   let responseArray: String[]
   const responsesChatfinish = await Response.query().select('message')
     .where('local', 'chatfinish')

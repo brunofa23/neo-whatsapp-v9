@@ -14,6 +14,7 @@ import WhatsAppClientManager from 'App/Services/whatsapp-web/WhatsAppClientManag
 //const path = require('path');
 
 // Função que retorna uma promessa para remover a pasta
+//******************************************************** */
 function deleteFolder(pathFolder) {
   return new Promise((resolve, reject) => {
     fs.rm(pathFolder, { recursive: true }, (err) => {

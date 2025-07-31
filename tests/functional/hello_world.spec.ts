@@ -5,25 +5,24 @@ import { DateTime } from 'luxon'
 import PersistShippingcampaign from "App/Services/whatsapp-web/PersistShippingcampaign"
 import Config from 'App/Models/Config'
 import Chat from 'App/Models/Chat'
+import Manifest from 'App/Models/Manifest'
 
 test('display welcome page', async ({ client }) => {
-  // const data = await Chat.query()
-  //   .preload('shippingcampaign')
-  //   .where('cellphoneserialized', '5516991474606@c.us')
-  //   .andWhere('chatnumber', '553198849340').first()
-  //   //.andWhere('returned', false).first()
-  //   //.whereNull('response').first()
 
-  const data = Chat.query()
-    .preload('shippingcampaign')
-    .where('cellphoneserialized', '553198726269@c.us')
-    .andWhere('chatnumber', '553171331794')
-    //.andWhere('returned', false).first()
-    //.whereNull('response')//.first()
 
-  const data1 = await data.first()
-  //console.log(">>>>>>7777777777", data.toQuery())
-  console.log(">>>>>>7777777777",data1?.$preloaded.shippingcampaign)
+const query = Manifest.query()
+        .where('chat_id', 7348)
+        .first()
+
+        const data = await query
+        if(data?.mainsubject_id)
+          await data.load('mainsubject')
+        if(data?.chat_id)
+          await data.load('chat')
+        if(data?.user_responsible_id)
+          await data.load('user')
+
+    console.log("DATA::::", data)
 
 
 })

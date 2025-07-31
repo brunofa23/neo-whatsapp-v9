@@ -35,9 +35,7 @@ export default class ManifestsController {
     try {
       const data = await Manifest.query().where('id', params.id)
         .update(body)
-
       const sendmail = await sendMailManifest()
-      console.log("@@@@@", sendmail)
       return response.status(201).send(data)
     } catch (error) {
       return error
@@ -46,19 +44,20 @@ export default class ManifestsController {
 
 
   public async sendMailManifest({ auth, params, request, response }: HttpContextContract) {
-    console.log("entrei aqui", params.id)
+
     await auth.use('api').authenticate()
     const { report } = request.only(['report'])
-    //console.log("report:::::::", report)
-
     try {
-      const data = await Manifest.query()
+      const query = Manifest.query()
         .where('chat_id', params.id)
-        .preload('user')
-        .preload('mainsubject')
-        .preload('chat')
         .first()
-
+      const data = await query
+      if (data?.mainsubject_id)
+        await data.load('mainsubject')
+      if (data?.chat_id)
+        await data.load('chat')
+      if (data?.user_responsible_id)
+        await data.load('user')
       if (!data) return
       const sendmail = await sendMailManifest(data, report)
       return response.status(201).send(sendmail)

@@ -35,7 +35,6 @@ class ManifestsController {
             const data = await Manifest_1.default.query().where('id', params.id)
                 .update(body);
             const sendmail = await (0, sendMail_1.sendMailManifest)();
-            console.log("@@@@@", sendmail);
             return response.status(201).send(data);
         }
         catch (error) {
@@ -43,16 +42,19 @@ class ManifestsController {
         }
     }
     async sendMailManifest({ auth, params, request, response }) {
-        console.log("entrei aqui", params.id);
         await auth.use('api').authenticate();
         const { report } = request.only(['report']);
         try {
-            const data = await Manifest_1.default.query()
+            const query = Manifest_1.default.query()
                 .where('chat_id', params.id)
-                .preload('user')
-                .preload('mainsubject')
-                .preload('chat')
                 .first();
+            const data = await query;
+            if (data?.mainsubject_id)
+                await data.load('mainsubject');
+            if (data?.chat_id)
+                await data.load('chat');
+            if (data?.user_responsible_id)
+                await data.load('user');
             if (!data)
                 return;
             const sendmail = await (0, sendMail_1.sendMailManifest)(data, report);

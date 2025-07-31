@@ -494,7 +494,6 @@ class ShippingcampaignsController {
                 .whereBetween('shippingcampaigns.created_at', [initial.toISO(), final.toISO()])
                 .where('shippingcampaigns.interaction_id', 1)
                 .whereRaw(query);
-            console.log(queryAll.toQuery());
             const queryResult = await queryAll;
             return response.status(201).send(queryResult);
         }

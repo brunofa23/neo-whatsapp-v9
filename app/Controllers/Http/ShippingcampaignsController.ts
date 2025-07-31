@@ -864,7 +864,7 @@ export default class ShippingcampaignsController {
         .where('shippingcampaigns.interaction_id', 1)
         .whereRaw(query)
 
-      console.log(queryAll.toQuery())
+      //console.log(queryAll.toQuery())
 
       const queryResult = await queryAll
       return response.status(201).send(queryResult)

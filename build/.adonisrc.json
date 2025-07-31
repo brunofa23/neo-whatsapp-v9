@@ -63,10 +63,14 @@
       "reloadServer": false
     }
   ],
+<<<<<<< HEAD
   "lastCompiledAt": "2025-07-31T11:35:57.540Z"
 =======
     "qrcode"
   ],
   "lastCompiledAt": "2023-10-07T20:49:17.443Z"
 >>>>>>> development
+=======
+  "lastCompiledAt": "2025-07-31T20:18:30.447Z"
+>>>>>>> development-ai-cob
 }

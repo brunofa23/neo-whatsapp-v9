@@ -218,7 +218,7 @@ export default async (client: Client) => {
                     cellphone: validationCellPhone,//await extractCellphone(shippingCampaign.cellphone),
                     chatnumber: client.info.wid._serialized,
                     reg: shippingCampaign.reg,
-                    chat_id: chat.id
+                    chat_id: chat.id,
                     message: shippingCampaign.message.slice(0, 999),
                     type: "to"
                   })

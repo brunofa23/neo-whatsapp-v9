@@ -12,7 +12,7 @@ export default class UsersController {
     try {
       const query = User.query()
       query.if(is_manager, query => query.where('is_manager', true))
-        console.log(query.toQuery())
+        //console.log(query.toQuery())
       const data = await query
 
       return response.status(200).send(data)

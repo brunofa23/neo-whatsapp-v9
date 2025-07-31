@@ -4,7 +4,6 @@ import Manifest from 'App/Models/Manifest'
 import { DateTime } from 'luxon'
 
 export async function sendMailManifest(bodyManifest: Manifest, report: string = "") {
-
   try {
     const body = {
       id: bodyManifest.id || 'ID não disponível',
@@ -18,8 +17,8 @@ export async function sendMailManifest(bodyManifest: Manifest, report: string = 
       employee_involved: bodyManifest.employee_involved || 'Recepcionista não disponível',
       medic_einvolved: bodyManifest.medic_einvolved || 'Médico não disponível',
       date_limit: bodyManifest.date_limit
-                  ? DateTime.fromISO(bodyManifest.date_limit).toFormat("dd/MM/yyyy")
-                  : 'Data limite não disponível',
+        ? DateTime.fromISO(bodyManifest.date_limit).toFormat("dd/MM/yyyy")
+        : 'Data limite não disponível',
       root_cause: bodyManifest.root_cause || 'Causa raiz não disponível',
       action: bodyManifest.action || 'Ação não disponível',
       obs: bodyManifest.obs || 'Observação não disponível'
@@ -32,6 +31,7 @@ export async function sendMailManifest(bodyManifest: Manifest, report: string = 
       // TO + Template
       message.to(bodyManifest.user.email)
       message.htmlView('emails/manifest', body)
+
     })
 
     console.log("email enviado!!!!!!!!!!!!!")

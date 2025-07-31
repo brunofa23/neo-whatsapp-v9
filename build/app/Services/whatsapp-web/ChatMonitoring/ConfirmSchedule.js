@@ -44,8 +44,8 @@ exports.default = async (client, message, chat) => {
                     : defaultMessage;
                 await client.sendMessage(message.from, response1message);
                 await Talk_1.default.create({
-                    cellphone: await (0, util_1.extractCellphone)(message.from),
-                    chatnumber: await (0, util_1.extractCellphone)(message.to),
+                    cellphone: message.from,
+                    chatnumber: message.to,
                     message: response1message.slice(0, 999),
                     type: "to"
                 });
@@ -86,8 +86,8 @@ exports.default = async (client, message, chat) => {
                 const message2 = response2schedule ? formatMessage(response2schedule.message, chatOtherFields) : default2Message;
                 await client.sendMessage(message.from, message2);
                 await Talk_1.default.create({
-                    cellphone: await (0, util_1.extractCellphone)(message.from),
-                    chatnumber: await (0, util_1.extractCellphone)(message.to),
+                    cellphone: message.from,
+                    chatnumber: message.to,
                     message: message2.slice(0, 999),
                     type: "to"
                 });
@@ -99,8 +99,8 @@ exports.default = async (client, message, chat) => {
                         const linkRedirect = messageLink(response2schedule2.message, chatOtherFields.phone_unit);
                         await client.sendMessage(message.from, linkRedirect);
                         await Talk_1.default.create({
-                            cellphone: await (0, util_1.extractCellphone)(message.from),
-                            chatnumber: await (0, util_1.extractCellphone)(message.to),
+                            cellphone: message.from,
+                            chatnumber: message.to,
                             message: linkRedirect.slice(0, 999),
                             type: "to"
                         });
@@ -112,8 +112,8 @@ exports.default = async (client, message, chat) => {
                     const linkRedirect = `https://api.whatsapp.com/send?phone=${chat.shippingcampaign.phone_unit}&text=${encodedMessage}`;
                     await client.sendMessage(message.from, linkRedirect);
                     await Talk_1.default.create({
-                        cellphone: await (0, util_1.extractCellphone)(message.from),
-                        chatnumber: await (0, util_1.extractCellphone)(message.to),
+                        cellphone: message.from,
+                        chatnumber: message.to,
                         message: linkRedirect.slice(0, 999),
                         type: "to"
                     });
@@ -145,8 +145,8 @@ exports.default = async (client, message, chat) => {
                 const defaultMessage = `Desculpe pelo engano, vou pedir para corrigir nosso cadastro.`;
                 await client.sendMessage(message.from, defaultMessage);
                 await Talk_1.default.create({
-                    cellphone: await (0, util_1.extractCellphone)(message.from),
-                    chatnumber: await (0, util_1.extractCellphone)(message.to),
+                    cellphone: message.from,
+                    chatnumber: message.to,
                     message: defaultMessage.slice(0, 999),
                     type: "to"
                 });
@@ -159,8 +159,8 @@ exports.default = async (client, message, chat) => {
             await (0, util_1.stateTyping)(message);
             client.sendMessage(message.from, 'Oi, desculpe mas não consegui identificar uma resposta, por favor responda \n*1* para Confirmar o agendamento. \n*2* para Reagendamento ou Cancelamento.');
             await Talk_1.default.create({
-                cellphone: await (0, util_1.extractCellphone)(message.from),
-                chatnumber: await (0, util_1.extractCellphone)(message.to),
+                cellphone: message.from,
+                chatnumber: message.to,
                 message: 'Oi, desculpe mas não consegui identificar uma resposta, por favor responda \n*1* para Confirmar o agendamento. \n*2* para Reagendamento ou Cancelamento.',
                 type: "to"
             });

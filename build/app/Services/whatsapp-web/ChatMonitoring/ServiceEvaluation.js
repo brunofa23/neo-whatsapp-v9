@@ -24,6 +24,15 @@ exports.default = async (client, message, chat) => {
         if (notes === null || notes.length == 0 || notes == undefined || invalidNote || invalidNoteNegative) {
             await (0, util_1.stateTyping)(message);
             client.sendMessage(message.from, `Desculpe,😔 não consegui identificar sua nota. Por favor poderia responder uma nota entre 0 a 10?`);
+            await Talk_1.default.create({
+                chat_id: chat.id,
+                reg: chat.reg,
+                cellphone: message.from,
+                chatnumber: message.to,
+                message_ack: message.ack,
+                message: `Desculpe,😔 não consegui identificar sua nota. Por favor poderia responder uma nota entre 0 a 10?`,
+                type: "to"
+            });
             return;
         }
         if (Helpers_1.types.isInteger(parseInt(notes[0]))) {
@@ -36,8 +45,11 @@ exports.default = async (client, message, chat) => {
             await (0, util_1.stateTyping)(message);
             client.sendMessage(message.from, `Consegue nos dizer o que motivou a sua nota ${notes[0]}? Tudo bem se não quiser responder, digite 9 para finalizar essa etapa.`);
             await Talk_1.default.create({
-                cellphone: await (0, util_1.extractCellphone)(message.from),
-                chatnumber: await (0, util_1.extractCellphone)(message.to),
+                chat_id: chat.id,
+                reg: chat.reg,
+                cellphone: message.from,
+                chatnumber: message.to,
+                message_ack: message.ack,
                 message: `Consegue nos dizer o que motivou a sua nota ${notes[0]}? Tudo bem se não quiser responder, digite 9 para finalizar essa etapa.`,
                 type: "to"
             });
@@ -48,8 +60,10 @@ exports.default = async (client, message, chat) => {
         if (message.body == '9') {
             client.sendMessage(message.from, `Tudo bem, vamos finalizar nossa conversa.🙏Obrigado!`);
             await Talk_1.default.create({
-                cellphone: await (0, util_1.extractCellphone)(message.from),
-                chatnumber: await (0, util_1.extractCellphone)(message.to),
+                chat_id: chat.id,
+                reg: chat.reg,
+                cellphone: message.from,
+                chatnumber: message.to,
                 message: `Tudo bem, vamos finalizar nossa conversa.🙏Obrigado!`,
                 type: "to"
             });
@@ -62,8 +76,10 @@ exports.default = async (client, message, chat) => {
         await chat.save();
         client.sendMessage(message.from, `Obrigado pela sua resposta!😀 Agradecemos sua avaliação.🙏`);
         await Talk_1.default.create({
-            cellphone: await (0, util_1.extractCellphone)(message.from),
-            chatnumber: await (0, util_1.extractCellphone)(message.to),
+            chat_id: chat.id,
+            reg: chat.reg,
+            cellphone: message.from,
+            chatnumber: message.to,
             message: `Obrigado pela sua resposta!😀 Agradecemos sua avaliação.🙏`,
             type: "to"
         });

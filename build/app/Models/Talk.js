@@ -15,7 +15,10 @@ class Talk extends Orm_1.BaseModel {
     static get fillable() {
         return [
             'id',
+            'chat_id',
+            'reg',
             'cellphone',
+            'cellphoneserialized',
             'message',
             'message_ack',
             'chatnumber',
@@ -31,8 +34,20 @@ __decorate([
 ], Talk.prototype, "id", void 0);
 __decorate([
     (0, Orm_1.column)(),
+    __metadata("design:type", Number)
+], Talk.prototype, "chat_id", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", Number)
+], Talk.prototype, "reg", void 0);
+__decorate([
+    (0, Orm_1.column)(),
     __metadata("design:type", String)
 ], Talk.prototype, "cellphone", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", String)
+], Talk.prototype, "cellphoneserialized", void 0);
 __decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", String)

@@ -8,6 +8,9 @@ const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"))
 const Database_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Lucid/Database"));
 const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Shippingcampaign"));
 const luxon_1 = require("luxon");
+const WhatsAppClientManager_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/WhatsAppClientManager"));
+const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
+const Talk_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Talk"));
 class CustomchatsController {
     async show({ auth, params, response }) {
         await auth.use('api').authenticate();
@@ -24,23 +27,53 @@ class CustomchatsController {
     }
     async sendMessage({ auth, request, response }) {
         await auth.use('api').authenticate();
-        const body = request.only(Customchat_1.default.fillable);
-        body.messagesent = false;
+        const rawBody = request.only(Customchat_1.default.fillable);
+        if (!rawBody.id || !rawBody.cellphoneserialized || !rawBody.message) {
+            return response.badRequest({ error: 'Campos obrigatórios ausentes (id, message ou cellphoneserialized).' });
+        }
+        const formattedBody = {
+            ...rawBody,
+            messagesent: false,
+            chats_id: rawBody.id,
+        };
+        delete formattedBody.returned;
+        delete formattedBody.created_at;
+        delete formattedBody.id;
+        delete formattedBody.response;
         try {
-            const payLoad = await Customchat_1.default.create(body);
-            await Chat_1.default.query().where('id', body.chats_id).update({ last_response: 1 });
-            const chat = await Chat_1.default.find(body.chats_id);
+            const agent = await Agent_1.default.query().where('default_chat', true).firstOrFail();
+            const client = WhatsAppClientManager_1.default.getClient(String(agent.id));
+            if (!client) {
+                return response.status(500).send({ error: 'Cliente WhatsApp não encontrado para o agente.' });
+            }
+            await client.sendMessage(formattedBody.cellphoneserialized, formattedBody.message);
+            const payLoad = await Customchat_1.default.create({
+                ...formattedBody,
+                chatnumber: agent.number_phone,
+            });
+            console.log(">>>>", client.info.wid._serialized);
+            await Talk_1.default.create({
+                chat_id: formattedBody.chats_id,
+                reg: formattedBody.reg,
+                cellphone: formattedBody.cellphoneserialized,
+                message: formattedBody.message,
+                chatnumber: client.info.wid._serialized,
+                type: 'to',
+            });
+            await Chat_1.default.query().where('id', formattedBody.chats_id).update({ last_response: 1 });
+            const chat = await Chat_1.default.find(formattedBody.chats_id);
             if (chat?.shippingcampaigns_id) {
                 const shippingcampaign = await Shippingcampaign_1.default.find(chat.shippingcampaigns_id);
                 if (shippingcampaign && !shippingcampaign.date_first_return) {
-                    shippingcampaign.date_first_return = luxon_1.DateTime.local().toFormat("yyyy-MM-dd HH:mm");
+                    shippingcampaign.date_first_return = luxon_1.DateTime.local().toISO();
                     await shippingcampaign.save();
                 }
             }
             return response.status(201).send(payLoad);
         }
         catch (error) {
-            error;
+            console.error('Erro ao enviar mensagem:', error);
+            return response.status(500).send({ error: 'Falha ao enviar mensagem. Verifique o servidor.' });
         }
     }
     async viewedConfirmed({ auth, params, response }) {

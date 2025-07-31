@@ -29,16 +29,17 @@ async function verifyNumberInternal(phoneVerify) {
 }
 async function getCustomChat(cellphone, chatnumber) {
     chatnumber = chatnumber.replace(/@.*$/, '');
-    const customChat = await Customchat_1.default.query()
+    const query = Customchat_1.default.query()
         .where('cellphoneserialized', cellphone)
         .andWhere('chatnumber', chatnumber)
         .andWhereNull('returned')
-        .orderBy('created_at', 'desc')
-        .first();
+        .orderBy('created_at', 'desc');
+    const customChat = await query.first();
     return customChat;
 }
 async function getChat(cellphone, agentPhone) {
-    const phoneAgent = agentPhone.match(/\d/g).join("");
+    const match = agentPhone.match(/\d/g);
+    const phoneAgent = match ? match.join('') : '';
     return await Chat_1.default.query()
         .preload('shippingcampaign')
         .where('cellphoneserialized', cellphone)
@@ -49,30 +50,22 @@ async function getChat(cellphone, agentPhone) {
 class Monitoring {
     async monitoring(client) {
         try {
-            console.log("passo 156");
             client.on('message', async (message) => {
-                console.log("passo 157");
                 if (await shouldIgnoreMessage(message))
                     return;
-                if (message.hasMedia) {
-                    await (0, util_1.stateTyping)(message);
-                    client.sendMessage(message.from, 'Por favor não envie áudio, imagens ou vídeos apenas textos. Obrigada!');
-                    return;
-                }
                 const isInternalNumber = await verifyNumberInternal(message.from);
                 if (isInternalNumber) {
                     console.log("Número interno:", message.from);
                     return;
                 }
-                await Talk_1.default.create({
-                    cellphone: await (0, util_1.extractCellphone)(message.from),
-                    chatnumber: await (0, util_1.extractCellphone)(message.to),
-                    message: message.body.slice(0, 999),
-                    type: "from"
-                });
                 const customChat = await getCustomChat(message.from, client.info.wid.user);
                 if (customChat) {
                     await handleCustomChatMessage(message, customChat);
+                    return;
+                }
+                if (message.hasMedia) {
+                    await (0, util_1.stateTyping)(message);
+                    client.sendMessage(message.from, 'Por favor não envie áudio, imagens ou vídeos apenas textos. Obrigada!');
                     return;
                 }
                 const chat = await getChat(message.from, message.to);
@@ -120,8 +113,26 @@ async function handleCustomChatMessage(message, customChat) {
     };
     await Customchat_1.default.create(bodyResponse);
     await Chat_1.default.query().where('id', customChat.chats_id).update({ date_return: luxon_1.DateTime.now().toFormat("yyyy-MM-dd HH:mm"), last_response: 2 });
+    await Talk_1.default.create({
+        chat_id: customChat.chats_id,
+        reg: customChat.reg,
+        cellphone: message.from,
+        chatnumber: message.to,
+        message_ack: message.ack,
+        message: message.body.slice(0, 999),
+        type: "from"
+    });
 }
 async function handleChatMessage(client, message, chat) {
+    await Talk_1.default.create({
+        chat_id: chat.id,
+        reg: chat.reg,
+        cellphone: message.from,
+        chatnumber: message.to,
+        message_ack: message.ack,
+        message: message.body.slice(0, 999),
+        type: "from"
+    });
     if (!chat.returned) {
         chat.invalidresponse = message.body.slice(0, 348);
         chat.returned = true;
@@ -137,8 +148,15 @@ async function handleChatMessage(client, message, chat) {
 }
 async function handleNewMessage(client, message) {
     try {
+        await Talk_1.default.create({
+            cellphone: message.from,
+            chatnumber: message.to,
+            message_ack: message.ack,
+            message: message.body.slice(0, 999),
+            type: "from"
+        });
         const query = await Shippingcampaign_1.default.query()
-            .where('cellphone', 'like', `%${await (0, util_1.chunckPhone)(message.from)}%`)
+            .where('cellphoneserialized', message.from)
             .where('interaction_id', 1)
             .select('otherfields', 'name');
         const queryTalk = await Talk_1.default.query()
@@ -152,8 +170,9 @@ async function handleNewMessage(client, message) {
             await (0, util_1.stateTyping)(message);
             await client.sendMessage(message.from, response);
             await Talk_1.default.create({
-                cellphone: await (0, util_1.extractCellphone)(message.from),
-                chatnumber: await (0, util_1.extractCellphone)(message.to),
+                cellphone: message.from,
+                chatnumber: message.to,
+                message_ack: message.ack,
                 message: response.slice(0, 999),
                 type: "to"
             });

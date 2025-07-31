@@ -5,7 +5,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.startAgent = void 0;
 const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
-const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Shippingcampaign"));
 const Config_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Config"));
 const SendMessage_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/SendMessage"));
 const luxon_1 = require("luxon");
@@ -16,6 +15,7 @@ const util_1 = require("./util");
 const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
 const Application_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Application"));
 const WhatsAppClientManager_1 = __importDefault(require("./WhatsAppClientManager"));
+const Talk_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Talk"));
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcodeTerminal = require('qrcode-terminal');
 const qrcode = require('qrcode');
@@ -124,6 +124,11 @@ async function startAgent(_agent) {
                 .andWhere('cellphoneserialized', msg.to)
                 .andWhere('chatnumber', 'like', String(msg.from).replace(/\D/g, ''))
                 .update({ ack: msg.ack });
+            await Talk_1.default.query()
+                .where('message', msg.body)
+                .andWhere('cellphoneserialized', msg.to)
+                .andWhere('chatnumber', 'like', String(msg.from).replace(/\D/g, ''))
+                .update({ message_ack: msg.ack });
         }
     });
     client.on('disconnected', async (reason) => {
@@ -134,15 +139,6 @@ async function startAgent(_agent) {
         }
         catch (error) {
         }
-        await Shippingcampaign_1.default.create({
-            interaction_id: 3,
-            interaction_seq: 1,
-            message: `O agente ${agent.number_phone} foi desconectado!`,
-            cellphone: '31985228619',
-            reg: 1,
-            name: 'Bruno',
-            prioritysend: true
-        });
         console.log("EXECUTANDO DISCONECT");
         console.log("REASON>>>", reason);
         return;

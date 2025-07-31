@@ -5,12 +5,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.startAgentChat = void 0;
 const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
-const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Shippingcampaign"));
 const ChatMonitoring_1 = __importDefault(require("./ChatMonitoring/ChatMonitoring"));
 const ChatMonitoringInternal_1 = __importDefault(require("./ChatMonitoring/ChatMonitoringInternal"));
-const SendMessageAgentDefault_1 = __importDefault(require("./SendMessageAgentDefault"));
 const Customchat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Customchat"));
 const Application_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Application"));
+const WhatsAppClientManager_1 = __importDefault(require("./WhatsAppClientManager"));
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcodeTerminal = require('qrcode-terminal');
 const qrcode = require('qrcode');
@@ -69,7 +68,6 @@ async function startAgentChat(_agent) {
         const state = await clientChat.getState();
         console.log("State:", state);
         console.log("INFO:", await clientChat.info);
-        await (0, SendMessageAgentDefault_1.default)(clientChat, agent);
         agent.status = state;
         agent.statusconnected = true;
         agent.number_phone = clientChat.info.wid.user;
@@ -89,22 +87,18 @@ async function startAgentChat(_agent) {
         await chatMonitoringInternal.monitoring(clientChat);
     }
     clientChat.on('disconnected', async (reason) => {
-        agent.status = 'Disconnected';
-        agent.statusconnected = false;
-        await agent.save();
-        await Shippingcampaign_1.default.create({
-            interaction_id: 3,
-            interaction_seq: 1,
-            message: `O agente ${agent.number_phone} foi desconectado!`,
-            cellphone: '31985228619',
-            reg: 1,
-            name: 'Bruno',
-            prioritysend: true
-        });
+        try {
+            agent.status = 'Disconnected';
+            agent.statusconnected = false;
+            await agent.save();
+        }
+        catch (error) {
+        }
         console.log("EXECUTANDO DISCONECT");
         console.log("REASON>>>", reason);
         return;
     });
+    WhatsAppClientManager_1.default.addClient(agent.id.toString(), clientChat);
     let rejectCalls = true;
     clientChat.on('call', async (call) => {
         console.log('Call received, rejecting. GOTO Line 261 to disable', call);

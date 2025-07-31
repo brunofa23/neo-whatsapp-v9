@@ -53,10 +53,11 @@ exports.default = async (client, agent) => {
         return agentMaxLimitSend?.max_limit_message;
     }
     async function VerifyChat(shippingCampaign) {
-        return await Chat_1.default.query()
+        const query = Chat_1.default.query()
             .where('interaction_id', shippingCampaign?.interaction_id)
             .andWhere('interaction_seq', shippingCampaign?.interaction_seq)
-            .andWhere('shippingcampaigns_id', shippingCampaign?.id).first();
+            .andWhere('shippingcampaigns_id', shippingCampaign?.id);
+        return await query.first();
     }
     async function sendMessages() {
         const totMessageSend = await countLimitSendMessage();
@@ -115,10 +116,12 @@ exports.default = async (client, agent) => {
                                     chatname: agent.name,
                                     chatnumber: client.info.wid.user
                                 };
-                                await Chat_1.default.create(bodyChat);
+                                const chat = await Chat_1.default.create(bodyChat);
                                 await Talk_1.default.create({
-                                    cellphone: await (0, util_1.extractCellphone)(shippingCampaign.cellphone),
-                                    chatnumber: client.info.wid.user,
+                                    cellphone: validationCellPhone,
+                                    chatnumber: client.info.wid._serialized,
+                                    reg: shippingCampaign.reg,
+                                    chat_id: chat.id,
                                     message: shippingCampaign.message.slice(0, 999),
                                     type: "to"
                                 });

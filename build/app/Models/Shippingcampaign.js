@@ -15,9 +15,49 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const Orm_1 = global[Symbol.for('ioc.use')]("Adonis/Lucid/Orm");
 const luxon_1 = require("luxon");
 const Chat_1 = __importDefault(require("./Chat"));
+<<<<<<< HEAD
+const Env_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Env"));
+class Shippingcampaign extends Orm_1.BaseModel {
+    static get connection() {
+        return Env_1.default.get('DB_CONNECTION_MAIN');
+    }
+    static get fillable() {
+        return [
+            'id',
+            'interaction_id',
+            'interaction_seq',
+            'idexternal',
+            'idexternal_array',
+            'reg',
+            'name',
+            'cellphone',
+            'cellphoneserialized',
+            'message',
+            'otherfields',
+            'phonevalid',
+            'messagesent',
+            'dateshedule',
+            'doctor',
+            'unit',
+            'unit_cod',
+            'attendant',
+            'covenant',
+            'dateservice',
+            'prioritysend',
+            'excluded',
+            'justify_excluded',
+            'date_first_return',
+            'company_id',
+            'phone_unit',
+            'type_service',
+            'created_at',
+            'updated_at'
+        ];
+=======
 class Shippingcampaign extends Orm_1.BaseModel {
     static get connection() {
         return 'mssql2';
+>>>>>>> development
     }
 }
 __decorate([
@@ -38,6 +78,13 @@ __decorate([
 ], Shippingcampaign.prototype, "idexternal", void 0);
 __decorate([
     (0, Orm_1.column)(),
+<<<<<<< HEAD
+    __metadata("design:type", String)
+], Shippingcampaign.prototype, "idexternal_array", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+=======
+>>>>>>> development
     __metadata("design:type", Number)
 ], Shippingcampaign.prototype, "reg", void 0);
 __decorate([
@@ -69,6 +116,65 @@ __decorate([
     __metadata("design:type", Boolean)
 ], Shippingcampaign.prototype, "messagesent", void 0);
 __decorate([
+<<<<<<< HEAD
+    (0, Orm_1.column)(),
+    __metadata("design:type", luxon_1.DateTime)
+], Shippingcampaign.prototype, "dateshedule", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", String)
+], Shippingcampaign.prototype, "doctor", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", String)
+], Shippingcampaign.prototype, "unit", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", String)
+], Shippingcampaign.prototype, "unit_cod", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", String)
+], Shippingcampaign.prototype, "attendant", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", String)
+], Shippingcampaign.prototype, "covenant", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", luxon_1.DateTime)
+], Shippingcampaign.prototype, "dateservice", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", Boolean)
+], Shippingcampaign.prototype, "prioritysend", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", Boolean)
+], Shippingcampaign.prototype, "excluded", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", String)
+], Shippingcampaign.prototype, "justify_excluded", void 0);
+__decorate([
+    Orm_1.column.dateTime(),
+    __metadata("design:type", luxon_1.DateTime)
+], Shippingcampaign.prototype, "date_first_return", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", Number)
+], Shippingcampaign.prototype, "company_id", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", String)
+], Shippingcampaign.prototype, "phone_unit", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", String)
+], Shippingcampaign.prototype, "type_service", void 0);
+__decorate([
+=======
+>>>>>>> development
     Orm_1.column.dateTime({ autoCreate: true }),
     __metadata("design:type", luxon_1.DateTime)
 ], Shippingcampaign.prototype, "createdAt", void 0);

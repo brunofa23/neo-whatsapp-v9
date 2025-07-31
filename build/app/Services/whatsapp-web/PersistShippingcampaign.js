@@ -6,7 +6,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const DatasourcesController_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Controllers/Http/DatasourcesController"));
 const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Shippingcampaign"));
 const util_1 = require("../whatsapp-web/util");
+<<<<<<< HEAD
+const luxon_1 = require("luxon");
+=======
 const moment = require("moment");
+>>>>>>> development
 function isIterable(obj) {
     try {
         return obj !== null && typeof obj[Symbol.iterator] === 'function';
@@ -15,28 +19,61 @@ function isIterable(obj) {
         return false;
     }
 }
+<<<<<<< HEAD
+exports.default = async (date, prioritysend = false, interaction_id = 0, unit_cod = 0) => {
+    const dataSourceList = await new DatasourcesController_1.default().DataSource(date, interaction_id, unit_cod);
+    const patientList = [];
+=======
 exports.default = async () => {
     const dataSource = new DatasourcesController_1.default;
     const dataSourceList = await dataSource.DataSource();
+>>>>>>> development
     if (!isIterable(dataSourceList)) {
         console.log("Algum erro ocorrido, não é iterable", dataSourceList);
         return;
     }
     for (const data of dataSourceList) {
         try {
+<<<<<<< HEAD
+=======
             const yesterday = moment().subtract(1, 'day').format('YYYY-MM-DD');
+>>>>>>> development
             const shipping = new Shippingcampaign_1.default();
             shipping.interaction_id = data.interaction_id;
             shipping.interaction_seq = data.interaction_seq;
             shipping.reg = data.reg;
+<<<<<<< HEAD
+            shipping.dateshedule = data.agm_hini;
+            shipping.idexternal = data.idexternal;
+            shipping.name = String(data.name).trim();
+            shipping.cellphone = String(data.cellphone).replace(/[^0-9]+/g, '');
+=======
             shipping.idexternal = data.idexternal;
             shipping.name = String(data.name).trim();
             shipping.cellphone = data.cellphone;
+>>>>>>> development
             if (!await (0, util_1.ValidatePhone)(data.cellphone))
                 shipping.phonevalid = false;
             shipping.messagesent = false;
             shipping.message = String(data.message).replace(/@p[0-9]/g, '?');
             shipping.otherfields = data.otherfields;
+<<<<<<< HEAD
+            shipping.doctor = String(data.doctor).trim();
+            shipping.unit = String(data.unit).trim();
+            shipping.unit_cod = String(data.unit_cod).trim();
+            shipping.attendant = String(data.attendant).trim();
+            shipping.covenant = '';
+            shipping.dateservice = data.dateservice;
+            shipping.company_id = data.company_id;
+            shipping.phone_unit = data.phone_unit;
+            shipping.type_service = data.type_service;
+            shipping.prioritysend = prioritysend ? true : false;
+            const yesterday = luxon_1.DateTime.now()
+                .setZone('America/Sao_Paulo')
+                .minus({ days: 5 })
+                .toFormat('yyyy-MM-dd');
+=======
+>>>>>>> development
             const verifyExist = await Shippingcampaign_1.default.query()
                 .where('reg', '=', data.reg)
                 .andWhere('created_at', '>=', yesterday)
@@ -44,11 +81,19 @@ exports.default = async () => {
                 .first();
             if (!verifyExist) {
                 await Shippingcampaign_1.default.create(shipping);
+<<<<<<< HEAD
+                patientList.push({ reg: shipping.reg, name: shipping.name, unit: shipping.unit });
+=======
+>>>>>>> development
             }
         }
         catch (error) {
             console.log("Erro 44454>>>>", error);
         }
     }
+<<<<<<< HEAD
+    return patientList;
+=======
+>>>>>>> development
 };
 //# sourceMappingURL=PersistShippingcampaign.js.map

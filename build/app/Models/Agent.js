@@ -8,10 +8,46 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+<<<<<<< HEAD
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const Env_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Env"));
+const Orm_1 = global[Symbol.for('ioc.use')]("Adonis/Lucid/Orm");
+const luxon_1 = require("luxon");
+class Agent extends Orm_1.BaseModel {
+    static get connection() {
+        return Env_1.default.get('DB_CONNECTION_MAIN');
+    }
+    static get fillable() {
+        return [
+            'id',
+            'name',
+            'number_phone',
+            'interval_init_query',
+            'interval_final_query',
+            'interval_init_message',
+            'interval_final_message',
+            'max_limit_message',
+            'status',
+            'active',
+            'qrcode',
+            'statusconnected',
+            'default_chat',
+            'deleted',
+            'company_id',
+            'obs',
+            'createdAt',
+            'updatedAt',
+        ];
+    }
+=======
 Object.defineProperty(exports, "__esModule", { value: true });
 const Orm_1 = global[Symbol.for('ioc.use')]("Adonis/Lucid/Orm");
 const luxon_1 = require("luxon");
 class Agent extends Orm_1.BaseModel {
+>>>>>>> development
 }
 __decorate([
     (0, Orm_1.column)({ isPrimary: true }),
@@ -54,6 +90,33 @@ __decorate([
     __metadata("design:type", Boolean)
 ], Agent.prototype, "active", void 0);
 __decorate([
+<<<<<<< HEAD
+    (0, Orm_1.column)(),
+    __metadata("design:type", String)
+], Agent.prototype, "qrcode", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", Boolean)
+], Agent.prototype, "statusconnected", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", Boolean)
+], Agent.prototype, "default_chat", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", Boolean)
+], Agent.prototype, "deleted", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", Number)
+], Agent.prototype, "company_id", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", String)
+], Agent.prototype, "obs", void 0);
+__decorate([
+=======
+>>>>>>> development
     Orm_1.column.dateTime({ autoCreate: true }),
     __metadata("design:type", luxon_1.DateTime)
 ], Agent.prototype, "createdAt", void 0);

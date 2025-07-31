@@ -1,3 +1,37 @@
+<<<<<<< HEAD
+import ShippingcampaignsController from 'App/Controllers/Http/ShippingcampaignsController';
+import Agent from 'App/Models/Agent';
+import Chat from "App/Models/Chat"
+import { verifyNumber } from 'App/Services/whatsapp-web/VerifyNumber';
+import { DateTime } from 'luxon';
+import { Client } from "whatsapp-web.js"
+import { DateFormat, ExecutingSendMessage, extractCellphone, GenerateRandomTime, TimeSchedule } from './util'
+import Log from "App/Models/Log"
+import Talk from 'App/Models/Talk';
+
+global.contSend = 0
+//const yesterday = DateTime.local().toFormat('yyyy-MM-dd 00:00')
+const dayBefore5 = DateTime.local().minus({ days: 5 }).toFormat('yyyy-MM-dd 00:00')
+let resetContSend = DateTime.local()
+let resetContSendBool = false
+const shippingcampaignsController = new ShippingcampaignsController()
+
+export default async (client: Client, agent: Agent) => {
+
+  //vai verificar se o whatsapp não enviou no mesmo numero para o mesmo paciente
+  async function verifyClientSend(client, cellphone) {
+    if (client?.info?.wid) {
+      const query = Chat.query()
+        .where('cellphone', cellphone)
+        .andWhere('created_at', '>', dayBefore5)
+        .andWhere('chatnumber', client.info.wid.user)
+      return await query.first()
+    }
+    else {
+      console.log("cliente não conectado")
+      return
+    }
+=======
 import { typeServerConfig } from '@ioc:Adonis/Core/Server';
 import ShippingcampaignsController from 'App/Controllers/Http/ShippingcampaignsController';
 import Agent from 'App/Models/Agent';
@@ -33,12 +67,17 @@ export default async (client: Client) => {
     return await Shippingcampaign.query()
       .whereNull('phonevalid')
       .andWhere('created_at', '>', yesterday).first()
+>>>>>>> development
   }
 
   async function verifyContSend() {
     if (global.contSend >= 3) {
       if (resetContSendBool == false) {
+<<<<<<< HEAD
+        resetContSend = DateTime.local().plus({ minutes: 4 })
+=======
         resetContSend = DateTime.local().plus({ minutes: 5 })
+>>>>>>> development
         resetContSendBool = true
       }
       else if (resetContSend <= DateTime.local()) {
@@ -49,6 +88,75 @@ export default async (client: Client) => {
   }
 
   async function countLimitSendMessage() {
+<<<<<<< HEAD
+    const value = await shippingcampaignsController.maxLimitSendMessage(agent)
+    return value
+  }
+
+  async function maxLimitSendMessageAgent(id) {
+    const agentMaxLimitSend = await Agent.query().where('id', id).first()
+    if (agentMaxLimitSend == undefined || agentMaxLimitSend?.max_limit_message == undefined)
+      return 0
+    return agentMaxLimitSend?.max_limit_message
+  }
+
+  async function VerifyChat(shippingCampaign) {
+    const query = Chat.query()
+      .where('interaction_id', shippingCampaign?.interaction_id)
+      .andWhere('interaction_seq', shippingCampaign?.interaction_seq)
+      .andWhere('shippingcampaigns_id', shippingCampaign?.id)
+    return await query.first()
+
+  }
+
+
+  //********************************************************************* */
+  async function sendMessages() {
+
+    const totMessageSend = await countLimitSendMessage()
+    const maxLimitSendAgent = await maxLimitSendMessageAgent(agent.id)
+    const shippingCampaign = await shippingcampaignsController.patientToSend(agent)
+
+    let verifyChat
+    let verifycontsend
+    if (totMessageSend >= maxLimitSendAgent && (shippingCampaign?.prioritysend == null || shippingCampaign?.prioritysend == undefined || shippingCampaign?.prioritysend == false)) {
+      console.log(`LIMITE DIÁRIO ATINGIDO,Id:${agent.id} Agent: ${agent.name} Enviados:${totMessageSend} - Limite Máximo:${maxLimitSendAgent}`)
+      return
+    }
+    if (await TimeSchedule() == false) {
+      return
+    }
+    await verifyContSend()
+    if (shippingCampaign) {
+      if (global.contSend <= 3) {
+        if (global.contSend < 0)
+          global.contSend = 0
+        try {
+          //verificar o numero
+          if (!shippingCampaign.prioritysend)
+            verifycontsend = await verifyClientSend(client, shippingCampaign?.cellphone)
+          //console.log("*** PASSO 5.0", verifycontsend.id, "cellphone:", verifycontsend.cellphone, "name", verifycontsend.name)
+          if (verifycontsend)
+            return
+
+          const validationCellPhone = await verifyNumber(client, shippingCampaign?.cellphone)
+          //console.log("VERIFICANDO VALIDATIONCELL77788>>", validationCellPhone)
+
+          if (validationCellPhone === 'INVALID') {
+            //console.log("NÚMERO INVÁLIDO", validationCellPhone)
+            shippingCampaign.phonevalid = false
+            await shippingCampaign.save()
+            return
+          } else if (validationCellPhone === null) {
+            console.log("Erro Temporário, repetir:", shippingCampaign.cellphone)
+          } else {
+            verifyChat = await VerifyChat(shippingCampaign)
+            if (verifyChat == undefined) {
+              let returnResponse: any = {}
+              await client.sendMessage(validationCellPhone, shippingCampaign.message)
+                .then(async (response) => {
+                  returnResponse = response
+=======
     const shippingcampaignsController = new ShippingcampaignsController()
     const value = await shippingcampaignsController.maxLimitSendMessage()
     return value
@@ -81,12 +189,16 @@ export default async (client: Client) => {
             if (validationCellPhone) {
               await client.sendMessage(validationCellPhone, shippingCampaign.message)
                 .then(async (response) => {
+>>>>>>> development
                   global.contSend++
                   shippingCampaign.messagesent = true
                   shippingCampaign.phonevalid = true
                   shippingCampaign.cellphoneserialized = validationCellPhone
                   await shippingCampaign.save()
+<<<<<<< HEAD
+=======
 
+>>>>>>> development
                   const bodyChat = {
                     interaction_id: shippingCampaign.interaction_id,
                     interaction_seq: shippingCampaign.interaction_seq,
@@ -97,6 +209,44 @@ export default async (client: Client) => {
                     cellphoneserialized: shippingCampaign.cellphoneserialized,
                     message: shippingCampaign.message,
                     shippingcampaigns_id: shippingCampaign.id,
+<<<<<<< HEAD
+                    chatname: agent.name,
+                    chatnumber: client.info.wid.user
+                  }
+                  const chat = await Chat.create(bodyChat)
+                  await Talk.create({
+                    cellphone: validationCellPhone,//await extractCellphone(shippingCampaign.cellphone),
+                    chatnumber: client.info.wid._serialized,
+                    reg: shippingCampaign.reg,
+                    chat_id: chat.id,
+                    message: shippingCampaign.message.slice(0, 999),
+                    type: "to"
+                  })
+
+                  console.log("Mensagem enviada:", shippingCampaign.name, "cellphone", shippingCampaign.cellphoneserialized, "agent", agent.name)
+                  if (agent.statusconnected == false || agent.status !== 'CONNECTED')
+                    await Agent.query().where('id', agent.id).update({ statusconnected: true, status: 'CONNECTED' })
+                }).catch(async (error) => {
+                  const state = await client.getState()
+                  await Agent.query().where('id', agent.id).update({ statusconnected: false, status: state })
+                  await Log.create({ name: 'sendMessage', message: error, description: "SendMessage.ts. linha:120 - Whatsapp Bugado catch" })
+                })
+              if (returnResponse && Object.keys(returnResponse).length === 0) {
+                await Log.create({ name: 'sendMessage', message: error, description: "SendMessage.ts. linha:120 - Whatsapp Bugado depois deo catch" })
+                await Agent.query().where('id', agent.id).update({ statusconnected: false })
+              }
+
+            }
+
+          }
+        }
+        catch (error) {
+          //console.log("ERRO 1500:::", error)
+          await Log.create({ name: 'sendMessageGeneral', message: "error", description: "SendMessage.ts. linha:131" })
+        }
+      }
+    }
+=======
                     chatname: process.env.CHAT_NAME
                   }
                   await Chat.create(bodyChat)
@@ -115,6 +265,7 @@ export default async (client: Client) => {
         }
       }
     }, await GenerateRandomTime(startTimeSendMessage, endTimeSendMessage, '----Time Send Message'))
+>>>>>>> development
   }
 
   await sendMessages()

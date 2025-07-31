@@ -6,6 +6,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const Env_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Env"));
 const config_1 = require("@adonisjs/core/build/config");
 exports.default = (0, config_1.hashConfig)({
+<<<<<<< HEAD
+    default: Env_1.default.get('HASH_DRIVER', 'argon'),
+    list: {
+=======
     default: Env_1.default.get('HASH_DRIVER', 'scrypt'),
     list: {
         scrypt: {
@@ -17,6 +21,7 @@ exports.default = (0, config_1.hashConfig)({
             keyLength: 64,
             maxMemory: 32 * 1024 * 1024,
         },
+>>>>>>> development
         argon: {
             driver: 'argon2',
             variant: 'id',

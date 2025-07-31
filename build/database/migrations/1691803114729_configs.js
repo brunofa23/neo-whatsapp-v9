@@ -9,6 +9,8 @@ class default_1 extends Schema_1.default {
         super(...arguments);
         this.tableName = 'configs';
     }
+<<<<<<< HEAD
+=======
     async up() {
         this.schema.createTable(this.tableName, (table) => {
             table.string('id').primary().notNullable();
@@ -21,6 +23,7 @@ class default_1 extends Schema_1.default {
     async down() {
         this.schema.dropTable(this.tableName);
     }
+>>>>>>> development
 }
 exports.default = default_1;
 //# sourceMappingURL=1691803114729_configs.js.map

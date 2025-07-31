@@ -12,6 +12,43 @@ export default class Shippingcampaign extends BaseModel {
     return Env.get('DB_CONNECTION_MAIN')
   }
 
+<<<<<<< HEAD
+  public static get fillable() {
+    return [
+      'id',
+      'interaction_id',
+      'interaction_seq',
+      'idexternal',
+      'idexternal_array',
+      'reg',
+      'name',
+      'cellphone',
+      'cellphoneserialized',
+      'message',
+      'otherfields',
+      'phonevalid',
+      'messagesent',
+      'dateshedule',
+      'doctor',
+      'unit',
+      'unit_cod',
+      'attendant',
+      'covenant',
+      'dateservice',
+      'prioritysend',
+      'excluded',
+      'justify_excluded',
+      'date_first_return',
+      'company_id',
+      'phone_unit',
+      'type_service',
+      'created_at',
+      'updated_at'
+    ]
+  }
+
+=======
+>>>>>>> development
   @column({ isPrimary: true })
   public id: number
 
@@ -25,6 +62,12 @@ export default class Shippingcampaign extends BaseModel {
   public idexternal: number
 
   @column()
+<<<<<<< HEAD
+  public idexternal_array:string
+
+  @column()
+=======
+>>>>>>> development
   public reg: number
 
   @column()
@@ -48,12 +91,62 @@ export default class Shippingcampaign extends BaseModel {
   @column()
   public messagesent: boolean
 
+<<<<<<< HEAD
+  @column()
+  public dateshedule: DateTime
+
+  @column()
+  public doctor: string
+
+  @column()
+  public unit: string
+
+  @column()
+  public unit_cod:string
+
+  @column()
+  public attendant: string
+
+  @column()
+  public covenant: string
+
+  @column()
+  public dateservice: DateTime
+
+  @column()
+  public prioritysend: boolean
+
+  @column()
+  public excluded: boolean
+
+  @column()
+  public justify_excluded:string
+
+  @column.dateTime()
+  public date_first_return:DateTime
+
+  @column()
+  public company_id:number
+
+  @column()
+  public phone_unit:string
+
+  @column()
+  public type_service:string
+
+=======
+>>>>>>> development
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   public updatedAt: DateTime
 
+<<<<<<< HEAD
+
+
+=======
+>>>>>>> development
   @hasOne(() => Chat, {
     foreignKey: 'shippingcampaigns_id'
   })

@@ -12,12 +12,58 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+<<<<<<< HEAD
+const Env_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Env"));
+=======
+>>>>>>> development
 const Orm_1 = global[Symbol.for('ioc.use')]("Adonis/Lucid/Orm");
 const luxon_1 = require("luxon");
 const Shippingcampaign_1 = __importDefault(require("./Shippingcampaign"));
 class Chat extends Orm_1.BaseModel {
+<<<<<<< HEAD
+    static get connection() {
+        return Env_1.default.get('DB_CONNECTION_MAIN');
+    }
+    static get fillable() {
+        return [
+            'id',
+            'shippingcampaigns_id',
+            'interaction_id',
+            'interaction_seq',
+            'idexternal',
+            'reg',
+            'name',
+            'cellphone',
+            'cellphoneserialized',
+            'message',
+            'response',
+            'invalidresponse',
+            'returned',
+            'ack',
+            'chatname',
+            'absoluteresp',
+            'externalstatus',
+            'chatnumber',
+            'chat_finished',
+            'company_id',
+            'closed',
+            'date_return',
+            'last_response'
+        ];
+    }
 }
 __decorate([
+    (0, Orm_1.hasOne)(() => Shippingcampaign_1.default, {
+        foreignKey: 'id',
+        localKey: 'shippingcampaigns_id'
+    }),
+    __metadata("design:type", Object)
+], Chat.prototype, "shippingcamapgn", void 0);
+__decorate([
+=======
+}
+__decorate([
+>>>>>>> development
     (0, Orm_1.column)({ isPrimary: true }),
     __metadata("design:type", Number)
 ], Chat.prototype, "id", void 0);
@@ -71,6 +117,13 @@ __decorate([
 ], Chat.prototype, "returned", void 0);
 __decorate([
     (0, Orm_1.column)(),
+<<<<<<< HEAD
+    __metadata("design:type", Number)
+], Chat.prototype, "ack", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+=======
+>>>>>>> development
     __metadata("design:type", String)
 ], Chat.prototype, "chatname", void 0);
 __decorate([
@@ -78,6 +131,37 @@ __decorate([
     __metadata("design:type", Number)
 ], Chat.prototype, "absoluteresp", void 0);
 __decorate([
+<<<<<<< HEAD
+    (0, Orm_1.column)(),
+    __metadata("design:type", String)
+], Chat.prototype, "externalstatus", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", String)
+], Chat.prototype, "chatnumber", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", Boolean)
+], Chat.prototype, "chat_finished", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", Number)
+], Chat.prototype, "company_id", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", Boolean)
+], Chat.prototype, "closed", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", Number)
+], Chat.prototype, "last_response", void 0);
+__decorate([
+    Orm_1.column.dateTime(),
+    __metadata("design:type", luxon_1.DateTime)
+], Chat.prototype, "date_return", void 0);
+__decorate([
+=======
+>>>>>>> development
     Orm_1.column.dateTime({ autoCreate: true }),
     __metadata("design:type", luxon_1.DateTime)
 ], Chat.prototype, "createdAt", void 0);

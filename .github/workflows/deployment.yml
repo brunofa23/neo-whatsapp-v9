@@ -2,7 +2,11 @@ name: Build and deploy api
 on:
   push:
     branches:
+<<<<<<< HEAD
+      - main-ai-cob
+=======
       - main
+>>>>>>> development
 
 jobs:
   build:
@@ -15,7 +19,11 @@ jobs:
 
       - uses: actions/setup-node@v3
         with:
+<<<<<<< HEAD
+          node-version: 20
+=======
           node-version: 16
+>>>>>>> development
 
       # Configurar o e-mail e nome do usuário do Git
       - name: Set up Git user
@@ -25,16 +33,28 @@ jobs:
 
 
       # Supondo que você deseje realizar o deploy a partir da branch main-production
+<<<<<<< HEAD
+      - name: Checkout production-ai-cob
+        run: git checkout production-ai-cob
+=======
       - name: Checkout main-production
         run: git checkout main-production
+>>>>>>> development
       - name: Pull latest changes from main-production
         run: git pull
 
       - name: Merge changes from main
+<<<<<<< HEAD
+        run: git merge main-ai-cob
+
+      - name: Push changes to GitHub
+        run: git push origin production-ai-cob
+=======
         run: git merge main
 
       - name: Push changes to GitHub
         run: git push origin main-production
+>>>>>>> development
 
       - name: Install dependencies
         run: npm install
@@ -53,7 +73,11 @@ jobs:
         run: git commit -m 'nova versão'
 
       - name: Git push na production
+<<<<<<< HEAD
+        run: git push origin production-ai-cob
+=======
         run: git push origin main-production
+>>>>>>> development
       #- name: Executing build...
       #  run: cd ./build
 

@@ -12,7 +12,11 @@ class default_1 extends Schema_1.default {
     async up() {
         this.schema.alterTable(this.tableName, (table) => {
             table.boolean('returned').defaultTo('false');
+<<<<<<< HEAD
+            table.string('invalidresponse', 600);
+=======
             table.string('invalidresponse', 350);
+>>>>>>> development
         });
     }
     async down() {

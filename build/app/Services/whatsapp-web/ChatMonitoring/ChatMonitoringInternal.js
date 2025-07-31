@@ -17,7 +17,10 @@ async function verifyNumberInternal(phoneVerify) {
 let dateSendMessageInternalUpdate = luxon_1.DateTime.local();
 function timeRandom(min, max) {
     const time = Math.floor(Math.random() * (max - min + 1)) + min;
+<<<<<<< HEAD
+=======
     console.log("time", time);
+>>>>>>> development
     return time;
 }
 class Monitoring {
@@ -25,7 +28,10 @@ class Monitoring {
         try {
             client.on('message', async (message) => {
                 if (await verifyNumberInternal(message.from)) {
+<<<<<<< HEAD
+=======
                     console.log("HORA DA PRÓXIMA RESPOSTA:::::>>>>", await dateSendMessageInternalUpdate.toString());
+>>>>>>> development
                     if (dateSendMessageInternalUpdate <= luxon_1.DateTime.now()) {
                         const time = await timeRandom(500, 800);
                         dateSendMessageInternalUpdate = await luxon_1.DateTime.local().plus({ seconds: time });

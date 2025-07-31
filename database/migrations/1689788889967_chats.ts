@@ -13,7 +13,11 @@ export default class extends BaseSchema {
       table.string('name').notNullable()
       table.string('cellphone')
       table.string('cellphoneserialized').nullable
+<<<<<<< HEAD
+      table.string('message', 600)
+=======
       table.string('message', 350)
+>>>>>>> development
       table.string('response')
       table.integer('shippingcampaigns_id').references('shippingcampaigns.id')
 

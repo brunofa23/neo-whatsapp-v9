@@ -1,8 +1,15 @@
+<<<<<<< HEAD
+import Env from '@ioc:Adonis/Core/Env'
+=======
+>>>>>>> development
 import { BaseModel, column, hasOne, HasOne } from '@ioc:Adonis/Lucid/Orm'
 import { DateTime } from 'luxon'
 
 import Shippingcampaign from './Shippingcampaign'
+<<<<<<< HEAD
+=======
 import Env from '@ioc:Adonis/Core/Env'
+>>>>>>> development
 
 export default class Chat extends BaseModel {
 
@@ -11,6 +18,44 @@ export default class Chat extends BaseModel {
     return Env.get('DB_CONNECTION_MAIN')
   }
 
+<<<<<<< HEAD
+
+  public static get fillable() {
+    return [
+      'id',
+      'shippingcampaigns_id',
+      'interaction_id',
+      'interaction_seq',
+      'idexternal',
+      'reg',
+      'name',
+      'cellphone',
+      'cellphoneserialized',
+      'message',
+      'response',
+      'invalidresponse',
+      'returned',
+      'ack',
+      'chatname',
+      'absoluteresp',
+      'externalstatus',
+      'chatnumber',
+      'chat_finished',
+      'company_id',
+      'closed',
+      'date_return', //data de retorno da última mensagem
+      'last_response' //verifica quem respondeu por ultimo 1 operador 2 paciente
+    ]
+  }
+
+  @hasOne(() => Shippingcampaign, {
+    foreignKey: 'id',
+    localKey: 'shippingcampaigns_id'
+  })
+  public shippingcamapgn: HasOne<typeof Shippingcampaign>
+
+=======
+>>>>>>> development
   @column({ isPrimary: true })
   public id: number
 
@@ -51,11 +96,41 @@ export default class Chat extends BaseModel {
   public returned: boolean
 
   @column()
+<<<<<<< HEAD
+  public ack:number
+
+  @column()
+=======
+>>>>>>> development
   public chatname: string
 
   @column()
   public absoluteresp: number
 
+<<<<<<< HEAD
+  @column()
+  public externalstatus: string
+
+  @column()
+  public chatnumber: string
+
+  @column()
+  public chat_finished:boolean
+
+  @column()
+  public company_id:number
+
+  @column()
+  public closed:boolean
+
+  @column()
+  public last_response:number
+
+  @column.dateTime()
+  public date_return:DateTime
+
+=======
+>>>>>>> development
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
 

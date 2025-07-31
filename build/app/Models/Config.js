@@ -8,9 +8,34 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+<<<<<<< HEAD
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+var _a;
+Object.defineProperty(exports, "__esModule", { value: true });
+const Env_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Env"));
+const Orm_1 = global[Symbol.for('ioc.use')]("Adonis/Lucid/Orm");
+const luxon_1 = require("luxon");
+class Config extends Orm_1.BaseModel {
+    static get connection() {
+        return Env_1.default.get('DB_CONNECTION_MAIN');
+    }
+    static get fillable() {
+        return [
+            'id',
+            'name',
+            'valuetext',
+            'valuebool',
+            'valueinteger',
+            'valuedatetime',
+        ];
+    }
+=======
 Object.defineProperty(exports, "__esModule", { value: true });
 const Orm_1 = global[Symbol.for('ioc.use')]("Adonis/Lucid/Orm");
 class Config extends Orm_1.BaseModel {
+>>>>>>> development
 }
 __decorate([
     (0, Orm_1.column)({ isPrimary: true }),
@@ -32,5 +57,12 @@ __decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", Number)
 ], Config.prototype, "valueinteger", void 0);
+<<<<<<< HEAD
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", typeof (_a = typeof luxon_1.DatetTime !== "undefined" && luxon_1.DatetTime) === "function" ? _a : Object)
+], Config.prototype, "valuedatetime", void 0);
+=======
+>>>>>>> development
 exports.default = Config;
 //# sourceMappingURL=Config.js.map

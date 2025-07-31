@@ -1,8 +1,8 @@
 import Agent from 'App/Models/Agent';
-import Shippingcampaign from 'App/Models/Shippingcampaign';
+//import Shippingcampaign from 'App/Models/Shippingcampaign';
 import Config from 'App/Models/Config';
 import SendMessage from 'App/Services/whatsapp-web/SendMessage'
-import { sendRepeatedMessage } from 'App/Services/whatsapp-web/SendRepeatedMessage';
+//import { sendRepeatedMessage } from 'App/Services/whatsapp-web/SendRepeatedMessage';
 import { DateTime } from 'luxon';
 import ChatMonitoring from './ChatMonitoring/ChatMonitoring'
 import ChatMonitoringInternal from './ChatMonitoring/ChatMonitoringInternal'
@@ -30,7 +30,6 @@ async function getStatusSendMessage() {
     return true
   else return false
 }
-
 
 async function startAgent(_agent: Agent) {
   console.log("whatsappConnections.....")
@@ -156,7 +155,7 @@ async function startAgent(_agent: Agent) {
         await SendMessageInternal(client)
       }
     }
-  }, await GenerateRandomTime(600, 800, '----Time Send Message'))
+  }, await GenerateRandomTime(60000, 80000, '----Time Send Message'))
 
 
   const chatMonitoring = new ChatMonitoring
@@ -187,7 +186,7 @@ async function startAgent(_agent: Agent) {
         .andWhere('chatnumber', 'like', String(msg.from).replace(/\D/g, ''))
         .update({ ack: msg.ack })
 
-        await Talk.query()
+      await Talk.query()
         .where('message', msg.body)
         .andWhere('cellphoneserialized', msg.to)
         .andWhere('chatnumber', 'like', String(msg.from).replace(/\D/g, ''))

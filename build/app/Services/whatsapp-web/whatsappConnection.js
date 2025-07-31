@@ -110,7 +110,7 @@ async function startAgent(_agent) {
                 await (0, SendMessageInternal_1.default)(client);
             }
         }
-    }, await (0, util_1.GenerateRandomTime)(600, 800, '----Time Send Message'));
+    }, await (0, util_1.GenerateRandomTime)(60000, 80000, '----Time Send Message'));
     const chatMonitoring = new ChatMonitoring_1.default;
     await chatMonitoring.monitoring(client, agent);
     if (process.env.SELF_CONVERSATION?.toLowerCase() === "true") {

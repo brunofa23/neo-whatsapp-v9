@@ -1,8 +1,15 @@
+<<<<<<< HEAD
 import Env from '@ioc:Adonis/Core/Env'
+=======
+>>>>>>> development
 import { BaseModel, column, hasOne, HasOne } from '@ioc:Adonis/Lucid/Orm'
 import { DateTime } from 'luxon'
 
 import Shippingcampaign from './Shippingcampaign'
+<<<<<<< HEAD
+=======
+import Env from '@ioc:Adonis/Core/Env'
+>>>>>>> development
 
 export default class Chat extends BaseModel {
 
@@ -11,6 +18,7 @@ export default class Chat extends BaseModel {
     return Env.get('DB_CONNECTION_MAIN')
   }
 
+<<<<<<< HEAD
 
   public static get fillable() {
     return [
@@ -46,6 +54,8 @@ export default class Chat extends BaseModel {
   })
   public shippingcamapgn: HasOne<typeof Shippingcampaign>
 
+=======
+>>>>>>> development
   @column({ isPrimary: true })
   public id: number
 
@@ -86,14 +96,18 @@ export default class Chat extends BaseModel {
   public returned: boolean
 
   @column()
+<<<<<<< HEAD
   public ack:number
 
   @column()
+=======
+>>>>>>> development
   public chatname: string
 
   @column()
   public absoluteresp: number
 
+<<<<<<< HEAD
   @column()
   public externalstatus: string
 
@@ -115,6 +129,8 @@ export default class Chat extends BaseModel {
   @column.dateTime()
   public date_return:DateTime
 
+=======
+>>>>>>> development
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
 

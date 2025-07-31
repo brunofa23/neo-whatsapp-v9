@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 import Agent from 'App/Models/Agent';
+=======
+>>>>>>> development
 import { DateTime } from 'luxon';
 import { Message } from 'whatsapp-web.js';
 
@@ -8,7 +11,11 @@ async function stateTyping(message: Message) {
   //console.log("passei pelo STATETYPING...")
   const chatTyping = await message.getChat();
   chatTyping.sendStateTyping();
+<<<<<<< HEAD
   return await new Promise(resolve => setTimeout(resolve, 2000));
+=======
+  return await new Promise(resolve => setTimeout(resolve, 3000));
+>>>>>>> development
 }
 
 async function DateFormat(format, date = DateTime.local()) {
@@ -26,11 +33,16 @@ async function GenerateRandomTime(min: number, max: number, method: String = "")
   const _min = Math.ceil(min) * 1000
   const _max = Math.ceil(max) * 1000
   const randomTime = Math.floor(Math.random() * (_max - _min) + _min);
+<<<<<<< HEAD
   //console.log(`GenerateRandomTime: ${randomTime}, min:${min}, max:${max}`)
+=======
+  //console.log(`Timer do método ${method}: ${randomTime}`)
+>>>>>>> development
   return randomTime
 
 }
 
+<<<<<<< HEAD
 
 async function TimeSchedule() {
   const now = DateTime.local().setZone('America/Sao_Paulo');
@@ -66,6 +78,48 @@ async function NegativeResponse(stringResp: string): Promise<boolean> {
   return negativeResponses.some(response => normalizedInput.includes(response));
 }
 
+=======
+async function TimeSchedule() {
+  const timeSchedule = (DateTime.local().hour > 5 && DateTime.local().hour < 20) ? true : false
+  const message = !timeSchedule ? `Fora do Horario de Envio 7 às 19:${DateTime.local()}` : undefined
+  if (message) console.log(message)
+  return timeSchedule
+}
+
+async function PositiveResponse(inputString) {
+  const regex = /(1|sim|ok|pode sim|confirma)/i;
+  if (regex.test(inputString)) {
+    return true
+  } else {
+    return false
+  }
+
+}
+
+async function NegativeResponse(stringResp) {
+  const positive = /(2|não|nao|cancelar|reagenda|desmarcar)/i;
+  if (positive.test(stringResp)) {
+    return true
+  } else {
+    return false
+  }
+
+}
+
+async function InvalidResponse(stringResp) {
+
+  //console.log("DENTRO DO INVALID RESPONSE>>", stringResp)
+  const positive = /sim|não|1|2|pode confirmar|confirmada/ig;
+  if (positive.test(stringResp)) {
+    //console.log("RETORNOU TRUE")
+    return true
+  } else {
+    //console.log("RETORNOU FALSE")
+    return false
+  }
+
+}
+>>>>>>> development
 
 
 async function RandomResponse(arrayResponse: String[]) {
@@ -95,6 +149,7 @@ async function ClearFolder(folderPath) {
 }
 
 
+<<<<<<< HEAD
 async function ValidatePhone(cellphone: string): string | null {
   if (!cellphone) return null;
 
@@ -189,3 +244,13 @@ function getTargetDates(): DateTime[] {
 }
 
 export {getTargetDates, stateTyping, DateFormat, GenerateRandomTime, TimeSchedule, PositiveResponse, NegativeResponse, ClearFolder, ValidatePhone, RandomResponse, validAgent, chunckPhone, extractCellphone }
+=======
+async function ValidatePhone(cellphone) {
+  // Expressão regular para validar o formato de um número de celular no Brasil
+  const regexTelefoneCelular = /^(\+55|55)?\s?(?:\(?0?[1-9]{2}\)?)?\s?(?:9\s?)?[6789]\d{3}[-\s]?\d{4}$/;
+  return regexTelefoneCelular.test(cellphone);
+}
+
+
+module.exports = { stateTyping, DateFormat, GenerateRandomTime, TimeSchedule, PositiveResponse, NegativeResponse, ClearFolder, ValidatePhone, RandomResponse, InvalidResponse }
+>>>>>>> development

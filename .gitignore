@@ -1,6 +1,9 @@
 node_modules
 build/node_modules
+<<<<<<< HEAD
 build/model.nlp
+=======
+>>>>>>> development
 coverage
 .vscode
 .DS_STORE
@@ -9,8 +12,13 @@ tmp
 .wwebjs_auth
 .wwebjs_cache
 .env
+<<<<<<< HEAD
 backups
 Medias
 scripts
 model.nlp
+=======
+
+
+>>>>>>> development
 

@@ -9,6 +9,7 @@ class ExceptionHandler extends HttpExceptionHandler_1.default {
     constructor() {
         super(Logger_1.default);
     }
+<<<<<<< HEAD
     async handle(error, ctx) {
         if (error.status === 422) {
             return ctx.response.status(error.status).send({
@@ -20,6 +21,8 @@ class ExceptionHandler extends HttpExceptionHandler_1.default {
         }
         return super.handle(error, ctx);
     }
+=======
+>>>>>>> development
 }
 exports.default = ExceptionHandler;
 //# sourceMappingURL=Handler.js.map

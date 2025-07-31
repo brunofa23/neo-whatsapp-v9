@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const Database_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Lucid/Database"));
+<<<<<<< HEAD
 const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
 const Interaction_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Interaction"));
 const luxon_1 = require("luxon");
@@ -95,6 +96,61 @@ class DatasourcesController {
         catch (error) {
             console.error('Erro em scheduledPatients:', error);
             return [];
+=======
+const Interaction_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Interaction"));
+const luxon_1 = require("luxon");
+const util_1 = require("../../Services/whatsapp-web/util");
+class DatasourcesController {
+    async DataSource() {
+        const interactionList = await Interaction_1.default.query().where('status', '=', 1);
+        let schedulePatientsArray = [];
+        let serviceEvaluationArray = [];
+        try {
+            for (const interaction of interactionList) {
+                if (interaction.id == 1) {
+                    await Database_1.default.manager.close('mssql');
+                    schedulePatientsArray = await this.scheduledPatients();
+                }
+                else if (interaction.id == 2) {
+                    await Database_1.default.manager.close('mssql');
+                    serviceEvaluationArray = await this.serviceEvaluation();
+                }
+                if (interaction.id == 3) {
+                    console.log("Teste de envio amadurecimento do chip", interaction.name);
+                }
+            }
+            const data = [...schedulePatientsArray, ...serviceEvaluationArray];
+            return data;
+        }
+        catch (error) {
+            return;
+        }
+    }
+    async scheduledPatients() {
+        async function greeting(message) {
+            const greeting = ['Olá!😀', 'Oi tudo bem?😀', 'Saudações!😀', 'Oi como vai?😀'];
+            const presentation = ['Eu me chamo Iris', 'Eu sou a Iris', 'Aqui é a Iris'];
+            return message.replace('{greeting}', greeting[Math.floor(Math.random() * greeting.length)]).replace('{presentation}', presentation[Math.floor(Math.random() * presentation.length)]);
+        }
+        const pacQueryModel = await Interaction_1.default.find(1);
+        const env = process.env.NODE_ENV;
+        let pacQuery;
+        if (env === 'development')
+            pacQuery = pacQueryModel?.querydev;
+        else
+            pacQuery = pacQueryModel?.query;
+        try {
+            const result = await Database_1.default.connection('mssql').rawQuery(pacQuery);
+            for (const data of result) {
+                const message = await greeting(data.message);
+                data.message = message;
+            }
+            await Database_1.default.manager.close('mssql');
+            return result;
+        }
+        catch (error) {
+            return { "ERRO": "ERRO 154212", error };
+>>>>>>> development
         }
     }
     async confirmSchedule(chat, chatOtherFields = "") {
@@ -111,8 +167,13 @@ class DatasourcesController {
                 .whereNotIn('agm_confirm_stat', ['C'])
                 .update({
                 AGM_CONFIRM_STAT: 'C',
+<<<<<<< HEAD
                 AGM_CONFIRM_OBS: `CONFIRMA by CONFIRMA ou CANCELA - WhatsApp em ${dateNow}`,
                 AGM_CONFIRM_USR: process.env.SERVER_API_USER
+=======
+                AGM_CONFIRM_OBS: `NEO CONFIRMA by CONFIRMA ou CANCELA - WhatsApp em ${dateNow}`,
+                AGM_CONFIRM_USR: 'NEOCONFIRM'
+>>>>>>> development
             });
             await Database_1.default.manager.close('mssql');
             return query;
@@ -121,6 +182,7 @@ class DatasourcesController {
             return error;
         }
     }
+<<<<<<< HEAD
     async confirmScheduleAll() {
         console.log("Executando confirmações no Smart...");
         const dateNow = await (0, util_1.DateFormat)("dd/MM/yyyy HH:mm:ss", luxon_1.DateTime.local());
@@ -192,6 +254,33 @@ class DatasourcesController {
                     }
                 }
             }
+=======
+    async cancelSchedule(chat, chatOtherFields = "") {
+        const dateNow = await (0, util_1.DateFormat)("dd/MM/yyyy HH:mm:ss", luxon_1.DateTime.local());
+        const dateSchedule = luxon_1.DateTime.fromFormat(chatOtherFields['schedule'], 'yyyy-MM-dd HH:mm');
+        const startOfDay = await (0, util_1.DateFormat)("yyyy-MM-dd 00:00", dateSchedule);
+        const endOfDay = await (0, util_1.DateFormat)("yyyy-MM-dd 23:59", dateSchedule);
+        let _invalidResponse = "";
+        if (await (0, util_1.InvalidResponse)(chat.invalidresponse) == false) {
+            _invalidResponse = chat.invalidresponse;
+        }
+        try {
+            const query = await Database_1.default.connection('mssql')
+                .from('agm')
+                .where('agm_pac', chat.reg)
+                .whereBetween('agm_hini', [startOfDay, endOfDay])
+                .whereNotIn('agm_stat', ['C', 'B'])
+                .whereNotIn('agm_confirm_stat', ['C'])
+                .update({
+                AGM_CONFIRM_STAT: 'N',
+                AGM_CONFIRM_USR: 'NEOCONFIRM',
+                AGM_CONFIRM_OBS: _invalidResponse + ` (Desmarcado por NEO CONFIRMA by CONFIRMA ou CANCELA - WhatsApp em ${dateNow})`,
+                AGM_CONFIRM_DTHR: dateNow,
+                AGM_CONFIRM_MOC: 'IRI'
+            });
+            await Database_1.default.manager.close('mssql');
+            return query;
+>>>>>>> development
         }
         catch (error) {
             return error;
@@ -199,6 +288,7 @@ class DatasourcesController {
     }
     async serviceEvaluation() {
         async function greeting(message) {
+<<<<<<< HEAD
             const responseList = new ResponsesController_1.default();
             const greeting = await responseList.index({ local: 'greeting' });
             const question = ['em uma escala de *0 a 10*, o quanto você indicaria o nosso Núcleo de Excelência em Oftalmologia a um amigo ou parente?',
@@ -207,6 +297,15 @@ class DatasourcesController {
                 'em uma escala de *0 a 10*, o quanto você recomendaria o Núcleo de Excelência em Oftalmologia para um amigo ou familiar?',
             ];
             return message.replace('{greeting}', greeting).replace('{question}', question[Math.floor(Math.random() * question.length)]);
+=======
+            const greeting = ['Olá!😀', 'Oi tudo bem?😀', 'Saudações!😀', 'Oi como vai?😀'];
+            const question = ['Gostaríamos de avaliar a sua experiência recente em nosso hospital Neo. Em uma escala de *0 a 10*, o quanto você indicaria o nosso Núcleo de Excelência em Oftalmologia a um amigo ou parente?',
+                'Queremos saber mais sobre a sua consulta mais recente ao nosso hospital Neo. Em uma escala de *0 a 10*, o quanto você recomendaria o Núcleo de Excelência em Oftalmologia para um amigo ou membro da família?',
+                'Estamos interessados em ouvir sua opinião sobre sua experiência mais recente em nosso hospital Neo. Em uma escala de *0 a 10*, o quanto você indicaria o Núcleo de Excelência em Oftalmologia a alguém que você conhece?',
+                'Queremos entender melhor sua experiência recente em nosso hospital Neo. Em uma escala de *0 a 10*, o quanto você recomendaria o Núcleo de Excelência em Oftalmologia para um amigo ou familiar?',
+            ];
+            return message.replace('{greeting}', greeting[Math.floor(Math.random() * greeting.length)]).replace('{question}', question[Math.floor(Math.random() * question.length)]);
+>>>>>>> development
         }
         const pacQueryModel = await Interaction_1.default.find(2);
         const env = process.env.NODE_ENV;
@@ -222,6 +321,7 @@ class DatasourcesController {
                 data.message = message;
             }
             await Database_1.default.manager.close('mssql');
+<<<<<<< HEAD
             return result || [];
         }
         catch (error) {
@@ -237,6 +337,9 @@ class DatasourcesController {
                 .where('phonevalid', 0)
                 .whereBetween('created_at', [date_start, date_end])
                 .update({ phonevalid: null });
+=======
+            return result;
+>>>>>>> development
         }
         catch (error) {
             return { "ERRO": "ERRO 21221", error };

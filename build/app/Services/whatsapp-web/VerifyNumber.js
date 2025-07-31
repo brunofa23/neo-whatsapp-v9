@@ -1,4 +1,5 @@
 "use strict";
+<<<<<<< HEAD
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -34,11 +35,22 @@ async function verifyNumber(client, cellphone) {
         });
         return null;
     }
+=======
+Object.defineProperty(exports, "__esModule", { value: true });
+const Helpers_1 = global[Symbol.for('ioc.use')]("Adonis/Core/Helpers");
+const util_1 = require("../whatsapp-web/util");
+async function verifyNumber(client, cellphone) {
+    if (await !(0, util_1.ValidatePhone)(cellphone))
+        return null;
+    if (Helpers_1.types.isNull(cellphone) || cellphone == undefined || !cellphone)
+        return null;
+>>>>>>> development
     try {
         const verifiedPhone = await client.getNumberId(cellphone);
         if (verifiedPhone) {
             return verifiedPhone._serialized;
         }
+<<<<<<< HEAD
         await Log_1.default.create({
             name: 'VerifyNumber',
             message: `Erro 568541: Número não identificado no WhatsApp - ${cellphone}`,
@@ -61,4 +73,15 @@ async function verifyNumber(client, cellphone) {
     }
 }
 exports.verifyNumber = verifyNumber;
+=======
+        else {
+            return null;
+        }
+    }
+    catch (error) {
+        return null;
+    }
+}
+module.exports = { verifyNumber };
+>>>>>>> development
 //# sourceMappingURL=VerifyNumber.js.map

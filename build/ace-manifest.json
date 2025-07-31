@@ -569,6 +569,7 @@
           "description": "Disable locks acquired to run migrations safely"
         }
       ]
+<<<<<<< HEAD
     },
     "make:mailer": {
       "settings": {},
@@ -586,6 +587,8 @@
       ],
       "aliases": [],
       "flags": []
+=======
+>>>>>>> development
     }
   },
   "aliases": {}

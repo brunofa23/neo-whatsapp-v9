@@ -8,6 +8,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+<<<<<<< HEAD
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -41,6 +42,12 @@ class Agent extends Orm_1.BaseModel {
             'updatedAt',
         ];
     }
+=======
+Object.defineProperty(exports, "__esModule", { value: true });
+const Orm_1 = global[Symbol.for('ioc.use')]("Adonis/Lucid/Orm");
+const luxon_1 = require("luxon");
+class Agent extends Orm_1.BaseModel {
+>>>>>>> development
 }
 __decorate([
     (0, Orm_1.column)({ isPrimary: true }),
@@ -83,6 +90,7 @@ __decorate([
     __metadata("design:type", Boolean)
 ], Agent.prototype, "active", void 0);
 __decorate([
+<<<<<<< HEAD
     (0, Orm_1.column)(),
     __metadata("design:type", String)
 ], Agent.prototype, "qrcode", void 0);
@@ -107,6 +115,8 @@ __decorate([
     __metadata("design:type", String)
 ], Agent.prototype, "obs", void 0);
 __decorate([
+=======
+>>>>>>> development
     Orm_1.column.dateTime({ autoCreate: true }),
     __metadata("design:type", luxon_1.DateTime)
 ], Agent.prototype, "createdAt", void 0);

@@ -2,8 +2,13 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const corsConfig = {
     enabled: true,
+<<<<<<< HEAD
     origin: '*',
     methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE'],
+=======
+    origin: true,
+    methods: ['GET', 'HEAD', 'POST', 'PUT', 'DELETE'],
+>>>>>>> development
     headers: true,
     exposeHeaders: [
         'cache-control',

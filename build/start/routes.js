@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const Route_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Route"));
+<<<<<<< HEAD
 const PersistShippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/PersistShippingcampaign"));
 const events_1 = require("./events");
 const luxon_1 = require("luxon");
@@ -44,10 +45,17 @@ operacaoAssincrona(function (erro, resultado) {
         console.log('Resultado:', resultado);
     }
 });
+=======
+const whatsapp_1 = require("../app/Services/whatsapp-web/whatsapp");
+console.log("***CHAT BOT V-81***");
+console.log(`***NOME DO CLIENTE: ${process.env.CHAT_NAME}***`);
+(0, whatsapp_1.executeWhatsapp)();
+>>>>>>> development
 Route_1.default.get('/', async () => {
     return { hello: 'world' };
 });
 Route_1.default.group(() => {
+<<<<<<< HEAD
     Route_1.default.get('/executequery', async ({ request }) => {
         const { unit, date } = request.only(['unit', 'date']);
         const dateQuery = luxon_1.DateTime.fromFormat(date, 'yyyy-MM-dd', { zone: 'America/Sao_Paulo' });
@@ -82,6 +90,12 @@ Route_1.default.group(() => {
     Route_1.default.get("/scheduledPatients", "DatasourcesController.scheduledPatients");
     Route_1.default.get("/cancelscheduleall", "DatasourcesController.cancelScheduleAll");
     Route_1.default.get("/confirmscheduleall", "DatasourcesController.confirmScheduleAll");
+=======
+    Route_1.default.get('/teste', async () => {
+        await (0, whatsapp_1.executeWhatsapp)();
+    });
+    Route_1.default.post('/restart', 'ShippingcampaignsController.resetWhatsapp');
+>>>>>>> development
     Route_1.default.post('/logout', 'ShippingcampaignsController.logout');
     Route_1.default.post('/chat', 'ShippingcampaignsController.chat');
     Route_1.default.get('/maxlimitsendmessage', 'ShippingcampaignsController.maxLimitSendMessage');
@@ -89,6 +103,7 @@ Route_1.default.group(() => {
     Route_1.default.get('/dayposition', 'ShippingcampaignsController.dayPosition');
     Route_1.default.get('/dateposition', 'ShippingcampaignsController.datePosition');
     Route_1.default.get('/datepositionsynthetic', 'ShippingcampaignsController.datePositionSynthetic');
+<<<<<<< HEAD
     Route_1.default.get('/listshippingcampaigns', 'ShippingcampaignsController.listShippingCampaigns');
     Route_1.default.get('/serviceevaluationdashboard', 'ShippingcampaignsController.serviceEvaluationDashboard');
     Route_1.default.get('/scheduleconfirmationdashboard', 'ShippingcampaignsController.scheduleConfirmationDashboard');
@@ -114,5 +129,9 @@ Route_1.default.group(() => {
     Route_1.default.get('/getschedules', 'DatasourceApisController.getSchedules');
     Route_1.default.post('/confirmorcancelscheduleapi', 'DatasourceApisController.confirmOrCancelSchedule');
     Route_1.default.resource('/mainsubjects', 'MainsubjectsController').apiOnly();
+=======
+    Route_1.default.get('/confirmschedule', 'DatasourcesController.confirmSchedule');
+    Route_1.default.get('/serviceevaluation', 'DatasourcesController.serviceEvaluation');
+>>>>>>> development
 }).prefix('/api');
 //# sourceMappingURL=routes.js.map

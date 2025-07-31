@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 {"version":3,"file":"hello_world.spec.js","sourceRoot":"","sources":["../../../tests/functional/hello_world.spec.ts"],"names":[],"mappings":";;;;;AACA,yCAAmC;AAKnC,iFAAkC;AAElC,IAAA,aAAI,EAAC,sBAAsB,EAAE,KAAK,EAAE,EAAE,MAAM,EAAE,EAAE,EAAE;IAQhD,MAAM,IAAI,GAAG,cAAI,CAAC,KAAK,EAAE;SACtB,OAAO,CAAC,kBAAkB,CAAC;SAC3B,KAAK,CAAC,qBAAqB,EAAE,mBAAmB,CAAC;SACjD,QAAQ,CAAC,YAAY,EAAE,cAAc,CAAC,CAAA;IAIzC,MAAM,KAAK,GAAG,MAAM,IAAI,CAAC,KAAK,EAAE,CAAA;IAEhC,OAAO,CAAC,GAAG,CAAC,kBAAkB,EAAC,KAAK,EAAE,UAAU,CAAC,gBAAgB,CAAC,CAAA;AAGpE,CAAC,CAAC,CAAA"}
+=======
+{"version":3,"file":"hello_world.spec.js","sourceRoot":"","sources":["../../../tests/functional/hello_world.spec.ts"],"names":[],"mappings":";;AAAA,yCAAmC;AAEnC,IAAA,aAAI,EAAC,sBAAsB,EAAE,KAAK,EAAE,EAAE,MAAM,EAAE,EAAE,EAAE;IAChD,MAAM,QAAQ,GAAG,MAAM,MAAM,CAAC,GAAG,CAAC,GAAG,CAAC,CAAA;IAEtC,QAAQ,CAAC,YAAY,CAAC,GAAG,CAAC,CAAA;IAC1B,QAAQ,CAAC,kBAAkB,CAAC,EAAE,KAAK,EAAE,OAAO,EAAE,CAAC,CAAA;AACjD,CAAC,CAAC,CAAA"}
+>>>>>>> development

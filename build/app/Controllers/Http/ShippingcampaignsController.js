@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Shippingcampaign"));
+<<<<<<< HEAD
 const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
 const Database_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Lucid/Database"));
 const Env_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Env"));
@@ -55,11 +56,27 @@ class ShippingcampaignsController {
                 const result = await query;
                 return response.status(200).send(result);
             }
+=======
+const whatsapp_1 = require("../../Services/whatsapp-web/whatsapp");
+const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
+const Database_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Lucid/Database"));
+const util_1 = require("../../Services/whatsapp-web/util");
+const luxon_1 = require("luxon");
+class ShippingcampaignsController {
+    static get connection() {
+        return 'mssql2';
+    }
+    async index({ response, request }) {
+        try {
+            const shippingCampaign = await Shippingcampaign_1.default.all();
+            return response.status(200).send(shippingCampaign);
+>>>>>>> development
         }
         catch (error) {
             return error;
         }
     }
+<<<<<<< HEAD
     async store({ auth, request, response }) {
         await auth.use('api').authenticate();
         const body = request.only(Shippingcampaign_1.default.fillable);
@@ -72,11 +89,19 @@ class ShippingcampaignsController {
         try {
             const payLoad = await Shippingcampaign_1.default.find(params.id);
             return response.status(200).send(payLoad);
+=======
+    async store({ response, request }) {
+        try {
+            const shippingCampaign = await Shippingcampaign_1.default
+                .query();
+            return response.status(200).send(shippingCampaign);
+>>>>>>> development
         }
         catch (error) {
             return error;
         }
     }
+<<<<<<< HEAD
     async update({ auth, request, params, response }) {
         await auth.use('api').authenticate();
         const body = request.only(Shippingcampaign_1.default.fillable);
@@ -92,6 +117,8 @@ class ShippingcampaignsController {
             throw new BadRequestException_1.default('Bad Request', 401, error);
         }
     }
+=======
+>>>>>>> development
     async messagesSent() {
         try {
             const maxLimitSendMessage = await Shippingcampaign_1.default.query()
@@ -102,6 +129,7 @@ class ShippingcampaignsController {
             return error;
         }
     }
+<<<<<<< HEAD
     async resend({ auth, params, request, response }) {
         await auth.use('api').authenticate();
         const justify_excluded = request.input('justify_excluded');
@@ -178,15 +206,35 @@ class ShippingcampaignsController {
         const countMessage = await Chat_1.default.query()
             .countDistinct('shippingcampaigns_id as tot')
             .where('chatname', chatName)
+=======
+    async maxLimitSendMessage() {
+        const dateStart = await (0, util_1.DateFormat)("yyyy-MM-dd 00:00:00", luxon_1.DateTime.local());
+        const dateEnd = await (0, util_1.DateFormat)("yyyy-MM-dd 23:59:00", luxon_1.DateTime.local());
+        const chatName = process.env.CHAT_NAME;
+        const countMessage = await Chat_1.default.query()
+            .countDistinct('shippingcampaigns_id as tot')
+            .where('chatname', String(chatName))
+>>>>>>> development
             .whereBetween('created_at', [dateStart, dateEnd]).first();
         if (!countMessage || countMessage == undefined || countMessage == null)
             return 0;
         return parseInt(countMessage.$extras.tot);
     }
+<<<<<<< HEAD
     async chat() {
         const id = 567508;
         const query = `update agm set AGM_CONFIRM_STAT = 'C' where agm_id = ${id}`;
         try {
+=======
+    async resetWhatsapp() {
+        await whatsapp_1.executeWhatsapp;
+    }
+    async chat({ response, request }) {
+        const id = 567508;
+        const query = `update agm set AGM_CONFIRM_STAT = 'C' where agm_id = ${id}`;
+        try {
+            console.log("EXECUTANDO UPDATE NO SMART...", query);
+>>>>>>> development
             await Database_1.default.connection('mssql').rawQuery(query).then((result) => {
                 return `executado com sucesso:: ${result}`;
             }).catch((error) => {
@@ -198,6 +246,10 @@ class ShippingcampaignsController {
         }
     }
     async dayPosition(period = "") {
+<<<<<<< HEAD
+=======
+        console.log("ENTREI NO DAYPOSITION..");
+>>>>>>> development
         const startDate = await (0, util_1.DateFormat)("yyyy-MM-dd 00:00:00", luxon_1.DateTime.local());
         const endDate = await (0, util_1.DateFormat)("yyyy-MM-dd 23:59:00", luxon_1.DateTime.local());
         const totalDiario = await Shippingcampaign_1.default.query()
@@ -239,7 +291,11 @@ class ShippingcampaignsController {
             throw new Error("Datas inválidas.");
         }
         try {
+<<<<<<< HEAD
             const result = await Database_1.default.connection(Env_1.default.get('DB_CONNECTION_MAIN')).query()
+=======
+            const result = await Database_1.default.connection('mssql2').query()
+>>>>>>> development
                 .select(Database_1.default.raw('CONVERT(date, shippingcampaigns.created_at) as dataPeriodo'))
                 .select(Database_1.default.raw('COUNT(*) as totalDiario'))
                 .select(Database_1.default.raw('SUM(CASE WHEN phonevalid = 1 THEN 1 ELSE 0 END) as telefonesValidos'))
@@ -251,7 +307,11 @@ class ShippingcampaignsController {
                 .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
                 .whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
                 .groupByRaw('CONVERT(date, shippingcampaigns.created_at)')
+<<<<<<< HEAD
                 .orderByRaw(Database_1.default.raw('CONVERT(date, shippingcampaigns.created_at)')).toQuery();
+=======
+                .orderByRaw(Database_1.default.raw('CONVERT(date, shippingcampaigns.created_at)'));
+>>>>>>> development
             return response.status(201).send(result);
         }
         catch (error) {
@@ -280,6 +340,7 @@ class ShippingcampaignsController {
             throw new Error(error);
         }
     }
+<<<<<<< HEAD
     async listShippingCampaigns({ request, response }) {
         const { initialdate, finaldate, phonevalid, invalidresponse, absoluteresp } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp']);
         let query = "1=1";
@@ -551,6 +612,8 @@ class ShippingcampaignsController {
         console.timeEnd('Rodei a busca manual');
         return response.status(200).send(result);
     }
+=======
+>>>>>>> development
 }
 exports.default = ShippingcampaignsController;
 //# sourceMappingURL=ShippingcampaignsController.js.map

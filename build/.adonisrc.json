@@ -4,8 +4,12 @@
     "./commands",
     "@adonisjs/core/build/commands/index.js",
     "@adonisjs/repl/build/commands",
+<<<<<<< HEAD
     "@adonisjs/lucid/build/commands",
     "@adonisjs/mail/build/commands"
+=======
+    "@adonisjs/lucid/build/commands"
+>>>>>>> development
   ],
   "exceptionHandlerNamespace": "App/Exceptions/Handler",
   "aliases": {
@@ -21,10 +25,14 @@
   "providers": [
     "./providers/AppProvider",
     "@adonisjs/core",
+<<<<<<< HEAD
     "@adonisjs/lucid",
     "@adonisjs/auth",
     "@adonisjs/mail",
     "@adonisjs/view"
+=======
+    "@adonisjs/lucid"
+>>>>>>> development
   ],
   "aceProviders": [
     "@adonisjs/repl"
@@ -36,7 +44,11 @@
         "files": [
           "tests/functional/**/*.spec(.ts|.js)"
         ],
+<<<<<<< HEAD
         "timeout": 600000
+=======
+        "timeout": 60000
+>>>>>>> development
       }
     ]
   },
@@ -44,6 +56,7 @@
     "@japa/preset-adonis/TestsProvider"
   ],
   "metaFiles": [
+<<<<<<< HEAD
     "qrcode",
     {
       "pattern": "resources/views/**/*.edge",
@@ -51,4 +64,9 @@
     }
   ],
   "lastCompiledAt": "2025-07-31T11:35:57.540Z"
+=======
+    "qrcode"
+  ],
+  "lastCompiledAt": "2023-10-07T20:49:17.443Z"
+>>>>>>> development
 }

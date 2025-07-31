@@ -12,6 +12,7 @@ export default class Shippingcampaign extends BaseModel {
     return Env.get('DB_CONNECTION_MAIN')
   }
 
+<<<<<<< HEAD
   public static get fillable() {
     return [
       'id',
@@ -46,6 +47,8 @@ export default class Shippingcampaign extends BaseModel {
     ]
   }
 
+=======
+>>>>>>> development
   @column({ isPrimary: true })
   public id: number
 
@@ -59,9 +62,12 @@ export default class Shippingcampaign extends BaseModel {
   public idexternal: number
 
   @column()
+<<<<<<< HEAD
   public idexternal_array:string
 
   @column()
+=======
+>>>>>>> development
   public reg: number
 
   @column()
@@ -85,6 +91,7 @@ export default class Shippingcampaign extends BaseModel {
   @column()
   public messagesent: boolean
 
+<<<<<<< HEAD
   @column()
   public dateshedule: DateTime
 
@@ -127,14 +134,19 @@ export default class Shippingcampaign extends BaseModel {
   @column()
   public type_service:string
 
+=======
+>>>>>>> development
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   public updatedAt: DateTime
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> development
   @hasOne(() => Chat, {
     foreignKey: 'shippingcampaigns_id'
   })

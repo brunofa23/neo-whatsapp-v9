@@ -1,7 +1,15 @@
+<<<<<<< HEAD
 import Env from '@ioc:Adonis/Core/Env'
 import { BaseModel, column } from '@ioc:Adonis/Lucid/Orm'
 import { DateTime } from 'luxon'
 
+=======
+import { BaseModel, column } from '@ioc:Adonis/Lucid/Orm'
+import { DateTime } from 'luxon'
+
+import Env from '@ioc:Adonis/Core/Env'
+
+>>>>>>> development
 export default class Agent extends BaseModel {
 
 
@@ -11,6 +19,7 @@ export default class Agent extends BaseModel {
   }
 
 
+<<<<<<< HEAD
   public static get fillable() {
     return [
       'id',
@@ -36,6 +45,8 @@ export default class Agent extends BaseModel {
 
 
 
+=======
+>>>>>>> development
   @column({ isPrimary: true })
   public id: number
 
@@ -66,6 +77,7 @@ export default class Agent extends BaseModel {
   @column()
   public active: boolean
 
+<<<<<<< HEAD
   @column()
   public qrcode: string
 
@@ -84,6 +96,8 @@ export default class Agent extends BaseModel {
   @column()
   public obs:string
 
+=======
+>>>>>>> development
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
 

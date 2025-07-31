@@ -29,6 +29,7 @@ git push origin <branch>
     console.log("HORA É MENOR")
   }
 
+<<<<<<< HEAD
 ## CASO API DÊ BUG
 NO PACKAGE.JSON
 trocar: "whatsapp-web.js": "^1.23.0"
@@ -102,3 +103,5 @@ pm2 monit
 https://chatgpt.com/share/0fc3fddf-4535-4161-bae2-b30e0fde26bb
 
 
+=======
+>>>>>>> development

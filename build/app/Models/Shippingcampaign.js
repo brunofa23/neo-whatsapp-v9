@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const Orm_1 = global[Symbol.for('ioc.use')]("Adonis/Lucid/Orm");
 const luxon_1 = require("luxon");
 const Chat_1 = __importDefault(require("./Chat"));
+<<<<<<< HEAD
 const Env_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Env"));
 class Shippingcampaign extends Orm_1.BaseModel {
     static get connection() {
@@ -52,6 +53,11 @@ class Shippingcampaign extends Orm_1.BaseModel {
             'created_at',
             'updated_at'
         ];
+=======
+class Shippingcampaign extends Orm_1.BaseModel {
+    static get connection() {
+        return 'mssql2';
+>>>>>>> development
     }
 }
 __decorate([
@@ -72,10 +78,13 @@ __decorate([
 ], Shippingcampaign.prototype, "idexternal", void 0);
 __decorate([
     (0, Orm_1.column)(),
+<<<<<<< HEAD
     __metadata("design:type", String)
 ], Shippingcampaign.prototype, "idexternal_array", void 0);
 __decorate([
     (0, Orm_1.column)(),
+=======
+>>>>>>> development
     __metadata("design:type", Number)
 ], Shippingcampaign.prototype, "reg", void 0);
 __decorate([
@@ -107,6 +116,7 @@ __decorate([
     __metadata("design:type", Boolean)
 ], Shippingcampaign.prototype, "messagesent", void 0);
 __decorate([
+<<<<<<< HEAD
     (0, Orm_1.column)(),
     __metadata("design:type", luxon_1.DateTime)
 ], Shippingcampaign.prototype, "dateshedule", void 0);
@@ -163,6 +173,8 @@ __decorate([
     __metadata("design:type", String)
 ], Shippingcampaign.prototype, "type_service", void 0);
 __decorate([
+=======
+>>>>>>> development
     Orm_1.column.dateTime({ autoCreate: true }),
     __metadata("design:type", luxon_1.DateTime)
 ], Shippingcampaign.prototype, "createdAt", void 0);

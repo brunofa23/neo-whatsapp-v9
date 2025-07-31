@@ -1,4 +1,5 @@
 import Route from '@ioc:Adonis/Core/Route'
+<<<<<<< HEAD
 import PersistShippingcampaign from "App/Services/whatsapp-web/PersistShippingcampaign"
 
 import { connectionAll, destroyFullAgents, resetStatusConnected, sendRepeatedMessage, sendRepeatedMessageKlingo } from './events'
@@ -48,12 +49,23 @@ operacaoAssincrona(function (erro, resultado) {
   }
 });
 
+=======
+import { executeWhatsapp } from '../app/Services/whatsapp-web/whatsapp'
+//import { sendRepeatedMessage } from '../app/Services/whatsapp-web/SendRepeatedMessage'
+import DatasourcesController from 'App/Controllers/Http/DatasourcesController'
+
+console.log("***CHAT BOT V-88***21/12/2023")
+console.log(`***NOME DO CLIENTE: ${process.env.CHAT_NAME}***`)
+executeWhatsapp()
+//sendRepeatedMessage()
+>>>>>>> development
 
 Route.get('/', async () => {
   return { hello: 'world' }
 })
 
 Route.group(() => {
+<<<<<<< HEAD
 
   //Executa busca no Smart
   Route.get('/executequery', async ({ request }) => {
@@ -107,6 +119,20 @@ Route.group(() => {
   Route.get("/confirmscheduleall", "DatasourcesController.confirmScheduleAll")
 
   Route.post('/logout', 'ShippingcampaignsController.logout')
+=======
+  Route.get('/teste', async () => {
+    console.log("entrei no whatsapp router")
+    //await executeWhatsapp()
+    return "Executei a chamada da api do whatsapp"
+  })
+
+  Route.get("/smart", "DatasourcesController.scheduledPatients")
+
+
+  Route.post('/restart', 'ShippingcampaignsController.resetWhatsapp')
+  Route.post('/logout', 'ShippingcampaignsController.logout')
+
+>>>>>>> development
   Route.post('/chat', 'ShippingcampaignsController.chat')
   Route.get('/maxlimitsendmessage', 'ShippingcampaignsController.maxLimitSendMessage')
   Route.get('/datasources', 'DatasourcesController.DataSource')
@@ -115,11 +141,15 @@ Route.group(() => {
   Route.get('/datepositionsynthetic', 'ShippingcampaignsController.datePositionSynthetic')
   Route.get('/listshippingcampaigns', 'ShippingcampaignsController.listShippingCampaigns')
   Route.get('/serviceevaluationdashboard', 'ShippingcampaignsController.serviceEvaluationDashboard')
+<<<<<<< HEAD
   Route.get('/scheduleconfirmationdashboard', 'ShippingcampaignsController.scheduleConfirmationDashboard')
+=======
+>>>>>>> development
 
   Route.get('/confirmschedule', 'DatasourcesController.confirmSchedule')
   Route.get('/serviceevaluation', 'DatasourcesController.serviceEvaluation')
 
+<<<<<<< HEAD
   Route.get('/doctorlist', 'ShippingcampaignsController.doctorList')
   Route.get('/unitlist', 'ShippingcampaignsController.unitList')
   Route.get('/attendantlist', 'ShippingcampaignsController.attendantList')
@@ -155,6 +185,8 @@ Route.group(() => {
   //MAINSUBJECT
   Route.resource('/mainsubjects', 'MainsubjectsController').apiOnly()
 
+=======
+>>>>>>> development
 }).prefix('/api')
 
 

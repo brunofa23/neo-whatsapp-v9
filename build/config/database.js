@@ -40,6 +40,7 @@ const databaseConfig = {
             },
             healthCheck: false,
             debug: false,
+<<<<<<< HEAD
         },
         mysql: {
             client: 'mysql2',
@@ -55,6 +56,8 @@ const databaseConfig = {
             },
             healthCheck: false,
             debug: false,
+=======
+>>>>>>> development
         }
     }
 };

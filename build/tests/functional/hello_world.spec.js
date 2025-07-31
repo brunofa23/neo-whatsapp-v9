@@ -1,4 +1,5 @@
 "use strict";
+<<<<<<< HEAD
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -12,5 +13,13 @@ const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"))
         .andWhere('chatnumber', '553171331794');
     const data1 = await data.first();
     console.log(">>>>>>7777777777", data1?.$preloaded.shippingcampaign);
+=======
+Object.defineProperty(exports, "__esModule", { value: true });
+const runner_1 = require("@japa/runner");
+(0, runner_1.test)('display welcome page', async ({ client }) => {
+    const response = await client.get('/');
+    response.assertStatus(200);
+    response.assertBodyContains({ hello: 'world' });
+>>>>>>> development
 });
 //# sourceMappingURL=hello_world.spec.js.map

@@ -1,5 +1,7 @@
+import { typeInferListFromConfig } from '@adonisjs/core/build/config';
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Shippingcampaign from 'App/Models/Shippingcampaign'
+<<<<<<< HEAD
 import Chat from 'App/Models/Chat'
 import Database from '@ioc:Adonis/Lucid/Database'
 import Env from '@ioc:Adonis/Core/Env'
@@ -33,12 +35,23 @@ async function validateParams(request: HttpContextContract['request']) {
   // return params
 }
 
+=======
+import { executeWhatsapp } from '../../Services/whatsapp-web/whatsapp'
+import Chat from 'App/Models/Chat'
+import Database from '@ioc:Adonis/Lucid/Database'
+import Env from '@ioc:Adonis/Core/Env'
+
+import { DateFormat, InvalidResponse } from '../../Services/whatsapp-web/util'
+import { DateTime } from 'luxon'
+import { Response } from '@adonisjs/core/build/standalone'
+>>>>>>> development
 
 export default class ShippingcampaignsController {
 
   static get connection() {
     return 'mysql';
   }
+<<<<<<< HEAD
 
 
   public async index({ auth, request, response }) {
@@ -229,6 +242,86 @@ export default class ShippingcampaignsController {
       }).catch((error) => {
         return `Error: ${error}`
       })
+=======
+  public async index({ response, request }) {
+    try {
+      const shippingCampaign = await Shippingcampaign.all()
+      return response.status(200).send(shippingCampaign)
+>>>>>>> development
+    } catch (error) {
+      return error
+      //throw new BadRequest('Bad Request', 401, 'erro')
+    }
+
+
+  }
+
+<<<<<<< HEAD
+
+  public async dayPosition(period: String = "") {
+=======
+  public async store({ response, request }) {
+    try {
+      const shippingCampaign = await Shippingcampaign
+        .query()
+      return response.status(200).send(shippingCampaign)
+    } catch (error) {
+      return error
+      //throw new BadRequest('Bad Request', 401, 'erro')
+    }
+
+  }
+
+
+  public async messagesSent() {
+    try {
+      const maxLimitSendMessage =
+        await Shippingcampaign.query()
+          .where('messagesent', '=', '1')
+      return maxLimitSendMessage
+    } catch (error) {
+      return error
+
+    }
+  }
+
+
+  public async maxLimitSendMessage() {
+    const dateStart = await DateFormat("yyyy-MM-dd 00:00:00", DateTime.local())
+    const dateEnd = await DateFormat("yyyy-MM-dd 23:59:00", DateTime.local())
+    const chatName = process.env.CHAT_NAME
+    const countMessage = await Chat.query()
+      .countDistinct('shippingcampaigns_id as tot')
+      .where('chatname', String(chatName))
+      .whereBetween('created_at', [dateStart, dateEnd]).first()
+    if (!countMessage || countMessage == undefined || countMessage == null)
+      return 0
+    return parseInt(countMessage.$extras.tot)
+  }
+
+  public async resetWhatsapp() {
+    await executeWhatsapp
+  }
+
+
+  public async chat({ response, request }) {
+
+    //return "tester"
+    const id = 567508
+    const query = `update agm set AGM_CONFIRM_STAT = 'C' where agm_id = ${id}` //`update agm set agm_confirm_stat = 'C' where agm_id=:id`
+    //const query = "select top 10 * from agm order by agm_hini desc"
+    try {
+      console.log("EXECUTANDO UPDATE NO SMART...", query)
+      //const result = await Database.connection('mssql').rawQuery(query)
+      await Database.connection('mssql').rawQuery(query).then((result) => {
+        return `executado com sucesso:: ${result}`
+      }).catch((error) => {
+        return `Error: ${error}`
+      })
+
+      //console.log("QUERY>>>", result)
+      //return result
+
     } catch (error) {
       return error
     }
@@ -238,6 +331,10 @@ export default class ShippingcampaignsController {
 
 
   public async dayPosition(period: String = "") {
+
+
+    console.log("ENTREI NO DAYPOSITION..")
+>>>>>>> development
     const startDate = await DateFormat("yyyy-MM-dd 00:00:00", DateTime.local())
     const endDate = await DateFormat("yyyy-MM-dd 23:59:00", DateTime.local())
 
@@ -284,7 +381,15 @@ export default class ShippingcampaignsController {
   }
 
   public async datePosition({ request, response }: HttpContextContract) {
+<<<<<<< HEAD
     const { initialdate, finaldate } = request.only(['initialdate', 'finaldate'])
+=======
+
+    console.log("PASSEI DATEPOSITION")
+
+    const { initialdate, finaldate } = request.only(['initialdate', 'finaldate'])
+
+>>>>>>> development
     if (!DateTime.fromISO(initialdate).isValid || !DateTime.fromISO(finaldate).isValid) {
       throw new Error("Datas inválidas.")
     }
@@ -303,6 +408,15 @@ export default class ShippingcampaignsController {
         .whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
         .groupByRaw('CONVERT(date, shippingcampaigns.created_at)')
         .orderByRaw(Database.raw('CONVERT(date, shippingcampaigns.created_at)')).toQuery()
+<<<<<<< HEAD
+=======
+
+      console.log(">>>>>>>>>>", result)
+
+
+
+
+>>>>>>> development
       return response.status(201).send(result)
     } catch (error) {
       throw new Error(error)
@@ -313,6 +427,12 @@ export default class ShippingcampaignsController {
 
 
   public async datePositionSynthetic({ request, response }: HttpContextContract) {
+<<<<<<< HEAD
+=======
+
+    console.log("PASSEI DATEPOSITION")
+
+>>>>>>> development
     const { initialdate, finaldate } = request.only(['initialdate', 'finaldate'])
     if (!DateTime.fromISO(initialdate).isValid || !DateTime.fromISO(finaldate).isValid) {
       throw new Error("Datas inválidas.")
@@ -341,7 +461,13 @@ export default class ShippingcampaignsController {
 
   public async listShippingCampaigns({ request, response }: HttpContextContract) {
 
+<<<<<<< HEAD
     const { initialdate, finaldate, phonevalid, invalidresponse, absoluteresp } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp'])
+=======
+
+    const { initialdate, finaldate, phonevalid, invalidresponse, absoluteresp } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp'])
+    console.log("phonevalid", phonevalid)
+>>>>>>> development
     let query = "1=1"
     if (phonevalid && phonevalid !== undefined) {
       query += ` and phonevalid=${phonevalid == 1 ? 1 : 0}`
@@ -357,7 +483,11 @@ export default class ShippingcampaignsController {
       throw new Error("Datas inválidas.")
     }
     try {
+<<<<<<< HEAD
       const queryValue = Database.connection('mssql2').query()
+=======
+      const result = await Database.connection('mssql2').query()
+>>>>>>> development
         .from('shippingcampaigns')
         .select(
           'shippingcampaigns.interaction_id',
@@ -378,8 +508,13 @@ export default class ShippingcampaignsController {
         .whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
         .where('shippingcampaigns.interaction_id', 1)
         .whereRaw(query)
+<<<<<<< HEAD
       const result = await queryValue
 
+=======
+
+      //console.log("query", result)
+>>>>>>> development
       return response.status(201).send(result)
     } catch (error) {
       throw new Error(error)
@@ -389,6 +524,7 @@ export default class ShippingcampaignsController {
 
   public async serviceEvaluationDashboard({ request, response }: HttpContextContract) {
 
+<<<<<<< HEAD
     const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name, attendant, doctor, unit, excluded, cellphone, chat_finished, type_service, closed, report, date_return, last_response }
       = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp',
         'interactions', 'returned', 'reg', 'name', 'attendant', 'doctor', 'unit', 'excluded', 'cellphone',
@@ -401,19 +537,31 @@ export default class ShippingcampaignsController {
       query += ` and shippingcampaigns.reg=${reg} `
     if (name)
       query += ` and shippingcampaigns.name like '%${name}%' `
+=======
+
+
+    const { initialdate, finaldate, phonevalid, absoluteresp, interactions } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp', 'interactions'])
+
+    let query = "1=1"
+>>>>>>> development
     if (phonevalid && phonevalid !== undefined) {
       query += ` and phonevalid=${phonevalid == 1 ? 1 : 0}`
     }
     if (interactions)
       query += ` and response is not null `
+<<<<<<< HEAD
     if (cellphone)
       query += ` and shippingcampaigns.cellphone like '%${cellphone}%' `
+=======
+
+>>>>>>> development
     if (absoluteresp == 1)
       query += ` and absoluteresp < 7 `
     else if (absoluteresp == 2)
       query += ` and absoluteresp >= 7 and absoluteresp <9 `
     else if (absoluteresp == 3)
       query += ` and absoluteresp >= 9 `
+<<<<<<< HEAD
     if (attendant)
       query += ` and attendant ='${attendant}'`
     if (doctor) {
@@ -437,11 +585,14 @@ export default class ShippingcampaignsController {
       else if (last_response == "2")
         query += ` and last_response=2 `
     }
+=======
+>>>>>>> development
 
     if (!DateTime.fromISO(initialdate).isValid || !DateTime.fromISO(finaldate).isValid) {
       throw new Error("Datas inválidas.")
     }
 
+<<<<<<< HEAD
     try {
       const queryResult = Database.connection(Env.get('DB_CONNECTION_MAIN')).query()
         .from('shippingcampaigns')
@@ -681,12 +832,21 @@ export default class ShippingcampaignsController {
 
     try {
       const queryAll = Database.connection(Env.get('DB_CONNECTION_MAIN')).query()
+=======
+    //return { query, initialdate, finaldate }
+
+    try {
+      const result = await Database.connection(Env.get('DB_CONNECTION_MAIN')).query()
+>>>>>>> development
         .from('shippingcampaigns')
         .select(
           'shippingcampaigns.interaction_id',
           'shippingcampaigns.reg',
           'shippingcampaigns.name',
+<<<<<<< HEAD
           'shippingcampaigns.dateshedule',
+=======
+>>>>>>> development
           'shippingcampaigns.cellphone',
           'otherfields',
           'phonevalid',
@@ -699,6 +859,7 @@ export default class ShippingcampaignsController {
           'absoluteresp'
         )
         .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
+<<<<<<< HEAD
         .whereBetween('shippingcampaigns.created_at', [initial.toISO(), final.toISO()])
         .where('shippingcampaigns.interaction_id', 1)
         .whereRaw(query)
@@ -707,12 +868,164 @@ export default class ShippingcampaignsController {
 
       const queryResult = await queryAll
       return response.status(201).send(queryResult)
+=======
+        .whereBetween('chats.created_at', [initialdate, finaldate])
+        .where('shippingcampaigns.interaction_id', 2)
+        .whereRaw(query)
+
+
+
+      //console.log("result", result)
+      const resultAcumulated = await Chat.query()
+        .sumDistinct('absoluteresp as note')
+        .count('* as total')
+        .where('interaction_id', 2)
+        .andWhereBetween('absoluteresp', [0, 10])
+        .whereBetween('created_at', [initialdate, finaldate])
+        .groupBy('absoluteresp')
+
+
+
+      let resultAcumulatedList = []
+      let totalEvaluations = 0
+      let totalDetractors = 0
+      let totalPromoters = 0
+
+      //Total de detratores, promotores e Array de notas (acumulado)
+      for (const result of resultAcumulated) {
+        resultAcumulatedList.push(result.$extras)
+        totalEvaluations = totalEvaluations + result.$extras.total
+        if (result.$extras.note <= 6)
+          totalDetractors = totalDetractors + result.$extras.total
+        if (result.$extras.note >= 9 && result.$extras.note <= 10)
+          totalPromoters = totalPromoters + result.$extras.total
+      }
+      //console.log("RESUUUULT", resultAcumulatedList)
+      //calcula o percentual do NPS
+      const npsResult = ((totalPromoters * 100) / totalEvaluations) - ((totalDetractors * 100) / totalEvaluations)
+
+      // console.log("% detratores", percentDetractors)
+      // console.log("% promoters", percentPromoters)
+      // console.log("NPS", npsResult)
+      // console.log("total geral", totalEvaluations)
+      // console.log("total detratores", totalDetractors)
+      // console.log("total promoters", totalPromoters)
+
+
+      const otherfields = result.map(item => JSON.parse(item.otherfields))
+      const station = otherfields.map(item => item.station)
+      const medic = otherfields.map(item => item.medic)
+
+      let itemFilter
+      const resultFinal = result.map(item => {
+        const otherfieldsObj = JSON.parse(item.otherfields);
+
+        // if (item.absoluteresp !== null) {
+        //   itemFilter = item
+        // }
+        // return {
+        //   itemFilter,
+        //   station: otherfieldsObj.station,
+        //   medic: otherfieldsObj.medic,
+        //   attendant: otherfieldsObj.attendant
+        // }
+
+        return {
+          ...item,
+          station: otherfieldsObj.station,
+          medic: otherfieldsObj.medic,
+          attendant: otherfieldsObj.attendant
+        };
+
+
+      });
+
+      //console.log("ITEM>>>>>", resultFinal)
+
+      // Função para classificar a pontuação
+      function getClassification(score) {
+        if (score <= 7) {
+          return 'detrator';
+        } else if (score > 7 && score <= 8) {
+          return 'passivo';
+        } else if (score > 8 && score <= 10) {
+          return 'promotor';
+        }
+      }
+
+      // Objeto para armazenar as contagens por estação e classificação
+      const countsByStation = {};
+      const countsByMedic = {}
+      const countsByAttendant = {}
+
+      // Calcular as contagens
+      resultFinal.forEach(item => {
+        const { attendant, station, absoluteresp, medic } = item;
+        const classification = getClassification(absoluteresp);
+        // recepcao
+        if (item.messagesent && item.absoluteresp !== null) {
+          if (!countsByStation[station]) {
+            countsByStation[station] = {
+              detrator: 0,
+              passivo: 0,
+              promotor: 0
+            };
+          }
+          //console.log("STATION======>", countsByStation[station])
+          countsByStation[station][classification]++;
+        }
+
+        //MEDIC********* */
+        if (item.messagesent && item.absoluteresp !== null) {
+          if (!countsByMedic[medic]) {
+            countsByMedic[medic] = {
+              detrator: 0,
+              passivo: 0,
+              promotor: 0
+            };
+          }
+          countsByMedic[medic][classification]++;
+
+        }
+
+        //RECEP********* */
+        if (item.messagesent && item.absoluteresp !== null) {
+          if (!countsByAttendant[attendant]) {
+            countsByAttendant[attendant] = {
+              detrator: 0,
+              passivo: 0,
+              promotor: 0
+            };
+          }
+          countsByAttendant[attendant][classification]++;
+        }
+
+      });
+
+      const resultByStation = Object.entries(countsByStation).map(([station, counts]) => ({
+        station,
+        ...counts
+      }));
+
+      const resultByMedic = Object.entries(countsByMedic).map(([medic, counts]) => ({
+        medic,
+        ...counts
+      }));
+
+      const resultByAttendant = Object.entries(countsByAttendant).map(([attendant, counts]) => ({
+        attendant,
+        ...counts
+      }));
+
+      return response.status(201).send({ result, resultAcumulatedList, resultByStation, resultByMedic, resultByAttendant, npsResult })
+>>>>>>> development
     } catch (error) {
       throw new Error(error)
     }
 
   }
 
+<<<<<<< HEAD
   public async patientToSend(agent: Agent) {
     const agentCompany = await Agent.query().where('id', agent.id).first()
     const yesterday = DateTime.local().toFormat('yyyy-MM-dd 00:00')
@@ -795,3 +1108,7 @@ export default class ShippingcampaignsController {
 
 
 
+=======
+
+}
+>>>>>>> development

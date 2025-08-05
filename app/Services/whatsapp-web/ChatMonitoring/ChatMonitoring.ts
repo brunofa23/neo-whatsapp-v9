@@ -12,6 +12,39 @@ import { responderPergunta } from 'App/Services/Ai/aiResponder'
 import Shippingcampaign from 'App/Models/Shippingcampaign';
 import Talk from 'App/Models/Talk';
 
+
+// Mapa global para rastrear mensagens por número e prevenir loops
+const messageTracker = new Map<string, { count: number, lastMessage: number }>();
+function isBotLoopDetected(phone: string): boolean {
+  console.log(">>>>>>>>>>>>>> DETECTANDO LOOP 152222")
+  const now = Date.now();
+  const record = messageTracker.get(phone);
+
+  if (!record) {
+    messageTracker.set(phone, { count: 1, lastMessage: now });
+    return false;
+  }
+
+  const diff = now - record.lastMessage;
+  console.log(">>>>>>>>>>>>>> DETECTANDO PARTE 2 152222", diff)
+
+  if (diff < 5000) {
+    record.count++;
+    record.lastMessage = now;
+
+    if (record.count >= 3) {
+      console.warn(`Possível loop de bot detectado com ${phone}. Ignorando temporariamente.`);
+      return true;
+    }
+  } else {
+    messageTracker.set(phone, { count: 1, lastMessage: now });
+  }
+
+  return false;
+}
+
+
+
 async function verifyNumberInternal(phoneVerify: string): Promise<boolean> {
   // Lista de telefones em formato de array
   const listPhonesFromEnv = process.env.LIST_PHONES_TALK?.split(",") || [];
@@ -55,11 +88,19 @@ async function getChat(cellphone: String, agentPhone: String) {
     .whereNull('response').first()
 }
 
+
+
 export default class Monitoring {
   async monitoring(client: Client) {
     try {
       client.on('message', async (message) => {
         if (await shouldIgnoreMessage(message)) return;
+
+        // 🚫 Verifica se está em loop de mensagens
+        if (isBotLoopDetected(message.from)) {
+          console.log(`Loop detectado de ${message.from}, ignorando resposta.`);
+          return;
+        }
 
         const isInternalNumber = await verifyNumberInternal(message.from);
         if (isInternalNumber) {

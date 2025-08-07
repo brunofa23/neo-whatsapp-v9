@@ -10,7 +10,7 @@ import Shippingcampaign from 'App/Models/Shippingcampaign'
 import Agent from 'App/Models/Agent'
 test('display welcome page', async ({ client }) => {
 
-  const agentCompany = await Agent.query().where('id', 426).first()
+  const agentCompany = await Agent.query().where('id', 449).first()
   const yesterday = DateTime.local().toFormat('yyyy-MM-dd 00:00')
   const query = Shippingcampaign.query()
     .whereNull('phonevalid')
@@ -25,11 +25,17 @@ test('display welcome page', async ({ client }) => {
   query.whereNotExists((subquery) => {
     subquery.select('*').from('chats').whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id');
   })
+  //fazer um if bem aqui
+  if (agentCompany?.interaction_priority?.toLocaleUpperCase() === 'CONFIRMATION')
+    query.orderByRaw('(interaction_id!=1),RAND()').limit(10)
+  else if (agentCompany?.interaction_priority?.toLocaleUpperCase() === 'EVALUATION')
+    query.orderByRaw('(interaction_id!=2),RAND()').limit(10)
+  else
+    query.orderByRaw('RAND()').limit(10)
 
-    //fazer um if bem aqui
-    .orderByRaw('interaction_id,RAND()').limit(10)
+  //console.log(">>>>", agentCompany.interaction_priority)
 
-  console.log(">>>>", query.toQuery())
+  console.log(">>>QUERY:", query.toQuery())
   //.orderBy('prioritysend', "desc").orderBy('dateshedule').orderByRaw('RAND()').limit(5)
   //const shippingCampaign = await query.first()
 

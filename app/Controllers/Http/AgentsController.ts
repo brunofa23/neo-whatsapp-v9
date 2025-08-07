@@ -32,7 +32,7 @@ export default class AgentsController {
     const dateStart = await DateFormat("yyyy-MM-dd 00:00:00", DateTime.local())
     const dateEnd = await DateFormat("yyyy-MM-dd 23:59:00", DateTime.local())
     try {
-      const data = await Agent.query().whereNull('deleted')
+      const data = await Agent.query().whereNull('deleted').orWhere('deleted', false)
       const agents = []
       for (const agent of data) {
         const totMessage =

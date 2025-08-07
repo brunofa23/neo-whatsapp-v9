@@ -62,6 +62,8 @@ async function startAgentChat(_agent: Agent) {
   //   qrcodeTerminal.generate(qr, { small: true });
 
   // });
+
+
   clientChat.on('qr', async (qr) => {
     try {
       // Atualiza status inicial
@@ -88,17 +90,12 @@ async function startAgentChat(_agent: Agent) {
     }
   });
 
-  // clientChat.on('authenticated', () => {
-  //   console.log(`AUTHENTICATED ${agent.name}`);
-  //   agent.status = 'Authentication'
-  //   agent.save()
-  // });
   clientChat.on('authenticated', async () => {
     try {
       console.log(`AUTHENTICATED ${agent.name}`);
       agent.status = 'Authentication';
       agent.statusconnected = true;
-      agent.number_phone = client.info?.wid?.user || null;
+      agent.number_phone = clientChat.info?.wid?.user || null;
       agent.qrcode = null;
 
       await agent.save();

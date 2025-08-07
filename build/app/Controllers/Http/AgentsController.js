@@ -53,6 +53,7 @@ class AgentsController {
                     default_chat: agent.default_chat,
                     qrcode: agent.qrcode,
                     company_id: agent.company_id,
+                    interaction_priority: agent.interaction_priority,
                     obs: agent.obs,
                     totMessage: totMessage?.$extras.totMessage
                 });

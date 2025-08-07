@@ -34,6 +34,7 @@ class Agent extends Orm_1.BaseModel {
             'qrcode',
             'statusconnected',
             'default_chat',
+            'interaction_priority',
             'deleted',
             'company_id',
             'obs',
@@ -94,6 +95,10 @@ __decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", Boolean)
 ], Agent.prototype, "default_chat", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", String)
+], Agent.prototype, "interaction_priority", void 0);
 __decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", Boolean)

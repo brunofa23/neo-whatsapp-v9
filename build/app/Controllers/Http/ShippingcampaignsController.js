@@ -515,8 +515,13 @@ class ShippingcampaignsController {
             query.whereNull('company_id');
         query.whereNotExists((subquery) => {
             subquery.select('*').from('chats').whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id');
-        })
-            .orderByRaw('RAND()').limit(10);
+        });
+        if (agentCompany?.interaction_priority?.toLocaleUpperCase() === 'CONFIRMATION')
+            query.orderByRaw('(interaction_id!=1),RAND()').limit(10);
+        else if (agentCompany?.interaction_priority?.toLocaleUpperCase() === 'EVALUATION')
+            query.orderByRaw('(interaction_id!=2),RAND()').limit(10);
+        else
+            query.orderByRaw('RAND()').limit(10);
         const shippingCampaign = await query.first();
         return shippingCampaign;
     }

@@ -66,7 +66,7 @@ async function startAgentChat(_agent) {
             console.log(`AUTHENTICATED ${agent.name}`);
             agent.status = 'Authentication';
             agent.statusconnected = true;
-            agent.number_phone = client.info?.wid?.user || null;
+            agent.number_phone = clientChat.info?.wid?.user || null;
             agent.qrcode = null;
             await agent.save();
         }

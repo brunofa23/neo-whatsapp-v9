@@ -31,7 +31,7 @@ class AgentsController {
         const dateStart = await (0, util_1.DateFormat)("yyyy-MM-dd 00:00:00", luxon_1.DateTime.local());
         const dateEnd = await (0, util_1.DateFormat)("yyyy-MM-dd 23:59:00", luxon_1.DateTime.local());
         try {
-            const data = await Agent_1.default.query().whereNull('deleted');
+            const data = await Agent_1.default.query().whereNull('deleted').orWhere('deleted', false);
             const agents = [];
             for (const agent of data) {
                 const totMessage = await Chat_1.default.query()

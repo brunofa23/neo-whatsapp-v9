@@ -86,14 +86,14 @@ class Monitoring {
                     console.log("Número interno:", message.from);
                     return;
                 }
-                const customChat = await getCustomChat(message.from, client.info.wid.user);
-                if (customChat) {
-                    await handleCustomChatMessage(message, customChat);
-                    return;
-                }
                 if (message.hasMedia) {
                     await (0, util_1.stateTyping)(message);
                     client.sendMessage(message.from, 'Por favor não envie áudio, imagens ou vídeos apenas textos. Obrigada!');
+                    return;
+                }
+                const customChat = await getCustomChat(message.from, client.info.wid.user);
+                if (customChat) {
+                    await handleCustomChatMessage(message, customChat);
                     return;
                 }
                 const chat = await getChat(message.from, message.to);

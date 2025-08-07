@@ -47,26 +47,64 @@ async function startAgentChat(_agent: Agent) {
   });
 
 
-  clientChat.on('qr', async (qr) => {
-    agent.status = "Qrcode require"
-    agent.statusconnected = false
-    await agent.save()
-    qrcode.toDataURL(qr, (err, url) => {
-      if (err) {
-        console.error('Ocorreu um erro ao gerar o URL de dados:', err);
-        return;
-      }
-      agent.qrcode = url
-      agent.save()
-    });
-    qrcodeTerminal.generate(qr, { small: true });
+  // clientChat.on('qr', async (qr) => {
+  //   agent.status = "Qrcode require"
+  //   agent.statusconnected = false
+  //   await agent.save()
+  //   qrcode.toDataURL(qr, (err, url) => {
+  //     if (err) {
+  //       console.error('Ocorreu um erro ao gerar o URL de dados:', err);
+  //       return;
+  //     }
+  //     agent.qrcode = url
+  //     agent.save()
+  //   });
+  //   qrcodeTerminal.generate(qr, { small: true });
 
+  // });
+  clientChat.on('qr', async (qr) => {
+    try {
+      // Atualiza status inicial
+      agent.status = "Qrcode require";
+      agent.statusconnected = false;
+      await agent.save();
+
+      // Converte o QR em URL
+      const url = await new Promise((resolve, reject) => {
+        qrcode.toDataURL(qr, (err, url) => {
+          if (err) return reject(err);
+          resolve(url);
+        });
+      });
+
+      // Atualiza o QRCode na tabela
+      agent.qrcode = url;
+      await agent.save();
+
+      // Exibe no terminal
+      qrcodeTerminal.generate(qr, { small: true });
+    } catch (error) {
+      console.error('Erro ao processar QR code:', error);
+    }
   });
 
-  clientChat.on('authenticated', () => {
-    console.log(`AUTHENTICATED ${agent.name}`);
-    agent.status = 'Authentication'
-    agent.save()
+  // clientChat.on('authenticated', () => {
+  //   console.log(`AUTHENTICATED ${agent.name}`);
+  //   agent.status = 'Authentication'
+  //   agent.save()
+  // });
+  clientChat.on('authenticated', async () => {
+    try {
+      console.log(`AUTHENTICATED ${agent.name}`);
+      agent.status = 'Authentication';
+      agent.statusconnected = true;
+      agent.number_phone = client.info?.wid?.user || null;
+      agent.qrcode = null;
+
+      await agent.save();
+    } catch (error) {
+      console.error('Erro ao atualizar agente após autenticação:', error);
+    }
   });
 
 
@@ -76,16 +114,21 @@ async function startAgentChat(_agent: Agent) {
   });
 
   await clientChat.on('ready', async () => {
-    console.log(`READY...${agent.name}`);
-    const state = await clientChat.getState()
-    console.log("State:", state)
-    console.log("INFO:", await clientChat.info)
-    //await SendMessageAgentDefault(clientChat, agent)
-    agent.status = state
-    agent.statusconnected = true
-    agent.number_phone = clientChat.info.wid.user
-    agent.qrcode = null
-    await agent.save()
+    try {
+      console.log(`READY...${agent.name}`);
+      const state = await clientChat.getState()
+      console.log("State:", state)
+      console.log("INFO:", await clientChat.info)
+      //await SendMessageAgentDefault(clientChat, agent)
+      agent.status = state
+      agent.statusconnected = true
+      agent.number_phone = clientChat.info.wid.user
+      agent.qrcode = null
+      await agent.save()
+    } catch (error) {
+      console.error('Erro durante o evento "ready" do AgentChat 15666:', error);
+    }
+
 
   });
 

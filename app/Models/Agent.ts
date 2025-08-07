@@ -26,6 +26,7 @@ export default class Agent extends BaseModel {
       'qrcode',
       'statusconnected',
       'default_chat',
+      'interaction_priority',
       'deleted',
       'company_id',
       'obs',
@@ -74,6 +75,9 @@ export default class Agent extends BaseModel {
 
   @column()
   public default_chat: boolean
+
+  @column()
+  public interaction_priority:string //confirmation or evaluation
 
   @column()
   public deleted: boolean

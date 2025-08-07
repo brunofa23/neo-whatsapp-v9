@@ -74,125 +74,80 @@ async function startAgent(_agent: Agent) {
   });
 
   client.on('qr', async (qr) => {
-    try {
-      // Atualiza status inicial
-      agent.status = "Qrcode require";
-      agent.statusconnected = false;
-      await agent.save();
+  try {
+    // Atualiza status inicial
+    agent.status = "Qrcode require";
+    agent.statusconnected = false;
+    await agent.save();
 
-      // Converte o QR em URL
-      const url = await new Promise((resolve, reject) => {
-        qrcode.toDataURL(qr, (err, url) => {
-          if (err) return reject(err);
-          resolve(url);
-        });
+    // Converte o QR em URL
+    const url = await new Promise((resolve, reject) => {
+      qrcode.toDataURL(qr, (err, url) => {
+        if (err) return reject(err);
+        resolve(url);
       });
+    });
 
-      // Atualiza o QRCode na tabela
-      agent.qrcode = url;
-      await agent.save();
+    // Atualiza o QRCode na tabela
+    agent.qrcode = url;
+    await agent.save();
 
-      // Exibe no terminal
-      qrcodeTerminal.generate(qr, { small: true });
-    } catch (error) {
-      console.error('Erro ao processar QR code:', error);
-    }
+    // Exibe no terminal
+    qrcodeTerminal.generate(qr, { small: true });
+  } catch (error) {
+    console.error('Erro ao processar QR code:', error);
+  }
+});
+
+
+  await client.on('authenticated', async () => {
+    console.log(`AUTHENTICATED ${agent.name}`);
+    agent.status = 'Authentication'
+    agent.statusconnected = true
+    agent.number_phone = client.info?.wid?.user || null
+    agent.qrcode = null
+    agent.save()
   });
-
-  client.on('authenticated', async () => {
-    try {
-      console.log(`AUTHENTICATED ${agent.name}`);
-      agent.status = 'Authentication';
-      agent.statusconnected = true;
-      agent.number_phone = client.info?.wid?.user || null;
-      agent.qrcode = null;
-
-      await agent.save();
-    } catch (error) {
-      console.error('Erro ao atualizar agente após autenticação:', error);
-    }
-  });
-
-
-
 
   client.on('auth_failure', msg => {
     // Fired if session restore was unsuccessful
     console.error('AUTHENTICATION FAILURE', msg);
   });
 
-  client.on('ready', async () => {
-    try {
-      console.log(`READY... ${agent.name}`);
+  await client.on('ready', async () => {
+    console.log(`READY...${agent.name}`);
+    const state = await client.getState()
+    console.log("State:", state)
+    const infoClient = await client.info
+    console.log("Client:", infoClient.pushname, "- Phone number:", infoClient.wid.user)
+    agent.status = state
+    agent.statusconnected = true
+    agent.number_phone = client.info.wid.user
+    agent.qrcode = null
+    await agent.save()
 
-      const state = await client.getState();
-      console.log("State:", state);
+    //CÓDIGO QUE PEGA TODAS AS CONVERSAS QUANDO DESCONECTADO
+    // try {
+    //   // Obtém todos os chats
+    //   const chats = await client.getChats();
 
-      const infoClient = await client.info;
-      console.log("Client:", infoClient.pushname, "- Phone number:", infoClient.wid?.user);
+    //   for (const chat of chats) {
+    //     console.log(`Chat encontrado: ${chat.name || chat.id.user}`);
 
-      // Atualiza status do agente
-      agent.status = state;
-      agent.statusconnected = true;
-      agent.number_phone = infoClient?.wid?.user || null;
-      agent.qrcode = null;
+    //     // Obtém as últimas 5 mensagens do chat
+    //     const messages = await chat.fetchMessages({ limit: 1 });
 
-      await agent.save();
+    //     console.log(`Mensagens do chat "${chat.name || chat.id.user}":`);
+    //     for (const message of messages) {
+    //       console.log(`- ${message.fromMe ? 'Você' : 'Contato'}: ${message.body}`);
+    //     }
+    //   }
+    // } catch (error) {
+    //   console.error('Erro ao acessar chats ou mensagens:', error);
+    // }
 
-      // --- BLOCO OPCIONAL: RECUPERAR CHATS ---
-      // Descomente se quiser listar os chats ao iniciar
-      /*
-      const chats = await client.getChats();
-      for (const chat of chats) {
-        console.log(`Chat encontrado: ${chat.name || chat.id.user}`);
 
-        const messages = await chat.fetchMessages({ limit: 1 });
-
-        console.log(`Mensagens do chat "${chat.name || chat.id.user}":`);
-        for (const message of messages) {
-          console.log(`- ${message.fromMe ? 'Você' : 'Contato'}: ${message.body}`);
-        }
-      }
-      */
-    } catch (error) {
-      console.error('Erro durante o evento "ready":', error);
-    }
   });
-
-
-
-  // await client.on('ready', async () => {
-  //   console.log(`READY...${agent.name}`);
-  //   const state = await client.getState()
-  //   console.log("State:", state)
-  //   const infoClient = await client.info
-  //   console.log("Client:", infoClient.pushname, "- Phone number:", infoClient.wid.user)
-  //   agent.status = state
-  //   agent.statusconnected = true
-  //   agent.number_phone = client.info.wid.user
-  //   agent.qrcode = null
-  //   await agent.save()
-
-  //   //CÓDIGO QUE PEGA TODAS AS CONVERSAS QUANDO DESCONECTADO
-  //   // try {
-  //   //   // Obtém todos os chats
-  //   //   const chats = await client.getChats();
-
-  //   //   for (const chat of chats) {
-  //   //     console.log(`Chat encontrado: ${chat.name || chat.id.user}`);
-
-  //   //     // Obtém as últimas 5 mensagens do chat
-  //   //     const messages = await chat.fetchMessages({ limit: 1 });
-
-  //   //     console.log(`Mensagens do chat "${chat.name || chat.id.user}":`);
-  //   //     for (const message of messages) {
-  //   //       console.log(`- ${message.fromMe ? 'Você' : 'Contato'}: ${message.body}`);
-  //   //     }
-  //   //   }
-  //   // } catch (error) {
-  //   //   console.error('Erro ao acessar chats ou mensagens:', error);
-  //   // }
-  // });
 
   const startTimeSendMessage = agent.interval_init_message
   const endTimeSendMessage = agent.interval_final_message

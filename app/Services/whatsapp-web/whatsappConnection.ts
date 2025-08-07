@@ -269,7 +269,7 @@ async function startAgent(_agent: Agent) {
   });
 
   WhatsAppClientManager.addClient(agent.id.toString(), client);
-  console.log("150011>>>>>>", WhatsAppClientManager)
+  //console.log("150011>>>>>>", WhatsAppClientManager)
 
   let rejectCalls = true;
   client.on('call', async (call) => {

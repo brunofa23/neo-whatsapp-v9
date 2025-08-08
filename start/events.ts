@@ -3,6 +3,7 @@ import DatasourcesController from "App/Controllers/Http/DatasourcesController";
 import DatasourceApisController from "App/Controllers/Http/DatasourceApisController";
 import Agent from "App/Models/Agent"
 import PersistShippingcampaign from "App/Services/whatsapp-web/PersistShippingcampaign"
+import Shippingcampaign from "App/Models/Shippingcampaign";
 import { DateTime } from 'luxon';
 
 import { getTargetDates, GenerateRandomTime, TimeSchedule } from '../app/Services/whatsapp-web/util'
@@ -15,7 +16,6 @@ async function destroyFullAgents() {
   console.log("Passei no destroy agentes 1222")
   const destroyAgents = new AgentsController
   await destroyAgents.destroyFullAgents()
-
 }
 
 async function connectionAll() {
@@ -59,6 +59,28 @@ async function sendRepeatedMessage() {
   }, Number(process.env.TIME_SENDREPEATEDMESSAGE || 50000))
 }
 
+//REAPROVEITA ENVIOS QUE NÃO FORAM ENVIADOS
+async function resendMessage() {
+  const yesterday = DateTime.now().minus({ days: 1 })
+  const tomorrow = DateTime.now().plus({ days: 1 })
+
+  const patiensToSend = await Shippingcampaign.query().select('name', 'cellphone')
+    .where('created_at', '>=', yesterday.startOf('day').toSQL())
+    .where('created_at', '<=', yesterday.set({ hour: 23, minute: 0, second: 0 }).toSQL())
+    .where('dateshedule', '>=', tomorrow.startOf('day').toSQL())
+    .where('dateshedule', '<=', tomorrow.endOf('day').toSQL())
+    .whereNull('phonevalid')
+  // .update({
+  //   createdAt: DateTime.now().toSQL({ includeOffset: false })
+  // })
+
+  const result = patiensToSend.map(p => ({
+    name: p.name,
+    cellphone: p.cellphone
+  }))
+  console.log(result)
+}
+
 
 //BUSCANDO NO KLINGO
 async function sendRepeatedMessageKlingo() {
@@ -98,5 +120,5 @@ async function resetStatusConnected() {
   await Agent.query().update({ status: null, statusconnected: false })
 }
 
-export { connectionAll, sendRepeatedMessage, resetStatusConnected, destroyFullAgents, sendRepeatedMessageKlingo }
+export { connectionAll, sendRepeatedMessage, resetStatusConnected, destroyFullAgents, sendRepeatedMessageKlingo, resendMessage }
 

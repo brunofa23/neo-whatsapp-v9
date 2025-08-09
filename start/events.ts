@@ -5,12 +5,11 @@ import Agent from "App/Models/Agent"
 import PersistShippingcampaign from "App/Services/whatsapp-web/PersistShippingcampaign"
 import Shippingcampaign from "App/Models/Shippingcampaign";
 import { DateTime } from 'luxon';
-
 import { getTargetDates, GenerateRandomTime, TimeSchedule } from '../app/Services/whatsapp-web/util'
 import { startAgentChat } from "../app/Services/whatsapp-web/whatsapp"
 import { startAgent } from "../app/Services/whatsapp-web/whatsappConnection"
-
 import '../app/Services/plugins/axios'
+
 
 async function destroyFullAgents() {
   console.log("Passei no destroy agentes 1222")
@@ -60,6 +59,7 @@ async function sendRepeatedMessage() {
 }
 
 //REAPROVEITA ENVIOS QUE NÃO FORAM ENVIADOS
+//busca os pacientes do dia anterior com phonevalid=NULL e muda para a data de hoje
 async function resendMessage() {
   const yesterday = DateTime.now().minus({ days: 1 })
   const tomorrow = DateTime.now().plus({ days: 1 })
@@ -70,15 +70,15 @@ async function resendMessage() {
     .where('dateshedule', '>=', tomorrow.startOf('day').toSQL())
     .where('dateshedule', '<=', tomorrow.endOf('day').toSQL())
     .whereNull('phonevalid')
-  // .update({
-  //   createdAt: DateTime.now().toSQL({ includeOffset: false })
-  // })
+    .update({
+      createdAt: DateTime.now().toSQL({ includeOffset: false })
+    })
 
-  const result = patiensToSend.map(p => ({
-    name: p.name,
-    cellphone: p.cellphone
-  }))
-  console.log(result)
+  // const result = patiensToSend.map(p => ({
+  //   name: p.name,
+  //   cellphone: p.cellphone
+  // }))
+  //console.log(result)
 }
 
 

@@ -725,12 +725,16 @@ export default class ShippingcampaignsController {
       query.andWhere('company_id', agentCompany?.company_id)
     }
     else query.whereNull('company_id')
-
     query.whereNotExists((subquery) => {
       subquery.select('*').from('chats').whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id');
     })
-      .orderByRaw('RAND()').limit(10)
-    //.orderBy('prioritysend', "desc").orderBy('dateshedule').orderByRaw('RAND()').limit(5)
+    if (agentCompany?.interaction_priority?.toLocaleUpperCase() === 'CONFIRMATION')
+      query.orderByRaw('(interaction_id!=1),RAND()').limit(10)
+    else if (agentCompany?.interaction_priority?.toLocaleUpperCase() === 'EVALUATION')
+      query.orderByRaw('(interaction_id!=2),RAND()').limit(10)
+    else
+      query.orderByRaw('RAND()').limit(10)
+
     const shippingCampaign = await query.first()
     return shippingCampaign
 

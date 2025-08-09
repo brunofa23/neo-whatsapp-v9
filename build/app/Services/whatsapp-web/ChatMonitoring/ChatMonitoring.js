@@ -15,6 +15,30 @@ const luxon_1 = require("luxon");
 const aiResponder_1 = global[Symbol.for('ioc.use')]("App/Services/Ai/aiResponder");
 const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Shippingcampaign"));
 const Talk_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Talk"));
+const messageTracker = new Map();
+function isBotLoopDetected(phone) {
+    console.log(">>>>>>>>>>>>>> DETECTANDO LOOP 152222");
+    const now = Date.now();
+    const record = messageTracker.get(phone);
+    if (!record) {
+        messageTracker.set(phone, { count: 1, lastMessage: now });
+        return false;
+    }
+    const diff = now - record.lastMessage;
+    console.log(">>>>>>>>>>>>>> DETECTANDO PARTE 2 152222", diff);
+    if (diff < 5000) {
+        record.count++;
+        record.lastMessage = now;
+        if (record.count >= 3) {
+            console.warn(`Possível loop de bot detectado com ${phone}. Ignorando temporariamente.`);
+            return true;
+        }
+    }
+    else {
+        messageTracker.set(phone, { count: 1, lastMessage: now });
+    }
+    return false;
+}
 async function verifyNumberInternal(phoneVerify) {
     const listPhonesFromEnv = process.env.LIST_PHONES_TALK?.split(",") || [];
     if (listPhonesFromEnv.includes(phoneVerify)) {
@@ -53,19 +77,23 @@ class Monitoring {
             client.on('message', async (message) => {
                 if (await shouldIgnoreMessage(message))
                     return;
+                if (isBotLoopDetected(message.from)) {
+                    console.log(`Loop detectado de ${message.from}, ignorando resposta.`);
+                    return;
+                }
                 const isInternalNumber = await verifyNumberInternal(message.from);
                 if (isInternalNumber) {
                     console.log("Número interno:", message.from);
                     return;
                 }
-                const customChat = await getCustomChat(message.from, client.info.wid.user);
-                if (customChat) {
-                    await handleCustomChatMessage(message, customChat);
-                    return;
-                }
                 if (message.hasMedia) {
                     await (0, util_1.stateTyping)(message);
                     client.sendMessage(message.from, 'Por favor não envie áudio, imagens ou vídeos apenas textos. Obrigada!');
+                    return;
+                }
+                const customChat = await getCustomChat(message.from, client.info.wid.user);
+                if (customChat) {
+                    await handleCustomChatMessage(message, customChat);
                     return;
                 }
                 const chat = await getChat(message.from, message.to);

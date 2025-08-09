@@ -10,27 +10,27 @@ import Shippingcampaign from 'App/Models/Shippingcampaign'
 import Agent from 'App/Models/Agent'
 test('display welcome page', async ({ client }) => {
 
-  const agentCompany = await Agent.query().where('id', 426).first()
-  const yesterday = DateTime.local().toFormat('yyyy-MM-dd 00:00')
-  const query = Shippingcampaign.query()
+
+  const yesterday = DateTime.now().minus({ days: 1 })
+  const tomorrow = DateTime.now().plus({ days: 1 })
+
+  const patiensToSend = await Shippingcampaign.query().select('name', 'cellphone')
+    .where('created_at', '>=', yesterday.startOf('day').toSQL())
+    .where('created_at', '<=', yesterday.set({ hour: 23, minute: 0, second: 0 }).toSQL())
+    .where('dateshedule', '>=', tomorrow.startOf('day').toSQL())
+    .where('dateshedule', '<=', tomorrow.endOf('day').toSQL())
     .whereNull('phonevalid')
-    .andWhere('messagesent', 0)
-    .andWhere('created_at', '>', yesterday)
+  // .update({
+  //   createdAt: DateTime.now().toSQL({ includeOffset: false })
+  // })
 
-  if (agentCompany?.company_id) {
-    query.andWhere('company_id', agentCompany?.company_id)
-  }
-  else query.whereNull('company_id')
 
-  query.whereNotExists((subquery) => {
-    subquery.select('*').from('chats').whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id');
-  })
+  const result = patiensToSend.map(p => ({
+    name: p.name,
+    cellphone: p.cellphone
+  }))
 
-    //fazer um if bem aqui
-    .orderByRaw('interaction_id,RAND()').limit(10)
+  console.log(result)
 
-  console.log(">>>>", query.toQuery())
-  //.orderBy('prioritysend', "desc").orderBy('dateshedule').orderByRaw('RAND()').limit(5)
-  //const shippingCampaign = await query.first()
 
 })

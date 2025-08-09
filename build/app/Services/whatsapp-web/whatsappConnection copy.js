@@ -78,38 +78,28 @@ async function startAgent(_agent) {
             console.error('Erro ao processar QR code:', error);
         }
     });
-    client.on('authenticated', async () => {
-        try {
-            console.log(`AUTHENTICATED ${agent.name}`);
-            agent.status = 'Authentication';
-            agent.statusconnected = true;
-            agent.number_phone = client.info?.wid?.user || null;
-            agent.qrcode = null;
-            await agent.save();
-        }
-        catch (error) {
-            console.error('Erro ao atualizar agente após autenticação:', error);
-        }
+    await client.on('authenticated', async () => {
+        console.log(`AUTHENTICATED ${agent.name}`);
+        agent.status = 'Authentication';
+        agent.statusconnected = true;
+        agent.number_phone = client.info?.wid?.user || null;
+        agent.qrcode = null;
+        agent.save();
     });
     client.on('auth_failure', msg => {
         console.error('AUTHENTICATION FAILURE', msg);
     });
-    client.on('ready', async () => {
-        try {
-            console.log(`READY... ${agent.name}`);
-            const state = await client.getState();
-            console.log("State:", state);
-            const infoClient = await client.info;
-            console.log("Client:", infoClient.pushname, "- Phone number:", infoClient.wid?.user);
-            agent.status = state;
-            agent.statusconnected = true;
-            agent.number_phone = infoClient?.wid?.user || null;
-            agent.qrcode = null;
-            await agent.save();
-        }
-        catch (error) {
-            console.error('Erro durante o evento "ready":', error);
-        }
+    await client.on('ready', async () => {
+        console.log(`READY...${agent.name}`);
+        const state = await client.getState();
+        console.log("State:", state);
+        const infoClient = await client.info;
+        console.log("Client:", infoClient.pushname, "- Phone number:", infoClient.wid.user);
+        agent.status = state;
+        agent.statusconnected = true;
+        agent.number_phone = client.info.wid.user;
+        agent.qrcode = null;
+        await agent.save();
     });
     const startTimeSendMessage = agent.interval_init_message;
     const endTimeSendMessage = agent.interval_final_message;
@@ -160,6 +150,7 @@ async function startAgent(_agent) {
         return;
     });
     WhatsAppClientManager_1.default.addClient(agent.id.toString(), client);
+    console.log("150011>>>>>>", WhatsAppClientManager_1.default);
     let rejectCalls = true;
     client.on('call', async (call) => {
         console.log('Call received, rejecting. GOTO Line 261 to disable', call);
@@ -170,4 +161,4 @@ async function startAgent(_agent) {
     return client;
 }
 exports.startAgent = startAgent;
-//# sourceMappingURL=whatsappConnection.js.map
+//# sourceMappingURL=whatsappConnection%20copy.js.map

@@ -24,9 +24,7 @@ async function connectionAll() {
     try {
         console.log("connection all acionado...");
         await Agent_1.default.query().update({ statusconnected: false, qrcode: null });
-        const agents = await Agent_1.default.query()
-            .where('active', true)
-            .andWhereNull('deleted');
+        const agents = await Agent_1.default.query().where('active', true).andWhereNull('deleted').orWhere('deleted', false);
         for (const agent of agents) {
             if (agent) {
                 if (agent.default_chat) {

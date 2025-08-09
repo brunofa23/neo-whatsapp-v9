@@ -3,28 +3,25 @@ import DatasourcesController from "App/Controllers/Http/DatasourcesController";
 import DatasourceApisController from "App/Controllers/Http/DatasourceApisController";
 import Agent from "App/Models/Agent"
 import PersistShippingcampaign from "App/Services/whatsapp-web/PersistShippingcampaign"
+import Shippingcampaign from "App/Models/Shippingcampaign";
 import { DateTime } from 'luxon';
-
 import { getTargetDates, GenerateRandomTime, TimeSchedule } from '../app/Services/whatsapp-web/util'
 import { startAgentChat } from "../app/Services/whatsapp-web/whatsapp"
 import { startAgent } from "../app/Services/whatsapp-web/whatsappConnection"
-
 import '../app/Services/plugins/axios'
+
 
 async function destroyFullAgents() {
   console.log("Passei no destroy agentes 1222")
   const destroyAgents = new AgentsController
   await destroyAgents.destroyFullAgents()
-
 }
 
 async function connectionAll() {
   try {
     console.log("connection all acionado...")
     await Agent.query().update({ statusconnected: false, qrcode: null })
-    const agents = await Agent.query()
-      .where('active', true)
-      .andWhereNull('deleted')
+    const agents = await Agent.query().where('active', true).andWhereNull('deleted').orWhere('deleted', false)
 
     for (const agent of agents) {
       if (agent) {
@@ -59,6 +56,29 @@ async function sendRepeatedMessage() {
 
     }
   }, Number(process.env.TIME_SENDREPEATEDMESSAGE || 50000))
+}
+
+//REAPROVEITA ENVIOS QUE NÃO FORAM ENVIADOS
+//busca os pacientes do dia anterior com phonevalid=NULL e muda para a data de hoje
+async function resendMessage() {
+  const yesterday = DateTime.now().minus({ days: 1 })
+  const tomorrow = DateTime.now().plus({ days: 1 })
+
+  const patiensToSend = await Shippingcampaign.query().select('name', 'cellphone')
+    .where('created_at', '>=', yesterday.startOf('day').toSQL())
+    .where('created_at', '<=', yesterday.set({ hour: 23, minute: 0, second: 0 }).toSQL())
+    .where('dateshedule', '>=', tomorrow.startOf('day').toSQL())
+    .where('dateshedule', '<=', tomorrow.endOf('day').toSQL())
+    .whereNull('phonevalid')
+    .update({
+      createdAt: DateTime.now().toSQL({ includeOffset: false })
+    })
+
+  // const result = patiensToSend.map(p => ({
+  //   name: p.name,
+  //   cellphone: p.cellphone
+  // }))
+  //console.log(result)
 }
 
 
@@ -100,5 +120,5 @@ async function resetStatusConnected() {
   await Agent.query().update({ status: null, statusconnected: false })
 }
 
-export { connectionAll, sendRepeatedMessage, resetStatusConnected, destroyFullAgents, sendRepeatedMessageKlingo }
+export { connectionAll, sendRepeatedMessage, resetStatusConnected, destroyFullAgents, sendRepeatedMessageKlingo, resendMessage }
 

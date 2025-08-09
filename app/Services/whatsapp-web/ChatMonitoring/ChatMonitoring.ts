@@ -108,16 +108,16 @@ export default class Monitoring {
           return;
         }
 
-        const customChat = await getCustomChat(message.from, client.info.wid.user);
-        if (customChat) {
-          await handleCustomChatMessage(message, customChat);
-          return;
-        }
-
         if (message.hasMedia) {
           await stateTyping(message)
           client.sendMessage(message.from, 'Por favor não envie áudio, imagens ou vídeos apenas textos. Obrigada!')
           return
+        }
+
+        const customChat = await getCustomChat(message.from, client.info.wid.user);
+        if (customChat) {
+          await handleCustomChatMessage(message, customChat);
+          return;
         }
 
         const chat = await getChat(message.from, message.to);

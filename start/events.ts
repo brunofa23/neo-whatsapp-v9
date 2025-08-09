@@ -61,24 +61,28 @@ async function sendRepeatedMessage() {
 //REAPROVEITA ENVIOS QUE NÃO FORAM ENVIADOS
 //busca os pacientes do dia anterior com phonevalid=NULL e muda para a data de hoje
 async function resendMessage() {
-  const yesterday = DateTime.now().minus({ days: 1 })
-  const tomorrow = DateTime.now().plus({ days: 1 })
+  setInterval(async () => {
+    console.log("passei no RESEND............................")
 
-  const patiensToSend = await Shippingcampaign.query().select('name', 'cellphone')
-    .where('created_at', '>=', yesterday.startOf('day').toSQL())
-    .where('created_at', '<=', yesterday.set({ hour: 23, minute: 0, second: 0 }).toSQL())
-    .where('dateshedule', '>=', tomorrow.startOf('day').toSQL())
-    .where('dateshedule', '<=', tomorrow.endOf('day').toSQL())
-    .whereNull('phonevalid')
-    .update({
-      createdAt: DateTime.now().toSQL({ includeOffset: false })
-    })
+    const now = DateTime.now()
+    const yesterdayStart = now.minus({ days: 1 }).startOf('day')
+    const yesterdayEnd = now.minus({ days: 1 }).endOf('day')
+    const tomorrowStart = now.plus({ days: 1 }).startOf('day')
+    const tomorrowEnd = now.plus({ days: 1 }).endOf('day')
 
-  // const result = patiensToSend.map(p => ({
-  //   name: p.name,
-  //   cellphone: p.cellphone
-  // }))
-  //console.log(result)
+    const query = Shippingcampaign.query()
+      .where('created_at', '>=', yesterdayStart.toSQL({ includeOffset: false }))
+      .where('created_at', '<=', yesterdayEnd.toSQL({ includeOffset: false }))
+      .where('dateshedule', '>=', tomorrowStart.toSQL({ includeOffset: false }))
+      .where('dateshedule', '<=', tomorrowEnd.toSQL({ includeOffset: false }))
+      .whereNull('phonevalid')
+      // .update({
+      //   createdAt: DateTime.now().toSQL({ includeOffset: false })
+      // })
+
+    const data = await query
+    console.log(query.toQuery())
+  }, 10 * 1000) // 10 segundos só para teste
 }
 
 

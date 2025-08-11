@@ -10,6 +10,8 @@ import { startAgentChat } from "../app/Services/whatsapp-web/whatsapp"
 import { startAgent } from "../app/Services/whatsapp-web/whatsappConnection"
 import '../app/Services/plugins/axios'
 import Log from "App/Models/Log";
+import Chat from "App/Models/Chat";
+import Database from "@ioc:Adonis/Lucid/Database";
 
 
 async function destroyFullAgents() {
@@ -61,30 +63,162 @@ async function sendRepeatedMessage() {
 
 //REAPROVEITA ENVIOS QUE NÃO FORAM ENVIADOS
 //busca os pacientes do dia anterior com phonevalid=NULL e muda para a data de hoje
+// async function resendMessage() {
+//   setInterval(async () => {
+//     console.log("passei no RESEND............................")
+
+//     const now = DateTime.now()
+//     const yesterdayStart = now.minus({ days: 1 }).startOf('day')
+//     const yesterdayEnd = now.minus({ days: 1 }).endOf('day')
+//     const tomorrowStart = now.plus({ days: 1 }).startOf('day')
+//     const tomorrowEnd = now.plus({ days: 1 }).endOf('day')
+
+//     // 🔹 Atualiza mensagens para reenvio
+//     const updatedResend = await Shippingcampaign.query()
+//       .where('created_at', '>=', yesterdayStart.toSQL({ includeOffset: false }))
+//       .where('created_at', '<=', yesterdayEnd.toSQL({ includeOffset: false }))
+//       .where('dateshedule', '>=', tomorrowStart.toSQL({ includeOffset: false }))
+//       .where('dateshedule', '<=', tomorrowEnd.toSQL({ includeOffset: false }))
+//       .andWhere('interaction_id', 1)
+//       .whereNull('phonevalid')
+//       .update({
+//         createdAt: DateTime.now().toSQL({ includeOffset: false })
+//       })
+
+//     if (updatedResend > 0) {
+//       await Log.create({
+//         name: "Resend",
+//         message: `Reenvio de mensagens não enviadas. Total: ${updatedResend}`,
+//         description: "Function: resendMessage"
+//       })
+//     }
+
+//     // 🔹 Atualiza CHATS (pacientes sem resposta)
+//     const updatedChats = await Chat.query()
+//       .whereIn(
+//         'id',
+//         Database.from('chats')
+//           .innerJoin('shippingcampaigns', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
+//           .where('shippingcampaigns.created_at', '>=', yesterdayStart.toSQL({ includeOffset: false }))
+//           .where('shippingcampaigns.created_at', '<=', yesterdayEnd.toSQL({ includeOffset: false }))
+//           .where('shippingcampaigns.interaction_id', 1)
+//           .where('shippingcampaigns.interaction_seq', 1)
+//           .where('chats.returned', 0)
+//           .where('chats.ack', 2)
+//           .select('chats.id')
+//       )
+//       .update({ excluded: 1 })
+
+//     // 🔹 Atualiza SHIPPINGCAMPAIGNS com mesmo filtro
+//     const updatedShipping = await Shippingcampaign.query()
+//       .whereIn(
+//         'id',
+//         Database.from('shippingcampaigns')
+//           .innerJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
+//           .where('shippingcampaigns.created_at', '>=', yesterdayStart.toSQL({ includeOffset: false }))
+//           .where('shippingcampaigns.created_at', '<=', yesterdayEnd.toSQL({ includeOffset: false }))
+//           .where('shippingcampaigns.interaction_id', 1)
+//           .where('shippingcampaigns.interaction_seq', 1)
+//           .where('chats.returned', 0)
+//           .where('chats.ack', 2)
+//           .select('shippingcampaigns.id')
+//       )
+//       .update({
+//         createdAt: DateTime.now().toSQL({ includeOffset: false })
+//       })
+
+//     console.log(`Chats atualizados: ${updatedChats}`)
+//     console.log(`Shipping atualizados: ${updatedShipping}`)
+//     //}, 3 * 60 * 60 * 1000) // Executa a cada 3 horas
+//   }, 10 * 1000) // 10 segundos
+// }
+
+
 async function resendMessage() {
   setInterval(async () => {
-    console.log("passei no RESEND............................")
-    const now = DateTime.now()
-    const yesterdayStart = now.minus({ days: 1 }).startOf('day')
-    const yesterdayEnd = now.minus({ days: 1 }).endOf('day')
-    const tomorrowStart = now.plus({ days: 1 }).startOf('day')
-    const tomorrowEnd = now.plus({ days: 1 }).endOf('day')
+    try {
+      console.log("passei no RESEND............................")
 
-    const query = Shippingcampaign.query()
-      .where('created_at', '>=', yesterdayStart.toSQL({ includeOffset: false }))
-      .where('created_at', '<=', yesterdayEnd.toSQL({ includeOffset: false }))
-      .where('dateshedule', '>=', tomorrowStart.toSQL({ includeOffset: false }))
-      .where('dateshedule', '<=', tomorrowEnd.toSQL({ includeOffset: false }))
-      .andWhere('interaction_id',1)
-      .whereNull('phonevalid')
-      .update({
-        createdAt: DateTime.now().toSQL({ includeOffset: false })
+      const now = DateTime.now()
+      const yesterdayStart = now.minus({ days: 1 }).startOf('day')
+      const yesterdayEnd = now.minus({ days: 1 }).endOf('day')
+      const tomorrowStart = now.plus({ days: 1 }).startOf('day')
+      const tomorrowEnd = now.plus({ days: 1 }).endOf('day')
+
+      // 🔹 Atualiza mensagens para reenvio
+      const updatedResend = await Shippingcampaign.query()
+        .where('created_at', '>=', yesterdayStart.toSQL({ includeOffset: false }))
+        .where('created_at', '<=', yesterdayEnd.toSQL({ includeOffset: false }))
+        .where('dateshedule', '>=', tomorrowStart.toSQL({ includeOffset: false }))
+        .where('dateshedule', '<=', tomorrowEnd.toSQL({ includeOffset: false }))
+        .andWhere('interaction_id', 1)
+        .whereNull('phonevalid')
+        .update({
+          createdAt: DateTime.now().toSQL({ includeOffset: false })
+        })
+
+      if (updatedResend[0] > 0) {
+        await Log.create({
+          name: "Resend",
+          message: `Reenvio de mensagens não enviadas. Total: ${updatedResend}`,
+          description: "Function: resendMessage"
+        })
+      }
+
+      // 🔹 Atualiza CHATS (pacientes sem resposta)
+      const subquery = Database.from('chats')
+        .innerJoin('shippingcampaigns', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
+        .where('shippingcampaigns.created_at', '>=', yesterdayStart.toSQL({ includeOffset: false }))
+        .where('shippingcampaigns.created_at', '<=', yesterdayEnd.toSQL({ includeOffset: false }))
+        .where('shippingcampaigns.interaction_id', 1)
+        .where('shippingcampaigns.interaction_seq', 1)
+        .where('chats.returned', 0)
+        .where('chats.ack', 2)
+        .select('chats.id')
+
+      const chatExcluded = await Chat.query()
+        .whereIn('id', Database.from(subquery.as('temp')))
+        .update({ excluded: 1 })
+
+      console.log(">>>>>>", chatExcluded)
+
+      // 🔹 Atualiza SHIPPINGCAMPAIGNS com mesmo filtro
+      const subquery1 = Database
+        .from('shippingcampaigns as sc')
+        .innerJoin('chats as c', 'sc.id', 'c.shippingcampaigns_id')
+        .where('sc.created_at', '>=', yesterdayStart.toSQL({ includeOffset: false }))
+        .where('sc.created_at', '<=', yesterdayEnd.toSQL({ includeOffset: false }))
+        .where('sc.interaction_id', 1)
+        .where('sc.interaction_seq', 1)
+        .where('c.returned', 0)
+        .where('c.ack', 2)
+        .select('sc.id')
+
+      const updatedShipping = await Shippingcampaign
+        .query()
+        .joinRaw(`JOIN (${subquery1.toQuery()}) as temp on shippingcampaigns.id = temp.id`)
+        .update({ createdAt: DateTime.now().toSQL({ includeOffset: false }) })
+
+      console.log(">>>>update::", updatedShipping)
+
+    } catch (error) {
+      console.error("Erro no resendMessage:", error)
+      // opcional: registrar no banco
+      await Log.create({
+        name: "ResendError",
+        message: error.message || "Erro desconhecido",
+        description: error.stack || "Sem stack trace"
       })
-    const data = await query
-      if (data[0]>0)
-        await Log.create({ name: "Resend", message: `Reenvio de mensagens, total:${data[0]}`, description: "Function: resendMessage" })
-  }, 3 * 60 * 60 * 1000) // 10 segundos só para teste
+    }
+  }, 10 * 1000) // 10 segundos
 }
+
+
+
+
+
+
+
 
 
 //BUSCANDO NO KLINGO

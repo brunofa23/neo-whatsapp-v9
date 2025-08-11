@@ -1,14 +1,13 @@
 
 import { test } from '@japa/runner'
 import { DateTime } from 'luxon'
-// import DatasourcesController from 'App/Controllers/Http/DatasourcesController'
-// import PersistShippingcampaign from "App/Services/whatsapp-web/PersistShippingcampaign"
-// import Config from 'App/Models/Config'
-// import Chat from 'App/Models/Chat'
-// import Manifest from 'App/Models/Manifest'
+
+import Database from '@ioc:Adonis/Lucid/Database'
+import Chat from 'App/Models/Chat'
 import Shippingcampaign from 'App/Models/Shippingcampaign'
-import Agent from 'App/Models/Agent'
-import Log from 'App/Models/Log'
+
+
+
 test('display welcome page', async ({ client }) => {
 
   const now = DateTime.now()
@@ -17,22 +16,41 @@ test('display welcome page', async ({ client }) => {
   const tomorrowStart = now.plus({ days: 1 }).startOf('day')
   const tomorrowEnd = now.plus({ days: 1 }).endOf('day')
 
-  const query = Shippingcampaign.query()
-    .where('created_at', '>=', yesterdayStart.toSQL({ includeOffset: false }))
-    .where('created_at', '<=', yesterdayEnd.toSQL({ includeOffset: false }))
-    .where('dateshedule', '>=', tomorrowStart.toSQL({ includeOffset: false }))
-    .where('dateshedule', '<=', tomorrowEnd.toSQL({ includeOffset: false }))
-    .andWhere('interaction_id',1)
-    .whereNull('phonevalid')
-    // .update({
-    //   createdAt: DateTime.now().toSQL({ includeOffset: false })
-    // })
 
-  const data = await query
-  if (data[0]>0)
-    await Log.create({ name: "Resend", message: `Reenvio de mensagens, total:${data[0]}`, description: "Function: resendMessage" })
-  console.log("data:",query.toQuery())
+  const query = Chat.query()
+    .whereIn(
+      'id',
+      Database.from('chats')
+        .innerJoin('shippingcampaigns', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
+        .where('shippingcampaigns.created_at', '>=', `${yesterdayStart}`)
+        .where('shippingcampaigns.created_at', '<=', `${yesterdayEnd}`)
+        .where('shippingcampaigns.interaction_id', 1)
+        .where('shippingcampaigns.interaction_seq', 1)
+        .where('chats.returned', 0)
+        .where('chats.ack', 2)
+        .select('chats.id')
+    )
+    .update({ excluded: 1 })
+    const chatToDelete = await query
+    console.log(">>", query.toQuery())
 
 
+  // 🔹 Atualizar SHIPPINGCAMPAIGNS com base no mesmo filtro
+  const query2 = Shippingcampaign.query()
+    .whereIn(
+      'id',
+      Database.from('shippingcampaigns')
+        .innerJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
+        .where('shippingcampaigns.created_at', '>=', `${yesterdayStart}`)
+        .where('shippingcampaigns.created_at', '<=', `${yesterdayEnd}`)
+        .where('shippingcampaigns.interaction_id', 1)
+        .where('shippingcampaigns.interaction_seq', 1)
+        .where('chats.returned', 0)
+        .where('chats.ack', 2)
+        .select('shippingcampaigns.id')
+    )
+  //.update({ createdAt: '2025-08-08' }) // cuidado com o nome da coluna no Model
+  const shipping = await query2
+  console.log(">>>>>>", query.toQuery())
 
 })

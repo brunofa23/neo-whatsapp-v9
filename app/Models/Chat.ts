@@ -33,6 +33,7 @@ export default class Chat extends BaseModel {
       'externalstatus',
       'chatnumber',
       'chat_finished',
+      'excluded',
       'company_id',
       'closed',
       'date_return', //data de retorno da última mensagem
@@ -102,6 +103,9 @@ export default class Chat extends BaseModel {
 
   @column()
   public chat_finished:boolean
+
+  @column()
+  public excluded:boolean
 
   @column()
   public company_id:number

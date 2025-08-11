@@ -197,7 +197,7 @@ async function resendMessage() {
       const updatedShipping = await Shippingcampaign
         .query()
         .joinRaw(`JOIN (${subquery1.toQuery()}) as temp on shippingcampaigns.id = temp.id`)
-        .update({ createdAt: DateTime.now().toSQL({ includeOffset: false }) })
+        .update({ createdAt: DateTime.now().toSQL({ includeOffset: false }), phonevalid:null, messagesent:0 })
 
       console.log(">>>>update::", updatedShipping)
 

@@ -8,29 +8,31 @@ import { DateTime } from 'luxon'
 // import Manifest from 'App/Models/Manifest'
 import Shippingcampaign from 'App/Models/Shippingcampaign'
 import Agent from 'App/Models/Agent'
+import Log from 'App/Models/Log'
 test('display welcome page', async ({ client }) => {
 
+  const now = DateTime.now()
+  const yesterdayStart = now.minus({ days: 3 }).startOf('day')
+  const yesterdayEnd = now.minus({ days: 1 }).endOf('day')
+  const tomorrowStart = now.plus({ days: 1 }).startOf('day')
+  const tomorrowEnd = now.plus({ days: 1 }).endOf('day')
 
-  const yesterday = DateTime.now().minus({ days: 1 })
-  const tomorrow = DateTime.now().plus({ days: 1 })
-
-  const patiensToSend = await Shippingcampaign.query().select('name', 'cellphone')
-    .where('created_at', '>=', yesterday.startOf('day').toSQL())
-    .where('created_at', '<=', yesterday.set({ hour: 23, minute: 0, second: 0 }).toSQL())
-    .where('dateshedule', '>=', tomorrow.startOf('day').toSQL())
-    .where('dateshedule', '<=', tomorrow.endOf('day').toSQL())
+  const query = Shippingcampaign.query()
+    .where('created_at', '>=', yesterdayStart.toSQL({ includeOffset: false }))
+    .where('created_at', '<=', yesterdayEnd.toSQL({ includeOffset: false }))
+    .where('dateshedule', '>=', tomorrowStart.toSQL({ includeOffset: false }))
+    .where('dateshedule', '<=', tomorrowEnd.toSQL({ includeOffset: false }))
+    .andWhere('interaction_id',1)
     .whereNull('phonevalid')
-  // .update({
-  //   createdAt: DateTime.now().toSQL({ includeOffset: false })
-  // })
+    // .update({
+    //   createdAt: DateTime.now().toSQL({ includeOffset: false })
+    // })
 
+  const data = await query
+  if (data[0]>0)
+    await Log.create({ name: "Resend", message: `Reenvio de mensagens, total:${data[0]}`, description: "Function: resendMessage" })
+  console.log("data:",query.toQuery())
 
-  const result = patiensToSend.map(p => ({
-    name: p.name,
-    cellphone: p.cellphone
-  }))
-
-  console.log(result)
 
 
 })

@@ -1,7 +1,7 @@
 import Route from '@ioc:Adonis/Core/Route'
 import PersistShippingcampaign from "App/Services/whatsapp-web/PersistShippingcampaign"
 
-import { connectionAll, destroyFullAgents, resetStatusConnected, sendRepeatedMessage, sendRepeatedMessageKlingo } from './events'
+import { connectionAll, destroyFullAgents, resendMessage, resetStatusConnected, sendRepeatedMessage, sendRepeatedMessageKlingo } from './events'
 import { DateTime } from 'luxon'
 
 console.log("***CHAT BOT V-126***16/05/2025", process.env.SERVER)
@@ -15,9 +15,10 @@ function operacaoAssincrona(callback) {
 
   if (process.env.SERVER?.toLowerCase() === 'false') {
     console.log("INICIALIZANDO EASYTALK SMART")
-    destroyFullAgents()
-    resetStatusConnected()
-    connectionAll()
+    // destroyFullAgents()
+    // resetStatusConnected()
+    // connectionAll()
+    resendMessage()
     return
   }
 

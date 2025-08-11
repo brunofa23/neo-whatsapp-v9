@@ -9,6 +9,7 @@ import { getTargetDates, GenerateRandomTime, TimeSchedule } from '../app/Service
 import { startAgentChat } from "../app/Services/whatsapp-web/whatsapp"
 import { startAgent } from "../app/Services/whatsapp-web/whatsappConnection"
 import '../app/Services/plugins/axios'
+import Log from "App/Models/Log";
 
 
 async function destroyFullAgents() {
@@ -63,7 +64,6 @@ async function sendRepeatedMessage() {
 async function resendMessage() {
   setInterval(async () => {
     console.log("passei no RESEND............................")
-
     const now = DateTime.now()
     const yesterdayStart = now.minus({ days: 1 }).startOf('day')
     const yesterdayEnd = now.minus({ days: 1 }).endOf('day')
@@ -75,14 +75,15 @@ async function resendMessage() {
       .where('created_at', '<=', yesterdayEnd.toSQL({ includeOffset: false }))
       .where('dateshedule', '>=', tomorrowStart.toSQL({ includeOffset: false }))
       .where('dateshedule', '<=', tomorrowEnd.toSQL({ includeOffset: false }))
+      .andWhere('interaction_id',1)
       .whereNull('phonevalid')
-      // .update({
-      //   createdAt: DateTime.now().toSQL({ includeOffset: false })
-      // })
-
+      .update({
+        createdAt: DateTime.now().toSQL({ includeOffset: false })
+      })
     const data = await query
-    console.log(query.toQuery())
-  }, 10 * 1000) // 10 segundos só para teste
+      if (data[0]>0)
+        await Log.create({ name: "Resend", message: `Reenvio de mensagens, total:${data[0]}`, description: "Function: resendMessage" })
+  }, 3 * 60 * 60 * 1000) // 10 segundos só para teste
 }
 
 

@@ -102,3 +102,8 @@ pm2 monit
 https://chatgpt.com/share/0fc3fddf-4535-4161-bae2-b30e0fde26bb
 
 
+# DATAS CONFIGURAÇÕES
+const yesterdayStart = now.minus({ days: 1 }).startOf('day')  
+const yesterdayEnd = now.minus({ days: 1 }).endOf('day')
+
+.where('created_at', '>=', yesterdayStart.toSQL({ includeOffset: false })) = 2025-08-10 00:00:00.000

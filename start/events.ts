@@ -197,7 +197,13 @@ async function resendMessage() {
       const updatedShipping = await Shippingcampaign
         .query()
         .joinRaw(`JOIN (${subquery1.toQuery()}) as temp on shippingcampaigns.id = temp.id`)
-        .update({ createdAt: DateTime.now().toSQL({ includeOffset: false }), phonevalid:null, messagesent:0 })
+        .update({ createdAt: DateTime.now().toSQL({ includeOffset: false }), phonevalid: null, messagesent: 0 })
+
+      await Log.create({
+        name: "Resend",
+        message: "reenvio de mensagens realizado",
+        description: "reenvio realizado"
+      })
 
       console.log(">>>>update::", updatedShipping)
 

@@ -726,7 +726,9 @@ export default class ShippingcampaignsController {
     }
     else query.whereNull('company_id')
     query.whereNotExists((subquery) => {
-      subquery.select('*').from('chats').whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id');
+      subquery.select('*').from('chats')
+      .whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id')
+      .andWhereNull('chats.excluded')
     })
     if (agentCompany?.interaction_priority?.toLocaleUpperCase() === 'CONFIRMATION')
       query.orderByRaw('(interaction_id!=1),RAND()').limit(10)

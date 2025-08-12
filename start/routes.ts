@@ -15,9 +15,9 @@ function operacaoAssincrona(callback) {
 
   if (process.env.SERVER?.toLowerCase() === 'false') {
     console.log("INICIALIZANDO EASYTALK SMART")
-    // destroyFullAgents()
-    // resetStatusConnected()
-    // connectionAll()
+    destroyFullAgents()
+    resetStatusConnected()
+    connectionAll()
     resendMessage()
     return
   }

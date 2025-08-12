@@ -138,12 +138,13 @@ async function resendMessage() {
   setInterval(async () => {
     try {
       console.log("passei no RESEND............................")
-
       const now = DateTime.now()
       const yesterdayStart = now.minus({ days: 1 }).startOf('day')
       const yesterdayEnd = now.minus({ days: 1 }).endOf('day')
       const tomorrowStart = now.plus({ days: 1 }).startOf('day')
       const tomorrowEnd = now.plus({ days: 1 }).endOf('day')
+      const yesterdayNoon = now.minus({ days: 1 }).set({ hour: 12, minute: 0, second: 0, millisecond: 0 })
+
 
       // 🔹 Atualiza mensagens para reenvio
       const updatedResend = await Shippingcampaign.query()
@@ -169,25 +170,23 @@ async function resendMessage() {
       const subquery = Database.from('chats')
         .innerJoin('shippingcampaigns', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
         .where('shippingcampaigns.created_at', '>=', yesterdayStart.toSQL({ includeOffset: false }))
-        .where('shippingcampaigns.created_at', '<=', yesterdayEnd.toSQL({ includeOffset: false }))
+        .where('shippingcampaigns.created_at', '<=', yesterdayNoon.toSQL({ includeOffset: false }))
         .where('shippingcampaigns.interaction_id', 1)
         .where('shippingcampaigns.interaction_seq', 1)
         .where('chats.returned', 0)
         .where('chats.ack', 2)
         .select('chats.id')
 
-      const chatExcluded = await Chat.query()
+       await Chat.query()
         .whereIn('id', Database.from(subquery.as('temp')))
         .update({ excluded: 1 })
-
-      console.log(">>>>>>", chatExcluded)
 
       // 🔹 Atualiza SHIPPINGCAMPAIGNS com mesmo filtro
       const subquery1 = Database
         .from('shippingcampaigns as sc')
         .innerJoin('chats as c', 'sc.id', 'c.shippingcampaigns_id')
         .where('sc.created_at', '>=', yesterdayStart.toSQL({ includeOffset: false }))
-        .where('sc.created_at', '<=', yesterdayEnd.toSQL({ includeOffset: false }))
+        .where('sc.created_at', '<=', yesterdayNoon.toSQL({ includeOffset: false }))
         .where('sc.interaction_id', 1)
         .where('sc.interaction_seq', 1)
         .where('c.returned', 0)
@@ -201,7 +200,7 @@ async function resendMessage() {
 
       await Log.create({
         name: "Resend",
-        message: "reenvio de mensagens realizado",
+        message: `reenvio de mensagens realizado:${updatedShipping}`,
         description: "reenvio realizado"
       })
 
@@ -216,15 +215,8 @@ async function resendMessage() {
         description: error.stack || "Sem stack trace"
       })
     }
-  }, 10 * 1000) // 10 segundos
+  }, 5 * 60 * 60 * 1000) // 5 horas
 }
-
-
-
-
-
-
-
 
 
 //BUSCANDO NO KLINGO

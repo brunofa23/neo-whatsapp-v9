@@ -423,8 +423,8 @@ export default class ShippingcampaignsController {
     if (unit)
       query += ` and unit='${unit}'`
     if (excluded)
-      query += ` and excluded=1 `
-    else query += ` and (excluded not in (1) or excluded is null) `
+      query += ` and shippingcampaigns.excluded=1 `
+    else query += ` and (shippingcampaigns.excluded not in (1) or shippingcampaigns.excluded is null) `
     if (chat_finished)
       query += ` and chat_finished=1 `
     //else query += ` and (chat_finished not in (1) or chat_finished is null) `
@@ -466,7 +466,7 @@ export default class ShippingcampaignsController {
           'chatnumber',
           'absoluteresp',
           'prioritysend',
-          'excluded',
+          'shippingcampaigns.excluded',
           'doctor',
           'unit',
           'attendant',
@@ -512,7 +512,7 @@ export default class ShippingcampaignsController {
           'chatname',
           Database.raw('CASE WHEN closed = 0 THEN NULL ELSE absoluteresp END AS absoluteresp'),
           'prioritysend',
-          'excluded',
+          'shippingcampaigns.excluded',
           'doctor',
           'unit',
           'attendant',
@@ -589,7 +589,7 @@ export default class ShippingcampaignsController {
         .innerJoin('shippingcampaigns', 'chats.shippingcampaigns_id', 'shippingcampaigns.id')
         .where('chats.interaction_id', 2)
         .whereBetween('chats.created_at', [initialdate, finaldate])
-        .andWhereRaw('(excluded not in (1) or excluded is null)')
+        .andWhereRaw('(shippingcampaigns.excluded not in (1) or shippingcampaigns.excluded is null)')
         .select('unit as station')
         .sum(Database.raw(`CASE WHEN absoluteresp < 7 THEN 1 ELSE 0 END`), 'detrator')
         .sum(Database.raw(`CASE WHEN absoluteresp BETWEEN 7 AND 8 THEN 1 ELSE 0 END`), 'passivo')
@@ -607,7 +607,7 @@ export default class ShippingcampaignsController {
         .innerJoin('shippingcampaigns', 'chats.shippingcampaigns_id', 'shippingcampaigns.id')
         .where('chats.interaction_id', 2)
         .whereBetween('chats.created_at', [initialdate, finaldate])
-        .andWhereRaw('(excluded not in (1) or excluded is null)')
+        .andWhereRaw('(shippingcampaigns.excluded not in (1) or shippingcampaigns.excluded is null)')
         .select('doctor as medic')
         .sum(Database.raw(`CASE WHEN absoluteresp < 7 THEN 1 ELSE 0 END`), 'detrator')
         .sum(Database.raw(`CASE WHEN absoluteresp BETWEEN 7 AND 8 THEN 1 ELSE 0 END`), 'passivo')
@@ -626,7 +626,7 @@ export default class ShippingcampaignsController {
         .innerJoin('shippingcampaigns', 'chats.shippingcampaigns_id', 'shippingcampaigns.id')
         .where('chats.interaction_id', 2)
         .whereBetween('chats.created_at', [initialdate, finaldate])
-        .andWhereRaw('(excluded not in (1) or excluded is null)')
+        .andWhereRaw('(shippingcampaigns.excluded not in (1) or shippingcampaigns.excluded is null)')
         .select('attendant')
         .sum(Database.raw(`CASE WHEN absoluteresp < 7 THEN 1 ELSE 0 END`), 'detrator')
         .sum(Database.raw(`CASE WHEN absoluteresp BETWEEN 7 AND 8 THEN 1 ELSE 0 END`), 'passivo')

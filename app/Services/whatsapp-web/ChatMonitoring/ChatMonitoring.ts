@@ -16,7 +16,7 @@ import Talk from 'App/Models/Talk';
 // Mapa global para rastrear mensagens por número e prevenir loops
 const messageTracker = new Map<string, { count: number, lastMessage: number }>();
 function isBotLoopDetected(phone: string): boolean {
-  console.log(">>>>>>>>>>>>>> DETECTANDO LOOP 152222")
+
   const now = Date.now();
   const record = messageTracker.get(phone);
 
@@ -24,14 +24,10 @@ function isBotLoopDetected(phone: string): boolean {
     messageTracker.set(phone, { count: 1, lastMessage: now });
     return false;
   }
-
   const diff = now - record.lastMessage;
-  console.log(">>>>>>>>>>>>>> DETECTANDO PARTE 2 152222", diff)
-
   if (diff < 5000) {
     record.count++;
     record.lastMessage = now;
-
     if (record.count >= 3) {
       console.warn(`Possível loop de bot detectado com ${phone}. Ignorando temporariamente.`);
       return true;

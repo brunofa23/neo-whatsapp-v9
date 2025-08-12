@@ -17,7 +17,6 @@ const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Mo
 const Talk_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Talk"));
 const messageTracker = new Map();
 function isBotLoopDetected(phone) {
-    console.log(">>>>>>>>>>>>>> DETECTANDO LOOP 152222");
     const now = Date.now();
     const record = messageTracker.get(phone);
     if (!record) {
@@ -25,7 +24,6 @@ function isBotLoopDetected(phone) {
         return false;
     }
     const diff = now - record.lastMessage;
-    console.log(">>>>>>>>>>>>>> DETECTANDO PARTE 2 152222", diff);
     if (diff < 5000) {
         record.count++;
         record.lastMessage = now;

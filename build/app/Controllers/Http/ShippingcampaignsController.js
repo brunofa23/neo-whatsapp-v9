@@ -342,9 +342,9 @@ class ShippingcampaignsController {
         if (unit)
             query += ` and unit='${unit}'`;
         if (excluded)
-            query += ` and excluded=1 `;
+            query += ` and shippingcampaigns.excluded=1 `;
         else
-            query += ` and (excluded not in (1) or excluded is null) `;
+            query += ` and (shippingcampaigns.excluded not in (1) or shippingcampaigns.excluded is null) `;
         if (chat_finished)
             query += ` and chat_finished=1 `;
         if (type_service)
@@ -362,12 +362,12 @@ class ShippingcampaignsController {
             const queryResult = Database_1.default.connection(Env_1.default.get('DB_CONNECTION_MAIN')).query()
                 .from('shippingcampaigns');
             if (!closed) {
-                queryResult.select('shippingcampaigns.id as idShipp', 'shippingcampaigns.interaction_id', 'shippingcampaigns.reg', 'shippingcampaigns.name', 'shippingcampaigns.cellphone', 'shippingcampaigns.cellphoneserialized', 'chats.id', 'otherfields', 'phonevalid', 'messagesent', 'chats.created_at', 'chats.date_return', 'response', 'returned', 'invalidresponse', 'chatname', 'chatnumber', 'absoluteresp', 'prioritysend', 'excluded', 'doctor', 'unit', 'attendant', Database_1.default.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed'), 'chat_finished', 'last_response', 'date_first_return', 'justify_excluded');
+                queryResult.select('shippingcampaigns.id as idShipp', 'shippingcampaigns.interaction_id', 'shippingcampaigns.reg', 'shippingcampaigns.name', 'shippingcampaigns.cellphone', 'shippingcampaigns.cellphoneserialized', 'chats.id', 'otherfields', 'phonevalid', 'messagesent', 'chats.created_at', 'chats.date_return', 'response', 'returned', 'invalidresponse', 'chatname', 'chatnumber', 'absoluteresp', 'prioritysend', 'shippingcampaigns.excluded', 'doctor', 'unit', 'attendant', Database_1.default.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed'), 'chat_finished', 'last_response', 'date_first_return', 'justify_excluded');
                 if (report)
                     queryResult.select('main_subject', 'responsible', 'main_subject', 'report', 'employee_involved', 'medic_einvolved', 'date_limit', 'responsible_response', 'root_cause', 'action', 'date_limit_action', 'date_limit_manifest', 'obs', 'status');
             }
             if (closed) {
-                queryResult.select('shippingcampaigns.id as idShipp', 'shippingcampaigns.interaction_id', 'shippingcampaigns.reg', 'shippingcampaigns.name', 'shippingcampaigns.cellphone', 'chats.id', 'otherfields', 'phonevalid', 'messagesent', 'chats.created_at', 'chats.date_return', 'response', 'returned', 'invalidresponse', 'chatname', Database_1.default.raw('CASE WHEN closed = 0 THEN NULL ELSE absoluteresp END AS absoluteresp'), 'prioritysend', 'excluded', 'doctor', 'unit', 'attendant', Database_1.default.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed'), 'chat_finished', 'last_response', 'date_first_return', 'justify_excluded');
+                queryResult.select('shippingcampaigns.id as idShipp', 'shippingcampaigns.interaction_id', 'shippingcampaigns.reg', 'shippingcampaigns.name', 'shippingcampaigns.cellphone', 'chats.id', 'otherfields', 'phonevalid', 'messagesent', 'chats.created_at', 'chats.date_return', 'response', 'returned', 'invalidresponse', 'chatname', Database_1.default.raw('CASE WHEN closed = 0 THEN NULL ELSE absoluteresp END AS absoluteresp'), 'prioritysend', 'shippingcampaigns.excluded', 'doctor', 'unit', 'attendant', Database_1.default.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed'), 'chat_finished', 'last_response', 'date_first_return', 'justify_excluded');
                 if (report)
                     queryResult.select('main_subject', 'responsible', 'main_subject', 'report', 'employee_involved', 'medic_einvolved', 'date_limit', 'responsible_response', 'root_cause', 'action', 'date_limit_action', 'date_limit_manifest', 'obs', 'status');
             }
@@ -410,7 +410,7 @@ class ShippingcampaignsController {
                 .innerJoin('shippingcampaigns', 'chats.shippingcampaigns_id', 'shippingcampaigns.id')
                 .where('chats.interaction_id', 2)
                 .whereBetween('chats.created_at', [initialdate, finaldate])
-                .andWhereRaw('(excluded not in (1) or excluded is null)')
+                .andWhereRaw('(shippingcampaigns.excluded not in (1) or shippingcampaigns.excluded is null)')
                 .select('unit as station')
                 .sum(Database_1.default.raw(`CASE WHEN absoluteresp < 7 THEN 1 ELSE 0 END`), 'detrator')
                 .sum(Database_1.default.raw(`CASE WHEN absoluteresp BETWEEN 7 AND 8 THEN 1 ELSE 0 END`), 'passivo')
@@ -427,7 +427,7 @@ class ShippingcampaignsController {
                 .innerJoin('shippingcampaigns', 'chats.shippingcampaigns_id', 'shippingcampaigns.id')
                 .where('chats.interaction_id', 2)
                 .whereBetween('chats.created_at', [initialdate, finaldate])
-                .andWhereRaw('(excluded not in (1) or excluded is null)')
+                .andWhereRaw('(shippingcampaigns.excluded not in (1) or shippingcampaigns.excluded is null)')
                 .select('doctor as medic')
                 .sum(Database_1.default.raw(`CASE WHEN absoluteresp < 7 THEN 1 ELSE 0 END`), 'detrator')
                 .sum(Database_1.default.raw(`CASE WHEN absoluteresp BETWEEN 7 AND 8 THEN 1 ELSE 0 END`), 'passivo')
@@ -444,7 +444,7 @@ class ShippingcampaignsController {
                 .innerJoin('shippingcampaigns', 'chats.shippingcampaigns_id', 'shippingcampaigns.id')
                 .where('chats.interaction_id', 2)
                 .whereBetween('chats.created_at', [initialdate, finaldate])
-                .andWhereRaw('(excluded not in (1) or excluded is null)')
+                .andWhereRaw('(shippingcampaigns.excluded not in (1) or shippingcampaigns.excluded is null)')
                 .select('attendant')
                 .sum(Database_1.default.raw(`CASE WHEN absoluteresp < 7 THEN 1 ELSE 0 END`), 'detrator')
                 .sum(Database_1.default.raw(`CASE WHEN absoluteresp BETWEEN 7 AND 8 THEN 1 ELSE 0 END`), 'passivo')
@@ -514,7 +514,9 @@ class ShippingcampaignsController {
         else
             query.whereNull('company_id');
         query.whereNotExists((subquery) => {
-            subquery.select('*').from('chats').whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id');
+            subquery.select('*').from('chats')
+                .whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id')
+                .andWhereNull('chats.excluded');
         });
         if (agentCompany?.interaction_priority?.toLocaleUpperCase() === 'CONFIRMATION')
             query.orderByRaw('(interaction_id!=1),RAND()').limit(10);

@@ -41,6 +41,7 @@ class Chat extends Orm_1.BaseModel {
             'externalstatus',
             'chatnumber',
             'chat_finished',
+            'excluded',
             'company_id',
             'closed',
             'date_return',
@@ -131,6 +132,10 @@ __decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", Boolean)
 ], Chat.prototype, "chat_finished", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", Boolean)
+], Chat.prototype, "excluded", void 0);
 __decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", Number)

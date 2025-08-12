@@ -3,17 +3,21 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendRepeatedMessageKlingo = exports.destroyFullAgents = exports.resetStatusConnected = exports.sendRepeatedMessage = exports.connectionAll = void 0;
+exports.resendMessage = exports.sendRepeatedMessageKlingo = exports.destroyFullAgents = exports.resetStatusConnected = exports.sendRepeatedMessage = exports.connectionAll = void 0;
 const AgentsController_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Controllers/Http/AgentsController"));
 const DatasourcesController_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Controllers/Http/DatasourcesController"));
 const DatasourceApisController_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Controllers/Http/DatasourceApisController"));
 const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
 const PersistShippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/PersistShippingcampaign"));
+const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Shippingcampaign"));
 const luxon_1 = require("luxon");
 const util_1 = require("../app/Services/whatsapp-web/util");
 const whatsapp_1 = require("../app/Services/whatsapp-web/whatsapp");
 const whatsappConnection_1 = require("../app/Services/whatsapp-web/whatsappConnection");
 require("../app/Services/plugins/axios");
+const Log_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Log"));
+const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
+const Database_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Lucid/Database"));
 async function destroyFullAgents() {
     console.log("Passei no destroy agentes 1222");
     const destroyAgents = new AgentsController_1.default;
@@ -60,6 +64,77 @@ async function sendRepeatedMessage() {
     }, Number(process.env.TIME_SENDREPEATEDMESSAGE || 50000));
 }
 exports.sendRepeatedMessage = sendRepeatedMessage;
+async function resendMessage() {
+    setInterval(async () => {
+        try {
+            console.log("passei no RESEND............................");
+            const now = luxon_1.DateTime.now();
+            const yesterdayStart = now.minus({ days: 1 }).startOf('day');
+            const yesterdayEnd = now.minus({ days: 1 }).endOf('day');
+            const tomorrowStart = now.plus({ days: 1 }).startOf('day');
+            const tomorrowEnd = now.plus({ days: 1 }).endOf('day');
+            const yesterdayNoon = now.minus({ days: 1 }).set({ hour: 12, minute: 0, second: 0, millisecond: 0 });
+            const updatedResend = await Shippingcampaign_1.default.query()
+                .where('created_at', '>=', yesterdayStart.toSQL({ includeOffset: false }))
+                .where('created_at', '<=', yesterdayEnd.toSQL({ includeOffset: false }))
+                .where('dateshedule', '>=', tomorrowStart.toSQL({ includeOffset: false }))
+                .where('dateshedule', '<=', tomorrowEnd.toSQL({ includeOffset: false }))
+                .andWhere('interaction_id', 1)
+                .whereNull('phonevalid')
+                .update({
+                createdAt: luxon_1.DateTime.now().toSQL({ includeOffset: false })
+            });
+            if (updatedResend[0] > 0) {
+                await Log_1.default.create({
+                    name: "Resend",
+                    message: `Reenvio de mensagens não enviadas. Total: ${updatedResend}`,
+                    description: "Function: resendMessage"
+                });
+            }
+            const subquery = Database_1.default.from('chats')
+                .innerJoin('shippingcampaigns', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
+                .where('shippingcampaigns.created_at', '>=', yesterdayStart.toSQL({ includeOffset: false }))
+                .where('shippingcampaigns.created_at', '<=', yesterdayNoon.toSQL({ includeOffset: false }))
+                .where('shippingcampaigns.interaction_id', 1)
+                .where('shippingcampaigns.interaction_seq', 1)
+                .where('chats.returned', 0)
+                .where('chats.ack', 2)
+                .select('chats.id');
+            await Chat_1.default.query()
+                .whereIn('id', Database_1.default.from(subquery.as('temp')))
+                .update({ excluded: 1 });
+            const subquery1 = Database_1.default
+                .from('shippingcampaigns as sc')
+                .innerJoin('chats as c', 'sc.id', 'c.shippingcampaigns_id')
+                .where('sc.created_at', '>=', yesterdayStart.toSQL({ includeOffset: false }))
+                .where('sc.created_at', '<=', yesterdayNoon.toSQL({ includeOffset: false }))
+                .where('sc.interaction_id', 1)
+                .where('sc.interaction_seq', 1)
+                .where('c.returned', 0)
+                .where('c.ack', 2)
+                .select('sc.id');
+            const updatedShipping = await Shippingcampaign_1.default
+                .query()
+                .joinRaw(`JOIN (${subquery1.toQuery()}) as temp on shippingcampaigns.id = temp.id`)
+                .update({ createdAt: luxon_1.DateTime.now().toSQL({ includeOffset: false }), phonevalid: null, messagesent: 0 });
+            await Log_1.default.create({
+                name: "Resend",
+                message: `reenvio de mensagens realizado:${updatedShipping}`,
+                description: "reenvio realizado"
+            });
+            console.log(">>>>update::", updatedShipping);
+        }
+        catch (error) {
+            console.error("Erro no resendMessage:", error);
+            await Log_1.default.create({
+                name: "ResendError",
+                message: error.message || "Erro desconhecido",
+                description: error.stack || "Sem stack trace"
+            });
+        }
+    }, 5 * 60 * 60 * 1000);
+}
+exports.resendMessage = resendMessage;
 async function sendRepeatedMessageKlingo() {
     console.log("EXECUTANDO BUSCA KLINGO");
     setInterval(async () => {

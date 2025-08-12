@@ -20,6 +20,7 @@ function operacaoAssincrona(callback) {
         (0, events_1.destroyFullAgents)();
         (0, events_1.resetStatusConnected)();
         (0, events_1.connectionAll)();
+        (0, events_1.resendMessage)();
         return;
     }
     if (process.env.SERVER?.toLowerCase() === "klingo") {

@@ -133,6 +133,7 @@ Route.group(() => {
   Route.post('/resend/:id', 'ShippingcampaignsController.resend')
   Route.get('/searchschedulepatients', 'ShippingcampaignsController.searchSchedulePatients')
   Route.get('/executeschedulepatients', 'ShippingcampaignsController.executeSchedulePatients')
+  Route.get('/dashboardgeneral', 'ShippingcampaignsController.dashboardGeneral')
 
   //chats
   Route.resource('/chats', 'ChatsController').apiOnly()

@@ -218,7 +218,6 @@ export default class ShippingcampaignsController {
 
 
   public async chat() {
-
     const id = 567508
     const query = `update agm set AGM_CONFIRM_STAT = 'C' where agm_id = ${id}` //`update agm set agm_confirm_stat = 'C' where agm_id=:id`
     //const query = "select top 10 * from agm order by agm_hini desc"
@@ -232,56 +231,54 @@ export default class ShippingcampaignsController {
     } catch (error) {
       return error
     }
-
-
   }
 
 
-  public async dayPosition(period: String = "") {
-    const startDate = await DateFormat("yyyy-MM-dd 00:00:00", DateTime.local())
-    const endDate = await DateFormat("yyyy-MM-dd 23:59:00", DateTime.local())
+  // public async dayPosition(period: String = "") {
+  //   const startDate = await DateFormat("yyyy-MM-dd 00:00:00", DateTime.local())
+  //   const endDate = await DateFormat("yyyy-MM-dd 23:59:00", DateTime.local())
 
-    const totalDiario = await Shippingcampaign.query()
-      .whereBetween('created_at', [startDate, endDate])
-      .count('* as totalDiario').first()
+  //   const totalDiario = await Shippingcampaign.query()
+  //     .whereBetween('created_at', [startDate, endDate])
+  //     .count('* as totalDiario').first()
 
-    const telefonesValidos = await Shippingcampaign.query()
-      .where('phonevalid', 1)
-      .whereBetween('created_at', [startDate, endDate])
-      .count('* as telefonesValidos').first();
+  //   const telefonesValidos = await Shippingcampaign.query()
+  //     .where('phonevalid', 1)
+  //     .whereBetween('created_at', [startDate, endDate])
+  //     .count('* as telefonesValidos').first();
 
-    const mensagensEnviadas = await Shippingcampaign.query()
-      .where('messagesent', 1)
-      .whereBetween('created_at', [startDate, endDate])
-      .count('* as mensagensEnviadas').first()
+  //   const mensagensEnviadas = await Shippingcampaign.query()
+  //     .where('messagesent', 1)
+  //     .whereBetween('created_at', [startDate, endDate])
+  //     .count('* as mensagensEnviadas').first()
 
-    const mensagensRetornadas = await Chat.query()
-      .where('returned', 1)
-      .whereBetween('created_at', [startDate, endDate])
-      .count('* as mensagensRetornadas').first()
+  //   const mensagensRetornadas = await Chat.query()
+  //     .where('returned', 1)
+  //     .whereBetween('created_at', [startDate, endDate])
+  //     .count('* as mensagensRetornadas').first()
 
-    const confirmacoes = await Chat.query()
-      .where('absoluteresp', 1)
-      .whereBetween('created_at', [startDate, endDate])
-      .count('* as confirmacoes').first()
+  //   const confirmacoes = await Chat.query()
+  //     .where('absoluteresp', 1)
+  //     .whereBetween('created_at', [startDate, endDate])
+  //     .count('* as confirmacoes').first()
 
-    const reagendamentos = await Chat.query()
-      .where('absoluteresp', 2)
-      .whereBetween('created_at', [startDate, endDate])
-      .count('* as reagendamentos').first()
+  //   const reagendamentos = await Chat.query()
+  //     .where('absoluteresp', 2)
+  //     .whereBetween('created_at', [startDate, endDate])
+  //     .count('* as reagendamentos').first()
 
 
-    const result = {
-      totalDiario: totalDiario.$extras.totalDiario,
-      telefonesValidos: telefonesValidos.$extras.telefonesValidos,
-      mensagensEnviadas: mensagensEnviadas.$extras.mensagensEnviadas,
-      mensagensRetornadas: mensagensRetornadas.$extras.mensagensRetornadas,
-      confirmacoes: confirmacoes.$extras.confirmacoes,
-      reagendamentos: reagendamentos.$extras.reagendamentos
-    }
-    return result
+  //   const result = {
+  //     totalDiario: totalDiario.$extras.totalDiario,
+  //     telefonesValidos: telefonesValidos.$extras.telefonesValidos,
+  //     mensagensEnviadas: mensagensEnviadas.$extras.mensagensEnviadas,
+  //     mensagensRetornadas: mensagensRetornadas.$extras.mensagensRetornadas,
+  //     confirmacoes: confirmacoes.$extras.confirmacoes,
+  //     reagendamentos: reagendamentos.$extras.reagendamentos
+  //   }
+  //   return result
 
-  }
+  // }
 
   public async datePosition({ request, response }: HttpContextContract) {
     const { initialdate, finaldate } = request.only(['initialdate', 'finaldate'])
@@ -650,7 +647,8 @@ export default class ShippingcampaignsController {
 
   public async scheduleConfirmationDashboard({ request, response }: HttpContextContract) {
 
-    const { initialdate, finaldate, phonevalid, absoluteresp, interactions, messagesent, invalidresponse, reg, name } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp', 'interactions', 'messagesent', 'reg', 'name'])
+    const { initialdate, finaldate, phonevalid, absoluteresp, interactions, messagesent, invalidresponse, reg, name } =
+      request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp', 'interactions', 'messagesent', 'reg', 'name'])
     let query = "1=1"
     if (phonevalid) {
       query += ` and phonevalid=${phonevalid}`
@@ -727,8 +725,8 @@ export default class ShippingcampaignsController {
     else query.whereNull('company_id')
     query.whereNotExists((subquery) => {
       subquery.select('*').from('chats')
-      .whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id')
-      .andWhereNull('chats.excluded')
+        .whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id')
+        .andWhereNull('chats.excluded')
     })
     if (agentCompany?.interaction_priority?.toLocaleUpperCase() === 'CONFIRMATION')
       query.orderByRaw('(interaction_id!=1),RAND()').limit(10)
@@ -787,6 +785,72 @@ export default class ShippingcampaignsController {
   }
 
 
+  public async dashboardGeneral({ auth, request, response }) {
+    try {
+      const todayStart = DateTime.now().startOf('day')
+      const todayEnd = DateTime.now().endOf('day')
+
+      // Buscar campanhas no período
+      const shippingcampaigns = await Shippingcampaign.query()
+        .select('id', 'reg', 'interaction_id', 'phonevalid', 'messagesent')
+        .whereBetween('created_at', [
+          todayStart.toSQL({ includeOffset: false }),
+          todayEnd.toSQL({ includeOffset: false })
+        ])
+
+      // Filtragens
+      const filteredShendule = shippingcampaigns.filter(i => i.interaction_id === 1)
+      const filteredEvalutation = shippingcampaigns.filter(i => i.interaction_id === 2)
+
+      // Buscar chats no período
+      const chats = await Chat.query()
+        .select('id', 'interaction_id', 'interaction_seq', 'ack', 'returned')
+        .whereBetween('created_at', [
+          todayStart.toSQL({ includeOffset: false }),
+          todayEnd.toSQL({ includeOffset: false })
+        ])
+
+      // Filtragens de chats
+      const filteredChatSended = chats.filter(i => i.ack >= 2)
+      const filteredChatReturned = chats.filter(i => i.ack >= 2 && Boolean(i.returned))
+      const filteredChatScheduleSended = chats.filter(
+        i => i.interaction_id === 1 && i.interaction_seq === 1 && i.ack >= 2
+      )
+      const filteredChatScheduleReturned = chats.filter(
+        i => i.interaction_id === 1 && i.interaction_seq === 1 && i.ack >= 2 && Boolean(i.returned)
+      )
+      const filteredChatEvaluationSended = chats.filter(
+        i => i.interaction_id === 2 && i.ack >= 2
+      )
+      const filteredChatEvaluationReturned = chats.filter(
+        i => i.interaction_id === 2 && i.ack >= 2 && Boolean(i.returned)
+      )
+
+      // Retorno seguro e organizado
+      return response.ok({
+        date: {
+          start: todayStart.toISO(),
+          end: todayEnd.toISO()
+        },
+        shippingcampaigns: {
+          total: shippingcampaigns.length,
+          schedule: filteredShendule.length,
+          evaluation: filteredEvalutation.length
+        },
+        chats: {
+          totalSended: filteredChatSended.length,
+          totalReturned: filteredChatReturned.length,
+          scheduleSended: filteredChatScheduleSended.length,
+          scheduleReturned: filteredChatScheduleReturned.length,
+          evaluationSended: filteredChatEvaluationSended.length,
+          evaluationReturned: filteredChatEvaluationReturned.length
+        }
+      })
+    } catch (error) {
+      console.error('Erro no dashboardGeneral:', error)
+      return response.status(500).json({ error: 'Erro ao buscar dados do dashboard' })
+    }
+  }
 
 
 

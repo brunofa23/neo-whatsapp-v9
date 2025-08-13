@@ -10,27 +10,40 @@ import Shippingcampaign from 'App/Models/Shippingcampaign'
 
 test('display welcome page', async ({ client }) => {
 
-  const yesterday = DateTime.local().toFormat('yyyy-MM-dd 00:00')
-      const query = Shippingcampaign.query()
-        .whereNull('phonevalid')
-        .andWhere('messagesent', 0)
-        .andWhere('created_at', '>', yesterday)
+  // const todayStart = DateTime.now().minus({ days: 1 }).startOf('day')
+  // const todayEnd = DateTime.now().minus({ days: 1 }).endOf('day')
+  const todayStart = DateTime.now().startOf('day')
+  const todayEnd = DateTime.now().endOf('day')
 
-      // if (agentCompany?.company_id) {
-      //   query.andWhere('company_id', agentCompany?.company_id)
-      // }
-      //else query.whereNull('company_id')
-      query.whereNotExists((subquery) => {
-        subquery.select('*').from('chats')
-        .whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id')
-        .andWhereNull('chats.excluded')
-      })
-      // if (agentCompany?.interaction_priority?.toLocaleUpperCase() === 'CONFIRMATION')
-      //   query.orderByRaw('(interaction_id!=1),RAND()').limit(10)
-      // else if (agentCompany?.interaction_priority?.toLocaleUpperCase() === 'EVALUATION')
-      //   query.orderByRaw('(interaction_id!=2),RAND()').limit(10)
-      // else
-        query.orderByRaw('RAND()').limit(10)
+  console.log("teste General", todayStart, todayEnd)
 
-      console.log(">>>>", query.toQuery())
+  const query = Shippingcampaign.query()
+    .select('id', 'reg', 'interaction_id', 'phonevalid', 'messagesent')
+    .whereBetween('created_at', [todayStart.toSQL({ includeOffset: false }),
+    todayEnd.toSQL({ includeOffset: false })])
+
+  const shippingcampaigns = await query
+  const filteredShendule = shippingcampaigns.filter(item => item.interaction_id === 1)
+  const filteredEvalutation = shippingcampaigns.filter(item => item.interaction_id === 2)
+
+  const queryChat = Chat.query()
+    .select('id', 'interaction_id', 'interaction_seq', 'ack', 'returned')
+    .whereBetween('created_at', [todayStart.toSQL({ includeOffset: false }),
+    todayEnd.toSQL({ includeOffset: false })])
+  const chats = await queryChat
+
+  const filteredChatSended = chats.filter(item => item.ack>=2)
+  const filteredChatReturned = chats.filter(item => item.ack>=2 && !!item.returned===true)
+  const filteredChatScheduleSended = chats.filter(item => item.interaction_id === 1 && item.interaction_seq===1 && item.ack>=2)
+  const filteredChatScheduleReturned = chats.filter(item => item.interaction_id === 1 && item.interaction_seq===1 && item.ack>=2 && !!item.returned===true)
+  const filteredChatEvaluationSended = chats.filter(item => item.interaction_id === 2 && item.ack>=2)
+  const filteredChatEvaluationReturned = chats.filter(item => item.interaction_id === 2 && item.ack>=2 && !!item.returned===true)
+
+
+  console.log(`TOTAL DE MENSAGENS PARA ENVIAR NO DIA:${shippingcampaigns.length} - AGENDAMENTO:${filteredShendule.length} - CONFIRMAÇÃO:${filteredEvalutation.length}`)
+  console.log(`TOTAL DE MENSAGENS ENVIADAS:${filteredChatSended.length} - AGENDAMENTO:${filteredChatScheduleSended.length} - CONFIRMAÇÃO:${filteredChatEvaluationSended.length}`)
+  console.log(`TOTAL DE MENSAGENS RETORNADAS:${filteredChatReturned.length} - AGENDAMENTO:${filteredChatScheduleReturned.length} - CONFIRMAÇÃO:${filteredChatEvaluationReturned.length}`)
+
+
+
 })

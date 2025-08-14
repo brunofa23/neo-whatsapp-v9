@@ -790,6 +790,7 @@ export default class ShippingcampaignsController {
       const todayStart = DateTime.now().startOf('day')
       const todayEnd = DateTime.now().endOf('day')
 
+
       // Buscar campanhas no período
       const shippingcampaigns = await Shippingcampaign.query()
         .select('id', 'reg', 'interaction_id', 'phonevalid', 'messagesent')
@@ -832,19 +833,19 @@ export default class ShippingcampaignsController {
           start: todayStart.toISO(),
           end: todayEnd.toISO()
         },
-        shippingcampaigns: {
-          total: shippingcampaigns.length,
-          schedule: filteredShendule.length,
-          evaluation: filteredEvalutation.length
-        },
-        chats: {
-          totalSended: filteredChatSended.length,
-          totalReturned: filteredChatReturned.length,
-          scheduleSended: filteredChatScheduleSended.length,
-          scheduleReturned: filteredChatScheduleReturned.length,
-          evaluationSended: filteredChatEvaluationSended.length,
-          evaluationReturned: filteredChatEvaluationReturned.length
-        }
+        shippingcampaigns: [
+          { description: "total", value: shippingcampaigns.length, label: "Total Geral" },
+          { description: "schedule", value: filteredShendule.length, label: "Total de Confirmações" },
+          { description: "evaluation", value: filteredEvalutation.length, label: "Total de Avaliações" },
+        ],
+        chats: [
+          { description: "totalSended", value: filteredChatSended.length, label: "Total de Mensagens Enviadas" },
+          { description: "totalReturned", value: filteredChatReturned.length, label: "Total de Mensagens Retornadas" },
+          { description: "scheduleSended", value: filteredChatScheduleSended.length, label: "Total de Confirmações Enviadas" },
+          { description: "scheduleReturned", value: filteredChatScheduleReturned.length, label: "Total de Confirmações Retornadas" },
+          { description: "evaluationSended", value: filteredChatEvaluationSended.length, label: "Total de Avaliações Enviadas" },
+          { description: "evaluationReturned", value: filteredChatEvaluationReturned.length, label: "Total de Avaliações Retornadas" },
+        ]
       })
     } catch (error) {
       console.error('Erro no dashboardGeneral:', error)

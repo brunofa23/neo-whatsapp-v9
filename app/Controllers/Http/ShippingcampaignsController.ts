@@ -800,6 +800,7 @@ export default class ShippingcampaignsController {
         ])
 
       // Filtragens
+      
       const filteredShendule = shippingcampaigns.filter(i => i.interaction_id === 1)
       const filteredEvalutation = shippingcampaigns.filter(i => i.interaction_id === 2)
 

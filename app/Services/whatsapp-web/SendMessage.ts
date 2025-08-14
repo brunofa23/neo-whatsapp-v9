@@ -62,6 +62,7 @@ export default async (client: Client, agent: Agent) => {
       .where('interaction_id', shippingCampaign?.interaction_id)
       .andWhere('interaction_seq', shippingCampaign?.interaction_seq)
       .andWhere('shippingcampaigns_id', shippingCampaign?.id)
+      .andWhereNull('excluded')
     return await query.first()
 
   }

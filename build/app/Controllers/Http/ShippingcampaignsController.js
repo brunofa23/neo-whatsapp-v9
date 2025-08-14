@@ -197,42 +197,6 @@ class ShippingcampaignsController {
             return error;
         }
     }
-    async dayPosition(period = "") {
-        const startDate = await (0, util_1.DateFormat)("yyyy-MM-dd 00:00:00", luxon_1.DateTime.local());
-        const endDate = await (0, util_1.DateFormat)("yyyy-MM-dd 23:59:00", luxon_1.DateTime.local());
-        const totalDiario = await Shippingcampaign_1.default.query()
-            .whereBetween('created_at', [startDate, endDate])
-            .count('* as totalDiario').first();
-        const telefonesValidos = await Shippingcampaign_1.default.query()
-            .where('phonevalid', 1)
-            .whereBetween('created_at', [startDate, endDate])
-            .count('* as telefonesValidos').first();
-        const mensagensEnviadas = await Shippingcampaign_1.default.query()
-            .where('messagesent', 1)
-            .whereBetween('created_at', [startDate, endDate])
-            .count('* as mensagensEnviadas').first();
-        const mensagensRetornadas = await Chat_1.default.query()
-            .where('returned', 1)
-            .whereBetween('created_at', [startDate, endDate])
-            .count('* as mensagensRetornadas').first();
-        const confirmacoes = await Chat_1.default.query()
-            .where('absoluteresp', 1)
-            .whereBetween('created_at', [startDate, endDate])
-            .count('* as confirmacoes').first();
-        const reagendamentos = await Chat_1.default.query()
-            .where('absoluteresp', 2)
-            .whereBetween('created_at', [startDate, endDate])
-            .count('* as reagendamentos').first();
-        const result = {
-            totalDiario: totalDiario.$extras.totalDiario,
-            telefonesValidos: telefonesValidos.$extras.telefonesValidos,
-            mensagensEnviadas: mensagensEnviadas.$extras.mensagensEnviadas,
-            mensagensRetornadas: mensagensRetornadas.$extras.mensagensRetornadas,
-            confirmacoes: confirmacoes.$extras.confirmacoes,
-            reagendamentos: reagendamentos.$extras.reagendamentos
-        };
-        return result;
-    }
     async datePosition({ request, response }) {
         const { initialdate, finaldate } = request.only(['initialdate', 'finaldate']);
         if (!luxon_1.DateTime.fromISO(initialdate).isValid || !luxon_1.DateTime.fromISO(finaldate).isValid) {
@@ -556,6 +520,55 @@ class ShippingcampaignsController {
         const result = await (0, PersistShippingcampaign_1.default)(params.date, false, params.interaction_id, params?.unit_cod);
         console.timeEnd('Rodei a busca manual');
         return response.status(200).send(result);
+    }
+    async dashboardGeneral({ auth, request, response }) {
+        try {
+            const todayStart = luxon_1.DateTime.now().startOf('day');
+            const todayEnd = luxon_1.DateTime.now().endOf('day');
+            const shippingcampaigns = await Shippingcampaign_1.default.query()
+                .select('id', 'reg', 'interaction_id', 'phonevalid', 'messagesent')
+                .whereBetween('created_at', [
+                todayStart.toSQL({ includeOffset: false }),
+                todayEnd.toSQL({ includeOffset: false })
+            ]);
+            const filteredShendule = shippingcampaigns.filter(i => i.interaction_id === 1);
+            const filteredEvalutation = shippingcampaigns.filter(i => i.interaction_id === 2);
+            const chats = await Chat_1.default.query()
+                .select('id', 'interaction_id', 'interaction_seq', 'ack', 'returned')
+                .whereBetween('created_at', [
+                todayStart.toSQL({ includeOffset: false }),
+                todayEnd.toSQL({ includeOffset: false })
+            ]);
+            const filteredChatSended = chats.filter(i => i.ack >= 2);
+            const filteredChatReturned = chats.filter(i => i.ack >= 2 && Boolean(i.returned));
+            const filteredChatScheduleSended = chats.filter(i => i.interaction_id === 1 && i.interaction_seq === 1 && i.ack >= 2);
+            const filteredChatScheduleReturned = chats.filter(i => i.interaction_id === 1 && i.interaction_seq === 1 && i.ack >= 2 && Boolean(i.returned));
+            const filteredChatEvaluationSended = chats.filter(i => i.interaction_id === 2 && i.ack >= 2);
+            const filteredChatEvaluationReturned = chats.filter(i => i.interaction_id === 2 && i.ack >= 2 && Boolean(i.returned));
+            return response.ok({
+                date: {
+                    start: todayStart.toISO(),
+                    end: todayEnd.toISO()
+                },
+                shippingcampaigns: {
+                    total: shippingcampaigns.length,
+                    schedule: filteredShendule.length,
+                    evaluation: filteredEvalutation.length
+                },
+                chats: {
+                    totalSended: filteredChatSended.length,
+                    totalReturned: filteredChatReturned.length,
+                    scheduleSended: filteredChatScheduleSended.length,
+                    scheduleReturned: filteredChatScheduleReturned.length,
+                    evaluationSended: filteredChatEvaluationSended.length,
+                    evaluationReturned: filteredChatEvaluationReturned.length
+                }
+            });
+        }
+        catch (error) {
+            console.error('Erro no dashboardGeneral:', error);
+            return response.status(500).json({ error: 'Erro ao buscar dados do dashboard' });
+        }
     }
 }
 exports.default = ShippingcampaignsController;

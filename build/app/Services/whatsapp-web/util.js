@@ -3,9 +3,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.extractCellphone = exports.chunckPhone = exports.validAgent = exports.RandomResponse = exports.ValidatePhone = exports.ClearFolder = exports.NegativeResponse = exports.PositiveResponse = exports.TimeSchedule = exports.GenerateRandomTime = exports.DateFormat = exports.stateTyping = exports.getTargetDates = void 0;
+exports.extractCellphone = exports.chunckPhone = exports.validAgent = exports.RandomResponse = exports.ValidatePhone = exports.ClearFolder = exports.NegativeResponse = exports.PositiveResponse = exports.TimeSchedule = exports.GenerateRandomTime = exports.DateFormat = exports.stateTyping = exports.getTargetDates = exports.sendMessageWarning = void 0;
 const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
 const luxon_1 = require("luxon");
+const WhatsAppClientManager_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/WhatsAppClientManager"));
 const fs = require('fs');
 async function stateTyping(message) {
     const chatTyping = await message.getChat();
@@ -155,4 +156,14 @@ function getTargetDates() {
     return dates;
 }
 exports.getTargetDates = getTargetDates;
+async function sendMessageWarning(cellphoneserialized, message) {
+    const agent = await Agent_1.default.query().where('status', 'CONNECTED').firstOrFail();
+    const client = WhatsAppClientManager_1.default.getClient(String(agent.id));
+    if (!client) {
+        return "Cliente_not_found";
+    }
+    await client.sendMessage(cellphoneserialized, message);
+    return "ok";
+}
+exports.sendMessageWarning = sendMessageWarning;
 //# sourceMappingURL=util.js.map

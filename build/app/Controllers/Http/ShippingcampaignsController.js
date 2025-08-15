@@ -427,7 +427,7 @@ class ShippingcampaignsController {
         }
     }
     async scheduleConfirmationDashboard({ request, response }) {
-        const { initialdate, finaldate, phonevalid, absoluteresp, interactions, messagesent, invalidresponse, reg, name } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp', 'interactions', 'messagesent', 'reg', 'name']);
+        const { initialdate, finaldate, phonevalid, absoluteresp, interactions, messagesent, invalidresponse, reg, name, unit } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp', 'interactions', 'messagesent', 'reg', 'name', 'unit']);
         let query = "1=1";
         if (phonevalid) {
             query += ` and phonevalid=${phonevalid}`;
@@ -445,6 +445,8 @@ class ShippingcampaignsController {
             query += ` and  shippingcampaigns.reg=${reg}`;
         if (name)
             query += ` and  shippingcampaigns.name like '%${name}%' `;
+        if (unit)
+            query += ` and unit_cod = ${unit}`;
         const initial = luxon_1.DateTime.fromISO(initialdate, { zone: 'America/Sao_Paulo' }).startOf('day');
         const final = luxon_1.DateTime.fromISO(finaldate, { zone: 'America/Sao_Paulo' }).endOf('day');
         if (!initial.isValid || !final.isValid) {
@@ -453,10 +455,12 @@ class ShippingcampaignsController {
         try {
             const queryAll = Database_1.default.connection(Env_1.default.get('DB_CONNECTION_MAIN')).query()
                 .from('shippingcampaigns')
-                .select('shippingcampaigns.interaction_id', 'shippingcampaigns.reg', 'shippingcampaigns.name', 'shippingcampaigns.dateshedule', 'shippingcampaigns.cellphone', 'otherfields', 'phonevalid', 'messagesent', 'chats.created_at', 'response', 'returned', 'invalidresponse', 'chatname', 'absoluteresp')
+                .select('shippingcampaigns.interaction_id', 'shippingcampaigns.reg', 'shippingcampaigns.name', 'shippingcampaigns.dateshedule', 'shippingcampaigns.cellphone', 'otherfields', 'phonevalid', 'messagesent', 'chats.created_at', 'response', 'returned', 'invalidresponse', 'chatname', 'absoluteresp', 'unit', 'doctor')
                 .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
                 .whereBetween('shippingcampaigns.created_at', [initial.toISO(), final.toISO()])
                 .where('shippingcampaigns.interaction_id', 1)
+                .andWhereNull('chats.excluded')
+                .andWhere('chats.interaction_seq', 1)
                 .whereRaw(query);
             const queryResult = await queryAll;
             return response.status(201).send(queryResult);
@@ -525,12 +529,19 @@ class ShippingcampaignsController {
         try {
             const todayStart = luxon_1.DateTime.now().startOf('day');
             const todayEnd = luxon_1.DateTime.now().endOf('day');
+            const totalMaxLimitMessage = await Agent_1.default
+                .query()
+                .where('status', 'CONNECTED')
+                .andWhere('default_chat', false)
+                .andWhere('deleted', false)
+                .sum('max_limit_message as total').first();
             const shippingcampaigns = await Shippingcampaign_1.default.query()
                 .select('id', 'reg', 'interaction_id', 'phonevalid', 'messagesent')
                 .whereBetween('created_at', [
                 todayStart.toSQL({ includeOffset: false }),
                 todayEnd.toSQL({ includeOffset: false })
             ]);
+            const totalMissing = shippingcampaigns.filter(i => i.phonevalid === null && Boolean(i.messagesent) === false);
             const filteredShendule = shippingcampaigns.filter(i => i.interaction_id === 1);
             const filteredEvalutation = shippingcampaigns.filter(i => i.interaction_id === 2);
             const chats = await Chat_1.default.query()
@@ -550,19 +561,23 @@ class ShippingcampaignsController {
                     start: todayStart.toISO(),
                     end: todayEnd.toISO()
                 },
-                shippingcampaigns: {
-                    total: shippingcampaigns.length,
-                    schedule: filteredShendule.length,
-                    evaluation: filteredEvalutation.length
+                agent: {
+                    description: "dialyCapacity", value: totalMaxLimitMessage?.$extras.total || 0, label: "Capacidade diária"
                 },
-                chats: {
-                    totalSended: filteredChatSended.length,
-                    totalReturned: filteredChatReturned.length,
-                    scheduleSended: filteredChatScheduleSended.length,
-                    scheduleReturned: filteredChatScheduleReturned.length,
-                    evaluationSended: filteredChatEvaluationSended.length,
-                    evaluationReturned: filteredChatEvaluationReturned.length
-                }
+                shippingcampaigns: [
+                    { description: "total", value: shippingcampaigns.length, label: "Total Geral" },
+                    { description: "totalMissing", value: totalMissing.length, label: "Total Faltante" },
+                    { description: "schedule", value: filteredShendule.length, label: "Total de Confirmações" },
+                    { description: "evaluation", value: filteredEvalutation.length, label: "Total de Avaliações" },
+                ],
+                chats: [
+                    { description: "totalSended", value: filteredChatSended.length, label: "Total de Mensagens Enviadas" },
+                    { description: "totalReturned", value: filteredChatReturned.length, label: "Total de Mensagens Retornadas" },
+                    { description: "scheduleSended", value: filteredChatScheduleSended.length, label: "Total de Confirmações Enviadas" },
+                    { description: "scheduleReturned", value: filteredChatScheduleReturned.length, label: "Total de Confirmações Retornadas" },
+                    { description: "evaluationSended", value: filteredChatEvaluationSended.length, label: "Total de Avaliações Enviadas" },
+                    { description: "evaluationReturned", value: filteredChatEvaluationReturned.length, label: "Total de Avaliações Retornadas" },
+                ]
             });
         }
         catch (error) {

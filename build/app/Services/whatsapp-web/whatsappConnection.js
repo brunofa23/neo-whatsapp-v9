@@ -154,7 +154,10 @@ async function startAgent(_agent) {
             await agent.save();
         }
         catch (error) {
+            console.log("ERRO 545557:", error);
         }
+        const message = `O número ${agent.number_phone} foi desconectado!!!!`;
+        await (0, util_1.sendMessageWarning)('553185228619@c.us', message);
         console.log("EXECUTANDO DISCONECT");
         console.log("REASON>>>", reason);
         return;
@@ -162,10 +165,15 @@ async function startAgent(_agent) {
     WhatsAppClientManager_1.default.addClient(agent.id.toString(), client);
     let rejectCalls = true;
     client.on('call', async (call) => {
-        console.log('Call received, rejecting. GOTO Line 261 to disable', call);
         if (rejectCalls)
             await call.reject();
         await client.sendMessage(call.from, `Olá tudo Bem? Sou uma atendente virtual e por isso não consigo receber chamadas. Desculpe!!☺️`);
+        await Talk_1.default.create({
+            cellphone: call.from,
+            chatnumber: client.info.wid._serialized,
+            message: `Olá tudo Bem? Sou uma atendente virtual e por isso não consigo receber chamadas. Desculpe!!☺️`,
+            type: "from"
+        });
     });
     return client;
 }

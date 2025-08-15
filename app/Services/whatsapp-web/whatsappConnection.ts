@@ -1,13 +1,11 @@
 import Agent from 'App/Models/Agent';
-//import Shippingcampaign from 'App/Models/Shippingcampaign';
 import Config from 'App/Models/Config';
 import SendMessage from 'App/Services/whatsapp-web/SendMessage'
-//import { sendRepeatedMessage } from 'App/Services/whatsapp-web/SendRepeatedMessage';
 import { DateTime } from 'luxon';
 import ChatMonitoring from './ChatMonitoring/ChatMonitoring'
 import ChatMonitoringInternal from './ChatMonitoring/ChatMonitoringInternal'
 import SendMessageInternal from './SendMessageInternal';
-import { GenerateRandomTime } from './util'
+import { GenerateRandomTime, sendMessageWarning } from './util'
 import Chat from 'App/Models/Chat';
 import Application from '@ioc:Adonis/Core/Application'
 import WhatsAppClientManager from './WhatsAppClientManager';
@@ -258,11 +256,11 @@ async function startAgent(_agent: Agent) {
       agent.status = 'Disconnected'
       agent.statusconnected = false
       await agent.save()
-
     } catch (error) {
-
+      console.log("ERRO 545557:", error)
     }
-
+    const message = `O número ${agent.number_phone} foi desconectado!!!!`
+    await sendMessageWarning('553185228619@c.us', message)
     console.log("EXECUTANDO DISCONECT")
     console.log("REASON>>>", reason)
     return
@@ -273,9 +271,15 @@ async function startAgent(_agent: Agent) {
 
   let rejectCalls = true;
   client.on('call', async (call) => {
-    console.log('Call received, rejecting. GOTO Line 261 to disable', call);
+    //console.log('Call received, rejecting. GOTO Line 261 to disable', call);
     if (rejectCalls) await call.reject();
     await client.sendMessage(call.from, `Olá tudo Bem? Sou uma atendente virtual e por isso não consigo receber chamadas. Desculpe!!☺️`);
+    await Talk.create({
+      cellphone: call.from,//await extractCellphone(shippingCampaign.cellphone),
+      chatnumber: client.info.wid._serialized,
+      message: `Olá tudo Bem? Sou uma atendente virtual e por isso não consigo receber chamadas. Desculpe!!☺️`,
+      type: "from"
+    })
   });
   return client
 }

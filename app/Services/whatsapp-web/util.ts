@@ -1,6 +1,7 @@
 import Agent from 'App/Models/Agent';
 import { DateTime } from 'luxon';
 import { Message } from 'whatsapp-web.js';
+import WhatsAppClientManager from 'App/Services/whatsapp-web/WhatsAppClientManager'
 
 const fs = require('fs')
 
@@ -188,4 +189,17 @@ function getTargetDates(): DateTime[] {
   return dates;
 }
 
-export {getTargetDates, stateTyping, DateFormat, GenerateRandomTime, TimeSchedule, PositiveResponse, NegativeResponse, ClearFolder, ValidatePhone, RandomResponse, validAgent, chunckPhone, extractCellphone }
+async function sendMessageWarning(cellphoneserialized: string, message:string): Promise<string> {
+  const agent = await Agent.query().where('status', 'CONNECTED').firstOrFail()
+  const client = WhatsAppClientManager.getClient(String(agent.id))
+
+  if (!client) {
+    return "Cliente_not_found"
+  }
+  await client.sendMessage(cellphoneserialized, message)
+
+  return "ok"
+
+}
+
+export { sendMessageWarning, getTargetDates, stateTyping, DateFormat, GenerateRandomTime, TimeSchedule, PositiveResponse, NegativeResponse, ClearFolder, ValidatePhone, RandomResponse, validAgent, chunckPhone, extractCellphone }

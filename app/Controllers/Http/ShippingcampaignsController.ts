@@ -790,6 +790,16 @@ export default class ShippingcampaignsController {
       const todayStart = DateTime.now().startOf('day')
       const todayEnd = DateTime.now().endOf('day')
 
+      //Buscar capacidade de envios
+      //const dailyCapacity = await Agent.query()
+      const totalMaxLimitMessage = await Agent
+        .query()
+        .where('status', 'CONNECTED')
+        .andWhere('default_chat', false)
+        .andWhere('deleted', false)
+        .sum('max_limit_message as total').first()
+
+        console.log(totalMaxLimitMessage?.$extras.total)
 
       // Buscar campanhas no período
       const shippingcampaigns = await Shippingcampaign.query()
@@ -800,7 +810,7 @@ export default class ShippingcampaignsController {
         ])
 
       // Filtragens
-      
+
       const filteredShendule = shippingcampaigns.filter(i => i.interaction_id === 1)
       const filteredEvalutation = shippingcampaigns.filter(i => i.interaction_id === 2)
 
@@ -834,6 +844,8 @@ export default class ShippingcampaignsController {
           start: todayStart.toISO(),
           end: todayEnd.toISO()
         },
+        agent:{
+          description:"dialyCapacity", value:totalMaxLimitMessage?.$extras.total || 0, label:"Capacidade diária"        },
         shippingcampaigns: [
           { description: "total", value: shippingcampaigns.length, label: "Total Geral" },
           { description: "schedule", value: filteredShendule.length, label: "Total de Confirmações" },

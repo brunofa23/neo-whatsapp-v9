@@ -5,32 +5,36 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const runner_1 = require("@japa/runner");
 const luxon_1 = require("luxon");
+const Database_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Lucid/Database"));
 const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
 const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Shippingcampaign"));
 (0, runner_1.test)('display welcome page', async ({ client }) => {
-    const todayStart = luxon_1.DateTime.now().startOf('day');
-    const todayEnd = luxon_1.DateTime.now().endOf('day');
-    console.log("teste General", todayStart, todayEnd);
+    console.log("passei no RESEND............................");
+    const now = luxon_1.DateTime.now();
+    const yesterdayStart = now.minus({ days: 1 }).startOf('day');
+    const yesterdayEnd = now.minus({ days: 1 }).endOf('day');
+    const tomorrowStart = now.plus({ days: 1 }).startOf('day');
+    const tomorrowEnd = now.plus({ days: 1 }).endOf('day');
+    const yesterdayNoon = now.minus({ days: 1 }).set({ hour: 12, minute: 0, second: 0, millisecond: 0 });
     const query = Shippingcampaign_1.default.query()
-        .select('id', 'reg', 'interaction_id', 'phonevalid', 'messagesent')
-        .whereBetween('created_at', [todayStart.toSQL({ includeOffset: false }),
-        todayEnd.toSQL({ includeOffset: false })]);
-    const shippingcampaigns = await query;
-    const filteredShendule = shippingcampaigns.filter(item => item.interaction_id === 1);
-    const filteredEvalutation = shippingcampaigns.filter(item => item.interaction_id === 2);
-    const queryChat = Chat_1.default.query()
-        .select('id', 'interaction_id', 'interaction_seq', 'ack', 'returned')
-        .whereBetween('created_at', [todayStart.toSQL({ includeOffset: false }),
-        todayEnd.toSQL({ includeOffset: false })]);
-    const chats = await queryChat;
-    const filteredChatSended = chats.filter(item => item.ack >= 2);
-    const filteredChatReturned = chats.filter(item => item.ack >= 2 && !!item.returned === true);
-    const filteredChatScheduleSended = chats.filter(item => item.interaction_id === 1 && item.interaction_seq === 1 && item.ack >= 2);
-    const filteredChatScheduleReturned = chats.filter(item => item.interaction_id === 1 && item.interaction_seq === 1 && item.ack >= 2 && !!item.returned === true);
-    const filteredChatEvaluationSended = chats.filter(item => item.interaction_id === 2 && item.ack >= 2);
-    const filteredChatEvaluationReturned = chats.filter(item => item.interaction_id === 2 && item.ack >= 2 && !!item.returned === true);
-    console.log(`TOTAL DE MENSAGENS PARA ENVIAR NO DIA:${shippingcampaigns.length} - AGENDAMENTO:${filteredShendule.length} - CONFIRMAÇÃO:${filteredEvalutation.length}`);
-    console.log(`TOTAL DE MENSAGENS ENVIADAS:${filteredChatSended.length} - AGENDAMENTO:${filteredChatScheduleSended.length} - CONFIRMAÇÃO:${filteredChatEvaluationSended.length}`);
-    console.log(`TOTAL DE MENSAGENS RETORNADAS:${filteredChatReturned.length} - AGENDAMENTO:${filteredChatScheduleReturned.length} - CONFIRMAÇÃO:${filteredChatEvaluationReturned.length}`);
+        .where('created_at', '>=', yesterdayStart.toSQL({ includeOffset: false }))
+        .where('created_at', '<=', yesterdayEnd.toSQL({ includeOffset: false }))
+        .where('dateshedule', '>=', tomorrowStart.toSQL({ includeOffset: false }))
+        .where('dateshedule', '<=', tomorrowEnd.toSQL({ includeOffset: false }))
+        .andWhere('interaction_id', 1)
+        .whereNull('phonevalid');
+    const updatedResend = await query;
+    const subquery = Database_1.default.from('chats')
+        .innerJoin('shippingcampaigns', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
+        .where('shippingcampaigns.created_at', '>=', yesterdayStart.toSQL({ includeOffset: false }))
+        .where('shippingcampaigns.created_at', '<=', yesterdayNoon.toSQL({ includeOffset: false }))
+        .where('shippingcampaigns.interaction_id', 1)
+        .where('shippingcampaigns.interaction_seq', 1)
+        .where('chats.returned', 0)
+        .where('chats.ack', 2)
+        .select('chats.id');
+    await Chat_1.default.query()
+        .whereIn('id', Database_1.default.from(subquery.as('temp')));
+    console.log(subquery.toQuery());
 });
 //# sourceMappingURL=hello_world.spec.js.map

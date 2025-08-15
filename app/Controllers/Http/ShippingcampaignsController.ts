@@ -799,7 +799,6 @@ export default class ShippingcampaignsController {
         .andWhere('deleted', false)
         .sum('max_limit_message as total').first()
 
-        console.log(totalMaxLimitMessage?.$extras.total)
 
       // Buscar campanhas no período
       const shippingcampaigns = await Shippingcampaign.query()
@@ -810,7 +809,7 @@ export default class ShippingcampaignsController {
         ])
 
       // Filtragens
-
+      const totalMissing = shippingcampaigns.filter(i => i.phonevalid === null && Boolean(i.messagesent)===false)
       const filteredShendule = shippingcampaigns.filter(i => i.interaction_id === 1)
       const filteredEvalutation = shippingcampaigns.filter(i => i.interaction_id === 2)
 
@@ -838,16 +837,19 @@ export default class ShippingcampaignsController {
         i => i.interaction_id === 2 && i.ack >= 2 && Boolean(i.returned)
       )
 
+
       // Retorno seguro e organizado
       return response.ok({
         date: {
           start: todayStart.toISO(),
           end: todayEnd.toISO()
         },
-        agent:{
-          description:"dialyCapacity", value:totalMaxLimitMessage?.$extras.total || 0, label:"Capacidade diária"        },
+        agent: {
+          description: "dialyCapacity", value: totalMaxLimitMessage?.$extras.total || 0, label: "Capacidade diária"
+        },
         shippingcampaigns: [
           { description: "total", value: shippingcampaigns.length, label: "Total Geral" },
+          { description: "totalMissing", value: totalMissing.length, label: "Total Faltante" },
           { description: "schedule", value: filteredShendule.length, label: "Total de Confirmações" },
           { description: "evaluation", value: filteredEvalutation.length, label: "Total de Avaliações" },
         ],

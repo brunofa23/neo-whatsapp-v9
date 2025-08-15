@@ -20,19 +20,21 @@ test('display welcome page', async ({ client }) => {
 
 
       // 🔹 Atualiza mensagens para reenvio
-      const query=  Shippingcampaign.query()
-        .where('created_at', '>=', yesterdayStart.toSQL({ includeOffset: false }))
-        .where('created_at', '<=', yesterdayEnd.toSQL({ includeOffset: false }))
-        .where('dateshedule', '>=', tomorrowStart.toSQL({ includeOffset: false }))
-        .where('dateshedule', '<=', tomorrowEnd.toSQL({ includeOffset: false }))
-        .andWhere('interaction_id', 1)
-        .whereNull('phonevalid')
-        // .update({
-        //   createdAt: DateTime.now().toSQL({ includeOffset: false })
-        // })
+      const query = Shippingcampaign.query()
+              .where('created_at', '>=', yesterdayStart.toSQL({ includeOffset: false }))
+              .where('created_at', '<=', yesterdayEnd.toSQL({ includeOffset: false }))
+              .where('dateshedule', '>=', tomorrowStart.toSQL({ includeOffset: false }))
+              .where('dateshedule', '<=', tomorrowEnd.toSQL({ includeOffset: false }))
+              .andWhere('interaction_id', 1)
+              .whereNull('phonevalid')
+              .andWhere('messagesent',0)
+              .andWhereNull('excluded')
+              // .update({
+              //   createdAt: DateTime.now().toSQL({ includeOffset: false })
+              // })
 
         const updatedResend = await query
-        //console.log(query.toQuery())
+        console.log(query.toQuery())
 
       // 🔹 Atualiza CHATS (pacientes sem resposta)
       const subquery = Database.from('chats')
@@ -48,7 +50,7 @@ test('display welcome page', async ({ client }) => {
        await Chat.query()
         .whereIn('id', Database.from(subquery.as('temp')))
 
-      console.log(subquery.toQuery())
+      //console.log(subquery.toQuery())
       //   .update({ excluded: 1 })
 
       // // 🔹 Atualiza SHIPPINGCAMPAIGNS com mesmo filtro

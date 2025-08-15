@@ -155,6 +155,7 @@ async function resendMessage() {
         .andWhere('interaction_id', 1)
         .whereNull('phonevalid')
         .andWhere('messagesent',0)
+        .andWhereNull('excluded')
         .update({
           createdAt: DateTime.now().toSQL({ includeOffset: false })
         })

@@ -21,16 +21,7 @@ async function validateParams(request: HttpContextContract['request']) {
       unit_cod: schema.number.nullableAndOptional(),
     }),
   })
-
-  //const { date, interaction_id, unit } = payload
   return payload
-  // const params = new URLSearchParams()
-
-  // if (date) params.append('date', date)
-  // if (interaction_id) params.append('interaction_id', interaction_id.toString())
-  // if (unit) params.append('unit', unit)
-
-  // return params
 }
 
 
@@ -647,8 +638,8 @@ export default class ShippingcampaignsController {
 
   public async scheduleConfirmationDashboard({ request, response }: HttpContextContract) {
 
-    const { initialdate, finaldate, phonevalid, absoluteresp, interactions, messagesent, invalidresponse, reg, name } =
-      request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp', 'interactions', 'messagesent', 'reg', 'name'])
+    const { initialdate, finaldate, phonevalid, absoluteresp, interactions, messagesent, invalidresponse, reg, name, unit } =
+      request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp', 'interactions', 'messagesent', 'reg', 'name', 'unit'])
     let query = "1=1"
     if (phonevalid) {
       query += ` and phonevalid=${phonevalid}`
@@ -670,6 +661,8 @@ export default class ShippingcampaignsController {
 
     if (name)
       query += ` and  shippingcampaigns.name like '%${name}%' `
+    if(unit)
+      query +=` and unit_cod = ${unit}`
 
     const initial = DateTime.fromISO(initialdate, { zone: 'America/Sao_Paulo' }).startOf('day')
     const final = DateTime.fromISO(finaldate, { zone: 'America/Sao_Paulo' }).endOf('day')
@@ -694,7 +687,9 @@ export default class ShippingcampaignsController {
           'returned',
           'invalidresponse',
           'chatname',
-          'absoluteresp'
+          'absoluteresp',
+          'unit',
+          'doctor'
         )
         .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
         .whereBetween('shippingcampaigns.created_at', [initial.toISO(), final.toISO()])
@@ -787,6 +782,7 @@ export default class ShippingcampaignsController {
   }
 
 
+  //DASBOARD COM INFORMAÇÕES BASICAS DAS DUAS CAMPANHAS
   public async dashboardGeneral({ auth, request, response }) {
     try {
       const todayStart = DateTime.now().startOf('day')

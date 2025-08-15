@@ -154,6 +154,7 @@ async function resendMessage() {
         .where('dateshedule', '<=', tomorrowEnd.toSQL({ includeOffset: false }))
         .andWhere('interaction_id', 1)
         .whereNull('phonevalid')
+        .andWhere('messagesent',0)
         .update({
           createdAt: DateTime.now().toSQL({ includeOffset: false })
         })
@@ -167,44 +168,44 @@ async function resendMessage() {
       }
 
       // 🔹 Atualiza CHATS (pacientes sem resposta)
-      const subquery = Database.from('chats')
-        .innerJoin('shippingcampaigns', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
-        .where('shippingcampaigns.created_at', '>=', yesterdayStart.toSQL({ includeOffset: false }))
-        .where('shippingcampaigns.created_at', '<=', yesterdayNoon.toSQL({ includeOffset: false }))
-        .where('shippingcampaigns.interaction_id', 1)
-        .where('shippingcampaigns.interaction_seq', 1)
-        .where('chats.returned', 0)
-        .where('chats.ack', 2)
-        .select('chats.id')
+      // const subquery = Database.from('chats')
+      //   .innerJoin('shippingcampaigns', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
+      //   .where('shippingcampaigns.created_at', '>=', yesterdayStart.toSQL({ includeOffset: false }))
+      //   .where('shippingcampaigns.created_at', '<=', yesterdayNoon.toSQL({ includeOffset: false }))
+      //   .where('shippingcampaigns.interaction_id', 1)
+      //   .where('shippingcampaigns.interaction_seq', 1)
+      //   .where('chats.returned', 0)
+      //   .where('chats.ack', 2)
+      //   .select('chats.id')
 
-       await Chat.query()
-        .whereIn('id', Database.from(subquery.as('temp')))
-        .update({ excluded: 1 })
+      //  await Chat.query()
+      //   .whereIn('id', Database.from(subquery.as('temp')))
+      //   .update({ excluded: 1 })
 
-      // 🔹 Atualiza SHIPPINGCAMPAIGNS com mesmo filtro
-      const subquery1 = Database
-        .from('shippingcampaigns as sc')
-        .innerJoin('chats as c', 'sc.id', 'c.shippingcampaigns_id')
-        .where('sc.created_at', '>=', yesterdayStart.toSQL({ includeOffset: false }))
-        .where('sc.created_at', '<=', yesterdayNoon.toSQL({ includeOffset: false }))
-        .where('sc.interaction_id', 1)
-        .where('sc.interaction_seq', 1)
-        .where('c.returned', 0)
-        .where('c.ack', 2)
-        .select('sc.id')
+      // // 🔹 Atualiza SHIPPINGCAMPAIGNS com mesmo filtro
+      // const subquery1 = Database
+      //   .from('shippingcampaigns as sc')
+      //   .innerJoin('chats as c', 'sc.id', 'c.shippingcampaigns_id')
+      //   .where('sc.created_at', '>=', yesterdayStart.toSQL({ includeOffset: false }))
+      //   .where('sc.created_at', '<=', yesterdayNoon.toSQL({ includeOffset: false }))
+      //   .where('sc.interaction_id', 1)
+      //   .where('sc.interaction_seq', 1)
+      //   .where('c.returned', 0)
+      //   .where('c.ack', 2)
+      //   .select('sc.id')
 
-      const updatedShipping = await Shippingcampaign
-        .query()
-        .joinRaw(`JOIN (${subquery1.toQuery()}) as temp on shippingcampaigns.id = temp.id`)
-        .update({ createdAt: DateTime.now().toSQL({ includeOffset: false }), phonevalid: null, messagesent: 0 })
+      // const updatedShipping = await Shippingcampaign
+      //   .query()
+      //   .joinRaw(`JOIN (${subquery1.toQuery()}) as temp on shippingcampaigns.id = temp.id`)
+      //   .update({ createdAt: DateTime.now().toSQL({ includeOffset: false }), phonevalid: null, messagesent: 0 })
 
-      await Log.create({
-        name: "Resend",
-        message: `reenvio de mensagens realizado:${updatedShipping}`,
-        description: "reenvio realizado"
-      })
+      // await Log.create({
+      //   name: "Resend",
+      //   message: `reenvio de mensagens realizado:${updatedShipping}`,
+      //   description: "reenvio realizado"
+      // })
 
-      console.log(">>>>update::", updatedShipping)
+      // console.log(">>>>update::", updatedShipping)
 
     } catch (error) {
       console.error("Erro no resendMessage:", error)

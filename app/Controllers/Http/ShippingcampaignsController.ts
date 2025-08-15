@@ -699,6 +699,8 @@ export default class ShippingcampaignsController {
         .leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
         .whereBetween('shippingcampaigns.created_at', [initial.toISO(), final.toISO()])
         .where('shippingcampaigns.interaction_id', 1)
+        .andWhereNull('chats.excluded')
+        .andWhere('chats.interaction_seq',1)
         .whereRaw(query)
 
       //console.log(queryAll.toQuery())

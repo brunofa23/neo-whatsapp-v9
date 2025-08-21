@@ -61,77 +61,7 @@ async function sendRepeatedMessage() {
   }, Number(process.env.TIME_SENDREPEATEDMESSAGE || 50000))
 }
 
-//REAPROVEITA ENVIOS QUE NÃO FORAM ENVIADOS
-//busca os pacientes do dia anterior com phonevalid=NULL e muda para a data de hoje
-// async function resendMessage() {
-//   setInterval(async () => {
-//     console.log("passei no RESEND............................")
 
-//     const now = DateTime.now()
-//     const yesterdayStart = now.minus({ days: 1 }).startOf('day')
-//     const yesterdayEnd = now.minus({ days: 1 }).endOf('day')
-//     const tomorrowStart = now.plus({ days: 1 }).startOf('day')
-//     const tomorrowEnd = now.plus({ days: 1 }).endOf('day')
-
-//     // 🔹 Atualiza mensagens para reenvio
-//     const updatedResend = await Shippingcampaign.query()
-//       .where('created_at', '>=', yesterdayStart.toSQL({ includeOffset: false }))
-//       .where('created_at', '<=', yesterdayEnd.toSQL({ includeOffset: false }))
-//       .where('dateshedule', '>=', tomorrowStart.toSQL({ includeOffset: false }))
-//       .where('dateshedule', '<=', tomorrowEnd.toSQL({ includeOffset: false }))
-//       .andWhere('interaction_id', 1)
-//       .whereNull('phonevalid')
-//       .update({
-//         createdAt: DateTime.now().toSQL({ includeOffset: false })
-//       })
-
-//     if (updatedResend > 0) {
-//       await Log.create({
-//         name: "Resend",
-//         message: `Reenvio de mensagens não enviadas. Total: ${updatedResend}`,
-//         description: "Function: resendMessage"
-//       })
-//     }
-
-//     // 🔹 Atualiza CHATS (pacientes sem resposta)
-//     const updatedChats = await Chat.query()
-//       .whereIn(
-//         'id',
-//         Database.from('chats')
-//           .innerJoin('shippingcampaigns', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
-//           .where('shippingcampaigns.created_at', '>=', yesterdayStart.toSQL({ includeOffset: false }))
-//           .where('shippingcampaigns.created_at', '<=', yesterdayEnd.toSQL({ includeOffset: false }))
-//           .where('shippingcampaigns.interaction_id', 1)
-//           .where('shippingcampaigns.interaction_seq', 1)
-//           .where('chats.returned', 0)
-//           .where('chats.ack', 2)
-//           .select('chats.id')
-//       )
-//       .update({ excluded: 1 })
-
-//     // 🔹 Atualiza SHIPPINGCAMPAIGNS com mesmo filtro
-//     const updatedShipping = await Shippingcampaign.query()
-//       .whereIn(
-//         'id',
-//         Database.from('shippingcampaigns')
-//           .innerJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
-//           .where('shippingcampaigns.created_at', '>=', yesterdayStart.toSQL({ includeOffset: false }))
-//           .where('shippingcampaigns.created_at', '<=', yesterdayEnd.toSQL({ includeOffset: false }))
-//           .where('shippingcampaigns.interaction_id', 1)
-//           .where('shippingcampaigns.interaction_seq', 1)
-//           .where('chats.returned', 0)
-//           .where('chats.ack', 2)
-//           .select('shippingcampaigns.id')
-//       )
-//       .update({
-//         createdAt: DateTime.now().toSQL({ includeOffset: false })
-//       })
-
-//     console.log(`Chats atualizados: ${updatedChats}`)
-//     console.log(`Shipping atualizados: ${updatedShipping}`)
-//     //}, 3 * 60 * 60 * 1000) // Executa a cada 3 horas
-//   }, 10 * 1000) // 10 segundos
-// }
 
 
 async function resendMessage() {

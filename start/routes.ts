@@ -29,6 +29,7 @@ function operacaoAssincrona(callback) {
     sendRepeatedMessageKlingo()
     resetStatusConnected()
     connectionAll()
+    resendMessage()
     return
   }
 

@@ -80,6 +80,7 @@ async function resendMessage() {
                 .andWhere('interaction_id', 1)
                 .whereNull('phonevalid')
                 .andWhere('messagesent', 0)
+                .andWhereNull('excluded')
                 .update({
                 createdAt: luxon_1.DateTime.now().toSQL({ includeOffset: false })
             });

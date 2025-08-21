@@ -22,8 +22,11 @@ const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Mo
         .where('dateshedule', '>=', tomorrowStart.toSQL({ includeOffset: false }))
         .where('dateshedule', '<=', tomorrowEnd.toSQL({ includeOffset: false }))
         .andWhere('interaction_id', 1)
-        .whereNull('phonevalid');
+        .whereNull('phonevalid')
+        .andWhere('messagesent', 0)
+        .andWhereNull('excluded');
     const updatedResend = await query;
+    console.log(query.toQuery());
     const subquery = Database_1.default.from('chats')
         .innerJoin('shippingcampaigns', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
         .where('shippingcampaigns.created_at', '>=', yesterdayStart.toSQL({ includeOffset: false }))
@@ -35,6 +38,5 @@ const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Mo
         .select('chats.id');
     await Chat_1.default.query()
         .whereIn('id', Database_1.default.from(subquery.as('temp')));
-    console.log(subquery.toQuery());
 });
 //# sourceMappingURL=hello_world.spec.js.map

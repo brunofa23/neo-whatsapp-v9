@@ -1,4 +1,4 @@
-import { extractCellphone, stateTyping } from '../util'
+import { stateTyping } from '../util'
 import Chat from 'App/Models/Chat';
 import Response from 'App/Models/Response';
 import { Client, Message } from 'whatsapp-web.js';

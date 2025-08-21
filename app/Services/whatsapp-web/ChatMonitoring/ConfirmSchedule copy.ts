@@ -11,7 +11,6 @@ export default async (client: Client, message: Message, chat: Chat) => {
     return template
       .replace('{name_unit}', fields.name_unit)
       .replace('{address_unit}', fields.address_unit || 'Endereço indisponível')
-      .replace('{address}', fields.address || 'Endereço indisponível')
       .replace('{medic}', fields.medic || 'Médico não informado')
       .replace('{phone_unit}', fields.phone_unit || 'Contato indisponível')
       .replace('{schedule}', fields.schedule)

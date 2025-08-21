@@ -41,6 +41,7 @@ export default async (client: Client, message: Message, chat: Chat) => {
           .where('local', 'response1schedule')
           .andWhere('inactive', false)
           .first();
+
         const defaultMessage = `Muito obrigada 😀, seu agendamento foi confirmado, o endereço da sua consulta é ${chatOtherFields.address}. Esperamos por você. Ótimo dia. Lembrando que para qualquer dúvida, estamos disponíveis pelo whatsapp ${chatOtherFields.phone_unit}.`;
 
         const response1message = response1schedule

@@ -12,7 +12,7 @@ import { responderPergunta } from 'App/Services/Ai/aiResponder'
 test('display welcome page', async ({ client }) => {
 
 
-const response = await responderPergunta("Pode confirmar meu horário dia 20/09",
+const response = await responderPergunta("Qual endereço de Santa Efigênia",
   `Gostaria de saber o endereço  da clínica neo visão do bairro Santa Efigenia obrigada`);
  console.log(response)
 

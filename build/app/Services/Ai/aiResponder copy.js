@@ -32,14 +32,14 @@ async function criarGerenciador(perguntas) {
 }
 async function fallbackParaIA(perguntaUsuario, perguntas, informationContext) {
     try {
-        const similaridades = perguntas.map((pergunta, i) => ({
-            pergunta,
-            resposta: query[i].answer,
-            score: string_similarity_1.default.compareTwoStrings(perguntaUsuario, pergunta),
+        const similaridades = perguntas.map((item) => ({
+            pergunta: item.ask,
+            resposta: item.answer,
+            score: string_similarity_1.default.compareTwoStrings(perguntaUsuario, item.ask),
         }));
         const topSimilares = similaridades
             .sort((a, b) => b.score - a.score)
-            .slice(0, 2);
+            .slice(0, 1);
         const contexto = topSimilares
             .map((p) => `Q: ${p.pergunta}\nA: ${p.resposta}`)
             .join('\n\n');
@@ -47,19 +47,20 @@ async function fallbackParaIA(perguntaUsuario, perguntas, informationContext) {
             {
                 role: 'system',
                 content: `Você é um bot de call center de um hospital chamada Iris, e só pode responder com base nas perguntas e respostas abaixo.
-                  Se a pergunta do usuário não estiver claramente presente ou relacionada diga "Desculpe, não tenho essa resposta, melhor ligar para a nossa central.".
-                  Se alguém te tratar de forma hostil ou com palavras indevidas diga "Desculpe, sou apenas uma máquina e ainda estou aprendendo!".
-                  Nunca confirme uma marcação ou cancelamento de agendamento.
-                  Responda de forma clara, objetiva e educada.
-                  Se tiver o nome chame-o apenas pelo primeiro nome.
-                  Sempre responda em português.`,
+Se a pergunta do usuário não estiver claramente presente ou relacionada diga "Desculpe, não tenho essa resposta, melhor ligar para a nossa central.".
+Se alguém te tratar de forma hostil ou com palavras indevidas diga "Desculpe, sou apenas uma máquina e ainda estou aprendendo!".
+Nunca confirme uma marcação ou cancelamento de agendamento.
+Nunca combine respostas de diferentes tópicos. Não crie ou assuma informações.
+Responda de forma clara, objetiva e educada.
+Se tiver o nome chame-o apenas pelo primeiro nome.
+Sempre responda em português.`,
             },
             {
                 role: 'user',
                 content: `Baseado nas perguntas abaixo, responda de forma direta:
-                  ${contexto}
-                  Informações adicionais do paciente: ${informationContext}
-                  Pergunta: ${perguntaUsuario}`,
+${contexto}
+Informações adicionais do paciente: ${informationContext}
+Pergunta: ${perguntaUsuario}`,
             },
         ];
         const response = await axios_1.default.post('https://api.groq.com/openai/v1/chat/completions', {
@@ -111,7 +112,7 @@ async function responderPergunta(perguntaUsuario, informationContext = '') {
     const perguntaMaisParecida = match.bestMatch.target;
     const indexMaisParecido = perguntas.findIndex((p) => p === perguntaMaisParecida);
     const respostaMaisParecida = query[indexMaisParecido]?.answer;
-    if (similaridade >= 0.7 && respostaMaisParecida) {
+    if (similaridade >= 0.8 && respostaMaisParecida) {
         return respostaMaisParecida;
     }
     return await fallbackParaIA(perguntaUsuario, query, informationContext);

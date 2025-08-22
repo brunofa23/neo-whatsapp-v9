@@ -51,7 +51,6 @@ async function treinarGerenciador() {
 async function interpretAnswer(respostaUsuario) {
     const manager = await treinarGerenciador();
     const result = await manager.process('pt', respostaUsuario);
-    console.log("manager::::::", result);
     if (result.intent === 'confirmar.consulta' && result.score > 0.75) {
         return 1;
     }

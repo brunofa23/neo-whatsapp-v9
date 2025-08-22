@@ -6,6 +6,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const util_1 = require("../util");
 const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
 const Response_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Response"));
+const IdentifyAnswer_1 = global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/IdentifyAnswer");
+const Talk_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Talk"));
 exports.default = async (client, message, chat) => {
     const formatMessage = (template, fields) => {
         return template
@@ -27,7 +29,8 @@ exports.default = async (client, message, chat) => {
     }
     if (chat.interaction_seq == 1) {
         const chatOtherFields = JSON.parse(chat.shippingcampaign.otherfields);
-        if (await (0, util_1.PositiveResponse)(message.body)) {
+        const answer = await (0, IdentifyAnswer_1.interpretAnswer)(message.body);
+        if (answer == 1) {
             await (0, util_1.stateTyping)(message);
             try {
                 const response1schedule = await Response_1.default.query()
@@ -40,6 +43,12 @@ exports.default = async (client, message, chat) => {
                     ? formatMessage(response1schedule.message, chatOtherFields)
                     : defaultMessage;
                 await client.sendMessage(message.from, response1message);
+                await Talk_1.default.create({
+                    cellphone: message.from,
+                    chatnumber: message.to,
+                    message: response1message.slice(0, 999),
+                    type: "to"
+                });
                 Object.assign(chat, {
                     response: message.body.slice(0, 500),
                     returned: true,
@@ -53,7 +62,7 @@ exports.default = async (client, message, chat) => {
                 console.error("Erro ao enviar a mensagem de agendamento:", error.message, error.stack);
             }
         }
-        else if (await (0, util_1.NegativeResponse)(message.body)) {
+        else if (answer == 2) {
             try {
                 Object.assign(chat, {
                     response: message.body,
@@ -76,6 +85,12 @@ exports.default = async (client, message, chat) => {
                 const default2Message = `Entendi 😉, sabemos que nosso dia está muito atarefado! Sua consulta foi desmarcada, se deseja reagendar, clique no link que estou enviando para conversar com uma de nossas atendentes e podermos agendar novo horário mais conveniente para você.`;
                 const message2 = response2schedule ? formatMessage(response2schedule.message, chatOtherFields) : default2Message;
                 await client.sendMessage(message.from, message2);
+                await Talk_1.default.create({
+                    cellphone: message.from,
+                    chatnumber: message.to,
+                    message: message2.slice(0, 999),
+                    type: "to"
+                });
                 const response2schedule2 = await Response_1.default.query()
                     .where('local', 'response2schedule2')
                     .first();
@@ -83,6 +98,12 @@ exports.default = async (client, message, chat) => {
                     if (response2schedule2.inactive === false) {
                         const linkRedirect = messageLink(response2schedule2.message, chatOtherFields.phone_unit);
                         await client.sendMessage(message.from, linkRedirect);
+                        await Talk_1.default.create({
+                            cellphone: message.from,
+                            chatnumber: message.to,
+                            message: linkRedirect.slice(0, 999),
+                            type: "to"
+                        });
                     }
                 }
                 else if (!response2schedule2) {
@@ -90,6 +111,12 @@ exports.default = async (client, message, chat) => {
                     const encodedMessage = encodeURIComponent(messageLink);
                     const linkRedirect = `https://api.whatsapp.com/send?phone=${chat.shippingcampaign.phone_unit}&text=${encodedMessage}`;
                     await client.sendMessage(message.from, linkRedirect);
+                    await Talk_1.default.create({
+                        cellphone: message.from,
+                        chatnumber: message.to,
+                        message: linkRedirect.slice(0, 999),
+                        type: "to"
+                    });
                 }
                 const chat2 = new Chat_1.default();
                 Object.assign(chat2, {
@@ -112,9 +139,31 @@ exports.default = async (client, message, chat) => {
                 console.log("Erro:", error);
             }
         }
+        else if (answer == 3) {
+            await (0, util_1.stateTyping)(message);
+            try {
+                const defaultMessage = `Desculpe pelo engano, vou pedir para corrigir nosso cadastro.`;
+                await client.sendMessage(message.from, defaultMessage);
+                await Talk_1.default.create({
+                    cellphone: message.from,
+                    chatnumber: message.to,
+                    message: defaultMessage.slice(0, 999),
+                    type: "to"
+                });
+            }
+            catch (error) {
+                console.error("Erro ao enviar a mensagem de agendamento:", error.message, error.stack);
+            }
+        }
         else {
             await (0, util_1.stateTyping)(message);
             client.sendMessage(message.from, 'Oi, desculpe mas não consegui identificar uma resposta, por favor responda \n*1* para Confirmar o agendamento. \n*2* para Reagendamento ou Cancelamento.');
+            await Talk_1.default.create({
+                cellphone: message.from,
+                chatnumber: message.to,
+                message: 'Oi, desculpe mas não consegui identificar uma resposta, por favor responda \n*1* para Confirmar o agendamento. \n*2* para Reagendamento ou Cancelamento.',
+                type: "to"
+            });
         }
     }
 };

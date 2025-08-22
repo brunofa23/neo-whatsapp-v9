@@ -15,6 +15,12 @@ const fs_1 = __importDefault(require("fs"));
 const openai = new openai_1.OpenAI({
     apiKey: Env_1.default.get('OPENAI_API_KEY'),
 });
+function normalize(text) {
+    return text
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
+}
 async function criarGerenciador(perguntas) {
     const modelPath = Application_1.default.makePath(`app/Services/Ai/model.nlp`);
     const manager = new node_nlp_1.NlpManager({ languages: ['pt'], forceNER: true, nlu: { log: false } });
@@ -40,41 +46,49 @@ async function fallbackParaIA(perguntaUsuario, perguntas, informationContext) {
         const topSimilares = similaridades
             .sort((a, b) => b.score - a.score)
             .slice(0, 1);
+        if (topSimilares.length === 0 || topSimilares[0].score < 0.5) {
+            return 'Desculpe, não tenho essa resposta, melhor ligar para a nossa central.';
+        }
         const contexto = topSimilares
             .map((p) => `Q: ${p.pergunta}\nA: ${p.resposta}`)
             .join('\n\n');
         const messages = [
             {
                 role: 'system',
-                content: `Você é um bot de call center de um hospital chamada Iris, e só pode responder com base nas perguntas e respostas abaixo.
-Se a pergunta do usuário não estiver claramente presente ou relacionada diga "Desculpe, não tenho essa resposta, melhor ligar para a nossa central.".
-Se alguém te tratar de forma hostil ou com palavras indevidas diga "Desculpe, sou apenas uma máquina e ainda estou aprendendo!".
-Nunca confirme uma marcação ou cancelamento de agendamento.
-Nunca combine respostas de diferentes tópicos. Não crie ou assuma informações.
-Responda de forma clara, objetiva e educada.
-Se tiver o nome chame-o apenas pelo primeiro nome.
-Sempre responda em português.`,
+                content: `Você é um bot de call center de um hospital chamada Iris.
+Você deve responder **EXCLUSIVAMENTE** com base nas perguntas e respostas abaixo.
+⚠️ IMPORTANTE:
+- Se a pergunta do usuário não estiver claramente presente ou relacionada ao contexto, responda exatamente:
+"Desculpe, não tenho essa resposta, melhor ligar para a nossa central."
+- Nunca invente ou assuma informações que não estejam no contexto.
+- Nunca confirme marcações, reagendamentos ou cancelamentos.
+- Nunca combine respostas de diferentes tópicos.
+- Se alguém for hostil, diga: "Desculpe, sou apenas uma máquina e ainda estou aprendendo!".
+Responda sempre de forma clara, objetiva, educada e em português.`,
             },
             {
                 role: 'user',
-                content: `Baseado nas perguntas abaixo, responda de forma direta:
+                content: `Baseado apenas nas perguntas abaixo, responda de forma direta:
 ${contexto}
+
 Informações adicionais do paciente: ${informationContext}
+
 Pergunta: ${perguntaUsuario}`,
             },
         ];
         const response = await axios_1.default.post('https://api.groq.com/openai/v1/chat/completions', {
             model: 'llama-3.1-8b-instant',
             messages,
-            temperature: 0.5,
-            max_tokens: 500,
+            temperature: 0,
+            max_tokens: 300,
         }, {
             headers: {
                 Authorization: `Bearer ${Env_1.default.get('GROQ_API_KEY')}`,
                 'Content-Type': 'application/json',
             },
         });
-        return response.data.choices?.[0]?.message?.content?.trim() || 'Desculpe, não entendi sua pergunta.';
+        return (response.data.choices?.[0]?.message?.content?.trim() ||
+            'Desculpe, não tenho essa resposta, melhor ligar para a nossa central.');
     }
     catch (error) {
         console.error('Erro no fallback com IA:', error);
@@ -90,7 +104,8 @@ async function responderPergunta(perguntaUsuario, informationContext = '') {
         console.error('Erro ao consultar FAQs:', error);
         return 'Desculpe, houve um erro ao buscar as perguntas frequentes.';
     }
-    const perguntas = query.map((item) => item.ask);
+    const perguntas = query.map((item) => normalize(item.ask));
+    const perguntaUsuarioNormalized = normalize(perguntaUsuario);
     let manager;
     try {
         manager = await criarGerenciador(query);
@@ -107,7 +122,7 @@ async function responderPergunta(perguntaUsuario, informationContext = '') {
         console.error('Erro ao processar pergunta com NLP:', error);
         return 'Desculpe, houve um erro ao tentar entender sua pergunta.';
     }
-    const match = string_similarity_1.default.findBestMatch(perguntaUsuario, perguntas);
+    const match = string_similarity_1.default.findBestMatch(perguntaUsuarioNormalized, perguntas);
     const similaridade = match.bestMatch.rating;
     const perguntaMaisParecida = match.bestMatch.target;
     const indexMaisParecido = perguntas.findIndex((p) => p === perguntaMaisParecida);

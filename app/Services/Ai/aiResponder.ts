@@ -33,12 +33,79 @@ async function criarGerenciador(perguntas: { ask: string; answer: string }[]) {
 }
 
 // Fallback com IA
+// async function fallbackParaIA(
+//   perguntaUsuario: string,
+//   perguntas: { ask: string; answer: string }[],
+//   informationContext: string
+// ): Promise<string> {
+//   try {
+//     const similaridades = perguntas.map((item) => ({
+//       pergunta: item.ask,
+//       resposta: item.answer,
+//       score: stringSimilarity.compareTwoStrings(perguntaUsuario, item.ask),
+//     }))
+
+//     const topSimilares = similaridades
+//       .sort((a, b) => b.score - a.score)
+//       .slice(0, 1)
+
+//     const contexto = topSimilares
+//       .map((p) => `Q: ${p.pergunta}\nA: ${p.resposta}`)
+//       .join('\n\n')
+
+//     const messages = [
+//       {
+//         role: 'system',
+//         content: `Você é um bot de call center de um hospital chamada Iris, e só pode responder com base nas perguntas e respostas abaixo.
+// Se a pergunta do usuário não estiver claramente presente ou relacionada diga "Desculpe, não tenho essa resposta, melhor ligar para a nossa central.".
+// Se alguém te tratar de forma hostil ou com palavras indevidas diga "Desculpe, sou apenas uma máquina e ainda estou aprendendo!".
+// Nunca confirme uma marcação ou cancelamento de agendamento.
+// Nunca combine respostas de diferentes tópicos. Não crie ou assuma informações.
+// Responda de forma clara, objetiva e educada.
+// Se tiver o nome chame-o apenas pelo primeiro nome.
+// Sempre responda em português.`,
+//       },
+//       {
+//         role: 'user',
+//         content: `Baseado nas perguntas abaixo, responda de forma direta:
+// ${contexto}
+// Informações adicionais do paciente: ${informationContext}
+// Pergunta: ${perguntaUsuario}`,
+//       },
+//     ]
+
+//     const response = await axios.post(
+//       'https://api.groq.com/openai/v1/chat/completions',
+//       {
+//         model: 'llama-3.1-8b-instant',
+//         messages,
+//         temperature: 0.5,
+//         max_tokens: 500,
+//       },
+//       {
+//         headers: {
+//           Authorization: `Bearer ${Env.get('GROQ_API_KEY')}`,
+//           'Content-Type': 'application/json',
+//         },
+//       }
+//     )
+
+//     return response.data.choices?.[0]?.message?.content?.trim() || 'Desculpe, não entendi sua pergunta.'
+
+//   } catch (error) {
+//     console.error('Erro no fallback com IA:', error)
+//     return 'Desculpe, houve um erro ao tentar entender sua pergunta.'
+//   }
+// }
+
+// Fallback com IA (Groq)
 async function fallbackParaIA(
   perguntaUsuario: string,
   perguntas: { ask: string; answer: string }[],
   informationContext: string
 ): Promise<string> {
   try {
+    // calcula similaridades
     const similaridades = perguntas.map((item) => ({
       pergunta: item.ask,
       resposta: item.answer,
@@ -49,6 +116,11 @@ async function fallbackParaIA(
       .sort((a, b) => b.score - a.score)
       .slice(0, 1)
 
+    // se não há nada parecido o suficiente, nem chama a IA
+    if (topSimilares.length === 0 || topSimilares[0].score < 0.5) {
+      return 'Desculpe, não tenho essa resposta, melhor ligar para a nossa central.'
+    }
+
     const contexto = topSimilares
       .map((p) => `Q: ${p.pergunta}\nA: ${p.resposta}`)
       .join('\n\n')
@@ -56,20 +128,24 @@ async function fallbackParaIA(
     const messages = [
       {
         role: 'system',
-        content: `Você é um bot de call center de um hospital chamada Iris, e só pode responder com base nas perguntas e respostas abaixo.
-Se a pergunta do usuário não estiver claramente presente ou relacionada diga "Desculpe, não tenho essa resposta, melhor ligar para a nossa central.".
-Se alguém te tratar de forma hostil ou com palavras indevidas diga "Desculpe, sou apenas uma máquina e ainda estou aprendendo!".
-Nunca confirme uma marcação ou cancelamento de agendamento.
-Nunca combine respostas de diferentes tópicos. Não crie ou assuma informações.
-Responda de forma clara, objetiva e educada.
-Se tiver o nome chame-o apenas pelo primeiro nome.
-Sempre responda em português.`,
+        content: `Você é um bot de call center de um hospital chamada Iris.
+Você deve responder **EXCLUSIVAMENTE** com base nas perguntas e respostas abaixo.
+⚠️ IMPORTANTE:
+- Se a pergunta do usuário não estiver claramente presente ou relacionada ao contexto, responda exatamente:
+"Desculpe, não tenho essa resposta, melhor ligar para a nossa central."
+- Nunca invente ou assuma informações que não estejam no contexto.
+- Nunca confirme marcações, reagendamentos ou cancelamentos.
+- Nunca combine respostas de diferentes tópicos.
+- Se alguém for hostil, diga: "Desculpe, sou apenas uma máquina e ainda estou aprendendo!".
+Responda sempre de forma clara, objetiva, educada e em português.`,
       },
       {
         role: 'user',
-        content: `Baseado nas perguntas abaixo, responda de forma direta:
+        content: `Baseado apenas nas perguntas abaixo, responda de forma direta:
 ${contexto}
+
 Informações adicionais do paciente: ${informationContext}
+
 Pergunta: ${perguntaUsuario}`,
       },
     ]
@@ -79,8 +155,8 @@ Pergunta: ${perguntaUsuario}`,
       {
         model: 'llama-3.1-8b-instant',
         messages,
-        temperature: 0.5,
-        max_tokens: 500,
+        temperature: 0, // <- reduz criatividade
+        max_tokens: 300,
       },
       {
         headers: {
@@ -90,13 +166,16 @@ Pergunta: ${perguntaUsuario}`,
       }
     )
 
-    return response.data.choices?.[0]?.message?.content?.trim() || 'Desculpe, não entendi sua pergunta.'
-
+    return (
+      response.data.choices?.[0]?.message?.content?.trim() ||
+      'Desculpe, não tenho essa resposta, melhor ligar para a nossa central.'
+    )
   } catch (error) {
     console.error('Erro no fallback com IA:', error)
     return 'Desculpe, houve um erro ao tentar entender sua pergunta.'
   }
 }
+
 
 // Função principal
 export async function responderPergunta(

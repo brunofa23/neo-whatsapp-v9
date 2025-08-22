@@ -73,7 +73,7 @@ async function resendMessage() {
       const yesterdayEnd = now.minus({ days: 1 }).endOf('day')
       const tomorrowStart = now.plus({ days: 1 }).startOf('day')
       const tomorrowEnd = now.plus({ days: 1 }).endOf('day')
-      const yesterdayNoon = now.minus({ days: 1 }).set({ hour: 12, minute: 0, second: 0, millisecond: 0 })
+      //const yesterdayNoon = now.minus({ days: 1 }).set({ hour: 12, minute: 0, second: 0, millisecond: 0 })
 
 
       // 🔹 Atualiza mensagens para reenvio
@@ -84,11 +84,34 @@ async function resendMessage() {
         .where('dateshedule', '<=', tomorrowEnd.toSQL({ includeOffset: false }))
         .andWhere('interaction_id', 1)
         .whereNull('phonevalid')
-        .andWhere('messagesent',0)
+        .andWhere('messagesent', 0)
         .andWhereNull('excluded')
         .update({
           createdAt: DateTime.now().toSQL({ includeOffset: false })
         })
+
+      //BUSCA 40 PACIENTES DO DIA ANTERIOR DE AVALIAÇÃO
+      const records = await Shippingcampaign.query()
+        .where('created_at', '>=', yesterdayStart.toSQL({ includeOffset: false }))
+        .where('created_at', '<=', yesterdayEnd.toSQL({ includeOffset: false }))
+        .where('dateshedule', '>=', tomorrowStart.toSQL({ includeOffset: false }))
+        .where('dateshedule', '<=', tomorrowEnd.toSQL({ includeOffset: false }))
+        .andWhere('interaction_id', 2)
+        .whereNull('phonevalid')
+        .andWhere('messagesent', 0)
+        .andWhereNull('excluded')
+        .limit(40) // <-- limita a busca
+        .select('id') // só traz os ids para performance
+      // pega apenas os ids
+      const ids = records.map(r => r.id)
+      if (ids.length > 0) {
+        await Shippingcampaign.query()
+          .whereIn('id', ids)
+          .update({
+            createdAt: DateTime.now().toSQL({ includeOffset: false })
+          })
+      }
+
 
       if (updatedResend[0] > 0) {
         await Log.create({

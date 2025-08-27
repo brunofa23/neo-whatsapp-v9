@@ -35,6 +35,7 @@ export default class Shippingcampaign extends BaseModel {
       'covenant',
       'dateservice',
       'prioritysend',
+      'resend',
       'excluded',
       'justify_excluded',
       'date_first_return',
@@ -108,6 +109,9 @@ export default class Shippingcampaign extends BaseModel {
 
   @column()
   public prioritysend: boolean
+
+  @column()
+  public resend:number
 
   @column()
   public excluded: boolean

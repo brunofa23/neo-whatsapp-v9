@@ -87,7 +87,8 @@ async function resendMessage() {
         .andWhere('messagesent', 0)
         .andWhereNull('excluded')
         .update({
-          createdAt: DateTime.now().toSQL({ includeOffset: false })
+          createdAt: DateTime.now().toSQL({ includeOffset: false }),
+          resend:1
         })
 
       //BUSCA 40 PACIENTES DO DIA ANTERIOR DE AVALIAÇÃO
@@ -108,7 +109,8 @@ async function resendMessage() {
         await Shippingcampaign.query()
           .whereIn('id', ids)
           .update({
-            createdAt: DateTime.now().toSQL({ includeOffset: false })
+            createdAt: DateTime.now().toSQL({ includeOffset: false }),
+            resend:1
           })
       }
 

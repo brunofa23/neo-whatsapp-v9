@@ -81,7 +81,8 @@ async function resendMessage() {
                 .andWhere('messagesent', 0)
                 .andWhereNull('excluded')
                 .update({
-                createdAt: luxon_1.DateTime.now().toSQL({ includeOffset: false })
+                createdAt: luxon_1.DateTime.now().toSQL({ includeOffset: false }),
+                resend: 1
             });
             const records = await Shippingcampaign_1.default.query()
                 .where('created_at', '>=', yesterdayStart.toSQL({ includeOffset: false }))
@@ -99,7 +100,8 @@ async function resendMessage() {
                 await Shippingcampaign_1.default.query()
                     .whereIn('id', ids)
                     .update({
-                    createdAt: luxon_1.DateTime.now().toSQL({ includeOffset: false })
+                    createdAt: luxon_1.DateTime.now().toSQL({ includeOffset: false }),
+                    resend: 1
                 });
             }
             if (updatedResend[0] > 0) {

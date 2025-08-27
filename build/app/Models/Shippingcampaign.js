@@ -43,6 +43,7 @@ class Shippingcampaign extends Orm_1.BaseModel {
             'covenant',
             'dateservice',
             'prioritysend',
+            'resend',
             'excluded',
             'justify_excluded',
             'date_first_return',
@@ -138,6 +139,10 @@ __decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", Boolean)
 ], Shippingcampaign.prototype, "prioritysend", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", Number)
+], Shippingcampaign.prototype, "resend", void 0);
 __decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", Boolean)

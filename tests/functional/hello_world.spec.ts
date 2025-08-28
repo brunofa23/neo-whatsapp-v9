@@ -11,9 +11,9 @@ import { responderPergunta } from 'App/Services/Ai/aiResponder'
 
 test('display welcome page', async ({ client }) => {
 
+  const answer = await interpretAnswer("bom dia")
+  console.log("RESPOSTA>>>>",answer.code)
 
-const response = await responderPergunta("Qual endereço de Santa Efigênia",
-  `Gostaria de saber o endereço  da clínica neo visão do bairro Santa Efigenia obrigada`);
- console.log(response)
+
 
 })

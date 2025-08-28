@@ -33,7 +33,9 @@ export default async (client: Client, message: Message, chat: Chat) => {
   if (chat.interaction_seq == 1) {
     const chatOtherFields = JSON.parse(chat.shippingcampaign.otherfields)
     const answer = await interpretAnswer(message.body)
-    if (answer == 1) {//presença confirmada
+
+
+    if (answer.code == 1) {//presença confirmada
       await stateTyping(message)//status de digitando...
       try {
         // Busca a mensagem personalizada ou usa a mensagem padrão
@@ -74,7 +76,7 @@ export default async (client: Client, message: Message, chat: Chat) => {
       //Salvar no Smart e marcar presença
     } else
       //CANCELAR AGENDAMENTO******************************************************************
-      if (answer == 2) {
+      if (answer.code == 2) {
         try {
           Object.assign(chat, {
             response: message.body,
@@ -160,7 +162,7 @@ export default async (client: Client, message: Message, chat: Chat) => {
         }
 
       }
-      else if (answer == 3) {
+      else if (answer.code == 3) {
         await stateTyping(message)//status de digitando...
         try {
           const defaultMessage = `Desculpe pelo engano, vou pedir para corrigir nosso cadastro.`;

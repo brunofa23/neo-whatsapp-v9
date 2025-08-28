@@ -11,7 +11,7 @@ import { responderPergunta } from 'App/Services/Ai/aiResponder'
 
 test('display welcome page', async ({ client }) => {
 
-  const answer = await interpretAnswer("bom dia")
+  const answer = await interpretAnswer("bom dia sim")
   console.log("RESPOSTA>>>>",answer.code)
 
 

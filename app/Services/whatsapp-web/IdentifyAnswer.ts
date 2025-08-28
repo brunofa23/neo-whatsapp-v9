@@ -6,7 +6,6 @@ async function treinarGerenciador() {
   const manager = new NlpManager({ languages: ['pt'], forceNER: true, nlu: { log: false } })
 
   // Confirmação 1
-  manager.addDocument('pt', 'bom dia, 1', 'confirmar.consulta')
   manager.addDocument('pt', 'sim', 'confirmar.consulta')
   manager.addDocument('pt', 'pode confirmar', 'confirmar.consulta')
   manager.addDocument('pt', 'ok', 'confirmar.consulta')
@@ -14,6 +13,36 @@ async function treinarGerenciador() {
   manager.addDocument('pt', 'confirmado', 'confirmar.consulta')
   manager.addDocument('pt', 'sim, confirmado', 'confirmar.consulta')
   manager.addDocument('pt', 'confirmadíssimo', 'confirmar.consulta')
+  // Cumprimentos + Confirmação
+  manager.addDocument('pt', 'bom dia, confirmar', 'confirmar.consulta')
+  manager.addDocument('pt', 'bom dia, 1', 'confirmar.consulta')
+  manager.addDocument('pt', 'bom dia, confirmado', 'confirmar.consulta')
+  manager.addDocument('pt', 'bom dia, pode confirmar', 'confirmar.consulta')
+  manager.addDocument('pt', 'bom dia, sim', 'confirmar.consulta')
+  manager.addDocument('pt', 'bom dia, ok', 'confirmar.consulta')
+
+  manager.addDocument('pt', 'boa tarde, 1', 'confirmar.consulta')
+  manager.addDocument('pt', 'boa tarde, confirmado', 'confirmar.consulta')
+  manager.addDocument('pt', 'boa tarde, pode confirmar', 'confirmar.consulta')
+  manager.addDocument('pt', 'boa tarde, sim', 'confirmar.consulta')
+  manager.addDocument('pt', 'boa tarde, ok', 'confirmar.consulta')
+
+  manager.addDocument('pt', 'boa noite, 1', 'confirmar.consulta')
+  manager.addDocument('pt', 'boa noite, confirmado', 'confirmar.consulta')
+  manager.addDocument('pt', 'boa noite, pode confirmar', 'confirmar.consulta')
+  manager.addDocument('pt', 'boa noite, sim', 'confirmar.consulta')
+  manager.addDocument('pt', 'boa noite, ok', 'confirmar.consulta')
+
+  manager.addDocument('pt', 'olá, confirmado', 'confirmar.consulta')
+  manager.addDocument('pt', 'olá, sim', 'confirmar.consulta')
+  manager.addDocument('pt', 'olá, pode confirmar', 'confirmar.consulta')
+  manager.addDocument('pt', 'olá, ok', 'confirmar.consulta')
+
+  manager.addDocument('pt', 'oi, confirmado', 'confirmar.consulta')
+  manager.addDocument('pt', 'oi, sim', 'confirmar.consulta')
+  manager.addDocument('pt', 'oi, pode confirmar', 'confirmar.consulta')
+  manager.addDocument('pt', 'oi, ok', 'confirmar.consulta')
+
 
   // Reagendamento / Desmarcar 2
   manager.addDocument('pt', 'não posso neste horário', 'reagendar.consulta')

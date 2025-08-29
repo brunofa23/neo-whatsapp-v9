@@ -59,6 +59,15 @@ async function treinarGerenciador() {
   manager.addDocument('pt', 'não vou poder ir nesse dia', 'reagendar.consulta')
   manager.addDocument('pt', 'desculpe, não posso', 'reagendar.consulta')
 
+  // Recusas com cumprimentos 2
+  manager.addDocument('pt', 'bom dia, 2', 'reagendar.consulta')
+  manager.addDocument('pt', 'boa tarde, 2', 'reagendar.consulta')
+  manager.addDocument('pt', 'boa noite, 2', 'reagendar.consulta')
+  manager.addDocument('pt', 'bom dia, não posso neste horário', 'reagendar.consulta')
+  manager.addDocument('pt', 'boa tarde, quero desmarcar', 'reagendar.consulta')
+  manager.addDocument('pt', 'boa noite, não poderei comparecer', 'reagendar.consulta')
+
+
   // Recusa 3
   manager.addDocument('pt', 'não sou essa pessoa', 'recusar.consulta')
   manager.addDocument('pt', 'número errado', 'recusar.consulta')

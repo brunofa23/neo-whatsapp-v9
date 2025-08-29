@@ -31,7 +31,7 @@ exports.default = async (client, message, chat) => {
     if (chat.interaction_seq == 1) {
         const chatOtherFields = JSON.parse(chat.shippingcampaign.otherfields);
         const answer = await (0, IdentifyAnswer_1.interpretAnswer)(message.body);
-        if (answer == 1) {
+        if (answer.code == 1) {
             await (0, util_1.stateTyping)(message);
             try {
                 const response1schedule = await Response_1.default.query()
@@ -63,7 +63,7 @@ exports.default = async (client, message, chat) => {
                 console.error("Erro ao enviar a mensagem de agendamento:", error.message, error.stack);
             }
         }
-        else if (answer == 2) {
+        else if (answer.code == 2) {
             try {
                 Object.assign(chat, {
                     response: message.body,
@@ -140,7 +140,7 @@ exports.default = async (client, message, chat) => {
                 console.log("Erro:", error);
             }
         }
-        else if (answer == 3) {
+        else if (answer.code == 3) {
             await (0, util_1.stateTyping)(message);
             try {
                 const defaultMessage = `Desculpe pelo engano, vou pedir para corrigir nosso cadastro.`;

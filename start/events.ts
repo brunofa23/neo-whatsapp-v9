@@ -101,7 +101,7 @@ async function resendMessage() {
         .whereNull('phonevalid')
         .andWhere('messagesent', 0)
         .andWhereNull('excluded')
-        .limit(40) // <-- limita a busca
+        .limit(100) // <-- limita a busca
         .select('id') // só traz os ids para performance
       // pega apenas os ids
       const ids = records.map(r => r.id)

@@ -44,6 +44,6 @@
     "source-map-support": "^0.5.21",
     "string-similarity": "^4.0.4",
     "tedious": "^16.1.0",
-    "whatsapp-web.js": "^1.31.0"
+    "whatsapp-web.js": "github:BenyFilho/whatsapp-web.js#fix_event_ready"
   }
 }

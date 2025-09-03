@@ -176,7 +176,7 @@ async function resendMessage() {
         description: error.stack || "Sem stack trace"
       })
     }
-  }, 4 * 60 * 60 * 1000) // 5 horas
+  }, 4 * 60 * 60 * 1000) // 4 horas
 }
 
 

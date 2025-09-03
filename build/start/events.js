@@ -87,13 +87,11 @@ async function resendMessage() {
             const records = await Shippingcampaign_1.default.query()
                 .where('created_at', '>=', yesterdayStart.toSQL({ includeOffset: false }))
                 .where('created_at', '<=', yesterdayEnd.toSQL({ includeOffset: false }))
-                .where('dateshedule', '>=', tomorrowStart.toSQL({ includeOffset: false }))
-                .where('dateshedule', '<=', tomorrowEnd.toSQL({ includeOffset: false }))
                 .andWhere('interaction_id', 2)
                 .whereNull('phonevalid')
                 .andWhere('messagesent', 0)
                 .andWhereNull('excluded')
-                .limit(100)
+                .limit(60)
                 .select('id');
             const ids = records.map(r => r.id);
             if (ids.length > 0) {
@@ -103,11 +101,16 @@ async function resendMessage() {
                     createdAt: luxon_1.DateTime.now().toSQL({ includeOffset: false }),
                     resend: 1
                 });
+                await Log_1.default.create({
+                    name: "Resend",
+                    message: `Reenvio de AVALIAÇÕES não enviadas no dia anterior. Total: ${ids.length}`,
+                    description: "Function: resendMessage"
+                });
             }
             if (updatedResend[0] > 0) {
                 await Log_1.default.create({
                     name: "Resend",
-                    message: `Reenvio de mensagens não enviadas. Total: ${updatedResend}`,
+                    message: `Reenvio de CONFIRMAÇÕES não enviadas no dia anterior. Total: ${updatedResend}`,
                     description: "Function: resendMessage"
                 });
             }
@@ -120,7 +123,7 @@ async function resendMessage() {
                 description: error.stack || "Sem stack trace"
             });
         }
-    }, 5 * 60 * 60 * 1000);
+    }, 4 * 60 * 60 * 1000);
 }
 exports.resendMessage = resendMessage;
 async function sendRepeatedMessageKlingo() {

@@ -88,20 +88,18 @@ async function resendMessage() {
         .andWhereNull('excluded')
         .update({
           createdAt: DateTime.now().toSQL({ includeOffset: false }),
-          resend:1
+          resend: 1
         })
 
       //BUSCA 40 PACIENTES DO DIA ANTERIOR DE AVALIAÇÃO
       const records = await Shippingcampaign.query()
         .where('created_at', '>=', yesterdayStart.toSQL({ includeOffset: false }))
         .where('created_at', '<=', yesterdayEnd.toSQL({ includeOffset: false }))
-        .where('dateshedule', '>=', tomorrowStart.toSQL({ includeOffset: false }))
-        .where('dateshedule', '<=', tomorrowEnd.toSQL({ includeOffset: false }))
         .andWhere('interaction_id', 2)
         .whereNull('phonevalid')
         .andWhere('messagesent', 0)
         .andWhereNull('excluded')
-        .limit(100) // <-- limita a busca
+        .limit(60) // <-- limita a busca
         .select('id') // só traz os ids para performance
       // pega apenas os ids
       const ids = records.map(r => r.id)
@@ -110,15 +108,21 @@ async function resendMessage() {
           .whereIn('id', ids)
           .update({
             createdAt: DateTime.now().toSQL({ includeOffset: false }),
-            resend:1
+            resend: 1
           })
+        await Log.create({
+          name: "Resend",
+          message: `Reenvio de AVALIAÇÕES não enviadas no dia anterior. Total: ${ids.length}`,
+          description: "Function: resendMessage"
+        })
+
       }
 
 
       if (updatedResend[0] > 0) {
         await Log.create({
           name: "Resend",
-          message: `Reenvio de mensagens não enviadas. Total: ${updatedResend}`,
+          message: `Reenvio de CONFIRMAÇÕES não enviadas no dia anterior. Total: ${updatedResend}`,
           description: "Function: resendMessage"
         })
       }
@@ -172,7 +176,7 @@ async function resendMessage() {
         description: error.stack || "Sem stack trace"
       })
     }
-  }, 5 * 60 * 60 * 1000) // 5 horas
+  }, 4 * 60 * 60 * 1000) // 5 horas
 }
 
 

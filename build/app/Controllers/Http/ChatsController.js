@@ -18,7 +18,7 @@ class ChatsController {
     async show({ auth, params, response }) {
         await auth.use('api').authenticate();
         try {
-            const data = await Chat_1.default.query().where('id', params.id);
+            const data = await Chat_1.default.query().where('id', params.id).first();
             return response.status(200).send(data);
         }
         catch (error) {

@@ -87,7 +87,7 @@ async function resendMessage() {
         .andWhere('messagesent', 0)
         .andWhereNull('excluded')
         .update({
-          createdAt: DateTime.now().toSQL({ includeOffset: false }),
+          createdAt: DateTime.now().toFormat("yyyy-LL-dd HH:mm:ss"),
           resend: 1
         })
 
@@ -107,7 +107,7 @@ async function resendMessage() {
         await Shippingcampaign.query()
           .whereIn('id', ids)
           .update({
-            createdAt: DateTime.now().toSQL({ includeOffset: false }),
+            createdAt: DateTime.now().toFormat("yyyy-LL-dd HH:mm:ss"),
             resend: 1
           })
         await Log.create({

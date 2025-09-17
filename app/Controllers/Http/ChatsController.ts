@@ -17,7 +17,7 @@ export default class ChatsController {
   public async show({auth, params, response }: HttpContextContract) {
     await auth.use('api').authenticate()
     try {
-      const data = await Chat.query().where('id', params.id)
+      const data = await Chat.query().where('id', params.id).first()
       return response.status(200).send(data)
     } catch (error) {
       return error

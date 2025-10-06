@@ -127,29 +127,28 @@ async function resendMessage() {
 }
 exports.resendMessage = resendMessage;
 async function sendRepeatedMessageKlingo() {
-    console.log("EXECUTANDO BUSCA KLINGO");
     setInterval(async () => {
-        let date = luxon_1.DateTime.local().setZone('America/Sao_Paulo').plus({ days: 3 });
-        if (date.weekday === 6) {
-            date = date.plus({ days: 2 });
+        const today = luxon_1.DateTime.local().setZone("America/Sao_Paulo");
+        let daysToAdd = null;
+        if (today.weekday >= 1 && today.weekday <= 4) {
+            daysToAdd = 2;
         }
-        else if (date.weekday === 7) {
-            date = date.plus({ days: 1 });
+        else if (today.weekday === 5) {
+            daysToAdd = 3;
         }
-        date = date.toFormat("yyyy-MM-dd");
+        else if (today.weekday === 6) {
+            daysToAdd = 3;
+        }
+        else if (today.weekday === 7) {
+            return;
+        }
+        const date = today.plus({ days: daysToAdd }).toFormat("yyyy-MM-dd");
         if (await (0, util_1.TimeSchedule)()) {
             console.log(`Buscando dados no Klingo: ${date}`);
-            const datasourceApisController = new DatasourceApisController_1.default;
+            const datasourceApisController = new DatasourceApisController_1.default();
             datasourceApisController.getSchedulesInternal(date);
         }
     }, Number(process.env.TIME_SENDREPEATEDMESSAGE || 5000));
-    setInterval(async () => {
-        if (await (0, util_1.TimeSchedule)()) {
-            console.log(`Atualizando confirmações no Klingo: ${luxon_1.DateTime.now().toFormat("dd/MM/yyyy HH:mm")}`);
-            const datasourceApisController = new DatasourceApisController_1.default;
-            datasourceApisController.confirmOrCancelScheduleInternal();
-        }
-    }, await (0, util_1.GenerateRandomTime)(500, 550, '****Send Message Repeated'));
 }
 exports.sendRepeatedMessageKlingo = sendRepeatedMessageKlingo;
 async function resetStatusConnected() {

@@ -149,6 +149,13 @@ async function sendRepeatedMessageKlingo() {
             datasourceApisController.getSchedulesInternal(date);
         }
     }, Number(process.env.TIME_SENDREPEATEDMESSAGE || 5000));
+    setInterval(async () => {
+        if (await (0, util_1.TimeSchedule)()) {
+            console.log(`Atualizando confirmações no Klingo: ${luxon_1.DateTime.now().toFormat("dd/MM/yyyy HH:mm")}`);
+            const datasourceApisController = new DatasourceApisController_1.default;
+            datasourceApisController.confirmOrCancelScheduleInternal();
+        }
+    }, await (0, util_1.GenerateRandomTime)(500, 550, '****Send Message Repeated'));
 }
 exports.sendRepeatedMessageKlingo = sendRepeatedMessageKlingo;
 async function resetStatusConnected() {

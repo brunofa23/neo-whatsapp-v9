@@ -106,7 +106,7 @@ export default class DatasourcesController {
           data.message = await greeting(data.message);
         }
       }
-      return result||[];
+      return result || [];
 
     } catch (error) {
       console.error('Erro em scheduledPatients:', error);
@@ -278,6 +278,147 @@ export default class DatasourcesController {
 
 
   }
+
+
+  //ENDPOIT TO OSM TABLE + PAC + SMM TO RANGE DATE
+public async patientsByProcedures({ auth, request, response }) {
+
+  const startDate = request.input('start_date') // ex: 2025-10-11
+  const endDate = request.input('end_date')     // ex: 2025-10-12
+
+  const rows = await Database.connection('mssql')
+    .from('OSM')
+    .innerJoin('SMM', function () {
+      this.on('OSM.OSM_SERIE', '=', 'SMM.SMM_OSM_SERIE')
+      this.on('OSM.OSM_NUM',   '=', 'SMM.SMM_OSM')
+    })
+    .innerJoin('PAC', 'PAC.PAC_REG', 'OSM.OSM_PAC')
+    .whereBetween('OSM.OSM_DTHR', [startDate, endDate])
+    .select(
+      // 👉 OSM (sem alias)
+      'OSM.OSM_SERIE',
+      'OSM.OSM_NUM',
+      'OSM.OSM_PAC',
+      'OSM.OSM_DTHR',
+      'OSM.OSM_CNV',
+      'OSM.OSM_PROC',
+      'OSM.OSM_MREQ',
+      'OSM.OSM_STR',
+      'OSM.OSM_STATUS',
+      'OSM.OSM_IND_URG',
+      'OSM.OSM_HSP_NUM',
+      'OSM.OSM_TIPO',
+      'OSM.OSM_DT_RESULT',
+      'OSM.OSM_ATEND',
+      'OSM.OSM_CID_COD',
+      'OSM.OSM_OBS',
+      'OSM.OSM_MCNV',
+      'OSM.OSM_PADRAO_PRECO',
+      'OSM.OSM_DT_SOLIC',
+      'OSM.OSM_HORA_ESP',
+      'OSM.OSM_LIB_PAG',
+      'OSM.OSM_LIB_PAG_DTHR',
+      'OSM.OSM_LIB_PAG_USR',
+      'OSM.OSM_MTE_SERIE_BENEF',
+      'OSM.OSM_MTE_SEQ_BENEF',
+      'OSM.OSM_OSM_SERIE_BENEF',
+      'OSM.OSM_OSM_NUM_BENEF',
+      'OSM.OSM_LIB_PAG_SERIE',
+      'OSM.OSM_LIB_PAG_NUM',
+      'OSM.OSM_ASO_MES_REF',
+      'OSM.OSM_NUM_EXTERNO',
+      'OSM.OSM_CML_CNV_COD',
+
+      // 👉 PAC (sem alias)
+      'PAC.PAC_REG',
+      'PAC.PAC_DREG',
+      'PAC.PAC_PRONT',
+      'PAC.PAC_NOME',
+      'PAC.pac_nome_social',
+      'PAC.pac_flag_social',
+      'PAC.pac_dthr_social',
+      'PAC.PAC_SEXO',
+      'PAC.PAC_NASC',
+      'PAC.PAC_EST_CIVIL',
+      'PAC.PAC_NOME_MAE',
+      'PAC.PAC_NUMCPF',
+      'PAC.PAC_NUMRG',
+      'PAC.PAC_NUMRG_ORG',
+      'PAC.PAC_NUMRG_UF',
+      'PAC.PAC_NUMRG_DTEXP',
+      'PAC.PAC_EMAIL',
+      'PAC.PAC_FONE',
+      'PAC.PAC_FONE2',
+      'PAC.PAC_CELULAR',
+      'PAC.PAC_RAMAL',
+      'PAC.pac_ind_whatsapp',
+      'PAC.PAC_END',
+      'PAC.PAC_END_NUM',
+      'PAC.PAC_COMP',
+      'PAC.PAC_COMP_EXTRA',
+      'PAC.PAC_CEP',
+      'PAC.PAC_CID',
+      'PAC.PAC_UF',
+      'PAC.PAC_ZONA',
+      'PAC.PAC_LGR_COD',
+      'PAC.PAC_CARTAO_SUS',
+      'PAC.PAC_SUS_SISCEL',
+      'PAC.PAC_CNV',
+      'PAC.PAC_MCNV',
+      'PAC.PAC_CNV_COD',
+      'PAC.PAC_PLN_COD',
+      'PAC.PAC_COD_DEPCNV',
+      'PAC.PAC_DTCNV_PAG',
+      'PAC.PAC_DTCNV_VAL',
+      'PAC.PAC_CNV2',
+      'PAC.PAC_MCNV2',
+      'PAC.PAC_CNV2_COD',
+      'PAC.PAC_PLN2_COD',
+      'PAC.PAC_COD_DEPCNV2',
+      'PAC.PAC_PESO',
+      'PAC.pac_peso_unid',
+      'PAC.PAC_ALT',
+      'PAC.pac_alt_unid',
+      'PAC.PAC_ABORH',
+
+      // 👉 SMM (sem alias), conforme solicitado
+      'SMM.SMM_OSM_SERIE',
+      'SMM.SMM_OSM',
+      'SMM.SMM_NUM',
+      'SMM.SMM_TPCOD',
+      'SMM.SMM_COD',
+      'SMM.SMM_QT',
+      'SMM.SMM_EXEC',
+      'SMM.SMM_SFAT',
+      'SMM.SMM_FAT_SERIE',
+      'SMM.SMM_FAT',
+      'SMM.SMM_REP',
+      'SMM.SMM_STR',
+      'SMM.SMM_MED',
+      'SMM.SMM_VLR',
+      'SMM.SMM_DTHR_EXEC',
+      'SMM.SMM_PAC_REG',
+      'SMM.SMM_CNV_COD'
+    )
+
+  // 🔹 Aninha pac e smm por prefixo
+  const result = rows.map((row) => {
+    const pac: any = {}
+    const smm: any = {}
+    const osm: any = {}
+
+    for (const [key, value] of Object.entries(row)) {
+      if (key.startsWith('PAC_') || key.startsWith('pac_')) pac[key] = value
+      else if (key.startsWith('SMM_')) smm[key] = value
+      else osm[key] = value
+    }
+
+    return { ...osm, pac, smm }
+  })
+
+  return response.send(result)
+}
+
 
 
 

@@ -107,6 +107,7 @@ Route.group(() => {
   Route.get("/scheduledPatients", "DatasourcesController.scheduledPatients")
   Route.get("/cancelscheduleall", "DatasourcesController.cancelScheduleAll")
   Route.get("/confirmscheduleall", "DatasourcesController.confirmScheduleAll")
+  Route.get('/patientsbyprocedures', "DatasourcesController.patientsByProcedures")
 
   Route.post('/logout', 'ShippingcampaignsController.logout')
   Route.post('/chat', 'ShippingcampaignsController.chat')

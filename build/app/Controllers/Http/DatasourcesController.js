@@ -272,6 +272,7 @@ class DatasourcesController {
         return response.send(result);
     }
     async patientsBySchedules({ auth, request, response }) {
+        await auth.use('api').authenticate();
         const startDate = request.input('start_date');
         const endDate = request.input('end_date');
         const query = Database_1.default.connection('mssql')

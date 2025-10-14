@@ -423,7 +423,7 @@ export default class DatasourcesController {
 
 
   public async patientsBySchedules({ auth, request, response }) {
-    // await auth.use('api').authenticate()
+    await auth.use('api').authenticate()
 
     const startDate = request.input('start_date') // ex: 2025-10-11
     const endDate = request.input('end_date')     // ex: 2025-10-12

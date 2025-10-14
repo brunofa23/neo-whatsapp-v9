@@ -246,7 +246,7 @@ class DatasourcesController {
         await auth.use('api').authenticate();
         const startDate = request.input('start_date');
         const endDate = request.input('end_date');
-        const rows = await Database_1.default.connection('mssql')
+        const query = Database_1.default.connection('mssql')
             .from('OSM')
             .innerJoin('SMM', function () {
             this.on('OSM.OSM_SERIE', '=', 'SMM.SMM_OSM_SERIE');
@@ -254,20 +254,41 @@ class DatasourcesController {
         })
             .innerJoin('PAC', 'PAC.PAC_REG', 'OSM.OSM_PAC')
             .whereBetween('OSM.OSM_DTHR', [startDate, endDate])
-            .select('OSM.OSM_SERIE', 'OSM.OSM_NUM', 'OSM.OSM_PAC', 'OSM.OSM_DTHR', 'OSM.OSM_CNV', 'OSM.OSM_PROC', 'OSM.OSM_MREQ', 'OSM.OSM_STR', 'OSM.OSM_STATUS', 'OSM.OSM_IND_URG', 'OSM.OSM_HSP_NUM', 'OSM.OSM_TIPO', 'OSM.OSM_DT_RESULT', 'OSM.OSM_ATEND', 'OSM.OSM_CID_COD', 'OSM.OSM_OBS', 'OSM.OSM_MCNV', 'OSM.OSM_PADRAO_PRECO', 'OSM.OSM_DT_SOLIC', 'OSM.OSM_HORA_ESP', 'OSM.OSM_LIB_PAG', 'OSM.OSM_LIB_PAG_DTHR', 'OSM.OSM_LIB_PAG_USR', 'OSM.OSM_MTE_SERIE_BENEF', 'OSM.OSM_MTE_SEQ_BENEF', 'OSM.OSM_OSM_SERIE_BENEF', 'OSM.OSM_OSM_NUM_BENEF', 'OSM.OSM_LIB_PAG_SERIE', 'OSM.OSM_LIB_PAG_NUM', 'OSM.OSM_ASO_MES_REF', 'OSM.OSM_NUM_EXTERNO', 'OSM.OSM_CML_CNV_COD', 'PAC.PAC_REG', 'PAC.PAC_DREG', 'PAC.PAC_PRONT', 'PAC.PAC_NOME', 'PAC.pac_nome_social', 'PAC.pac_flag_social', 'PAC.pac_dthr_social', 'PAC.PAC_SEXO', 'PAC.PAC_NASC', 'PAC.PAC_EST_CIVIL', 'PAC.PAC_NOME_MAE', 'PAC.PAC_NUMCPF', 'PAC.PAC_NUMRG', 'PAC.PAC_NUMRG_ORG', 'PAC.PAC_NUMRG_UF', 'PAC.PAC_NUMRG_DTEXP', 'PAC.PAC_EMAIL', 'PAC.PAC_FONE', 'PAC.PAC_FONE2', 'PAC.PAC_CELULAR', 'PAC.PAC_RAMAL', 'PAC.pac_ind_whatsapp', 'PAC.PAC_END', 'PAC.PAC_END_NUM', 'PAC.PAC_COMP', 'PAC.PAC_COMP_EXTRA', 'PAC.PAC_CEP', 'PAC.PAC_CID', 'PAC.PAC_UF', 'PAC.PAC_ZONA', 'PAC.PAC_LGR_COD', 'PAC.PAC_CARTAO_SUS', 'PAC.PAC_SUS_SISCEL', 'PAC.PAC_CNV', 'PAC.PAC_MCNV', 'PAC.PAC_CNV_COD', 'PAC.PAC_PLN_COD', 'PAC.PAC_COD_DEPCNV', 'PAC.PAC_DTCNV_PAG', 'PAC.PAC_DTCNV_VAL', 'PAC.PAC_CNV2', 'PAC.PAC_MCNV2', 'PAC.PAC_CNV2_COD', 'PAC.PAC_PLN2_COD', 'PAC.PAC_COD_DEPCNV2', 'PAC.PAC_PESO', 'PAC.pac_peso_unid', 'PAC.PAC_ALT', 'PAC.pac_alt_unid', 'PAC.PAC_ABORH', 'SMM.SMM_OSM_SERIE', 'SMM.SMM_OSM', 'SMM.SMM_NUM', 'SMM.SMM_TPCOD', 'SMM.SMM_COD', 'SMM.SMM_QT', 'SMM.SMM_EXEC', 'SMM.SMM_SFAT', 'SMM.SMM_FAT_SERIE', 'SMM.SMM_FAT', 'SMM.SMM_REP', 'SMM.SMM_STR', 'SMM.SMM_MED', 'SMM.SMM_VLR', 'SMM.SMM_DTHR_EXEC', 'SMM.SMM_PAC_REG', 'SMM.SMM_CNV_COD');
-        const result = rows.map((row) => {
+            .select('OSM.OSM_SERIE', 'OSM.OSM_NUM', 'OSM.OSM_PAC', 'OSM.OSM_DTHR', 'OSM.OSM_CNV', 'OSM.OSM_PROC', 'OSM.OSM_MREQ', 'OSM.OSM_STR', 'OSM.OSM_STATUS', 'OSM.OSM_IND_URG', 'OSM.OSM_HSP_NUM', 'OSM.OSM_TIPO', 'OSM.OSM_DT_RESULT', 'OSM.OSM_ATEND', 'OSM.OSM_CID_COD', 'OSM.OSM_OBS', 'OSM.OSM_MCNV', 'OSM.OSM_PADRAO_PRECO', 'OSM.OSM_DT_SOLIC', 'OSM.OSM_HORA_ESP', 'OSM.OSM_LIB_PAG', 'OSM.OSM_LIB_PAG_DTHR', 'OSM.OSM_LIB_PAG_USR', 'OSM.OSM_MTE_SERIE_BENEF', 'OSM.OSM_MTE_SEQ_BENEF', 'OSM.OSM_OSM_SERIE_BENEF', 'OSM.OSM_OSM_NUM_BENEF', 'OSM.OSM_LIB_PAG_SERIE', 'OSM.OSM_LIB_PAG_NUM', 'OSM.OSM_ASO_MES_REF', 'OSM.OSM_NUM_EXTERNO', 'OSM.OSM_CML_CNV_COD', 'PAC.PAC_REG', 'PAC.PAC_DREG', 'PAC.PAC_PRONT', 'PAC.PAC_NOME', 'PAC.pac_nome_social', 'PAC.pac_flag_social', 'PAC.pac_dthr_social', 'PAC.PAC_SEXO', 'PAC.PAC_NASC', 'PAC.PAC_EST_CIVIL', 'PAC.PAC_NOME_MAE', 'PAC.PAC_NUMCPF', 'PAC.PAC_NUMRG', 'PAC.PAC_NUMRG_ORG', 'PAC.PAC_NUMRG_UF', 'PAC.PAC_NUMRG_DTEXP', 'PAC.PAC_EMAIL', 'PAC.PAC_FONE', 'PAC.PAC_FONE2', 'PAC.PAC_CELULAR', 'PAC.PAC_RAMAL', 'PAC.pac_ind_whatsapp', 'PAC.PAC_END', 'PAC.PAC_END_NUM', 'PAC.PAC_COMP', 'PAC.PAC_COMP_EXTRA', 'PAC.PAC_CEP', 'PAC.PAC_CID', 'PAC.PAC_UF', 'PAC.PAC_ZONA', 'PAC.PAC_LGR_COD', 'PAC.PAC_CARTAO_SUS', 'PAC.PAC_SUS_SISCEL', 'PAC.PAC_CNV', 'PAC.PAC_MCNV', 'PAC.PAC_CNV_COD', 'PAC.PAC_PLN_COD', 'PAC.PAC_COD_DEPCNV', 'PAC.PAC_DTCNV_PAG', 'PAC.PAC_DTCNV_VAL', 'PAC.PAC_CNV2', 'PAC.PAC_MCNV2', 'PAC.PAC_CNV2_COD', 'PAC.PAC_PLN2_COD', 'PAC.PAC_COD_DEPCNV2', 'PAC.PAC_PESO', 'PAC.pac_peso_unid', 'PAC.PAC_ALT', 'PAC.pac_alt_unid', 'PAC.PAC_ABORH', 'SMM.SMM_OSM_SERIE', 'SMM.SMM_OSM', 'SMM.SMM_NUM', 'SMM.SMM_TPCOD', 'SMM.SMM_COD', 'SMM.SMM_QT', 'SMM.SMM_EXEC', 'SMM.SMM_SFAT', 'SMM.SMM_FAT_SERIE', 'SMM.SMM_FAT', 'SMM.SMM_REP', 'SMM.SMM_STR', 'SMM.SMM_MED', 'SMM.SMM_VLR', 'SMM.SMM_DTHR_EXEC', 'SMM.SMM_PAC_REG', 'SMM.SMM_CNV_COD')
+            .orderBy('OSM.OSM_SERIE')
+            .orderBy('OSM.OSM_NUM')
+            .orderBy('OSM.OSM_PAC')
+            .orderBy('SMM.SMM_NUM');
+        const rows = await query;
+        const groups = new Map();
+        for (const row of rows) {
             const pac = {};
             const smm = {};
             const osm = {};
             for (const [key, value] of Object.entries(row)) {
-                if (key.startsWith('PAC_') || key.startsWith('pac_'))
+                if (key.startsWith('PAC_') || key.startsWith('pac_')) {
                     pac[key] = value;
-                else if (key.startsWith('SMM_'))
+                }
+                else if (key.startsWith('SMM_')) {
                     smm[key] = value;
-                else
+                }
+                else {
                     osm[key] = value;
+                }
             }
-            return { ...osm, pac, smm };
+            const serie = osm.OSM_SERIE;
+            const num = osm.OSM_NUM;
+            const pacReg = osm.OSM_PAC;
+            const gkey = `${serie}|${num}|${pacReg}`;
+            if (!groups.has(gkey)) {
+                groups.set(gkey, { ...osm, pac, smms: [] });
+            }
+            groups.get(gkey).smms.push(smm);
+        }
+        const result = Array.from(groups.values()).map(item => {
+            if (item._seen)
+                delete item._seen;
+            return item;
         });
         return response.send(result);
     }

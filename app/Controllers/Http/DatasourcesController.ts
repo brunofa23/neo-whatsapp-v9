@@ -293,6 +293,7 @@ export default class DatasourcesController {
       this.on('OSM.OSM_NUM', '=', 'SMM.SMM_OSM')
     })
     .innerJoin('PAC', 'PAC.PAC_REG', 'OSM.OSM_PAC')
+    .innerJoin('CNV', 'OSM.OSM_CNV', 'CNV.CNV_COD')
     .whereBetween('OSM.OSM_DTHR', [startDate, endDate])
     .select(
       // OSM (sem alias)
@@ -301,6 +302,7 @@ export default class DatasourcesController {
       'OSM.OSM_PAC',
       'OSM.OSM_DTHR',
       'OSM.OSM_CNV',
+      'CNV.CNV_NOME',
       'OSM.OSM_PROC',
       'OSM.OSM_MREQ',
       'OSM.OSM_STR',
@@ -405,7 +407,7 @@ export default class DatasourcesController {
     .orderBy('OSM.OSM_PAC')
     .orderBy('SMM.SMM_NUM')
 
-  //console.log(query.toQuery())
+  console.log(query.toQuery())
   const rows = await query
 
   // 🔹 Agrupa por (OSM_SERIE|OSM_NUM|OSM_PAC), aninhando 1x pac e todas as smm

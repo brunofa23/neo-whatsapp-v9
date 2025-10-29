@@ -281,138 +281,174 @@ export default class DatasourcesController {
 
 
   //ENDPOIT TO OSM TABLE + PAC + SMM TO RANGE DATE
-  public async patientsByProcedures({ auth, request, response }) {
+  // public async patientsByProcedures({ auth, request, response }) {
+  //   await auth.use('api').authenticate()
+
+  //   const startDate = request.input('start_date') // 'YYYY-MM-DD'
+  //   const endDate = request.input('end_date')   // 'YYYY-MM-DD'
+
+  //   const query = Database.connection('mssql')
+  //     .from('OSM')
+  //     .innerJoin('SMM', (join) => {
+  //       join.on('OSM.OSM_SERIE', '=', 'SMM.SMM_OSM_SERIE')
+  //         .on('OSM.OSM_NUM', '=', 'SMM.SMM_OSM')
+  //     })
+  //     // ⬇️ join da SMK tem que ficar no nível raiz
+  //     .innerJoin('SMK', 'SMM.SMM_COD', 'SMK.SMK_COD')
+  //     .innerJoin('PAC', 'PAC.PAC_REG', 'OSM.OSM_PAC')
+  //     .innerJoin('CNV', 'OSM.OSM_CNV', 'CNV.CNV_COD')
+  //     .innerJoin('STR', 'OSM.OSM_STR', 'STR.STR_COD')
+  //     .whereBetween('OSM.OSM_DTHR', [startDate, endDate])
+  //     .select(
+  //       // OSM
+  //       'OSM.OSM_SERIE', 'OSM.OSM_NUM', 'OSM.OSM_PAC', 'OSM.OSM_DTHR', 'OSM.OSM_CNV',
+  //       'CNV.CNV_NOME', 'OSM.OSM_PROC', 'OSM.OSM_MREQ', 'OSM.OSM_STR', 'STR.STR_NOME',
+  //       'OSM.OSM_STATUS', 'OSM.OSM_IND_URG', 'OSM.OSM_HSP_NUM', 'OSM.OSM_TIPO',
+  //       'OSM.OSM_DT_RESULT', 'OSM.OSM_ATEND', 'OSM.OSM_CID_COD', 'OSM.OSM_OBS',
+  //       'OSM.OSM_MCNV', 'OSM.OSM_PADRAO_PRECO', 'OSM.OSM_DT_SOLIC', 'OSM.OSM_HORA_ESP',
+  //       'OSM.OSM_LIB_PAG', 'OSM.OSM_LIB_PAG_DTHR', 'OSM.OSM_LIB_PAG_USR',
+  //       'OSM.OSM_MTE_SERIE_BENEF', 'OSM.OSM_MTE_SEQ_BENEF',
+  //       'OSM.OSM_OSM_SERIE_BENEF', 'OSM.OSM_OSM_NUM_BENEF',
+  //       'OSM.OSM_LIB_PAG_SERIE', 'OSM.OSM_LIB_PAG_NUM', 'OSM.OSM_ASO_MES_REF',
+  //       'OSM.OSM_NUM_EXTERNO', 'OSM.OSM_CML_CNV_COD',
+
+  //       // PAC
+  //       'PAC.PAC_REG', 'PAC.PAC_DREG', 'PAC.PAC_PRONT', 'PAC.PAC_NOME', 'PAC.pac_nome_social',
+  //       'PAC.pac_flag_social', 'PAC.pac_dthr_social', 'PAC.PAC_SEXO', 'PAC.PAC_NASC',
+  //       'PAC.PAC_EST_CIVIL', 'PAC.PAC_NOME_MAE', 'PAC.PAC_NUMCPF', 'PAC.PAC_NUMRG',
+  //       'PAC.PAC_NUMRG_ORG', 'PAC.PAC_NUMRG_UF', 'PAC.PAC_NUMRG_DTEXP', 'PAC.PAC_EMAIL',
+  //       'PAC.PAC_FONE', 'PAC.PAC_FONE2', 'PAC.PAC_CELULAR', 'PAC.PAC_RAMAL', 'PAC.pac_ind_whatsapp',
+  //       'PAC.PAC_END', 'PAC.PAC_END_NUM', 'PAC.PAC_COMP', 'PAC.PAC_COMP_EXTRA', 'PAC.PAC_CEP',
+  //       'PAC.PAC_CID', 'PAC.PAC_UF', 'PAC.PAC_ZONA', 'PAC.PAC_LGR_COD', 'PAC.PAC_CARTAO_SUS',
+  //       'PAC.PAC_SUS_SISCEL', 'PAC.PAC_CNV', 'PAC.PAC_MCNV', 'PAC.PAC_CNV_COD', 'PAC.PAC_PLN_COD',
+  //       'PAC.PAC_COD_DEPCNV', 'PAC.PAC_DTCNV_PAG', 'PAC.PAC_DTCNV_VAL', 'PAC.PAC_CNV2', 'PAC.PAC_MCNV2',
+  //       'PAC.PAC_CNV2_COD', 'PAC.PAC_PLN2_COD', 'PAC.PAC_COD_DEPCNV2', 'PAC.PAC_PESO', 'PAC.pac_peso_unid',
+  //       'PAC.PAC_ALT', 'PAC.pac_alt_unid', 'PAC.PAC_ABORH',
+
+  //       // SMM
+  //       'SMM.SMM_OSM_SERIE', 'SMM.SMM_OSM', 'SMM.SMM_NUM', 'SMM.SMM_TPCOD', 'SMM.SMM_COD', 'SMM.SMM_CNV_COD',
+  //       'SMM.SMM_QT', 'SMM.SMM_EXEC', 'SMM.SMM_SFAT', 'SMM.SMM_FAT_SERIE', 'SMM.SMM_FAT',
+  //       'SMM.SMM_REP', 'SMM.SMM_STR', 'SMM.SMM_MED', 'SMM.SMM_VLR', 'SMM.SMM_DTHR_EXEC',
+  //       'SMM.SMM_PAC_REG',
+
+  //       // ⬇️ Alias para cair dentro de SMM no agrupamento
+  //       Database.raw('SMK.SMK_NOME AS SMM_SMK_NOME')
+  //     )
+  //     .orderBy('OSM.OSM_SERIE')
+  //     .orderBy('OSM.OSM_NUM')
+  //     .orderBy('OSM.OSM_PAC')
+  //     .orderBy('SMM.SMM_NUM')
+
+  //   // Opcional: conferir SQL gerado
+  //   // console.log(query.toQuery())
+
+  //   const rows = await query
+
+  //   // 🔹 Agrupamento
+  //   const groups = new Map<string, any>()
+
+  //   for (const row of rows) {
+  //     const pac: any = {}
+  //     const smm: any = {}
+  //     const osm: any = {}
+
+  //     for (const [key, value] of Object.entries(row)) {
+  //       if (key.startsWith('PAC_') || key.startsWith('pac_')) {
+  //         pac[key] = value
+  //       } else if (key.startsWith('SMM_')) {
+  //         smm[key] = value
+  //       } else {
+  //         osm[key] = value
+  //       }
+  //     }
+
+  //     const serie = osm.OSM_SERIE
+  //     const num = osm.OSM_NUM
+  //     const pacReg = osm.OSM_PAC
+  //     const gkey = `${serie}|${num}|${pacReg}`
+
+  //     if (!groups.has(gkey)) {
+  //       groups.set(gkey, { ...osm, pac, smms: [] as any[] })
+  //     }
+
+  //     groups.get(gkey).smms.push(smm)
+  //   }
+
+  //   const result = Array.from(groups.values()).map(item => {
+  //     if (item._seen) delete item._seen
+  //     return item
+  //   })
+
+  //   return response.send(result)
+  // }
+public async patientsByProcedures({ auth, request, response }) {
   await auth.use('api').authenticate()
-  const startDate = request.input('start_date') // ex: 2025-10-11
-  const endDate = request.input('end_date')     // ex: 2025-10-12
+
+  const startDate = request.input('start_date')
+  const endDate   = request.input('end_date')
 
   const query = Database.connection('mssql')
     .from('OSM')
-    .innerJoin('SMM', function () {
-      this.on('OSM.OSM_SERIE', '=', 'SMM.SMM_OSM_SERIE')
-      this.on('OSM.OSM_NUM', '=', 'SMM.SMM_OSM')
+    .innerJoin('SMM', (join) => {
+      join.on('OSM.OSM_SERIE', '=', 'SMM.SMM_OSM_SERIE')
+          .on('OSM.OSM_NUM',   '=', 'SMM.SMM_OSM')
     })
+    .innerJoin('SMK', 'SMM.SMM_COD', 'SMK.SMK_COD')
+    // ⬇️ NOVO: relaciona médico pela CRM; use LEFT JOIN para não perder linhas quando não houver match
+    .leftJoin('PSV', 'SMM.SMM_MED', 'PSV.PSV_CRM')
     .innerJoin('PAC', 'PAC.PAC_REG', 'OSM.OSM_PAC')
     .innerJoin('CNV', 'OSM.OSM_CNV', 'CNV.CNV_COD')
+    .innerJoin('STR', 'OSM.OSM_STR', 'STR.STR_COD')
     .whereBetween('OSM.OSM_DTHR', [startDate, endDate])
     .select(
-      // OSM (sem alias)
-      'OSM.OSM_SERIE',
-      'OSM.OSM_NUM',
-      'OSM.OSM_PAC',
-      'OSM.OSM_DTHR',
-      'OSM.OSM_CNV',
-      'CNV.CNV_NOME',
-      'OSM.OSM_PROC',
-      'OSM.OSM_MREQ',
-      'OSM.OSM_STR',
-      'OSM.OSM_STATUS',
-      'OSM.OSM_IND_URG',
-      'OSM.OSM_HSP_NUM',
-      'OSM.OSM_TIPO',
-      'OSM.OSM_DT_RESULT',
-      'OSM.OSM_ATEND',
-      'OSM.OSM_CID_COD',
-      'OSM.OSM_OBS',
-      'OSM.OSM_MCNV',
-      'OSM.OSM_PADRAO_PRECO',
-      'OSM.OSM_DT_SOLIC',
-      'OSM.OSM_HORA_ESP',
-      'OSM.OSM_LIB_PAG',
-      'OSM.OSM_LIB_PAG_DTHR',
-      'OSM.OSM_LIB_PAG_USR',
-      'OSM.OSM_MTE_SERIE_BENEF',
-      'OSM.OSM_MTE_SEQ_BENEF',
-      'OSM.OSM_OSM_SERIE_BENEF',
-      'OSM.OSM_OSM_NUM_BENEF',
-      'OSM.OSM_LIB_PAG_SERIE',
-      'OSM.OSM_LIB_PAG_NUM',
-      'OSM.OSM_ASO_MES_REF',
-      'OSM.OSM_NUM_EXTERNO',
-      'OSM.OSM_CML_CNV_COD',
+      // OSM
+      'OSM.OSM_SERIE','OSM.OSM_NUM','OSM.OSM_PAC','OSM.OSM_DTHR','OSM.OSM_CNV',
+      'CNV.CNV_NOME','OSM.OSM_PROC','OSM.OSM_MREQ','OSM.OSM_STR','STR.STR_NOME',
+      'OSM.OSM_STATUS','OSM.OSM_IND_URG','OSM.OSM_HSP_NUM','OSM.OSM_TIPO',
+      'OSM.OSM_DT_RESULT','OSM.OSM_ATEND','OSM.OSM_CID_COD','OSM.OSM_OBS',
+      'OSM.OSM_MCNV','OSM.OSM_PADRAO_PRECO','OSM.OSM_DT_SOLIC','OSM.OSM_HORA_ESP',
+      'OSM.OSM_LIB_PAG','OSM.OSM_LIB_PAG_DTHR','OSM.OSM_LIB_PAG_USR',
+      'OSM.OSM_MTE_SERIE_BENEF','OSM.OSM_MTE_SEQ_BENEF','OSM.OSM_OSM_SERIE_BENEF',
+      'OSM.OSM_OSM_NUM_BENEF','OSM.OSM_LIB_PAG_SERIE','OSM.OSM_LIB_PAG_NUM',
+      'OSM.OSM_ASO_MES_REF','OSM.OSM_NUM_EXTERNO','OSM.OSM_CML_CNV_COD',
 
-      // PAC (sem alias)
-      'PAC.PAC_REG',
-      'PAC.PAC_DREG',
-      'PAC.PAC_PRONT',
-      'PAC.PAC_NOME',
-      'PAC.pac_nome_social',
-      'PAC.pac_flag_social',
-      'PAC.pac_dthr_social',
-      'PAC.PAC_SEXO',
-      'PAC.PAC_NASC',
-      'PAC.PAC_EST_CIVIL',
-      'PAC.PAC_NOME_MAE',
-      'PAC.PAC_NUMCPF',
-      'PAC.PAC_NUMRG',
-      'PAC.PAC_NUMRG_ORG',
-      'PAC.PAC_NUMRG_UF',
-      'PAC.PAC_NUMRG_DTEXP',
-      'PAC.PAC_EMAIL',
-      'PAC.PAC_FONE',
-      'PAC.PAC_FONE2',
-      'PAC.PAC_CELULAR',
-      'PAC.PAC_RAMAL',
-      'PAC.pac_ind_whatsapp',
-      'PAC.PAC_END',
-      'PAC.PAC_END_NUM',
-      'PAC.PAC_COMP',
-      'PAC.PAC_COMP_EXTRA',
-      'PAC.PAC_CEP',
-      'PAC.PAC_CID',
-      'PAC.PAC_UF',
-      'PAC.PAC_ZONA',
-      'PAC.PAC_LGR_COD',
-      'PAC.PAC_CARTAO_SUS',
-      'PAC.PAC_SUS_SISCEL',
-      'PAC.PAC_CNV',
-      'PAC.PAC_MCNV',
-      'PAC.PAC_CNV_COD',
-      'PAC.PAC_PLN_COD',
-      'PAC.PAC_COD_DEPCNV',
-      'PAC.PAC_DTCNV_PAG',
-      'PAC.PAC_DTCNV_VAL',
-      'PAC.PAC_CNV2',
-      'PAC.PAC_MCNV2',
-      'PAC.PAC_CNV2_COD',
-      'PAC.PAC_PLN2_COD',
-      'PAC.PAC_COD_DEPCNV2',
-      'PAC.PAC_PESO',
-      'PAC.pac_peso_unid',
-      'PAC.PAC_ALT',
-      'PAC.pac_alt_unid',
-      'PAC.PAC_ABORH',
+      // PAC
+      'PAC.PAC_REG','PAC.PAC_DREG','PAC.PAC_PRONT','PAC.PAC_NOME','PAC.pac_nome_social',
+      'PAC.pac_flag_social','PAC.pac_dthr_social','PAC.PAC_SEXO','PAC.PAC_NASC',
+      'PAC.PAC_EST_CIVIL','PAC.PAC_NOME_MAE','PAC.PAC_NUMCPF','PAC.PAC_NUMRG',
+      'PAC.PAC_NUMRG_ORG','PAC.PAC_NUMRG_UF','PAC.PAC_NUMRG_DTEXP','PAC.PAC_EMAIL',
+      'PAC.PAC_FONE','PAC.PAC_FONE2','PAC.PAC_CELULAR','PAC.PAC_RAMAL','PAC.pac_ind_whatsapp',
+      'PAC.PAC_END','PAC.PAC_END_NUM','PAC.PAC_COMP','PAC.PAC_COMP_EXTRA','PAC.PAC_CEP',
+      'PAC.PAC_CID','PAC.PAC_UF','PAC.PAC_ZONA','PAC.PAC_LGR_COD','PAC.PAC_CARTAO_SUS',
+      'PAC.PAC_SUS_SISCEL','PAC.PAC_CNV','PAC.PAC_MCNV','PAC.PAC_CNV_COD','PAC.PAC_PLN_COD',
+      'PAC.PAC_COD_DEPCNV','PAC.PAC_DTCNV_PAG','PAC.PAC_DTCNV_VAL','PAC.PAC_CNV2','PAC.PAC_MCNV2',
+      'PAC.PAC_CNV2_COD','PAC.PAC_PLN2_COD','PAC.PAC_COD_DEPCNV2','PAC.PAC_PESO','PAC.pac_peso_unid',
+      'PAC.PAC_ALT','PAC.pac_alt_unid','PAC.PAC_ABORH',
 
-      // SMM (sem alias)
-      'SMM.SMM_OSM_SERIE',
-      'SMM.SMM_OSM',
-      'SMM.SMM_NUM',
-      'SMM.SMM_TPCOD',
-      'SMM.SMM_COD',
-      'SMM.SMM_QT',
-      'SMM.SMM_EXEC',
-      'SMM.SMM_SFAT',
-      'SMM.SMM_FAT_SERIE',
-      'SMM.SMM_FAT',
-      'SMM.SMM_REP',
-      'SMM.SMM_STR',
-      'SMM.SMM_MED',
-      'SMM.SMM_VLR',
-      'SMM.SMM_DTHR_EXEC',
-      'SMM.SMM_PAC_REG',
-      'SMM.SMM_CNV_COD'
+      // SMM
+      'SMM.SMM_OSM_SERIE','SMM.SMM_OSM','SMM.SMM_NUM','SMM.SMM_TPCOD','SMM.SMM_COD',
+      'SMM.SMM_QT','SMM.SMM_EXEC','SMM.SMM_SFAT','SMM.SMM_FAT_SERIE','SMM.SMM_FAT',
+      'SMM.SMM_REP','SMM.SMM_STR','SMM.SMM_MED','SMM.SMM_VLR','SMM.SMM_DTHR_EXEC',
+      'SMM.SMM_PAC_REG','SMM.SMM_CNV_COD',
+
+      // SMK -> nome do procedimento dentro de smm
+      Database.raw('ltrim(rtrim(SMK.SMK_NOME)) AS SMM_SMK_NOME'),
+
+      // ⬇️ NOVO: nome do médico dentro de smm
+      // Ajuste o campo de nome conforme o seu schema: PSV.PSV_NOME / PSV.PSV_NOME_COMPLETO etc.
+      Database.raw('ltrim(rtrim(PSV.PSV_NOME)) AS SMM_MED_NOME'),
+      // (opcional) especialidade do médico também dentro de smm, se existir
+      // Database.raw('PSV.PSV_ESPECIALID AS SMM_MED_ESP')
     )
     .orderBy('OSM.OSM_SERIE')
     .orderBy('OSM.OSM_NUM')
     .orderBy('OSM.OSM_PAC')
     .orderBy('SMM.SMM_NUM')
 
-  console.log(query.toQuery())
   const rows = await query
 
-  // 🔹 Agrupa por (OSM_SERIE|OSM_NUM|OSM_PAC), aninhando 1x pac e todas as smm
+  // ⬇️ Seu agrupamento permanece igual: tudo que começa com SMM_ cai em `smm`
   const groups = new Map<string, any>()
-
   for (const row of rows) {
     const pac: any = {}
     const smm: any = {}
@@ -424,39 +460,21 @@ export default class DatasourcesController {
       } else if (key.startsWith('SMM_')) {
         smm[key] = value
       } else {
-        osm[key] = value // inclui OSM_SERIE, OSM_NUM, OSM_PAC e demais campos da OSM
+        osm[key] = value
       }
     }
 
-    const serie = osm.OSM_SERIE
-    const num = osm.OSM_NUM
-    const pacReg = osm.OSM_PAC
-    const gkey = `${serie}|${num}|${pacReg}`
-
-    if (!groups.has(gkey)) {
-      groups.set(gkey, { ...osm, pac, smms: [] as any[] })
-    }
-
-    // (Opcional: dedupe por SMM_NUM se houver risco de duplicata)
-    // const bucket = groups.get(gkey)
-    // bucket._seen ??= new Set<string>()
-    // const smmKey = `${smm.SMM_OSM_SERIE}|${smm.SMM_OSM}|${smm.SMM_NUM}`
-    // if (!bucket._seen.has(smmKey)) {
-    //   bucket._seen.add(smmKey)
-    //   bucket.smms.push(smm)
-    // }
-
+    const gkey = `${osm.OSM_SERIE}|${osm.OSM_NUM}|${osm.OSM_PAC}`
+    if (!groups.has(gkey)) groups.set(gkey, { ...osm, pac, smms: [] as any[] })
     groups.get(gkey).smms.push(smm)
   }
 
-  const result = Array.from(groups.values()).map(item => {
-    // limpa marcador interno se tiver usado dedupe
-    if (item._seen) delete item._seen
-    return item
-  })
-
+  const result = Array.from(groups.values()).map(i => { if (i._seen) delete i._seen; return i })
   return response.send(result)
 }
+
+
+
 
 
 

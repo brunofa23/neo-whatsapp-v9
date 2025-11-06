@@ -291,7 +291,10 @@ export default class DatasourcesController {
     };
 
     // Busca as queries de interação
-    const pacQueryModels = await Interaction.query().where('id', 3);
+    const interaction = await Interaction.query().where('id', 3).andWhere('status',1);
+    //IF RETURN ONLY 1 TRANSFORM TO ARRAY
+    const pacQueryModels = Array.isArray(interaction)?interaction:[interaction]
+
     if (!pacQueryModels || pacQueryModels.length === 0) {
       throw new Error('Consulta para scheduledPatients não encontrada');
     }
@@ -301,6 +304,8 @@ export default class DatasourcesController {
 
     for (const pacQueryModel of pacQueryModels) {
       const pacQuery = env === 'development' ? pacQueryModel.querydev : pacQueryModel.query;
+
+      //console.log("****PACQUERY", pacQuery)
       if (!pacQuery) continue;
 
       let query = pacQuery

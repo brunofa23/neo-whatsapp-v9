@@ -10,7 +10,7 @@ import axios from 'axios'
 import Agent from 'App/Models/Agent';
 import { schema } from '@ioc:Adonis/Core/Validator'
 import { getHeaders } from 'App/util/header'
-import PersistShippingcampaign from 'App/Services/whatsapp-web/PersistShippingcampaign'
+import PersistShippingcampaign from 'App/Services/whatsapp-web/PersistShippingcampaign new'
 
 
 async function validateParams(request: HttpContextContract['request']) {
@@ -661,8 +661,8 @@ export default class ShippingcampaignsController {
 
     if (name)
       query += ` and  shippingcampaigns.name like '%${name}%' `
-    if(unit)
-      query +=` and unit_cod = ${unit}`
+    if (unit)
+      query += ` and unit_cod = ${unit}`
 
     const initial = DateTime.fromISO(initialdate, { zone: 'America/Sao_Paulo' }).startOf('day')
     const final = DateTime.fromISO(finaldate, { zone: 'America/Sao_Paulo' }).endOf('day')
@@ -695,7 +695,7 @@ export default class ShippingcampaignsController {
         .whereBetween('shippingcampaigns.created_at', [initial.toISO(), final.toISO()])
         .where('shippingcampaigns.interaction_id', 1)
         .andWhereNull('chats.excluded')
-        .andWhere('chats.interaction_seq',1)
+        .andWhere('chats.interaction_seq', 1)
         .whereRaw(query)
 
       //console.log(queryAll.toQuery())
@@ -807,7 +807,7 @@ export default class ShippingcampaignsController {
         ])
 
       // Filtragens
-      const totalMissing = shippingcampaigns.filter(i => i.phonevalid === null && Boolean(i.messagesent)===false)
+      const totalMissing = shippingcampaigns.filter(i => i.phonevalid === null && Boolean(i.messagesent) === false)
       const filteredShendule = shippingcampaigns.filter(i => i.interaction_id === 1)
       const filteredEvalutation = shippingcampaigns.filter(i => i.interaction_id === 2)
 

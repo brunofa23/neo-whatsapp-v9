@@ -1,5 +1,5 @@
 import Agent from 'App/Models/Agent';
-import PersistShippingcampaign from './PersistShippingcampaign';
+import PersistShippingcampaign from './PersistShippingcampaign new';
 import { getTargetDates, GenerateRandomTime, TimeSchedule } from './util'
 
 async function sendRepeatedMessage(agent: Agent) {

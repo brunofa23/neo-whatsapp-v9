@@ -2,7 +2,7 @@ import AgentsController from "App/Controllers/Http/AgentsController";
 import DatasourcesController from "App/Controllers/Http/DatasourcesController";
 import DatasourceApisController from "App/Controllers/Http/DatasourceApisController";
 import Agent from "App/Models/Agent"
-import PersistShippingcampaign from "App/Services/whatsapp-web/PersistShippingcampaign"
+import PersistShippingcampaign from "App/Services/whatsapp-web/PersistShippingcampaign new"
 import Shippingcampaign from "App/Models/Shippingcampaign";
 import { DateTime } from 'luxon';
 import { getTargetDates, GenerateRandomTime, TimeSchedule } from '../app/Services/whatsapp-web/util'

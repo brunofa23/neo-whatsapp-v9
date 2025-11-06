@@ -43,7 +43,8 @@ export default class Shippingcampaign extends BaseModel {
       'phone_unit',
       'type_service',
       'created_at',
-      'updated_at'
+      'updated_at',
+      'filePath'
     ]
   }
 
@@ -130,6 +131,9 @@ export default class Shippingcampaign extends BaseModel {
 
   @column()
   public type_service:string
+
+  @column()
+  public file_path:string
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime

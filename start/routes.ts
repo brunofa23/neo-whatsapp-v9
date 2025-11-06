@@ -1,5 +1,5 @@
 import Route from '@ioc:Adonis/Core/Route'
-import PersistShippingcampaign from "App/Services/whatsapp-web/PersistShippingcampaign"
+import PersistShippingcampaign from "App/Services/whatsapp-web/PersistShippingcampaign new"
 
 import { connectionAll, destroyFullAgents, resendMessage, resetStatusConnected, sendRepeatedMessage, sendRepeatedMessageKlingo } from './events'
 import { DateTime } from 'luxon'

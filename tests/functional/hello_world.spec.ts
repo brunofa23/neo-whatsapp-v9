@@ -9,12 +9,12 @@ import { interpretAnswer } from 'App/Services/whatsapp-web/IdentifyAnswer'
 import { responderPergunta } from 'App/Services/Ai/aiResponder'
 import Interaction from 'App/Models/Interaction'
 import ResponsesController from 'App/Controllers/Http/ResponsesController'
-import PersistShippingcampaign from "App/Services/whatsapp-web/PersistShippingcampaign"
+import PersistShippingcampaign from "App/Services/whatsapp-web/PersistShippingcampaign new"
 
 test('display welcome page', async ({ client }) => {
 
 
-  const formatted ='2025-11-06' //date.toFormat('yyyy-MM-dd')
+  const formatted = '2025-11-06' //date.toFormat('yyyy-MM-dd')
   console.log(`Buscando dados no Smart(Server): ${formatted}`)
   await PersistShippingcampaign(formatted, false, 3)
 

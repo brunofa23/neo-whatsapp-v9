@@ -17,6 +17,7 @@ export default class DatasourcesController {
     try {
       let schedulePatientsArray: any[] = [];
       let serviceEvaluationArray: any[] = [];
+      let generalMessagePatientArray: any[] = []
 
       // Executa interações específicas diretamente
       if (interaction_id === 1) {
@@ -27,8 +28,11 @@ export default class DatasourcesController {
         return await this.serviceEvaluation();
       }
 
-      const interactionList = await Interaction.query().where('status', 1);
+      if (interaction_id === 3) {
+        return await this.generalMessagePatient(date, unit_cod);
+      }
 
+      const interactionList = await Interaction.query().where('status', 1);
       for (const interaction of interactionList) {
         switch (interaction.id) {
           case 1:
@@ -38,6 +42,7 @@ export default class DatasourcesController {
             serviceEvaluationArray = await this.serviceEvaluation();
             break;
           case 3:
+            generalMessagePatientArray = await this.generalMessagePatient(date, unit_cod)
             console.log("Teste de envio amadurecimento do chip", interaction.name);
             break;
           default:
@@ -46,7 +51,7 @@ export default class DatasourcesController {
         }
       }
 
-      return [...schedulePatientsArray, ...serviceEvaluationArray];
+      return [...schedulePatientsArray, ...serviceEvaluationArray, ...generalMessagePatientArray];
 
     } catch (error) {
       console.error('Erro na DataSource:', error);
@@ -265,6 +270,7 @@ export default class DatasourcesController {
 
 
   async generalMessagePatient(dateStr: string, unit_cod: number = 0): Promise<any[]> {
+    console.log("passei no 777788888***")
     // Valida e prepara datas
     const date = DateTime.fromFormat(dateStr, 'yyyy-MM-dd', { zone: 'America/Sao_Paulo' });
     if (!date.isValid) {

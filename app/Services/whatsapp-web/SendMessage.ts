@@ -70,7 +70,7 @@ export default async (client: Client, agent: Agent) => {
 
   //********************************************************************* */
   async function sendMessages() {
-
+    console.log("passei aqui @@@##33")
     const totMessageSend = await countLimitSendMessage()
     const maxLimitSendAgent = await maxLimitSendMessageAgent(agent.id)
     const shippingCampaign = await shippingcampaignsController.patientToSend(agent)

@@ -725,6 +725,7 @@ export default class ShippingcampaignsController {
         .whereRaw('shippingcampaigns.id = chats.shippingcampaigns_id')
         .andWhereNull('chats.excluded')
     })
+
     if (agentCompany?.interaction_priority?.toLocaleUpperCase() === 'CONFIRMATION')
       query.orderByRaw('(interaction_id!=1),RAND()').limit(10)
     else if (agentCompany?.interaction_priority?.toLocaleUpperCase() === 'EVALUATION')
@@ -734,8 +735,6 @@ export default class ShippingcampaignsController {
 
     const shippingCampaign = await query.first()
     return shippingCampaign
-
-
   }
 
 

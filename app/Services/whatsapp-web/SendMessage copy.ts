@@ -111,27 +111,22 @@ export default async (client: Client, agent: Agent) => {
             if (verifyChat == undefined) {
               let returnResponse: any = {}
 
-              // ====== INÍCIO: preparação unificada de payload/options (anexo ou texto) ======
-              let payload: any = shippingCampaign.message
-              let options: any = undefined
-
-              if (shippingCampaign.interaction_id === 3) {
+              if (shippingCampaign.interaction_id===3) {
+                //CHECK IF FILE EXIST
                 const check = await checkExistFile(shippingCampaign?.file_path)
                 if (check) {
                   console.log("ENVIAR MENSAGEM COM ANEXO")
                   const media = MessageMedia.fromFilePath(check)
-                  payload = media
-                  options = {
+                  await client.sendMessage(validationCellPhone, media, {
                     caption: shippingCampaign.message,
                     sendMediaAsDocument: true
-                  }
-                } else {
-                  console.log("Arquivo não encontrado; enviando apenas texto...")
+                  })
+                  console.log("ENVIADO!!!!!")
+                  return
                 }
               }
-              // ====== FIM: preparação unificada de payload/options ======
 
-              await client.sendMessage(validationCellPhone, payload, options)
+              await client.sendMessage(validationCellPhone, shippingCampaign.message)
                 .then(async (response) => {
                   returnResponse = response
                   global.contSend++

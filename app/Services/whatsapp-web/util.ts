@@ -2,6 +2,7 @@ import Agent from 'App/Models/Agent';
 import { DateTime } from 'luxon';
 import { Message } from 'whatsapp-web.js';
 import WhatsAppClientManager from 'App/Services/whatsapp-web/WhatsAppClientManager'
+import Application from '@ioc:Adonis/Core/Application'
 
 const fs = require('fs')
 
@@ -189,7 +190,7 @@ function getTargetDates(): DateTime[] {
   return dates;
 }
 
-async function sendMessageWarning(cellphoneserialized: string, message:string): Promise<string> {
+async function sendMessageWarning(cellphoneserialized: string, message: string): Promise<string> {
   const agent = await Agent.query().where('status', 'CONNECTED').firstOrFail()
   const client = WhatsAppClientManager.getClient(String(agent.id))
 
@@ -202,4 +203,18 @@ async function sendMessageWarning(cellphoneserialized: string, message:string): 
 
 }
 
-export { sendMessageWarning, getTargetDates, stateTyping, DateFormat, GenerateRandomTime, TimeSchedule, PositiveResponse, NegativeResponse, ClearFolder, ValidatePhone, RandomResponse, validAgent, chunckPhone, extractCellphone }
+
+async function checkExistFile(file_name: string) {
+  try {
+    const filePath = Application.makePath(`app/Medias/FilesToSend/${file_name}`)
+    await fs.promises.access(filePath, fs.constants.F_OK)
+    //console.log('✅ O arquivo existe!')
+    return filePath
+  } catch (err) {
+    //console.log('❌ O arquivo não existe.')
+    return null
+  }
+}
+
+
+export { sendMessageWarning, getTargetDates, stateTyping, DateFormat, GenerateRandomTime, TimeSchedule, PositiveResponse, NegativeResponse, ClearFolder, ValidatePhone, RandomResponse, validAgent, chunckPhone, extractCellphone, checkExistFile }

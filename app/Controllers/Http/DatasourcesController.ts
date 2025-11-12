@@ -14,6 +14,9 @@ export default class DatasourcesController {
 
 
   async DataSource(date: string, interaction_id: number = 0, unit_cod: number = 0): Promise<any[]> {
+    interaction_id = Number(interaction_id) || 0;
+    unit_cod = Number(unit_cod) || 0;
+
     try {
       let schedulePatientsArray: any[] = [];
       let serviceEvaluationArray: any[] = [];
@@ -291,9 +294,9 @@ export default class DatasourcesController {
     };
 
     // Busca as queries de interação
-    const interaction = await Interaction.query().where('id', 3).andWhere('status',1);
+    const interaction = await Interaction.query().where('id', 3).andWhere('status', 1);
     //IF RETURN ONLY 1 TRANSFORM TO ARRAY
-    const pacQueryModels = Array.isArray(interaction)?interaction:[interaction]
+    const pacQueryModels = Array.isArray(interaction) ? interaction : [interaction]
 
     if (!pacQueryModels || pacQueryModels.length === 0) {
       throw new Error('Consulta para scheduledPatients não encontrada');
@@ -330,6 +333,7 @@ export default class DatasourcesController {
       }
     }
 
+    console.log(allResults)
     return allResults;
   }
 

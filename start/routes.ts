@@ -59,13 +59,13 @@ Route.group(() => {
 
   //Executa busca no Smart
   Route.get('/executequery', async ({ request }) => {
-    const { unit, date } = request.only(['unit', 'date'])
+    const { unit, date, interaction_id } = request.only(['unit', 'date','interaction_id'])
     const dateQuery = DateTime.fromFormat(date, 'yyyy-MM-dd', { zone: 'America/Sao_Paulo' });
     console.log("EXECUTANDO BUSCA NO SMART", dateQuery)
 
     if (dateQuery.isValid) {
       console.log('Data válida:', dateQuery.toISODate());
-      await PersistShippingcampaign(dateQuery.toFormat('yyyy-MM-dd'), false, 1, unit)
+      await PersistShippingcampaign(dateQuery.toFormat('yyyy-MM-dd'), false, interaction_id, unit)
       return
     } else {
       console.log('Data inválida!');

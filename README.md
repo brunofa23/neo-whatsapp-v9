@@ -107,3 +107,13 @@ const yesterdayStart = now.minus({ days: 1 }).startOf('day')
 const yesterdayEnd = now.minus({ days: 1 }).endOf('day')
 
 .where('created_at', '>=', yesterdayStart.toSQL({ includeOffset: false })) = 2025-08-10 00:00:00.000
+
+# INICIAR O CONTAINER MYSQL 5.6
+
+Iniciar container:	docker compose up -d
+Parar container:	docker compose down
+Parar sem apagar volumes:	docker stop mysql56
+Ver containers rodando:	docker ps
+Ver logs do MySQL:	docker logs mysql56
+Entrar no container:	docker exec -it mysql56 bash
+Reiniciar container:	docker restart mysql56

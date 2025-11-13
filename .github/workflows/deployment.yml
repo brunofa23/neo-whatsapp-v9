@@ -1,4 +1,5 @@
 name: Build and deploy api
+
 on:
   push:
     branches:
@@ -8,6 +9,7 @@ jobs:
   build:
     name: Build api typescript project and deploy it to server
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v3
         with:
@@ -17,48 +19,42 @@ jobs:
         with:
           node-version: 20
 
-      # Configurar o e-mail e nome do usuário do Git
       - name: Set up Git user
         run: |
-             git config --global user.email "brunofa23@gmail.com"
-             git config --global user.name "Bruno Favato"
+          git config --global user.email "brunofa23@gmail.com"
+          git config --global user.name "Bruno Favato"
 
-
-      # Supondo que você deseje realizar o deploy a partir da branch main-production
+      # Checkout branch de produção
       - name: Checkout production-ai-cob
         run: git checkout production-ai-cob
-      - name: Pull latest changes from main-production
+
+      # Puxa mudanças mais recentes
+      - name: Pull latest changes from production-ai-cob
         run: git pull
 
-      - name: Merge changes from main
+      # Faz merge com a branch de origem
+      - name: Merge changes from main-ai-cob
         run: git merge main-ai-cob
 
-      - name: Push changes to GitHub
-        run: git push origin production-ai-cob
-
+      # Instalar dependências
       - name: Install dependencies
         run: npm install
-      # Aqui, você pode executar os comandos de build e deploy do seu projeto
-      # Substitua os comandos abaixo pelos que você usa para buildar e fazer o deploy.
+
+      # Build (aqui dispara o postbuild automaticamente)
       - name: Build project
-        run: node ace build --production --ignore-ts-errors
+        run: npm run build
 
-      - name: Atualizando...
-        run: npm ci --production
+      # Instala dependências de produção na build
+      - name: Install production dependencies
+        run: npm ci --production --prefix ./build
 
-      - name: Git add
+      # Commita resultado gerado
+      - name: Git add build output
         run: git add -A
 
-      - name: Commit
-        run: git commit -m 'nova versão'
+      - name: Git commit
+        run: |
+          git commit -m 'nova versão' || echo "Nada para commitar"
 
-      - name: Git push na production
+      - name: Push to production-ai-cob
         run: git push origin production-ai-cob
-      #- name: Executing build...
-      #  run: cd ./build
-
-
-
-        #run: npm ci --prefix ./build --production
-
-

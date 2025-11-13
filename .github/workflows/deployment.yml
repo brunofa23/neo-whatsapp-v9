@@ -6,16 +6,18 @@ on:
       - main-ai-cob
 
 jobs:
-  build:
+  build-and-deploy:
     name: Build api typescript project and deploy it to server
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout main-ai-cob
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-node@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
           node-version: 20
 
@@ -24,37 +26,28 @@ jobs:
           git config --global user.email "brunofa23@gmail.com"
           git config --global user.name "Bruno Favato"
 
-      # Checkout branch de produção
-      - name: Checkout production-ai-cob
-        run: git checkout production-ai-cob
-
-      # Puxa mudanças mais recentes
-      - name: Pull latest changes from production-ai-cob
-        run: git pull
-
-      # Faz merge com a branch de origem
-      - name: Merge changes from main-ai-cob
-        run: git merge main-ai-cob
-
-      # Instalar dependências
       - name: Install dependencies
         run: npm install
 
-      # Build (aqui dispara o postbuild automaticamente)
+      # Aqui chama: node ace build --production --ignore-ts-errors
+      # e DEPOIS o postbuild (copyMedias.js)
       - name: Build project
         run: npm run build
 
-      # Instala dependências de produção na build
-      - name: Install production dependencies
-        run: npm ci --production --prefix ./build
+      # (Opcional) só para garantir deps de prod ok no repo (não na VPS)
+      - name: Check production install
+        run: npm ci --production
 
-      # Commita resultado gerado
-      - name: Git add build output
-        run: git add -A
-
-      - name: Git commit
+      - name: Commit build artifacts
         run: |
-          git commit -m 'nova versão' || echo "Nada para commitar"
+          git status
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Sem mudanças para commitar."
+          else
+            git commit -m "chore: build para deploy a partir da main-ai-cob"
+          fi
 
-      - name: Push to production-ai-cob
-        run: git push origin production-ai-cob
+      - name: Push to production-ai-cob (force update)
+        run: |
+          git push origin HEAD:production-ai-cob --force

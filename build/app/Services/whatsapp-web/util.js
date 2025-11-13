@@ -3,10 +3,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.extractCellphone = exports.chunckPhone = exports.validAgent = exports.RandomResponse = exports.ValidatePhone = exports.ClearFolder = exports.NegativeResponse = exports.PositiveResponse = exports.TimeSchedule = exports.GenerateRandomTime = exports.DateFormat = exports.stateTyping = exports.getTargetDates = exports.sendMessageWarning = void 0;
+exports.checkExistFile = exports.extractCellphone = exports.chunckPhone = exports.validAgent = exports.RandomResponse = exports.ValidatePhone = exports.ClearFolder = exports.NegativeResponse = exports.PositiveResponse = exports.TimeSchedule = exports.GenerateRandomTime = exports.DateFormat = exports.stateTyping = exports.getTargetDates = exports.sendMessageWarning = void 0;
 const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
 const luxon_1 = require("luxon");
 const WhatsAppClientManager_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/WhatsAppClientManager"));
+const Application_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Application"));
 const fs = require('fs');
 async function stateTyping(message) {
     const chatTyping = await message.getChat();
@@ -166,4 +167,15 @@ async function sendMessageWarning(cellphoneserialized, message) {
     return "ok";
 }
 exports.sendMessageWarning = sendMessageWarning;
+async function checkExistFile(file_name) {
+    try {
+        const filePath = Application_1.default.makePath(`app/Medias/FilesToSend/${file_name}`);
+        await fs.promises.access(filePath, fs.constants.F_OK);
+        return filePath;
+    }
+    catch (err) {
+        return null;
+    }
+}
+exports.checkExistFile = checkExistFile;
 //# sourceMappingURL=util.js.map

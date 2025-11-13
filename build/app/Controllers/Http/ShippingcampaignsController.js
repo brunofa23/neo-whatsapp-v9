@@ -14,7 +14,7 @@ const axios_1 = __importDefault(require("axios"));
 const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
 const Validator_1 = global[Symbol.for('ioc.use')]("Adonis/Core/Validator");
 const header_1 = global[Symbol.for('ioc.use')]("App/util/header");
-const PersistShippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/PersistShippingcampaign"));
+const PersistShippingcampaign_new_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/PersistShippingcampaign new"));
 async function validateParams(request) {
     const payload = await request.validate({
         schema: Validator_1.schema.create({
@@ -521,7 +521,7 @@ class ShippingcampaignsController {
     async executeSchedulePatients({ auth, request, response }) {
         console.log("INICIANDO A BUSCA COM WEBHOOK");
         const params = await validateParams(request);
-        const result = await (0, PersistShippingcampaign_1.default)(params.date, false, params.interaction_id, params?.unit_cod);
+        const result = await (0, PersistShippingcampaign_new_1.default)(params.date, false, params.interaction_id, params?.unit_cod);
         console.timeEnd('Rodei a busca manual');
         return response.status(200).send(result);
     }

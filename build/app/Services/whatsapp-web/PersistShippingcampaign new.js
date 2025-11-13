@@ -68,4 +68,4 @@ exports.default = async (date, prioritysend = false, interaction_id = 0, unit_co
     }
     return patientList;
 };
-//# sourceMappingURL=PersistShippingcampaign.js.map
+//# sourceMappingURL=PersistShippingcampaign%20new.js.map

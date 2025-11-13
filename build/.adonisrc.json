@@ -50,5 +50,13 @@
       "reloadServer": false
     }
   ],
-  "lastCompiledAt": "2025-10-29T15:32:33.729Z"
+  "watcher": {
+    "ignore": [
+      "node_modules",
+      "mysql56-data",
+      "init",
+      "tmp"
+    ]
+  },
+  "lastCompiledAt": "2025-11-13T14:20:43.126Z"
 }

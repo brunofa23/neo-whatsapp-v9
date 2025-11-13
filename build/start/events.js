@@ -8,7 +8,7 @@ const AgentsController_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Co
 const DatasourcesController_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Controllers/Http/DatasourcesController"));
 const DatasourceApisController_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Controllers/Http/DatasourceApisController"));
 const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
-const PersistShippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/PersistShippingcampaign"));
+const PersistShippingcampaign_new_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/PersistShippingcampaign new"));
 const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Shippingcampaign"));
 const luxon_1 = require("luxon");
 const util_1 = require("../app/Services/whatsapp-web/util");
@@ -53,7 +53,7 @@ async function sendRepeatedMessage() {
             for (const date of targetDates) {
                 const formatted = date.toFormat('yyyy-MM-dd');
                 console.log(`Buscando dados no Smart(Server): ${formatted}`);
-                await (0, PersistShippingcampaign_1.default)(formatted);
+                await (0, PersistShippingcampaign_new_1.default)(formatted);
             }
             const datasourcesController = new DatasourcesController_1.default;
             await datasourcesController.confirmScheduleAll();

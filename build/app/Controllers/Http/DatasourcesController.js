@@ -14,14 +14,20 @@ const ResponsesController_1 = __importDefault(require("./ResponsesController"));
 const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Shippingcampaign"));
 class DatasourcesController {
     async DataSource(date, interaction_id = 0, unit_cod = 0) {
+        interaction_id = Number(interaction_id) || 0;
+        unit_cod = Number(unit_cod) || 0;
         try {
             let schedulePatientsArray = [];
             let serviceEvaluationArray = [];
+            let generalMessagePatientArray = [];
             if (interaction_id === 1) {
                 return await this.scheduledPatients(date, unit_cod);
             }
             if (interaction_id === 2) {
                 return await this.serviceEvaluation();
+            }
+            if (interaction_id === 3) {
+                return await this.generalMessagePatient(date, unit_cod);
             }
             const interactionList = await Interaction_1.default.query().where('status', 1);
             for (const interaction of interactionList) {
@@ -33,6 +39,7 @@ class DatasourcesController {
                         serviceEvaluationArray = await this.serviceEvaluation();
                         break;
                     case 3:
+                        generalMessagePatientArray = await this.generalMessagePatient(date, unit_cod);
                         console.log("Teste de envio amadurecimento do chip", interaction.name);
                         break;
                     default:
@@ -40,7 +47,7 @@ class DatasourcesController {
                         break;
                 }
             }
-            return [...schedulePatientsArray, ...serviceEvaluationArray];
+            return [...schedulePatientsArray, ...serviceEvaluationArray, ...generalMessagePatientArray];
         }
         catch (error) {
             console.error('Erro na DataSource:', error);
@@ -228,6 +235,56 @@ class DatasourcesController {
             console.error('Erro na serviceEvaluation:', error);
             return [];
         }
+    }
+    async generalMessagePatient(dateStr, unit_cod = 0) {
+        console.log("passei no 777788888***");
+        const date = luxon_1.DateTime.fromFormat(dateStr, 'yyyy-MM-dd', { zone: 'America/Sao_Paulo' });
+        if (!date.isValid) {
+            throw new Error('Formato de data inválido. Use yyyy-MM-dd');
+        }
+        const dateStart = date.startOf('day').toFormat('yyyy-MM-dd HH:mm');
+        const dateEnd = date.endOf('day').toFormat('yyyy-MM-dd HH:mm');
+        const greeting = async (message) => {
+            const responseList = new ResponsesController_1.default();
+            const greetings = await responseList.index({ local: 'greeting' });
+            const presentations = await responseList.index({ local: 'presentation' });
+            return message
+                .replace('{greeting}', greetings)
+                .replace('{presentation}', presentations);
+        };
+        const interaction = await Interaction_1.default.query().where('id', 3).andWhere('status', 1);
+        const pacQueryModels = Array.isArray(interaction) ? interaction : [interaction];
+        if (!pacQueryModels || pacQueryModels.length === 0) {
+            throw new Error('Consulta para scheduledPatients não encontrada');
+        }
+        const env = process.env.NODE_ENV;
+        const allResults = [];
+        for (const pacQueryModel of pacQueryModels) {
+            const pacQuery = env === 'development' ? pacQueryModel.querydev : pacQueryModel.query;
+            if (!pacQuery)
+                continue;
+            let query = pacQuery
+                .replace(/\{dateStart\}/g, dateStart)
+                .replace(/\{dateEnd\}/g, dateEnd);
+            if (unit_cod > 0) {
+                query = query.replace('1=1', `emp_cod=${unit_cod}`);
+            }
+            try {
+                const result = await Database_1.default.connection('mssql').rawQuery(query);
+                for (const data of result) {
+                    if (data.message && typeof data.message === 'string') {
+                        data.message = await greeting(data.message);
+                    }
+                }
+                allResults.push(...result);
+            }
+            catch (error) {
+                console.error('Erro ao executar query de scheduledPatients:', error);
+                continue;
+            }
+        }
+        console.log(allResults);
+        return allResults;
     }
     async resetCellphone() {
         const date_start = luxon_1.DateTime.now().startOf('day').toFormat("yyyy-MM-dd HH:mm");

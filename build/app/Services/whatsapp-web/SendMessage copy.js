@@ -97,24 +97,20 @@ exports.default = async (client, agent) => {
                         verifyChat = await VerifyChat(shippingCampaign);
                         if (verifyChat == undefined) {
                             let returnResponse = {};
-                            let payload = shippingCampaign.message;
-                            let options = undefined;
                             if (shippingCampaign.interaction_id === 3) {
                                 const check = await (0, util_1.checkExistFile)(shippingCampaign?.file_path);
                                 if (check) {
                                     console.log("ENVIAR MENSAGEM COM ANEXO");
                                     const media = whatsapp_web_js_1.MessageMedia.fromFilePath(check);
-                                    payload = media;
-                                    options = {
+                                    await client.sendMessage(validationCellPhone, media, {
                                         caption: shippingCampaign.message,
                                         sendMediaAsDocument: true
-                                    };
-                                }
-                                else {
-                                    console.log("Arquivo não encontrado; enviando apenas texto...");
+                                    });
+                                    console.log("ENVIADO!!!!!");
+                                    return;
                                 }
                             }
-                            await client.sendMessage(validationCellPhone, payload, options)
+                            await client.sendMessage(validationCellPhone, shippingCampaign.message)
                                 .then(async (response) => {
                                 returnResponse = response;
                                 global.contSend++;
@@ -167,4 +163,4 @@ exports.default = async (client, agent) => {
     }
     await sendMessages();
 };
-//# sourceMappingURL=SendMessage.js.map
+//# sourceMappingURL=SendMessage%20copy.js.map

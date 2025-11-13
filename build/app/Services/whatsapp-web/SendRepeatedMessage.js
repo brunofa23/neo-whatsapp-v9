@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendRepeatedMessage = void 0;
-const PersistShippingcampaign_1 = __importDefault(require("./PersistShippingcampaign"));
+const PersistShippingcampaign_new_1 = __importDefault(require("./PersistShippingcampaign new"));
 const util_1 = require("./util");
 async function sendRepeatedMessage(agent) {
     setInterval(async () => {
@@ -13,7 +13,7 @@ async function sendRepeatedMessage(agent) {
             for (const date of targetDates) {
                 const formatted = date.toFormat('yyyy-MM-dd');
                 console.log(`Buscando dados no Smart(Server): ${formatted}`);
-                await (0, PersistShippingcampaign_1.default)(formatted);
+                await (0, PersistShippingcampaign_new_1.default)(formatted);
             }
         }
     }, await (0, util_1.GenerateRandomTime)(800, 900, '****Send Message Repeated'));

@@ -11,7 +11,8 @@ tmp
 .env
 backups
 Medias
-scripts
+scripts/backup_mysql.sh
 model.nlp
 # Ignorar dados do MySQL
 mysql56-data/
+

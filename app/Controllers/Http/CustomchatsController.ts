@@ -139,7 +139,7 @@ export default class CustomchatsController {
       return response.status(201).send(payLoad)
     } catch (error) {
       console.error('Erro ao enviar mensagem:', error)
-      return response.status(500).send({ error: 'Falha ao enviar mensagem. Verifique o servidor.' })
+      return response.status(500).send({ error: `Falha ao enviar mensagem. Verifique o servidor.ERRO:${error}` })
     }
   }
 

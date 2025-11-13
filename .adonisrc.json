@@ -49,5 +49,13 @@
       "pattern": "resources/views/**/*.edge",
       "reloadServer": false
     }
-  ]
+  ],
+   "watcher": {
+    "ignore": [
+      "node_modules",
+      "mysql56-data",
+      "init",
+      "tmp"
+    ]
+  }
 }

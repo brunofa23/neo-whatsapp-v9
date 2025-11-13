@@ -10,7 +10,7 @@ tmp
 .wwebjs_cache
 .env
 backups
-Medias
+#Medias
 scripts/backup_mysql.sh
 model.nlp
 # Ignorar dados do MySQL

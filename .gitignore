@@ -13,4 +13,5 @@ backups
 Medias
 scripts
 model.nlp
-
+# Ignorar dados do MySQL
+mysql56-data/

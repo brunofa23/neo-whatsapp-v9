@@ -69,6 +69,7 @@ export default class CustomchatsController {
 
   //   }
   // }
+
   public async sendMessage({ auth, request, response }: HttpContextContract) {
     await auth.use('api').authenticate()
 
@@ -131,7 +132,7 @@ export default class CustomchatsController {
       if (chat?.shippingcampaigns_id) {
         const shippingcampaign = await Shippingcampaign.find(chat.shippingcampaigns_id)
         if (shippingcampaign && !shippingcampaign.date_first_return) {
-          shippingcampaign.date_first_return = DateTime.local().toISO()
+          shippingcampaign.date_first_return = DateTime.now().setZone('America/Sao_Paulo')//.toFormat('yyyy-MM-dd HH:mm:ss')
           await shippingcampaign.save()
         }
       }

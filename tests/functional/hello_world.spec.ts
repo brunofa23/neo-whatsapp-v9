@@ -30,19 +30,22 @@ test('display welcome page', async ({ client }) => {
   //   return false
   // }
 
-const shippingcampaignsController = new ShippingcampaignsController()
+// const shippingcampaignsController = new ShippingcampaignsController()
 
-  const agent = await Agent.query().where('id', 472).first()
-  //console.log(agent)
-  if(agent){
-    const shippingCampaign = await shippingcampaignsController.patientToSend(agent)
-    console.log("!!!!retorno", shippingCampaign?.file_path)
-    if(shippingCampaign?.file_path)
-      console.log("EXISTE ARQUIVO PARA ENVIAR")
+//   const agent = await Agent.query().where('id', 472).first()
+//   //console.log(agent)
+//   if(agent){
+//     const shippingCampaign = await shippingcampaignsController.patientToSend(agent)
+//     console.log("!!!!retorno", shippingCampaign?.file_path)
+//     if(shippingCampaign?.file_path)
+//       console.log("EXISTE ARQUIVO PARA ENVIAR")
 
-  }
+//   }
 
-
+console.log(DateTime.now()
+  .setZone('America/Sao_Paulo')
+  //.toFormat('yyyy-MM-dd HH:mm:ss')
+)
 
 
 })

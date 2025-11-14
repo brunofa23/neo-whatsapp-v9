@@ -490,6 +490,8 @@ class ShippingcampaignsController {
             query.orderByRaw('(interaction_id!=1),RAND()').limit(10);
         else if (agentCompany?.interaction_priority?.toLocaleUpperCase() === 'EVALUATION')
             query.orderByRaw('(interaction_id!=2),RAND()').limit(10);
+        else if (agentCompany?.interaction_priority?.toLocaleUpperCase() === 'OTHER')
+            query.orderByRaw('(interaction_id!=3),RAND()').limit(10);
         else
             query.orderByRaw('RAND()').limit(10);
         const shippingCampaign = await query.first();

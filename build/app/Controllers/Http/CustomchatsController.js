@@ -65,7 +65,7 @@ class CustomchatsController {
             if (chat?.shippingcampaigns_id) {
                 const shippingcampaign = await Shippingcampaign_1.default.find(chat.shippingcampaigns_id);
                 if (shippingcampaign && !shippingcampaign.date_first_return) {
-                    shippingcampaign.date_first_return = luxon_1.DateTime.local().toISO();
+                    shippingcampaign.date_first_return = luxon_1.DateTime.now().setZone('America/Sao_Paulo');
                     await shippingcampaign.save();
                 }
             }

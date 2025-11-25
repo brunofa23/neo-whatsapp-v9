@@ -42,31 +42,7 @@ async function startAgent(_agent: Agent) {
     return
   }
 
-  //   const client = new Client({
-  //   authStrategy: new LocalAuth({
-  //     clientId: _agent.id,
-  //     dataPath: Application.tmpPath('/sessions')
-  //   }),
-  //   puppeteer: {
-  //     executablePath: '/snap/bin/chromium',
-  //     args: [
-  //       '--no-sandbox',
-  //       '--disable-setuid-sandbox',
-  //       '--disable-dev-shm-usage',
-  //       '--disable-accelerated-2d-canvas',
-  //       '--no-first-run',
-  //       '--no-zygote',
-  //       '--disable-gpu'
-  //     ],
-  //     headless: true,
-  //     dumpio: false,
-  //     setJavaScriptEnabled: true
-  //   },
-  //   webVersion: '2.3000.1026075099-alpha',
-  //   webVersionPath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/refs/heads/main/html/2.3000.1026075099-alpha.html'
-  // });
-
-  const client = new Client({
+    const client = new Client({
     authStrategy: new LocalAuth({
       clientId: _agent.id,
       dataPath: Application.tmpPath('/sessions')
@@ -83,12 +59,36 @@ async function startAgent(_agent: Agent) {
         '--disable-gpu'
       ],
       headless: true,
-      setRequestInterception: true,
-      setBypassCSP: true,
-      setJavaScriptEnabled: false
+      dumpio: false,
+      setJavaScriptEnabled: true
     },
-
+    webVersion: '2.3000.1026075099-alpha',
+    webVersionPath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/refs/heads/main/html/2.3000.1026075099-alpha.html'
   });
+
+  // const client = new Client({
+  //   authStrategy: new LocalAuth({
+  //     clientId: _agent.id,
+  //     dataPath: Application.tmpPath('/sessions')
+  //   }),
+  //   puppeteer: {
+  //     executablePath: '/snap/bin/chromium',
+  //     args: [
+  //       '--no-sandbox',
+  //       '--disable-setuid-sandbox',
+  //       '--disable-dev-shm-usage',
+  //       '--disable-accelerated-2d-canvas',
+  //       '--no-first-run',
+  //       '--no-zygote',
+  //       '--disable-gpu'
+  //     ],
+  //     headless: true,
+  //     setRequestInterception: true,
+  //     setBypassCSP: true,
+  //     setJavaScriptEnabled: false
+  //   },
+
+  // });
 
 
   client.initialize();

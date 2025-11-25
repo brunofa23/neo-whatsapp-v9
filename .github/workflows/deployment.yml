@@ -11,10 +11,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout main-ai-cob
+      # Em vez de fazer checkout da main-ai-cob,
+      # a gente já trabalha em cima da production-ai-cob
+      - name: Checkout production-ai-cob
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+          ref: production-ai-cob
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -25,6 +28,17 @@ jobs:
         run: |
           git config --global user.email "brunofa23@gmail.com"
           git config --global user.name "Bruno Favato"
+
+      # Traz a main-ai-cob atualizada do remoto
+      - name: Fetch main-ai-cob
+        run: |
+          git fetch origin main-ai-cob
+
+      # Faz merge da main-ai-cob dentro da production-ai-cob
+      # Agora o commit novo passa a ser continuação da production-ai-cob
+      - name: Merge main-ai-cob into production-ai-cob
+        run: |
+          git merge --no-ff origin/main-ai-cob -m "Merge main-ai-cob into production-ai-cob"
 
       - name: Install dependencies
         run: npm install
@@ -51,4 +65,3 @@ jobs:
       - name: Push to production-ai-cob
         run: |
           git push origin HEAD:production-ai-cob
-

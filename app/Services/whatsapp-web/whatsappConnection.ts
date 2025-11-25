@@ -10,6 +10,7 @@ import Chat from 'App/Models/Chat';
 import Application from '@ioc:Adonis/Core/Application'
 import WhatsAppClientManager from './WhatsAppClientManager';
 import Talk from 'App/Models/Talk';
+import Log from 'App/Models/Log';
 
 
 // Caminhos de sessão e perfil do Chrome
@@ -64,7 +65,7 @@ async function startAgent(_agent: Agent) {
   //   webVersion: '2.3000.1026075099-alpha',
   //   webVersionPath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/refs/heads/main/html/2.3000.1026075099-alpha.html'
   // });
-  
+
   const client = new Client({
     authStrategy: new LocalAuth({
       clientId: _agent.id,
@@ -277,21 +278,51 @@ async function startAgent(_agent: Agent) {
 
 
   //************************************************ */
-  client.on('disconnected', async (reason) => {
-    try {
-      agent.status = 'Disconnected'
-      agent.statusconnected = false
-      await agent.save()
-    } catch (error) {
-      console.log("ERRO 545557:", error)
-    }
-    const message = `O número ${agent.number_phone} foi desconectado!!!!`
-    await sendMessageWarning('553185228619@c.us', message)
-    console.log("EXECUTANDO DISCONECT")
-    console.log("REASON>>>", reason)
-    return
+  client.on('change_state', (state) => {
+    console.log(`[${agent.id}] STATE =>`, state);
   });
 
+  client.on('disconnected', async (reason) => {
+  try {
+    console.log(`[${agent.id}] DISCONNECTED =>`, reason);
+
+    // Normaliza o "reason"
+    let reasonText;
+
+    if (typeof reason === 'string') {
+      reasonText = reason;
+    } else {
+      try {
+        reasonText = JSON.stringify(reason);
+      } catch (e) {
+        reasonText = 'Unable to stringify reason';
+      }
+    }
+
+    // Limita a 500 caracteres
+    reasonText = reasonText.slice(0, 500);
+    // Salva log
+    await Log.create({
+      name: "Verify Connection in Api5555",
+      message: reasonText,
+      description: `${agent.id} desconectado`
+    });
+    // Atualiza o agente
+    agent.status = 'Disconnected';
+    agent.statusconnected = false;
+    await agent.save();
+  } catch (error) {
+    console.error(`[${agent.id}] ERRO AO PROCESSAR DISCONNECT:`, error);
+  }
+  // Notificação externa
+  try {
+    const message = `O número ${agent.number_phone} foi desconectado!!!!`;
+    await sendMessageWarning('553185228619@c.us', message);
+  } catch (notifyErr) {
+    console.error(`[${agent.id}] ERRO AO ENVIAR AVISO:`, notifyErr);
+  }
+});
+//*************************************************************** */
   WhatsAppClientManager.addClient(agent.id.toString(), client);
   //console.log("150011>>>>>>", WhatsAppClientManager)
 

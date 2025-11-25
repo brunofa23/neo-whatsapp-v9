@@ -154,6 +154,7 @@ async function startAgentChat(_agent: Agent) {
   }
   //************************************************ */
   clientChat.on('disconnected', async (reason) => {
+    console.log(`[${agent.id}] DISCONNECTED =>`, reason);
     try {
       agent.status = 'Disconnected'
       agent.statusconnected = false

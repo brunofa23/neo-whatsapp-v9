@@ -48,6 +48,7 @@ jobs:
             git commit -m "chore: build para deploy a partir da main-ai-cob"
           fi
 
-      - name: Push to production-ai-cob (force update)
+      - name: Push to production-ai-cob
         run: |
-          git push origin HEAD:production-ai-cob --force
+          git push origin HEAD:production-ai-cob
+

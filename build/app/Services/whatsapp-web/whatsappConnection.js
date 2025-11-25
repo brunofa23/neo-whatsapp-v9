@@ -16,6 +16,7 @@ const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"))
 const Application_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Application"));
 const WhatsAppClientManager_1 = __importDefault(require("./WhatsAppClientManager"));
 const Talk_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Talk"));
+const Log_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Log"));
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcodeTerminal = require('qrcode-terminal');
 const qrcode = require('qrcode');
@@ -152,20 +153,44 @@ async function startAgent(_agent) {
                 .update({ message_ack: msg.ack });
         }
     });
+    client.on('change_state', (state) => {
+        console.log(`[${agent.id}] STATE =>`, state);
+    });
     client.on('disconnected', async (reason) => {
         try {
+            console.log(`[${agent.id}] DISCONNECTED =>`, reason);
+            let reasonText;
+            if (typeof reason === 'string') {
+                reasonText = reason;
+            }
+            else {
+                try {
+                    reasonText = JSON.stringify(reason);
+                }
+                catch (e) {
+                    reasonText = 'Unable to stringify reason';
+                }
+            }
+            reasonText = reasonText.slice(0, 500);
+            await Log_1.default.create({
+                name: "Verify Connection in Api5555",
+                message: reasonText,
+                description: `${agent.id} desconectado`
+            });
             agent.status = 'Disconnected';
             agent.statusconnected = false;
             await agent.save();
         }
         catch (error) {
-            console.log("ERRO 545557:", error);
+            console.error(`[${agent.id}] ERRO AO PROCESSAR DISCONNECT:`, error);
         }
-        const message = `O número ${agent.number_phone} foi desconectado!!!!`;
-        await (0, util_1.sendMessageWarning)('553185228619@c.us', message);
-        console.log("EXECUTANDO DISCONECT");
-        console.log("REASON>>>", reason);
-        return;
+        try {
+            const message = `O número ${agent.number_phone} foi desconectado!!!!`;
+            await (0, util_1.sendMessageWarning)('553185228619@c.us', message);
+        }
+        catch (notifyErr) {
+            console.error(`[${agent.id}] ERRO AO ENVIAR AVISO:`, notifyErr);
+        }
     });
     WhatsAppClientManager_1.default.addClient(agent.id.toString(), client);
     let rejectCalls = true;

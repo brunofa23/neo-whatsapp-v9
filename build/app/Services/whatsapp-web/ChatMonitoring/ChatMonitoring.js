@@ -73,28 +73,30 @@ class Monitoring {
     async monitoring(client) {
         try {
             client.on('message', async (message) => {
+                const phoneReturn = await resolveSender(client, message);
+                const fromResolved = phoneReturn?.phoneJid || message.from;
                 if (await shouldIgnoreMessage(message))
                     return;
-                if (isBotLoopDetected(message.from)) {
-                    console.log(`Loop detectado de ${message.from}, ignorando resposta.`);
+                if (isBotLoopDetected(fromResolved)) {
+                    console.log(`Loop detectado de ${fromResolved}, ignorando resposta.`);
                     return;
                 }
-                const isInternalNumber = await verifyNumberInternal(message.from);
+                const isInternalNumber = await verifyNumberInternal(fromResolved);
                 if (isInternalNumber) {
-                    console.log("Número interno:", message.from);
+                    console.log("Número interno:", fromResolved);
                     return;
                 }
                 if (message.hasMedia) {
                     await (0, util_1.stateTyping)(message);
-                    client.sendMessage(message.from, 'Por favor não envie áudio, imagens ou vídeos apenas textos. Obrigada!');
+                    await client.sendMessage(fromResolved, 'Por favor não envie áudio, imagens ou vídeos apenas textos. Obrigada!');
                     return;
                 }
-                const customChat = await getCustomChat(message.from, client.info.wid.user);
+                const customChat = await getCustomChat(fromResolved, client.info.wid.user);
                 if (customChat) {
                     await handleCustomChatMessage(message, customChat);
                     return;
                 }
-                const chat = await getChat(message.from, message.to);
+                const chat = await getChat(fromResolved, message.to);
                 if (chat) {
                     await handleChatMessage(client, message, chat);
                     return;
@@ -108,14 +110,46 @@ class Monitoring {
     }
 }
 exports.default = Monitoring;
+async function resolveSender(client, message) {
+    const from = message.from;
+    if (from.endsWith("@c.us")) {
+        return {
+            from,
+            phoneJid: from,
+            phone: from.replace("@c.us", ""),
+        };
+    }
+    if (from.endsWith("@lid")) {
+        try {
+            const result = await client.getContactLidAndPhone([from]);
+            const item = result?.[0];
+            const pn = item?.pn || null;
+            return {
+                from,
+                lidJid: item?.lid || from,
+                phoneJid: pn,
+                phone: pn ? pn.replace("@c.us", "") : null,
+            };
+        }
+        catch (err) {
+            return {
+                from,
+                lidJid: from,
+                phoneJid: null,
+                phone: null,
+                error: String(err),
+            };
+        }
+    }
+    return { from, phoneJid: null, phone: null };
+}
 function shouldIgnoreMessage(message) {
-    const isE2ENotification = message.type?.toLowerCase() === "e2e_notification";
-    const isEmptyMessage = message.body === "" && !message.hasMedia;
-    const isGroupMessage = message.from?.includes("@g.us");
-    const isBroadcastMessage = message.from?.includes("@broadcast");
-    const isStatusMessage = message.from?.includes("@status");
-    const isNotFromIndividual = !message.from?.includes("@c.us");
-    return isE2ENotification || isEmptyMessage || isGroupMessage || isBroadcastMessage || isStatusMessage || isNotFromIndividual;
+    const from = message.from ?? "";
+    return (message.type?.toLowerCase() === "e2e_notification" ||
+        (message.body === "" && !message.hasMedia) ||
+        from.includes("@g.us") ||
+        from.includes("@broadcast") ||
+        from.includes("@status"));
 }
 async function handleCustomChatMessage(message, customChat) {
     let pathMedia = "";

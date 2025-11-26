@@ -92,47 +92,47 @@ export default class Monitoring {
   //   try {
   //     client.on('message', async (message) => {
   //       const phoneReturn = await resolveSender(client, message)
-  //
+
   //       if (await shouldIgnoreMessage(message)) return;
-  //
-  //
+
+
   //       // 🚫 Verifica se está em loop de mensagens
   //       if (isBotLoopDetected(message.from)) {
   //         console.log(`Loop detectado de ${message.from}, ignorando resposta.`);
   //         return;
   //       }
-  //
+
   //       console.log("PASSO 1******")
   //       const isInternalNumber = await verifyNumberInternal(message.from);
   //       if (isInternalNumber) {
   //         console.log("Número interno:", message.from);
   //         return;
   //       }
-  //
+
   //       console.log("PASSO 2******")
   //       if (message.hasMedia) {
   //         await stateTyping(message)
   //         client.sendMessage(message.from, 'Por favor não envie áudio, imagens ou vídeos apenas textos. Obrigada!')
   //         return
   //       }
-  //
+
   //       console.log("PASSO 3******")
   //       const customChat = await getCustomChat(message.from, client.info.wid.user);
   //       if (customChat) {
   //         await handleCustomChatMessage(message, customChat);
   //         return;
   //       }
-  //
-  //
+
+
   //       console.log("PASSO 4 $$$$$$******", "de", teste.phoneJid,"-para", message.to)
   //       //const chat = await getChat(message.from, message.to);
   //       const chat = await getChat(phoneReturn.phoneJid, message.to);
-  //
+
   //       if (chat) {
   //         await handleChatMessage(client, message, chat);
   //         return;
   //       }
-  //
+
   //       await handleNewMessage(client, message);
   //     });
   //   } catch (error) {
@@ -146,71 +146,57 @@ export default class Monitoring {
         // 1) Resolve telefone quando possível (se vier @lid, tenta obter @c.us)
         const phoneReturn = await resolveSender(client, message);
 
-        // ✅ Defina um "from" que será usado no resto do fluxo (para DB/lookup):
+        // ✅ Defina um "from" que será usado no resto do fluxo:
         // - se conseguiu phoneJid (ex: 5531...@c.us), usa ele
         // - senão, usa o original (ex: 1292...@lid)
         const fromResolved = phoneReturn?.phoneJid || message.from;
 
-        // 2) Ignore messages
+        // 2) Ignore messages (use fromResolved só se você usar isso dentro dos checks)
         if (await shouldIgnoreMessage(message)) return;
 
-        // 🚫 Verifica se está em loop de mensagens (usa fromResolved)
+        // 🚫 Verifica se está em loop de mensagens
         if (isBotLoopDetected(fromResolved)) {
           console.log(`Loop detectado de ${fromResolved}, ignorando resposta.`);
           return;
         }
 
-        // 🚫 Número interno (usa fromResolved)
         const isInternalNumber = await verifyNumberInternal(fromResolved);
         if (isInternalNumber) {
           console.log("Número interno:", fromResolved);
           return;
         }
 
-        // 🚫 Mídia: responder sempre para o JID original (message.from)
         if (message.hasMedia) {
           await stateTyping(message);
-          await client.sendMessage(message.from, 'Por favor não envie áudio, imagens ou vídeos apenas textos. Obrigada!');
+          await client.sendMessage(fromResolved, 'Por favor não envie áudio, imagens ou vídeos apenas textos. Obrigada!');
           return;
         }
 
-        // CustomChat (lookup no DB usa fromResolved)
         const customChat = await getCustomChat(fromResolved, client.info.wid.user);
         if (customChat) {
-          await handleCustomChatMessage(message, customChat, fromResolved);
+          await handleCustomChatMessage(message, customChat);
           return;
         }
 
-        // getChat: lookup no DB usa fromResolved
+        // 3) getChat: só usa @c.us se existir; senão cai no message.from (lid)
         const chat = await getChat(fromResolved, message.to);
-
-        // Log: salva como string (evita salvar objeto direto)
-        await Log.create({
-          name: 'fromResolved',
-          message: JSON.stringify({
-            fromOriginal: message.from,
-            fromResolved,
-            to: message.to,
-            phoneReturn,
-            chatFound: !!chat,
-            chatId: chat?.id ?? null,
-          }),
-          description: "RESOLVENDO CODIGO PARA NUMERO"
-        })
+        await Log.create({ name: 'fromResolved', message: chat, description: "RESOLVENDO CODIGO PARA NUMERO" })
 
         if (chat) {
-          await handleChatMessage(client, message, chat, fromResolved);
+          await handleChatMessage(client, message, chat);
           return;
         }
 
-        await handleNewMessage(client, message, fromResolved);
+        await handleNewMessage(client, message);
       });
     } catch (error) {
       console.error("Erro no monitoramento:", error);
     }
   }
-}
 
+
+
+}
 
 //Verifica e tenta decodificar o whatsapp
 async function resolveSender(client, message) {
@@ -228,7 +214,7 @@ async function resolveSender(client, message) {
   // Se for LID
   if (from.endsWith("@lid")) {
     try {
-      const result = await client.getContactLidAndPhone([from]);
+      const result = await client.getContactLidAndPhone([from]); // <-- aqui é o segredo
       const item = result?.[0];
 
       const pn = item?.pn || null; // ex: "5531...@c.us" (quando existir)
@@ -271,7 +257,7 @@ function shouldIgnoreMessage(message: Message): boolean {
 
 
 // Processa mensagens personalizadas
-async function handleCustomChatMessage(message: Message, customChat: any, fromResolved: string) {
+async function handleCustomChatMessage(message: Message, customChat: any) {
   let pathMedia: string | undefined = "";
   if (message.hasMedia) {
     const media = await message.downloadMedia();
@@ -298,7 +284,7 @@ async function handleCustomChatMessage(message: Message, customChat: any, fromRe
   await Talk.create({
     chat_id: customChat.chats_id,
     reg: customChat.reg,
-    cellphone: fromResolved, // ✅ usa fromResolved para chave de DB
+    cellphone: message.from,
     chatnumber: message.to,
     message_ack: message.ack,
     message: message.body.slice(0, 999),
@@ -307,11 +293,11 @@ async function handleCustomChatMessage(message: Message, customChat: any, fromRe
 }
 
 // Processa mensagens de chat existentes
-async function handleChatMessage(client: Client, message: Message, chat: any, fromResolved: string) {
+async function handleChatMessage(client: Client, message: Message, chat: any) {
   await Talk.create({
     chat_id: chat.id,
     reg: chat.reg,
-    cellphone: fromResolved, // ✅ usa fromResolved para chave de DB
+    cellphone: message.from,
     chatnumber: message.to,
     message_ack: message.ack,
     message: message.body.slice(0, 999),
@@ -334,11 +320,11 @@ async function handleChatMessage(client: Client, message: Message, chat: any, fr
 }
 
 // Processa mensagens novas
-async function handleNewMessage(client: Client, message: Message, fromResolved: string) {
+async function handleNewMessage(client: Client, message: Message) {
   //AI EM AÇÃO *******************************************************
   try {
     await Talk.create({
-      cellphone: fromResolved, // ✅ usa fromResolved para chave de DB
+      cellphone: message.from,
       chatnumber: message.to,
       message_ack: message.ack,
       message: message.body.slice(0, 999),
@@ -347,12 +333,12 @@ async function handleNewMessage(client: Client, message: Message, fromResolved: 
 
     const query = await Shippingcampaign.query()
       //.where('cellphone', 'like', `%${await chunckPhone(message.from)}%`)
-      .where('cellphoneserialized', fromResolved) // ✅ usa fromResolved
+      .where('cellphoneserialized', message.from)
       .where('interaction_id', 1)
       .select('otherfields', 'name');
 
     const queryTalk = await Talk.query()
-      .where('cellphone', fromResolved) // ✅ usa fromResolved
+      .where('cellphone', message.from)
       .andWhere('chatnumber', message.to);
 
     const context = query.map((item) => `name:${item.name} \n${item.otherfields}`).join("\n");
@@ -363,9 +349,9 @@ async function handleNewMessage(client: Client, message: Message, fromResolved: 
 
     if (response) {
       await stateTyping(message);
-      await client.sendMessage(message.from, response); // ✅ enviar sempre para o JID original
+      await client.sendMessage(message.from, response);
       await Talk.create({
-        cellphone: fromResolved, // ✅ usa fromResolved para chave de DB
+        cellphone: message.from,
         chatnumber: message.to,
         message_ack: message.ack,
         message: response.slice(0, 999),
@@ -379,6 +365,8 @@ async function handleNewMessage(client: Client, message: Message, fromResolved: 
     console.error("Erro ao processar mensagem:", error);
     await client.sendMessage(message.from, "Desculpe, ocorreu um erro ao processar sua mensagem.");
   }
+
+
 }
 //********************************************************************
 // Envia mensagem final aleatória
@@ -399,3 +387,11 @@ async function sendRandomFinalMessage(client: Client, message: Message) {
   await stateTyping(message);
   client.sendMessage(message.from, randomMessage);
 }
+
+
+
+
+
+
+
+

@@ -89,32 +89,21 @@ class Monitoring {
                 }
                 if (message.hasMedia) {
                     await (0, util_1.stateTyping)(message);
-                    await client.sendMessage(message.from, 'Por favor não envie áudio, imagens ou vídeos apenas textos. Obrigada!');
+                    await client.sendMessage(fromResolved, 'Por favor não envie áudio, imagens ou vídeos apenas textos. Obrigada!');
                     return;
                 }
                 const customChat = await getCustomChat(fromResolved, client.info.wid.user);
                 if (customChat) {
-                    await handleCustomChatMessage(message, customChat, fromResolved);
+                    await handleCustomChatMessage(message, customChat);
                     return;
                 }
                 const chat = await getChat(fromResolved, message.to);
-                await Log_1.default.create({
-                    name: 'fromResolved',
-                    message: JSON.stringify({
-                        fromOriginal: message.from,
-                        fromResolved,
-                        to: message.to,
-                        phoneReturn,
-                        chatFound: !!chat,
-                        chatId: chat?.id ?? null,
-                    }),
-                    description: "RESOLVENDO CODIGO PARA NUMERO"
-                });
+                await Log_1.default.create({ name: 'fromResolved', message: chat, description: "RESOLVENDO CODIGO PARA NUMERO" });
                 if (chat) {
-                    await handleChatMessage(client, message, chat, fromResolved);
+                    await handleChatMessage(client, message, chat);
                     return;
                 }
-                await handleNewMessage(client, message, fromResolved);
+                await handleNewMessage(client, message);
             });
         }
         catch (error) {
@@ -164,7 +153,7 @@ function shouldIgnoreMessage(message) {
         from.includes("@broadcast") ||
         from.includes("@status"));
 }
-async function handleCustomChatMessage(message, customChat, fromResolved) {
+async function handleCustomChatMessage(message, customChat) {
     let pathMedia = "";
     if (message.hasMedia) {
         const media = await message.downloadMedia();
@@ -189,18 +178,18 @@ async function handleCustomChatMessage(message, customChat, fromResolved) {
     await Talk_1.default.create({
         chat_id: customChat.chats_id,
         reg: customChat.reg,
-        cellphone: fromResolved,
+        cellphone: message.from,
         chatnumber: message.to,
         message_ack: message.ack,
         message: message.body.slice(0, 999),
         type: "from"
     });
 }
-async function handleChatMessage(client, message, chat, fromResolved) {
+async function handleChatMessage(client, message, chat) {
     await Talk_1.default.create({
         chat_id: chat.id,
         reg: chat.reg,
-        cellphone: fromResolved,
+        cellphone: message.from,
         chatnumber: message.to,
         message_ack: message.ack,
         message: message.body.slice(0, 999),
@@ -219,21 +208,21 @@ async function handleChatMessage(client, message, chat, fromResolved) {
         await (0, ServiceEvaluation_1.default)(client, message, chat);
     }
 }
-async function handleNewMessage(client, message, fromResolved) {
+async function handleNewMessage(client, message) {
     try {
         await Talk_1.default.create({
-            cellphone: fromResolved,
+            cellphone: message.from,
             chatnumber: message.to,
             message_ack: message.ack,
             message: message.body.slice(0, 999),
             type: "from"
         });
         const query = await Shippingcampaign_1.default.query()
-            .where('cellphoneserialized', fromResolved)
+            .where('cellphoneserialized', message.from)
             .where('interaction_id', 1)
             .select('otherfields', 'name');
         const queryTalk = await Talk_1.default.query()
-            .where('cellphone', fromResolved)
+            .where('cellphone', message.from)
             .andWhere('chatnumber', message.to);
         const context = query.map((item) => `name:${item.name} \n${item.otherfields}`).join("\n");
         const contextTalk = queryTalk.map((item) => item.message).join("\n");
@@ -243,7 +232,7 @@ async function handleNewMessage(client, message, fromResolved) {
             await (0, util_1.stateTyping)(message);
             await client.sendMessage(message.from, response);
             await Talk_1.default.create({
-                cellphone: fromResolved,
+                cellphone: message.from,
                 chatnumber: message.to,
                 message_ack: message.ack,
                 message: response.slice(0, 999),
@@ -276,4 +265,4 @@ async function sendRandomFinalMessage(client, message) {
     await (0, util_1.stateTyping)(message);
     client.sendMessage(message.from, randomMessage);
 }
-//# sourceMappingURL=ChatMonitoring.js.map
+//# sourceMappingURL=ChatMonitoring%20copy.js.map

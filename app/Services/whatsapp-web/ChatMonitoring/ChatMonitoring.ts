@@ -87,36 +87,99 @@ async function getChat(cellphone: String, agentPhone: String) {
 
 
 export default class Monitoring {
+  // async monitoring(client: Client) {
+  //   try {
+  //     client.on('message', async (message) => {
+  //       const phoneReturn = await resolveSender(client, message)
+
+  //       if (await shouldIgnoreMessage(message)) return;
+
+
+  //       // 🚫 Verifica se está em loop de mensagens
+  //       if (isBotLoopDetected(message.from)) {
+  //         console.log(`Loop detectado de ${message.from}, ignorando resposta.`);
+  //         return;
+  //       }
+
+  //       console.log("PASSO 1******")
+  //       const isInternalNumber = await verifyNumberInternal(message.from);
+  //       if (isInternalNumber) {
+  //         console.log("Número interno:", message.from);
+  //         return;
+  //       }
+
+  //       console.log("PASSO 2******")
+  //       if (message.hasMedia) {
+  //         await stateTyping(message)
+  //         client.sendMessage(message.from, 'Por favor não envie áudio, imagens ou vídeos apenas textos. Obrigada!')
+  //         return
+  //       }
+
+  //       console.log("PASSO 3******")
+  //       const customChat = await getCustomChat(message.from, client.info.wid.user);
+  //       if (customChat) {
+  //         await handleCustomChatMessage(message, customChat);
+  //         return;
+  //       }
+
+
+  //       console.log("PASSO 4 $$$$$$******", "de", teste.phoneJid,"-para", message.to)
+  //       //const chat = await getChat(message.from, message.to);
+  //       const chat = await getChat(phoneReturn.phoneJid, message.to);
+
+  //       if (chat) {
+  //         await handleChatMessage(client, message, chat);
+  //         return;
+  //       }
+
+  //       await handleNewMessage(client, message);
+  //     });
+  //   } catch (error) {
+  //     console.error("Erro no monitoramento:", error);
+  //   }
+  // }
+
   async monitoring(client: Client) {
     try {
       client.on('message', async (message) => {
+        // 1) Resolve telefone quando possível (se vier @lid, tenta obter @c.us)
+        const phoneReturn = await resolveSender(client, message);
+
+        // ✅ Defina um "from" que será usado no resto do fluxo:
+        // - se conseguiu phoneJid (ex: 5531...@c.us), usa ele
+        // - senão, usa o original (ex: 1292...@lid)
+        const fromResolved = phoneReturn?.phoneJid || message.from;
+
+        // 2) Ignore messages (use fromResolved só se você usar isso dentro dos checks)
         if (await shouldIgnoreMessage(message)) return;
 
         // 🚫 Verifica se está em loop de mensagens
-        if (isBotLoopDetected(message.from)) {
-          console.log(`Loop detectado de ${message.from}, ignorando resposta.`);
+        if (isBotLoopDetected(fromResolved)) {
+          console.log(`Loop detectado de ${fromResolved}, ignorando resposta.`);
           return;
         }
 
-        const isInternalNumber = await verifyNumberInternal(message.from);
+        const isInternalNumber = await verifyNumberInternal(fromResolved);
         if (isInternalNumber) {
-          console.log("Número interno:", message.from);
+          console.log("Número interno:", fromResolved);
           return;
         }
 
         if (message.hasMedia) {
-          await stateTyping(message)
-          client.sendMessage(message.from, 'Por favor não envie áudio, imagens ou vídeos apenas textos. Obrigada!')
-          return
+          await stateTyping(message);
+          await client.sendMessage(fromResolved, 'Por favor não envie áudio, imagens ou vídeos apenas textos. Obrigada!');
+          return;
         }
 
-        const customChat = await getCustomChat(message.from, client.info.wid.user);
+        const customChat = await getCustomChat(fromResolved, client.info.wid.user);
         if (customChat) {
           await handleCustomChatMessage(message, customChat);
           return;
         }
 
-        const chat = await getChat(message.from, message.to);
+        // 3) getChat: só usa @c.us se existir; senão cai no message.from (lid)
+        const chat = await getChat(fromResolved, message.to);
+
         if (chat) {
           await handleChatMessage(client, message, chat);
           return;
@@ -128,18 +191,66 @@ export default class Monitoring {
       console.error("Erro no monitoramento:", error);
     }
   }
+
+
+
 }
-// Verifica se a mensagem deve ser ignorada
+
+//Verifica e tenta decodificar o whatsapp
+async function resolveSender(client, message) {
+  const from = message.from;
+
+  // Se já for número normal
+  if (from.endsWith("@c.us")) {
+    return {
+      from,
+      phoneJid: from,
+      phone: from.replace("@c.us", ""),
+    };
+  }
+
+  // Se for LID
+  if (from.endsWith("@lid")) {
+    try {
+      const result = await client.getContactLidAndPhone([from]); // <-- aqui é o segredo
+      const item = result?.[0];
+
+      const pn = item?.pn || null; // ex: "5531...@c.us" (quando existir)
+      return {
+        from,
+        lidJid: item?.lid || from,
+        phoneJid: pn,
+        phone: pn ? pn.replace("@c.us", "") : null,
+      };
+    } catch (err) {
+      // Não derruba o processo se o WA Web não permitir resolver
+      return {
+        from,
+        lidJid: from,
+        phoneJid: null,
+        phone: null,
+        error: String(err),
+      };
+    }
+  }
+
+  // Outros casos
+  return { from, phoneJid: null, phone: null };
+}
+
+
+
+
+// Verifica se a mensagem deve ser ignorada FILTRADA
 function shouldIgnoreMessage(message: Message): boolean {
-  const isE2ENotification = message.type?.toLowerCase() === "e2e_notification";
-  const isEmptyMessage = message.body === "" && !message.hasMedia;
-  // Verificações baseadas no campo `from`
-  const isGroupMessage = message.from?.includes("@g.us");
-  const isBroadcastMessage = message.from?.includes("@broadcast");
-  const isStatusMessage = message.from?.includes("@status");
-  // Só queremos mensagens de pessoas (@c.us)
-  const isNotFromIndividual = !message.from?.includes("@c.us");
-  return isE2ENotification || isEmptyMessage || isGroupMessage || isBroadcastMessage || isStatusMessage || isNotFromIndividual;
+  const from = message.from ?? "";
+  return (
+    message.type?.toLowerCase() === "e2e_notification" ||
+    (message.body === "" && !message.hasMedia) ||
+    from.includes("@g.us") ||
+    from.includes("@broadcast") ||
+    from.includes("@status")
+  );
 }
 
 

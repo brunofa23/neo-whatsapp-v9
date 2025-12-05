@@ -1,6 +1,7 @@
 const timers = new Map<number, NodeJS.Timeout>()
 const locks = new Set<number>()
 
+//FUNÇÃO PARA CHAMAR O SETINTERVAL DE QUALQUER AGENTE DE QUALQUER API
 export function stopDispatchLoop(agentId: number) {
   const t = timers.get(agentId)
   if (t) clearTimeout(t)

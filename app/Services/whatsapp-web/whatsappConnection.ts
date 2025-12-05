@@ -18,7 +18,7 @@ const qrcodeTerminal = require('qrcode-terminal')
 const qrcode = require('qrcode')
 
 // =====================================================
-// STATUS GLOBAL (igual ao seu, só com uma proteção extra)
+// STATUS GLOBAL
 // =====================================================
 async function getStatusSendMessage() {
   const result = await Config.query()
@@ -26,13 +26,16 @@ async function getStatusSendMessage() {
     .where('id', 'statusSendMessage')
     .first()
 
-  if (!result?.$attributes?.valuedatetime) return false
+  const valuebool = result?.$attributes?.valuebool
+  const valuedatetime = result?.$attributes?.valuedatetime
+
+  if (!valuedatetime) return false
 
   const dateNow = DateTime.now()
-  const dateConfig = DateTime.fromJSDate(result.$attributes.valuedatetime)
+  const dateConfig = DateTime.fromJSDate(valuedatetime)
   const diffMinutes = dateNow.diff(dateConfig).as('minutes')
 
-  return result.$attributes.valuebool == 1 && diffMinutes > 5
+  return valuebool == 1 && diffMinutes > 5
 }
 
 // =====================================================
@@ -59,10 +62,7 @@ function stopAllLoops(agentId: number) {
 }
 
 function startSendLoop(client: any, agent: Agent) {
-  // garante que não duplica loop (reconnect / start repetido)
   const agentId = agent.id
-  const startTimeSendMessage = agent.interval_init_message
-  const endTimeSendMessage = agent.interval_final_message
 
   // mata loop anterior, se existir
   const old = sendTimers.get(agentId)
@@ -76,9 +76,9 @@ function startSendLoop(client: any, agent: Agent) {
       sendLocks.add(agentId)
 
       console.log('!!!!!send message @@@@')
+
       const statusSendMessage = await getStatusSendMessage()
       if (statusSendMessage) {
-        // IMPORTANTE: await para não sobrepor uma execução na outra
         await SendMessage(client, agent)
       }
     } catch (e) {
@@ -86,19 +86,20 @@ function startSendLoop(client: any, agent: Agent) {
     } finally {
       sendLocks.delete(agentId)
 
-      // random a cada ciclo
-      const delay = await GenerateRandomTime(
-        startTimeSendMessage,
-        endTimeSendMessage,
-        '----Time Send Message'
-      )
+      const startTimeSendMessage = agent.interval_init_message
+      const endTimeSendMessage = agent.interval_final_message
+
+      // segurança: se vier null/0, coloca um padrão mínimo
+      const startSafe = Number(startTimeSendMessage || 60000)
+      const endSafe = Number(endTimeSendMessage || 80000)
+
+      const delay = await GenerateRandomTime(startSafe, endSafe, '----Time Send Message')
 
       const id = setTimeout(tick, delay)
       sendTimers.set(agentId, id)
     }
   }
 
-  // inicia imediatamente
   tick()
 }
 
@@ -127,7 +128,6 @@ function startInternalLoop(client: any, agent: Agent) {
     } finally {
       internalLocks.delete(agentId)
 
-      // random a cada ciclo (mantive seu range 60~80s)
       const delay = await GenerateRandomTime(60000, 80000, '----Time Send Message')
       const id = setTimeout(tick, delay)
       internalTimers.set(agentId, id)
@@ -143,11 +143,9 @@ function startInternalLoop(client: any, agent: Agent) {
 async function startAgent(_agent: Agent) {
   console.log('whatsappConnections.....')
 
+  // OBS: aqui você usava Agent.findOrFail(_agent.id) antes de checar _agent;
+  // como _agent vem do banco no seu for, ele sempre existe — mantive simples:
   const agent = await Agent.findOrFail(_agent.id)
-  if (!_agent) {
-    console.log('CHATNAME INVÁLIDO - Verifique o .env Chatname está igual ao name tabela Agents')
-    return
-  }
 
   const client = new Client({
     authStrategy: new LocalAuth({
@@ -186,14 +184,14 @@ async function startAgent(_agent: Agent) {
       agent.statusconnected = false
       await agent.save()
 
-      const url = await new Promise((resolve, reject) => {
+      const url = await new Promise<string>((resolve, reject) => {
         qrcode.toDataURL(qr, (err, url) => {
           if (err) return reject(err)
           resolve(url)
         })
       })
 
-      agent.qrcode = url as string
+      agent.qrcode = url
       await agent.save()
 
       qrcodeTerminal.generate(qr, { small: true })
@@ -246,7 +244,7 @@ async function startAgent(_agent: Agent) {
       agent.qrcode = null
       await agent.save()
 
-      // ✅ INICIA OS LOOPS AQUI (substitui os 2 setInterval)
+      // ✅ INICIA OS LOOPS AQUI
       startSendLoop(client, agent)
       startInternalLoop(client, agent)
     } catch (error) {

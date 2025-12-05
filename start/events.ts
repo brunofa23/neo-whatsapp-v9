@@ -30,19 +30,17 @@ async function connectionAll() {
 
 
     for (const agent of agents) {
-      if (agent) {
-        if (agent.default_chat) {
-          console.log(`Conectando Agente Default: ${agent.name} `)
-          await startAgentChat(agent)
-        }
-        else {
-          console.log(`Conectando Agente Envio: ${agent.name} `)
-          const teste = await startAgent(agent)
-          console.log("teste:::", teste.agent)
-        }
-      }
+      if (!agent) continue
 
+      if (agent.default_chat) {
+        console.log(`Conectando Agente Default: ${agent.name}`)
+        startAgentChat(agent).catch(console.error)
+      } else {
+        console.log(`Conectando Agente Envio: ${agent.name}`)
+        startAgent(agent).catch(console.error)
+      }
     }
+
   } catch (error) {
     error
   }

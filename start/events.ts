@@ -24,7 +24,10 @@ async function connectionAll() {
   try {
     console.log("connection all acionado...")
     await Agent.query().update({ statusconnected: false, qrcode: null })
-    const agents = await Agent.query().where('active', true).andWhereNull('deleted').orWhere('deleted', false)
+    const agents = await Agent.query()
+      .where('active', true)
+      .where((q) => q.whereNull('deleted').orWhere('deleted', false))
+
 
     for (const agent of agents) {
       if (agent) {
@@ -34,9 +37,16 @@ async function connectionAll() {
         }
         else {
           console.log(`Conectando Agente Envio: ${agent.name} `)
-          await startAgent(agent)
+          const teste = await startAgent(agent)
+          console.log("teste:::", teste.agent)
         }
       }
+
+
+
+
+
+
     }
   } catch (error) {
     error

@@ -74,9 +74,6 @@ function startSendLoop(client: any, agent: Agent) {
     try {
       if (sendLocks.has(agentId)) return
       sendLocks.add(agentId)
-
-      console.log('!!!!!send message @@@@')
-
       const statusSendMessage = await getStatusSendMessage()
       if (statusSendMessage) {
         await SendMessage(client, agent)
@@ -86,12 +83,13 @@ function startSendLoop(client: any, agent: Agent) {
     } finally {
       sendLocks.delete(agentId)
 
-      const startTimeSendMessage = agent.interval_init_message
-      const endTimeSendMessage = agent.interval_final_message
+      const fresh = await Agent.query()
+        .select('interval_init_message', 'interval_final_message')
+        .where('id', agentId)
+        .first()
 
-      // segurança: se vier null/0, coloca um padrão mínimo
-      const startSafe = Number(startTimeSendMessage || 60000)
-      const endSafe = Number(endTimeSendMessage || 80000)
+      const startSafe = Number(fresh?.interval_init_message || 60000)
+      const endSafe = Number(fresh?.interval_final_message || 80000)
 
       const delay = await GenerateRandomTime(startSafe, endSafe, '----Time Send Message')
 

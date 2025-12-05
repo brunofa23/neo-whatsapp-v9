@@ -42,11 +42,6 @@ async function connectionAll() {
         }
       }
 
-
-
-
-
-
     }
   } catch (error) {
     error

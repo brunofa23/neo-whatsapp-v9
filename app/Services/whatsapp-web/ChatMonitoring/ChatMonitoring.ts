@@ -40,8 +40,6 @@ function isBotLoopDetected(phone: string): boolean {
   return false;
 }
 
-
-
 async function verifyNumberInternal(phoneVerify: string): Promise<boolean> {
   // Lista de telefones em formato de array
   const listPhonesFromEnv = process.env.LIST_PHONES_TALK?.split(",") || [];
@@ -88,57 +86,6 @@ async function getChat(cellphone: String, agentPhone: String) {
 
 
 export default class Monitoring {
-  // async monitoring(client: Client) {
-  //   try {
-  //     client.on('message', async (message) => {
-  //       const phoneReturn = await resolveSender(client, message)
-  //
-  //       if (await shouldIgnoreMessage(message)) return;
-  //
-  //
-  //       // 🚫 Verifica se está em loop de mensagens
-  //       if (isBotLoopDetected(message.from)) {
-  //         console.log(`Loop detectado de ${message.from}, ignorando resposta.`);
-  //         return;
-  //       }
-  //
-  //       console.log("PASSO 1******")
-  //       const isInternalNumber = await verifyNumberInternal(message.from);
-  //       if (isInternalNumber) {
-  //         console.log("Número interno:", message.from);
-  //         return;
-  //       }
-  //
-  //       console.log("PASSO 2******")
-  //       if (message.hasMedia) {
-  //         await stateTyping(message)
-  //         client.sendMessage(message.from, 'Por favor não envie áudio, imagens ou vídeos apenas textos. Obrigada!')
-  //         return
-  //       }
-  //
-  //       console.log("PASSO 3******")
-  //       const customChat = await getCustomChat(message.from, client.info.wid.user);
-  //       if (customChat) {
-  //         await handleCustomChatMessage(message, customChat);
-  //         return;
-  //       }
-  //
-  //
-  //       console.log("PASSO 4 $$$$$$******", "de", teste.phoneJid,"-para", message.to)
-  //       //const chat = await getChat(message.from, message.to);
-  //       const chat = await getChat(phoneReturn.phoneJid, message.to);
-  //
-  //       if (chat) {
-  //         await handleChatMessage(client, message, chat);
-  //         return;
-  //       }
-  //
-  //       await handleNewMessage(client, message);
-  //     });
-  //   } catch (error) {
-  //     console.error("Erro no monitoramento:", error);
-  //   }
-  // }
 
   async monitoring(client: Client) {
     try {

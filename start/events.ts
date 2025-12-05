@@ -24,20 +24,23 @@ async function connectionAll() {
   try {
     console.log("connection all acionado...")
     await Agent.query().update({ statusconnected: false, qrcode: null })
-    const agents = await Agent.query().where('active', true).andWhereNull('deleted').orWhere('deleted', false)
+    const agents = await Agent.query()
+      .where('active', true)
+      .where((q) => q.whereNull('deleted').orWhere('deleted', false))
+
 
     for (const agent of agents) {
-      if (agent) {
-        if (agent.default_chat) {
-          console.log(`Conectando Agente Default: ${agent.name} `)
-          await startAgentChat(agent)
-        }
-        else {
-          console.log(`Conectando Agente Envio: ${agent.name} `)
-          await startAgent(agent)
-        }
+      if (!agent) continue
+
+      if (agent.default_chat) {
+        console.log(`Conectando Agente Default: ${agent.name}`)
+        startAgentChat(agent).catch(console.error)
+      } else {
+        console.log(`Conectando Agente Envio: ${agent.name}`)
+        startAgent(agent).catch(console.error)
       }
     }
+
   } catch (error) {
     error
   }

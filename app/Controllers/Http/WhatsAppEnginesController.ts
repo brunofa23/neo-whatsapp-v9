@@ -4,7 +4,7 @@ import whatsAppEngine from 'App/Services/whatsapp/core/WhatsAppEngine'
 
 export default class WhatsAppEnginesController {
   /**
-   * Inicia a sessão de um Agent via Engine (wwebjs)
+   * Inicia a sessão de um Agent via Engine (wwebjs ou megaapi)
    *
    * POST /api/whatsapp/engine/start/:id
    */
@@ -21,19 +21,14 @@ export default class WhatsAppEnginesController {
       return response.notFound({ error: 'Agent não encontrado' })
     }
 
-    console.log("passo 1....", agent.provider_type)
-    
-    if (agent.provider_type !== 'wwebjs') {
-      return response.badRequest({
-        error: `Agent ${agent.id} não está configurado para provider wwebjs`,
-        provider_type: agent.provider_type,
-      })
-    }
-
-    console.log(`[WhatsAppEngine] startAgent(${agentId}) usando provider: wwebjs`)
-
+    // 👉 Deixa o Engine escolher o provider com base em agent.provider_type
     await whatsAppEngine.startAgent(agent.id)
     const state = await whatsAppEngine.getState(agent.id)
+    const providerKind = await whatsAppEngine.getProviderKind(agent.id)
+
+    console.log(
+      `[WhatsAppEngine] startAgent(${agent.id}) provider_type=${agent.provider_type} providerKind=${providerKind}`
+    )
 
     return response.ok({
       message: 'Engine iniciado',
@@ -44,7 +39,7 @@ export default class WhatsAppEnginesController {
       },
       engine: {
         state,
-        provider: whatsAppEngine.getProviderKind(),
+        provider: providerKind,
       },
     })
   }
@@ -67,17 +62,13 @@ export default class WhatsAppEnginesController {
       return response.notFound({ error: 'Agent não encontrado' })
     }
 
-    if (agent.provider_type !== 'wwebjs') {
-      return response.badRequest({
-        error: `Agent ${agent.id} não está configurado para provider wwebjs`,
-        provider_type: agent.provider_type,
-      })
-    }
-
-    console.log(`[WhatsAppEngine] stopAgent(${agentId})`)
-
     await whatsAppEngine.stopAgent(agent.id)
     const state = await whatsAppEngine.getState(agent.id)
+    const providerKind = await whatsAppEngine.getProviderKind(agent.id)
+
+    console.log(
+      `[WhatsAppEngine] stopAgent(${agent.id}) provider_type=${agent.provider_type} providerKind=${providerKind}`
+    )
 
     return response.ok({
       message: 'Engine parado',
@@ -88,7 +79,7 @@ export default class WhatsAppEnginesController {
       },
       engine: {
         state,
-        provider: whatsAppEngine.getProviderKind(),
+        provider: providerKind,
       },
     })
   }
@@ -120,15 +111,19 @@ export default class WhatsAppEnginesController {
       return response.notFound({ error: 'Agent não encontrado' })
     }
 
-    if (agent.provider_type !== 'wwebjs') {
-      return response.badRequest({
-        error: `Agent ${agent.id} não está configurado para provider wwebjs`,
-        provider_type: agent.provider_type,
-      })
-    }
-
     const state = await whatsAppEngine.getState(agent.id)
-    console.log(`[WhatsAppEngineSend] Estado atual agent ${agent.id}:`, state)
+    const providerKind = await whatsAppEngine.getProviderKind(agent.id)
+
+    console.log(
+      `[WhatsAppEngineSend] Estado atual agent ${agent.id}: ${state}, providerKind=${providerKind}, provider_type=${agent.provider_type}`
+    )
+
+    if (state !== 'CONNECTED' && state !== 'CONNECTED_LOGGEDIN') {
+      // você pode ajustar esse nome de estado conforme o que o MegaAPI ou wwebjs retorna
+      console.warn(
+        `[WhatsAppEngineSend] Agent ${agent.id} não está conectado. state=${state}`
+      )
+    }
 
     try {
       const result = await whatsAppEngine.sendText(agent.id, to, text)
@@ -139,10 +134,11 @@ export default class WhatsAppEnginesController {
           id: agent.id,
           name: agent.name,
           number_phone: agent.number_phone,
+          provider_type: agent.provider_type,
         },
         to,
         text,
-        provider: whatsAppEngine.getProviderKind(),
+        provider: providerKind,
         engineState: state,
         result,
       })
@@ -173,14 +169,8 @@ export default class WhatsAppEnginesController {
       return response.notFound({ error: 'Agent não encontrado' })
     }
 
-    if (agent.provider_type !== 'wwebjs') {
-      return response.badRequest({
-        error: `Agent ${agent.id} não está configurado para provider wwebjs`,
-        provider_type: agent.provider_type,
-      })
-    }
-
     const engineState = await whatsAppEngine.getState(agent.id)
+    const providerKind = await whatsAppEngine.getProviderKind(agent.id)
 
     return response.ok({
       agent: {
@@ -194,7 +184,7 @@ export default class WhatsAppEnginesController {
       },
       engine: {
         state: engineState,
-        provider: whatsAppEngine.getProviderKind(),
+        provider: providerKind,
       },
     })
   }

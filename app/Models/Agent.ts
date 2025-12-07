@@ -4,12 +4,9 @@ import { DateTime } from 'luxon'
 
 export default class Agent extends BaseModel {
 
-
   static get connection() {
-    //return 'mysql';
     return Env.get('DB_CONNECTION_MAIN')
   }
-
 
   public static get fillable() {
     return [
@@ -30,13 +27,17 @@ export default class Agent extends BaseModel {
       'deleted',
       'company_id',
       'obs',
+
+      // 👇 novos atributos snake_case
       'provider_type',
-      'createdAt',
-      'updatedAt',
+      'megaapi_host',
+      'megaapi_instance_key',
+      'megaapi_token',
+
+      'created_at',
+      'updated_at',
     ]
   }
-
-
 
   @column({ isPrimary: true })
   public id: number
@@ -68,8 +69,9 @@ export default class Agent extends BaseModel {
   @column()
   public active: boolean
 
+  // 👇 provider_type = wwebjs | megaapi
   @column()
-  public providerType: 'wwebjs' | 'megaapi' // se quiser ser mais estrito no TS
+  public provider_type: 'wwebjs' | 'megaapi'
 
   @column()
   public qrcode: string
@@ -81,7 +83,7 @@ export default class Agent extends BaseModel {
   public default_chat: boolean
 
   @column()
-  public interaction_priority: string //confirmation or evaluation
+  public interaction_priority: string
 
   @column()
   public deleted: boolean
@@ -92,9 +94,19 @@ export default class Agent extends BaseModel {
   @column()
   public obs: string
 
+  // 👇 informações específicas MegaAPI
+  @column()
+  public megaapi_host: string
+
+  @column()
+  public megaapi_instance_key: string
+
+  @column()
+  public megaapi_token: string
+
   @column.dateTime({ autoCreate: true })
-  public createdAt: DateTime
+  public created_at: DateTime
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
-  public updatedAt: DateTime
+  public updated_at: DateTime
 }

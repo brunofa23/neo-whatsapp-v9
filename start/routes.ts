@@ -161,6 +161,10 @@ Route.group(() => {
   //MAINSUBJECT
   Route.resource('/mainsubjects', 'MainsubjectsController').apiOnly()
 
+  //Router Test WhatsappEngine
+   Route.post('/whatsapp/engine/start/:id', 'WhatsAppEngineTestsController.start')
+  Route.post('/whatsapp/engine/stop/:id', 'WhatsAppEngineTestsController.stop')
+
 }).prefix('/api')
 
 

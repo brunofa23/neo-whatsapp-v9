@@ -190,7 +190,7 @@ export default class AgentsController {
 
   }
 
-    public async destroyFullAgents() {
+  public async destroyFullAgents() {
 
     const agents = await Agent.query().where('deleted', true);
     for (const agent of agents) {
@@ -370,4 +370,30 @@ export default class AgentsController {
   }
 
 
+  //versão nova
+  public async status({ auth, params, response }: HttpContextContract) {
+    await auth.use('api').authenticate()
+
+    const agent = await Agent.find(params.id)
+    if (!agent) {
+      return response.notFound({ error: 'Agent não encontrado' })
+    }
+
+    return response.ok({
+      id: agent.id,
+      name: agent.name,
+      provider_type: agent.providerType,
+      status: agent.status,
+      statusconnected: agent.statusconnected,
+      number_phone: agent.number_phone,
+      qrcode: agent.qrcode, // front pode exibir o base64 aqui
+    })
+  }
+
+
 }
+
+
+
+
+

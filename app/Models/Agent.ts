@@ -30,6 +30,7 @@ export default class Agent extends BaseModel {
       'deleted',
       'company_id',
       'obs',
+      'provider_type',
       'createdAt',
       'updatedAt',
     ]
@@ -68,6 +69,9 @@ export default class Agent extends BaseModel {
   public active: boolean
 
   @column()
+  public providerType: 'wwebjs' | 'megaapi' // se quiser ser mais estrito no TS
+
+  @column()
   public qrcode: string
 
   @column()
@@ -77,16 +81,16 @@ export default class Agent extends BaseModel {
   public default_chat: boolean
 
   @column()
-  public interaction_priority:string //confirmation or evaluation
+  public interaction_priority: string //confirmation or evaluation
 
   @column()
   public deleted: boolean
 
   @column()
-  public company_id:number
+  public company_id: number
 
   @column()
-  public obs:string
+  public obs: string
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime

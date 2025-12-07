@@ -59,7 +59,7 @@ Route.group(() => {
 
   //Executa busca no Smart
   Route.get('/executequery', async ({ request }) => {
-    const { unit, date, interaction_id } = request.only(['unit', 'date','interaction_id'])
+    const { unit, date, interaction_id } = request.only(['unit', 'date', 'interaction_id'])
     const dateQuery = DateTime.fromFormat(date, 'yyyy-MM-dd', { zone: 'America/Sao_Paulo' });
     console.log("EXECUTANDO BUSCA NO SMART", dateQuery)
 
@@ -92,6 +92,8 @@ Route.group(() => {
   Route.post("/agents/destroyfullagents", "AgentsController.destroyFullAgents")
 
   Route.get("/verifystatusagent", "AgentsController.verifyStatusAgent")
+  Route.get('/agents/:id/status', 'AgentsController.status')
+
 
   //CUSTOM CHATS
   Route.post("/customchat/sendmessage", "CustomchatsController.sendMessage")
@@ -161,9 +163,13 @@ Route.group(() => {
   //MAINSUBJECT
   Route.resource('/mainsubjects', 'MainsubjectsController').apiOnly()
 
-  //Router Test WhatsappEngine
-   Route.post('/whatsapp/engine/start/:id', 'WhatsAppEngineTestsController.start')
-  Route.post('/whatsapp/engine/stop/:id', 'WhatsAppEngineTestsController.stop')
+
+  // Engine (wwebjs) - controller único
+  Route.post('/whatsapp/engine/start/:id', 'WhatsAppEngineController.start')
+  Route.post('/whatsapp/engine/stop/:id', 'WhatsAppEngineController.stop')
+  Route.post('/whatsapp/engine/send', 'WhatsAppEngineController.send')
+  Route.get('/whatsapp/engine/status/:id', 'WhatsAppEngineController.status')
+
 
 }).prefix('/api')
 

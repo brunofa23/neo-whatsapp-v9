@@ -1,111 +1,106 @@
-// App/Services/whatsapp/providers/wwebjs/WWebJSProvider.ts
-
 import Application from '@ioc:Adonis/Core/Application'
-import { Client, LocalAuth, MessageMedia, Message } from 'whatsapp-web.js'
+import Agent from 'App/Models/Agent'
 import {
   IWhatsAppProvider,
   ProviderKind,
   WaAck,
   WaInboundMessage,
 } from 'App/Services/whatsapp/core/IWhatsAppProvider'
+import { Client, LocalAuth, Message, MessageMedia } from 'whatsapp-web.js'
+import fs from 'fs'
+import path from 'path'
+
 const qrcodeTerminal = require('qrcode-terminal')
+const qrcode = require('qrcode')
 
-/**
- * Função utilitária simples para manter apenas dígitos de um número/JID.
- * Ex: "5531999998888@c.us" => "5531999998888"
- */
-function onlyDigits(v: any) {
-  return String(v ?? '').replace(/\D/g, '')
-}
-
-/**
- * Provider que IMPLEMENTA a interface genérica IWhatsAppProvider
- * usando a biblioteca whatsapp-web.js por baixo.
- *
- * Ele é o "adapter" entre:
- *   - o MUNDO EXTERNO (whatsapp-web.js, Puppeteer, sessão, etc.)
- *   - e o MUNDO INTERNO (seu sistema, que só fala com IWhatsAppProvider).
- */
 export default class WWebJSProvider implements IWhatsAppProvider {
-  /**
-   * Identifica o tipo deste provider.
-   * Útil para logs e decisões específicas.
-   */
   public kind: ProviderKind = 'wwebjs'
 
-  /**
-   * Mapa de agentId -> Client (instância do whatsapp-web.js).
-   * Cada agente da sua tabela `agents` pode ter um client diferente.
-   */
+  // Mapeia agentId -> Client
   private clients = new Map<number, Client>()
 
-  /**
-   * Callbacks registrados pela aplicação para tratar:
-   *  - mensagens recebidas (onMessage)
-   *  - ACKs de mensagens enviadas (onAck)
-   *  - desconexões (onDisconnected)
-   *
-   * Inicialmente são funções "vazias", e depois a camada de negócio
-   * (MessageRouter, por exemplo) registra as funções verdadeiras.
-   */
-  private onMessageCb: (msg: WaInboundMessage) => Promise<void> = async () => { }
-  private onAckCb: (ack: WaAck) => Promise<void> = async () => { }
-  private onDisconnectedCb: (agentId: number, reason: string) => Promise<void> = async () => { }
+  // Callbacks registrados pelo WhatsAppEngine
+  private onMessageCb: (msg: WaInboundMessage) => Promise<void> = async () => {}
+  private onAckCb: (ack: WaAck) => Promise<void> = async () => {}
+  private onDisconnectedCb: (agentId: number, reason: string) => Promise<void> = async () => {}
 
-  /**
-   * Registra callback para mensagens recebidas.
-   */
   public onMessage(cb: (msg: WaInboundMessage) => Promise<void>): void {
     this.onMessageCb = cb
   }
 
-  /**
-   * Registra callback para ACKs de mensagens enviadas.
-   */
   public onAck(cb: (ack: WaAck) => Promise<void>): void {
     this.onAckCb = cb
   }
 
-  /**
-   * Registra callback para eventos de desconexão do agente.
-   */
   public onDisconnected(cb: (agentId: number, reason: string) => Promise<void>): void {
     this.onDisconnectedCb = cb
   }
 
   /**
-   * Inicia (ou garante que está iniciada) a sessão do agente.
-   * Aqui é onde configuramos o Client do whatsapp-web.js.
-   *
-   * IMPORTANTE:
-   *  - Neste passo, estamos focando em subir o client e ligar eventos.
-   *  - Ainda NÃO estamos colocando regra de negócio (SendMessage, ChatMonitoring, etc.).
-   *    Isso vem depois, usando this.onMessageCb, this.onAckCb, etc.
+   * Extrai apenas os dígitos de um número (5531999999999)
    */
-  public async start(agentId: number): Promise<void> {
-    // Se já existe um client para este agent, não cria outro.
-    if (this.clients.has(agentId)) {
-      const client = this.clients.get(agentId)!
-      try {
-        const state = await client.getState()
-        // Se já estiver "CONNECTED" (ou parecido), apenas retorna.
-        if (state) {
-          console.log(`[WWebJSProvider] Agent ${agentId} já está com state: ${state}`)
-          return
-        }
-      } catch {
-        // Se der erro ao pegar state, vamos recriar o client mesmo assim.
-        console.log(`[WWebJSProvider] Erro ao obter state do agent ${agentId}, recriando client...`)
-      }
+  private extractDigits(to: string): string {
+    if (!to) return ''
+    return String(to).replace(/\D/g, '')
+  }
+
+  /**
+   * Resolve o chatId correto:
+   *  - Se for grupo (@g.us) ou broadcast (@broadcast) → usa direto
+   *  - Qualquer outra coisa (número puro, @c.us, @lid, etc) → extrai dígitos e
+   *    usa client.getNumberId(digits), que retorna o _serialized correto (c.us ou lid)
+   */
+  private async resolveChatId(client: Client, to: string): Promise<string> {
+    if (!to) throw new Error('Destino (to) vazio')
+
+    let v = String(to).trim()
+
+    // Grupo ou broadcast → manda direto
+    if (v.endsWith('@g.us') || v.endsWith('@broadcast')) {
+      return v
     }
 
+    // Para contato individual, ignoramos qualquer sufixo passado
+    // (mesmo que seja @c.us ou @lid) e resolvemos via getNumberId.
+    v = v.replace(/@.*/g, '')
+
+    const digits = this.extractDigits(v)
+    if (!digits) {
+      throw new Error(`Não foi possível extrair dígitos válidos de: ${to}`)
+    }
+
+    const numberId = await client.getNumberId(digits)
+
+    if (!numberId) {
+      throw new Error(`Número não registrado no WhatsApp: ${digits}`)
+    }
+
+    // Ex: "5585228619@c.us" ou "xxxxxxxxxxxx@lid"
+    return numberId._serialized
+  }
+
+  /**
+   * Inicia o client para um agente (engine)
+   * Usa pasta separada: tmp/sessions-engine/session-<agentId>
+   */
+  public async start(agentId: number): Promise<void> {
     console.log(`[WWebJSProvider] Inicializando client para agentId: ${agentId}`)
 
-    // Configuração do Client (você pode ajustar conforme seu código atual)
+    const sessionsDir = Application.tmpPath('sessions-engine')
+    const sessionDir = path.join(sessionsDir, `session-${agentId}`)
+
+    fs.mkdirSync(sessionDir, { recursive: true })
+
+    const singletonLock = path.join(sessionDir, 'SingletonLock')
+    if (fs.existsSync(singletonLock)) {
+      console.log(`[WWebJSProvider][${agentId}] Removendo SingletonLock antigo em sessions-engine...`)
+      fs.unlinkSync(singletonLock)
+    }
+
     const client = new Client({
       authStrategy: new LocalAuth({
-        clientId: agentId.toString(), // id da sessão baseado no agentId
-        dataPath: Application.tmpPath('/sessions'), // mesma pasta de sessões que você já usa
+        clientId: `engine-${agentId}`,
+        dataPath: sessionsDir,
       }),
       puppeteer: {
         executablePath: '/snap/bin/chromium',
@@ -123,44 +118,56 @@ export default class WWebJSProvider implements IWhatsAppProvider {
         // @ts-ignore
         setJavaScriptEnabled: true,
       },
-      // Versão web e caminho, como você já fazia
       webVersion: '2.3000.1026075099-alpha',
       webVersionPath:
         'https://raw.githubusercontent.com/wppconnect-team/wa-version/refs/heads/main/html/2.3000.1026075099-alpha.html',
     })
 
-    // --- Eventos do client ---
+    // ===== Eventos principais =====
 
     client.on('loading_screen', (percent, message) => {
-      console.log(`[WWebJSProvider][${agentId}] LOADING`, percent, message)
+      console.log(`[WWebJSProvider][${agentId}] LOADING ${percent} ${message}`)
     })
 
-    client.on('qr', (qr) => {
+    client.on('qr', async (qrValue) => {
       console.log(`[WWebJSProvider][${agentId}] QR code recebido (engine).`)
 
       try {
-        // Desenha o QR code no terminal (modo compacto)
-        qrcodeTerminal.generate(qr, { small: true })
+        const agent = await Agent.find(agentId)
+        if (agent) {
+          const url = await qrcode.toDataURL(qrValue)
+
+          agent.status = 'Qrcode required'
+          agent.statusconnected = false
+          agent.qrcode = url
+          await agent.save()
+        }
+
+        qrcodeTerminal.generate(qrValue, { small: true })
       } catch (e) {
-        console.error(`[WWebJSProvider][${agentId}] Erro ao gerar QR no terminal:`, e)
+        console.error(`[WWebJSProvider][${agentId}] Erro ao processar QR:`, e)
       }
     })
 
-
-    client.on('authenticated', () => {
+    client.on('authenticated', async () => {
       console.log(`[WWebJSProvider][${agentId}] AUTHENTICATED`)
-      // Aqui, no futuro, você pode atualizar Agent no banco (status, number_phone etc.)
-    })
 
-    client.on('auth_failure', (msg) => {
-      console.error(`[WWebJSProvider][${agentId}] AUTH FAILURE`, msg)
-      // Aqui daria para chamar this.onDisconnectedCb(agentId, 'AUTH_FAILURE')
-      // e/ou atualizar tabela Agent.
-      this.onDisconnectedCb(agentId, `AUTH_FAILURE: ${msg}`)
+      try {
+        const agent = await Agent.find(agentId)
+        if (agent) {
+          agent.status = 'Authentication'
+          agent.statusconnected = true
+          agent.qrcode = null
+          await agent.save()
+        }
+      } catch (e) {
+        console.error(`[WWebJSProvider][${agentId}] Erro ao atualizar agent em AUTHENTICATED:`, e)
+      }
     })
 
     client.on('ready', async () => {
       console.log(`[WWebJSProvider][${agentId}] READY`)
+
       try {
         const info = client.info
         console.log(
@@ -169,22 +176,24 @@ export default class WWebJSProvider implements IWhatsAppProvider {
           '- phone:',
           info.wid?.user
         )
+
+        const agent = await Agent.find(agentId)
+        if (agent) {
+          agent.status = 'CONNECTED'
+          agent.statusconnected = true
+          agent.number_phone = info?.wid?.user || agent.number_phone
+          agent.qrcode = null
+          await agent.save()
+        }
       } catch (e) {
-        console.error(`[WWebJSProvider][${agentId}] Erro ao obter info:`, e)
+        console.error(`[WWebJSProvider][${agentId}] Erro ao atualizar agent em READY:`, e)
       }
     })
 
-    /**
-     * Evento de mensagens RECEBIDAS.
-     * Aqui fazemos a ponte:
-     *   - Message (tipo do whatsapp-web.js)
-     *   -> WaInboundMessage (tipo genérico do sistema)
-     *   -> this.onMessageCb(...)
-     */
     client.on('message', async (message: Message) => {
       try {
-        const from = message.from // ex: "55319...@c.us" ou "@lid"
-        const to = message.to     // ex: número do seu bot/agent
+        const from = message.from
+        const to = message.to
 
         const inbound: WaInboundMessage = {
           provider: this.kind,
@@ -194,7 +203,7 @@ export default class WWebJSProvider implements IWhatsAppProvider {
           body: message.body || '',
           hasMedia: !!message.hasMedia,
           messageId: message.id?._serialized || `${from}-${message.timestamp}`,
-          timestamp: (message.timestamp || Date.now() / 1000) * 1000, // converte para ms
+          timestamp: (message.timestamp || Date.now() / 1000) * 1000,
           raw: message,
         }
 
@@ -204,9 +213,6 @@ export default class WWebJSProvider implements IWhatsAppProvider {
       }
     })
 
-    /**
-     * Evento de ACK (status de mensagem enviada).
-     */
     client.on('message_ack', async (msg, ack) => {
       try {
         const from = msg.from
@@ -228,18 +234,24 @@ export default class WWebJSProvider implements IWhatsAppProvider {
       }
     })
 
-    /**
-     * Evento de desconexão.
-     */
     client.on('disconnected', async (reason) => {
       console.log(`[WWebJSProvider][${agentId}] DISCONNECTED =>`, reason)
-      // Remove o client do mapa
       this.clients.delete(agentId)
 
+      try {
+        const agent = await Agent.find(agentId)
+        if (agent) {
+          agent.status = 'Disconnected'
+          agent.statusconnected = false
+          await agent.save()
+        }
+      } catch (e) {
+        console.error(`[WWebJSProvider][${agentId}] Erro ao atualizar agent em DISCONNECTED:`, e)
+      }
+
       let reasonText = ''
-      if (typeof reason === 'string') {
-        reasonText = reason
-      } else {
+      if (typeof reason === 'string') reasonText = reason
+      else {
         try {
           reasonText = JSON.stringify(reason)
         } catch {
@@ -250,38 +262,51 @@ export default class WWebJSProvider implements IWhatsAppProvider {
       await this.onDisconnectedCb(agentId, reasonText)
     })
 
-    // Guarda o client no mapa antes de inicializar
     this.clients.set(agentId, client)
-
-    // Inicializa a sessão (gera QR, conecta etc.)
     client.initialize()
   }
 
   /**
-   * Para/desconecta a sessão do agente.
+   * Para/destrói o client de um agent
    */
   public async stop(agentId: number): Promise<void> {
     const client = this.clients.get(agentId)
     if (!client) return
 
     try {
-      console.log(`[WWebJSProvider][${agentId}] stop() chamado, destruindo client...`)
       await client.destroy()
     } catch (e) {
       console.error(`[WWebJSProvider][${agentId}] Erro ao destruir client:`, e)
     } finally {
       this.clients.delete(agentId)
+
+      try {
+        const agent = await Agent.find(agentId)
+        if (agent) {
+          agent.status = 'Stopped'
+          agent.statusconnected = false
+          await agent.save()
+        }
+      } catch (e) {
+        console.error(`[WWebJSProvider][${agentId}] Erro ao atualizar agent em stop:`, e)
+      }
     }
   }
 
   /**
-   * Retorna o estado atual do client para o agentId.
+   * Estado atual do client (defensivo)
    */
   public async getState(agentId: number): Promise<string> {
     const client = this.clients.get(agentId)
     if (!client) return 'DISCONNECTED'
 
     try {
+      // @ts-ignore internals
+      const pupPage = (client as any).pupPage
+      if (!pupPage) {
+        return 'INITIALIZING'
+      }
+
       const state = await client.getState()
       return state || 'UNKNOWN'
     } catch (e) {
@@ -291,43 +316,37 @@ export default class WWebJSProvider implements IWhatsAppProvider {
   }
 
   /**
-   * Envia mensagem de TEXTO usando o client do whatsapp-web.js.
+   * Envia texto usando o client do agent
    */
-  public async sendText(agentId: number, to: string, text: string): Promise<{ messageId: string }> {
+  public async sendText(agentId: number, to: string, text: string): Promise<any> {
     const client = this.clients.get(agentId)
-    if (!client) {
-      throw new Error(`[WWebJSProvider][${agentId}] Client não encontrado ao tentar sendText`)
-    }
+    if (!client) throw new Error(`Client não encontrado para agentId=${agentId}`)
 
-    const result = await client.sendMessage(to, text)
-    return {
-      messageId: result.id?._serialized || `${to}-${Date.now()}`,
-    }
+    const chatId = await this.resolveChatId(client, to)
+    console.log(`[WWebJSProvider][${agentId}] Enviando texto para ${chatId}`)
+
+    return client.sendMessage(chatId, text)
   }
 
   /**
-   * Envia mensagem com MÍDIA (arquivo).
+   * Envia mídia (como documento) com legenda opcional
    */
   public async sendMedia(
     agentId: number,
     to: string,
     filePath: string,
     caption?: string
-  ): Promise<{ messageId: string }> {
+  ): Promise<any> {
     const client = this.clients.get(agentId)
-    if (!client) {
-      throw new Error(`[WWebJSProvider][${agentId}] Client não encontrado ao tentar sendMedia`)
-    }
+    if (!client) throw new Error(`Client não encontrado para agentId=${agentId}`)
+
+    const chatId = await this.resolveChatId(client, to)
+    console.log(`[WWebJSProvider][${agentId}] Enviando mídia para ${chatId}`)
 
     const media = MessageMedia.fromFilePath(filePath)
-    const result = await client.sendMessage(to, media, {
+    return client.sendMessage(chatId, media, {
       caption,
-      // se quiser replicar seu comportamento atual:
-      // sendMediaAsDocument: true,
-    } as any)
-
-    return {
-      messageId: result.id?._serialized || `${to}-${Date.now()}`,
-    }
+      sendMediaAsDocument: true,
+    })
   }
 }

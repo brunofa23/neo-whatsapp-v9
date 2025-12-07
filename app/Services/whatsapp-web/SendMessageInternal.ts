@@ -1,48 +1,99 @@
-import { Client } from "whatsapp-web.js"
+import { Client } from 'whatsapp-web.js'
+import Agent from 'App/Models/Agent'
+import ListInternalPhrases from './ListInternalPhrases'
+import { TimeSchedule } from './util'
 
-import ListInternalPhrases from './ListInternalPhrases';
-import { DateFormat, ExecutingSendMessage, GenerateRandomTime, stateTyping, TimeSchedule } from './util'
-
-async function PhoneInternal() {
-  const list_phone_talking = process.env.LIST_PHONES_TALK
-  const list_phones = list_phone_talking?.split(",")
-  if (list_phones?.length >= 0) {
-    const phone = list_phones[Math.floor(Math.random() * list_phones?.length)]
-    return phone
-  }
+function pickRandom<T>(arr: T[]) {
+  return arr[Math.floor(Math.random() * arr.length)]
 }
 
-//*********************************** */
+function toCUsJid(phone: string) {
+  const digits = String(phone || '').replace(/\D/g, '')
+  return digits ? `${digits}@c.us` : null
+}
+
 export default async (client: Client) => {
-  async function sendMessages() {
-    if (await TimeSchedule() == false) {
+  console.log('PASSEI NO GRUPO SEND MESSAGE GRUPO')
+
+  const groupId = process.env.INTERNAL_GROUP_ID
+  if (!groupId || !groupId.endsWith('@g.us')) {
+    console.log('INTERNAL_GROUP_ID inválido. Ex: 120363170786645695@g.us')
+    return
+  }
+
+  if ((await TimeSchedule()) === false) return
+
+  try {
+    const state = await client.getState().catch(() => null)
+    if (!state) {
+      console.log('Cliente do WhatsApp desconectado ou inválido.')
       return
     }
 
     const phrase = await ListInternalPhrases()
 
-    try {
-      // Verifique se o cliente está conectado
-      if (!client || !client.info || !client.info.wid) {
-        console.log("Cliente do WhatsApp desconectado ou inválido.")
-        return
-      }
+    // ✅ 1) sempre manda no grupo
+    await client.sendMessage(groupId, phrase)
 
-      // Opcional: verifique se o navegador ainda está rodando
-      const pupBrowser = client?.pupBrowser
-      if (pupBrowser && typeof pupBrowser.isConnected === 'function' && !pupBrowser.isConnected()) {
-        console.log("Navegador do WhatsApp fechado.")
-        return
-      }
+    // ✅ 2) opcional: DM para um agent aleatório do BANCO (sem .env)
+    // Ajuste aqui a chance como quiser (ex: 0.3 = 30%)
+    const DM_CHANCE = 0.3
+    if (Math.random() > DM_CHANCE) return
 
-      await client.sendMessage('120363170786645695@g.us', phrase)
-    } catch (error) {
-      console.log("Erro ao enviar mensagem:", error.message)
-    }
+    const myNumber = String(client.info?.wid?.user || '').replace(/\D/g, '')
+
+    const agents = await Agent.query()
+      .select(['id', 'name', 'number_phone'])
+      .where('active', true)
+      .where((q) => q.whereNull('deleted').orWhere('deleted', false))
+      .whereNotNull('number_phone')
+
+    const candidates = agents
+      .map((a) => ({
+        id: a.id,
+        name: a.name,
+        jid: toCUsJid((a as any).number_phone),
+      }))
+      .filter((a) => a.jid && !a.jid.startsWith(myNumber + '@'))
+
+    if (candidates.length === 0) return
+
+    const chosen = pickRandom(candidates)
+    await client.sendMessage(chosen.jid!, phrase)
+    console.log(`DM interna enviada para agent ${chosen.id} (${chosen.name}) => ${chosen.jid}`)
+  } catch (error: any) {
+    console.log('Erro ao enviar mensagem:', error?.message || error)
   }
-
-  await sendMessages()
 }
 
 
+// import { Client } from 'whatsapp-web.js'
+// import ListInternalPhrases from './ListInternalPhrases'
+// import { TimeSchedule } from './util'
 
+// export default async (client: Client) => {
+//   console.log("PASSEI NO GRUPO SEND MESSAGE GRUPO")
+//   // ✅ lê o grupo do .env
+//   const groupId = process.env.INTERNAL_GROUP_ID
+
+//   if (!groupId || !groupId.endsWith('@g.us')) {
+//     console.log('INTERNAL_GROUP_ID inválido. Ex: 120363170786645695@g.us')
+//     return
+//   }
+
+//   if ((await TimeSchedule()) === false) return
+
+//   try {
+//     // ✅ valida conexão (mais confiável que pupBrowser)
+//     const state = await client.getState().catch(() => null)
+//     if (!state) {
+//       console.log('Cliente do WhatsApp desconectado ou inválido.')
+//       return
+//     }
+
+//     const phrase = await ListInternalPhrases()
+//     await client.sendMessage(groupId, phrase)
+//   } catch (error: any) {
+//     console.log('Erro ao enviar mensagem:', error?.message || error)
+//   }
+// }

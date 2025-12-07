@@ -10,6 +10,9 @@ import { Client, LocalAuth, Message, MessageMedia } from 'whatsapp-web.js'
 import fs from 'fs'
 import path from 'path'
 
+import ChatMonitoring from 'App/Services/whatsapp-web/ChatMonitoring/ChatMonitoring'
+import ChatMonitoringInternal from 'App/Services/whatsapp-web/ChatMonitoring/ChatMonitoringInternal'
+
 const qrcodeTerminal = require('qrcode-terminal')
 const qrcode = require('qrcode')
 
@@ -20,9 +23,9 @@ export default class WWebJSProvider implements IWhatsAppProvider {
   private clients = new Map<number, Client>()
 
   // Callbacks registrados pelo WhatsAppEngine
-  private onMessageCb: (msg: WaInboundMessage) => Promise<void> = async () => { }
-  private onAckCb: (ack: WaAck) => Promise<void> = async () => { }
-  private onDisconnectedCb: (agentId: number, reason: string) => Promise<void> = async () => { }
+  private onMessageCb: (msg: WaInboundMessage) => Promise<void> = async () => {}
+  private onAckCb: (ack: WaAck) => Promise<void> = async () => {}
+  private onDisconnectedCb: (agentId: number, reason: string) => Promise<void> = async () => {}
 
   public onMessage(cb: (msg: WaInboundMessage) => Promise<void>): void {
     this.onMessageCb = cb
@@ -39,27 +42,30 @@ export default class WWebJSProvider implements IWhatsAppProvider {
   /**
    * Extrai apenas os dígitos de um número (5531999999999)
    */
-  private extractDigits(to: string): string {
-    if (!to) return ''
-    return String(to).replace(/\D/g, '')
+  private extractDigits(v: any): string {
+    if (!v) return ''
+    return String(v ?? '').replace(/\D/g, '')
   }
 
   /**
    * Resolve o chatId correto:
-   *  - Se for grupo (@g.us) ou broadcast (@broadcast) → usa direto
-   *  - Qualquer outra coisa (número puro, @c.us, @lid, etc) → extrai dígitos e
-   *    usa client.getNumberId(digits), que retorna o _serialized correto (c.us ou lid)
+   *
+   * CASO 1: já é um JID válido:
+   *   - *@c.us
+   *   - *@lid
+   *   - *@g.us
+   *   - *@broadcast
+   *   => usa direto, sem chamar getNumberId
+   *
+   * CASO 2: entrada "humana" (apenas dígitos ou número formatado):
+   *   => extrai dígitos, usa client.getNumberId(digits) e pega _serialized
    */
   private async resolveChatId(client: Client, to: string): Promise<string> {
     if (!to) throw new Error('Destino (to) vazio')
 
     let v = String(to).trim()
 
-    // 🔹 CASO 1: já é um JID válido que veio do WhatsApp ou do banco
-    // Ex:  "553197606015@c.us"
-    //      "1292885856485@lid"
-    //      "xxxx-xxxx@g.us"
-    //      "xxxxx@broadcast"
+    // CASO 1: JID recebido do WhatsApp ou salvo no banco (@c.us / @lid / @g.us / @broadcast)
     if (
       v.endsWith('@c.us') ||
       v.endsWith('@lid') ||
@@ -69,11 +75,10 @@ export default class WWebJSProvider implements IWhatsAppProvider {
       return v
     }
 
-    // 🔹 CASO 2: entrada "humana" (número puro, formatado etc)
-    // Ex: "553197606015", "(31) 97606-6015", "553197606015 bla"
+    // CASO 2: entrada humana, remove qualquer sufixo e resolve via getNumberId
     v = v.replace(/@.*/g, '')
-
     const digits = this.extractDigits(v)
+
     if (!digits) {
       throw new Error(`Não foi possível extrair dígitos válidos de: ${to}`)
     }
@@ -84,10 +89,9 @@ export default class WWebJSProvider implements IWhatsAppProvider {
       throw new Error(`Número não registrado no WhatsApp: ${digits}`)
     }
 
-    // Ex: "553197606015@c.us" ou "xxxxxxx@lid"
+    // Ex: "5531999999999@c.us" ou "xxxxxx@lid"
     return numberId._serialized
   }
-
 
   /**
    * Inicia o client para um agente (engine)
@@ -103,7 +107,9 @@ export default class WWebJSProvider implements IWhatsAppProvider {
 
     const singletonLock = path.join(sessionDir, 'SingletonLock')
     if (fs.existsSync(singletonLock)) {
-      console.log(`[WWebJSProvider][${agentId}] Removendo SingletonLock antigo em sessions-engine...`)
+      console.log(
+        `[WWebJSProvider][${agentId}] Removendo SingletonLock antigo em sessions-engine...`
+      )
       fs.unlinkSync(singletonLock)
     }
 
@@ -171,7 +177,10 @@ export default class WWebJSProvider implements IWhatsAppProvider {
           await agent.save()
         }
       } catch (e) {
-        console.error(`[WWebJSProvider][${agentId}] Erro ao atualizar agent em AUTHENTICATED:`, e)
+        console.error(
+          `[WWebJSProvider][${agentId}] Erro ao atualizar agent em AUTHENTICATED:`,
+          e
+        )
       }
     })
 
@@ -217,6 +226,16 @@ export default class WWebJSProvider implements IWhatsAppProvider {
           raw: message,
         }
 
+        console.log('[WhatsAppEngine] Mensagem recebida (router):', {
+          provider: inbound.provider,
+          agentId: inbound.agentId,
+          from: inbound.from,
+          to: inbound.to,
+          body: inbound.body,
+          hasMedia: inbound.hasMedia,
+          messageId: inbound.messageId,
+        })
+
         await this.onMessageCb(inbound)
       } catch (e) {
         console.error(`[WWebJSProvider][${agentId}] Erro ao processar message:`, e)
@@ -238,6 +257,15 @@ export default class WWebJSProvider implements IWhatsAppProvider {
           timestamp: (msg.timestamp || Date.now() / 1000) * 1000,
         }
 
+        console.log('[WhatsAppEngine] ACK recebido:', {
+          provider: waAck.provider,
+          agentId: waAck.agentId,
+          from: waAck.from,
+          to: waAck.to,
+          messageId: waAck.messageId,
+          ack: waAck.ack,
+        })
+
         await this.onAckCb(waAck)
       } catch (e) {
         console.error(`[WWebJSProvider][${agentId}] Erro ao processar message_ack:`, e)
@@ -256,7 +284,10 @@ export default class WWebJSProvider implements IWhatsAppProvider {
           await agent.save()
         }
       } catch (e) {
-        console.error(`[WWebJSProvider][${agentId}] Erro ao atualizar agent em DISCONNECTED:`, e)
+        console.error(
+          `[WWebJSProvider][${agentId}] Erro ao atualizar agent em DISCONNECTED:`,
+          e
+        )
       }
 
       let reasonText = ''
@@ -272,6 +303,27 @@ export default class WWebJSProvider implements IWhatsAppProvider {
       await this.onDisconnectedCb(agentId, reasonText)
     })
 
+    // ===========================================================
+    // 🔹 LIGANDO O ChatMonitoring antigo AO NOVO ENGINE
+    //    - mesma lógica que você tinha no whatsappConnection.ts
+    //    - continua interceptando resposta de paciente, IA etc.
+    // ===========================================================
+    try {
+      const chatMonitoring = new ChatMonitoring()
+      await chatMonitoring.monitoring(client)
+
+      if (process.env.SELF_CONVERSATION?.toLowerCase() === 'true') {
+        const chatMonitoringInternal = new ChatMonitoringInternal()
+        await chatMonitoringInternal.monitoring(client)
+      }
+    } catch (e) {
+      console.error(
+        `[WWebJSProvider][${agentId}] Erro ao iniciar ChatMonitoring / ChatMonitoringInternal:`,
+        e
+      )
+    }
+
+    // registra client no provider e inicializa
     this.clients.set(agentId, client)
     client.initialize()
   }

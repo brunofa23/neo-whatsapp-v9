@@ -27,7 +27,7 @@ class WhatsAppEngine {
    *  - provider_type = 'wwebjs' (default)
    *  - provider_type = 'megaapi'
    */
-  private resolveProviderTypeFromAgent(agent: Agent): 'wwebjs' | 'megaapi' {
+  private resolveprovider_typeFromAgent(agent: Agent): 'wwebjs' | 'megaapi' {
     const type = (agent.provider_type || 'wwebjs') as 'wwebjs' | 'megaapi'
     return type === 'megaapi' ? 'megaapi' : 'wwebjs'
   }
@@ -39,8 +39,8 @@ class WhatsAppEngine {
   private async getOrCreateProvider(agentId: number): Promise<IWhatsAppProvider> {
     const agent = await Agent.findOrFail(agentId)
 
-    const providerType = this.resolveProviderTypeFromAgent(agent)
-    const desiredKind = providerType === 'megaapi' ? 'megaapi' : 'wwebjs'
+    const provider_type = this.resolveprovider_typeFromAgent(agent)
+    const desiredKind = provider_type === 'megaapi' ? 'megaapi' : 'wwebjs'
 
     console.log(
       `[WhatsAppEngine] getOrCreateProvider agentId=${agentId} provider_type=${agent.provider_type} desiredKind=${desiredKind}`
@@ -71,7 +71,7 @@ class WhatsAppEngine {
     }
 
     let provider: IWhatsAppProvider
-    if (providerType === 'megaapi') {
+    if (provider_type === 'megaapi') {
       console.log(`[WhatsAppEngine] Criando MegaApiProvider para agent ${agentId}`)
       provider = new MegaApiProvider()
     } else {

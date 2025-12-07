@@ -95,7 +95,7 @@ export default async (client: Client, agent: Agent) => {
     cfg: { text?: string; mediaFilePath?: string; caption?: string }
   ): Promise<any> {
     // Caminho novo: Engine (provider_type = 'wwebjs')
-    if ((agent as any).providerType === 'wwebjs' || (agent as any).provider_type === 'wwebjs') {
+    if ((agent as any).provider_type === 'wwebjs' || (agent as any).provider_type === 'wwebjs') {
       // Envio com anexo
       if (cfg.mediaFilePath) {
         return whatsAppEngine.sendMedia(agent.id, to, cfg.mediaFilePath, cfg.caption)

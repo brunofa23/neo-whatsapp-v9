@@ -21,10 +21,12 @@ export default class WhatsAppEnginesController {
       return response.notFound({ error: 'Agent não encontrado' })
     }
 
-    if (agent.providerType !== 'wwebjs') {
+    console.log("passo 1....", agent.provider_type)
+    
+    if (agent.provider_type !== 'wwebjs') {
       return response.badRequest({
         error: `Agent ${agent.id} não está configurado para provider wwebjs`,
-        providerType: agent.providerType,
+        provider_type: agent.provider_type,
       })
     }
 
@@ -38,7 +40,7 @@ export default class WhatsAppEnginesController {
       agent: {
         id: agent.id,
         name: agent.name,
-        providerType: agent.providerType,
+        provider_type: agent.provider_type,
       },
       engine: {
         state,
@@ -65,10 +67,10 @@ export default class WhatsAppEnginesController {
       return response.notFound({ error: 'Agent não encontrado' })
     }
 
-    if (agent.providerType !== 'wwebjs') {
+    if (agent.provider_type !== 'wwebjs') {
       return response.badRequest({
         error: `Agent ${agent.id} não está configurado para provider wwebjs`,
-        providerType: agent.providerType,
+        provider_type: agent.provider_type,
       })
     }
 
@@ -82,7 +84,7 @@ export default class WhatsAppEnginesController {
       agent: {
         id: agent.id,
         name: agent.name,
-        providerType: agent.providerType,
+        provider_type: agent.provider_type,
       },
       engine: {
         state,
@@ -118,10 +120,10 @@ export default class WhatsAppEnginesController {
       return response.notFound({ error: 'Agent não encontrado' })
     }
 
-    if (agent.providerType !== 'wwebjs') {
+    if (agent.provider_type !== 'wwebjs') {
       return response.badRequest({
         error: `Agent ${agent.id} não está configurado para provider wwebjs`,
-        providerType: agent.providerType,
+        provider_type: agent.provider_type,
       })
     }
 
@@ -171,10 +173,10 @@ export default class WhatsAppEnginesController {
       return response.notFound({ error: 'Agent não encontrado' })
     }
 
-    if (agent.providerType !== 'wwebjs') {
+    if (agent.provider_type !== 'wwebjs') {
       return response.badRequest({
         error: `Agent ${agent.id} não está configurado para provider wwebjs`,
-        providerType: agent.providerType,
+        provider_type: agent.provider_type,
       })
     }
 
@@ -187,7 +189,7 @@ export default class WhatsAppEnginesController {
         number_phone: agent.number_phone,
         status: agent.status,
         statusconnected: agent.statusconnected,
-        providerType: agent.providerType,
+        provider_type: agent.provider_type,
         qrcode: agent.qrcode,
       },
       engine: {

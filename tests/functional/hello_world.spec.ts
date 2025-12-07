@@ -17,35 +17,8 @@ import Agent from 'App/Models/Agent'
 
 test('display welcome page', async ({ client }) => {
 
-  // const filePath = Application.makePath(`app/Medias/FilesToSend/ebookCatarata.pdf`)
-  // console.log(">>>>>", filePath)
-
-  //  try {
-  //   await fs.promises.access(filePath, fs.constants.F_OK)
-  //   //const teste = fs.existsSync(filePath)
-  //   console.log('✅ O arquivo existe!')
-  //   return true
-  // } catch (err) {
-  //   console.log('❌ O arquivo não existe.')
-  //   return false
-  // }
-
-// const shippingcampaignsController = new ShippingcampaignsController()
-
-//   const agent = await Agent.query().where('id', 472).first()
-//   //console.log(agent)
-//   if(agent){
-//     const shippingCampaign = await shippingcampaignsController.patientToSend(agent)
-//     console.log("!!!!retorno", shippingCampaign?.file_path)
-//     if(shippingCampaign?.file_path)
-//       console.log("EXISTE ARQUIVO PARA ENVIAR")
-
-//   }
-
-console.log(DateTime.now()
-  .setZone('America/Sao_Paulo')
-  //.toFormat('yyyy-MM-dd HH:mm:ss')
-)
+const agent = await Agent.find(505)
+console.log(agent)
 
 
 })

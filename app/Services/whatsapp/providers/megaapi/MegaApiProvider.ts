@@ -28,6 +28,7 @@ interface MegaApiConfig {
  * - integrar webhook MegaAPI -> this.messageCb / this.ackCb
  */
 export default class MegaApiProvider implements IWhatsAppProvider {
+  
   public kind: ProviderKind = 'megaapi'
 
   // Callbacks registrados pelo engine

@@ -57,7 +57,7 @@ export default class AgentsController {
           company_id: agent.company_id,
           interaction_priority: agent.interaction_priority,
           obs: agent.obs,
-          provider_type: agent.providerType, // 🔹 novo campo vindo do model
+          provider_type: agent.provider_type, // 🔹 novo campo vindo do model
           totMessage: (totMessage as any)?.$extras?.totMessage,
         })
       }
@@ -120,10 +120,10 @@ export default class AgentsController {
       agent.qrcode = null
       await agent.save()
 
-      // Decide a estratégia conforme providerType
+      // Decide a estratégia conforme provider_type
       let infoConnection: any = null
 
-      if (agent.providerType === 'wwebjs') {
+      if (agent.provider_type === 'wwebjs') {
         console.log(`Conectando Agente via ENGINE (wwebjs): ${agent.name}`)
 
         await whatsAppEngine.startAgent(agent.id)
@@ -152,7 +152,7 @@ export default class AgentsController {
           number_phone: agent.number_phone,
           status: agent.status,
           statusconnected: agent.statusconnected,
-          providerType: agent.providerType,
+          provider_type: agent.provider_type,
         },
         connection: infoConnection,
       })
@@ -180,7 +180,7 @@ export default class AgentsController {
 
       for (const agent of agents) {
         try {
-          if (agent.providerType === 'wwebjs') {
+          if (agent.provider_type === 'wwebjs') {
             console.log(`Conectando Agente via ENGINE (wwebjs): ${agent.name}`)
             await whatsAppEngine.startAgent(agent.id)
             const state = await whatsAppEngine.getState(agent.id)
@@ -188,7 +188,7 @@ export default class AgentsController {
             result.push({
               id: agent.id,
               name: agent.name,
-              providerType: agent.providerType,
+              provider_type: agent.provider_type,
               engineState: state,
             })
           } else {
@@ -204,7 +204,7 @@ export default class AgentsController {
             result.push({
               id: agent.id,
               name: agent.name,
-              providerType: agent.providerType || 'legacy',
+              provider_type: agent.provider_type || 'legacy',
               engineState: null,
             })
           }
@@ -213,7 +213,7 @@ export default class AgentsController {
           result.push({
             id: agent.id,
             name: agent.name,
-            providerType: agent.providerType || 'legacy',
+            provider_type: agent.provider_type || 'legacy',
             error: String(err),
           })
         }
@@ -417,7 +417,7 @@ export default class AgentsController {
     return response.ok({
       id: agent.id,
       name: agent.name,
-      provider_type: agent.providerType,
+      provider_type: agent.provider_type,
       status: agent.status,
       statusconnected: agent.statusconnected,
       number_phone: agent.number_phone,

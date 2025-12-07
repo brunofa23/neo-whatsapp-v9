@@ -20,9 +20,9 @@ export default class WWebJSProvider implements IWhatsAppProvider {
   private clients = new Map<number, Client>()
 
   // Callbacks registrados pelo WhatsAppEngine
-  private onMessageCb: (msg: WaInboundMessage) => Promise<void> = async () => {}
-  private onAckCb: (ack: WaAck) => Promise<void> = async () => {}
-  private onDisconnectedCb: (agentId: number, reason: string) => Promise<void> = async () => {}
+  private onMessageCb: (msg: WaInboundMessage) => Promise<void> = async () => { }
+  private onAckCb: (ack: WaAck) => Promise<void> = async () => { }
+  private onDisconnectedCb: (agentId: number, reason: string) => Promise<void> = async () => { }
 
   public onMessage(cb: (msg: WaInboundMessage) => Promise<void>): void {
     this.onMessageCb = cb
@@ -55,13 +55,22 @@ export default class WWebJSProvider implements IWhatsAppProvider {
 
     let v = String(to).trim()
 
-    // Grupo ou broadcast → manda direto
-    if (v.endsWith('@g.us') || v.endsWith('@broadcast')) {
+    // 🔹 CASO 1: já é um JID válido que veio do WhatsApp ou do banco
+    // Ex:  "553197606015@c.us"
+    //      "1292885856485@lid"
+    //      "xxxx-xxxx@g.us"
+    //      "xxxxx@broadcast"
+    if (
+      v.endsWith('@c.us') ||
+      v.endsWith('@lid') ||
+      v.endsWith('@g.us') ||
+      v.endsWith('@broadcast')
+    ) {
       return v
     }
 
-    // Para contato individual, ignoramos qualquer sufixo passado
-    // (mesmo que seja @c.us ou @lid) e resolvemos via getNumberId.
+    // 🔹 CASO 2: entrada "humana" (número puro, formatado etc)
+    // Ex: "553197606015", "(31) 97606-6015", "553197606015 bla"
     v = v.replace(/@.*/g, '')
 
     const digits = this.extractDigits(v)
@@ -75,9 +84,10 @@ export default class WWebJSProvider implements IWhatsAppProvider {
       throw new Error(`Número não registrado no WhatsApp: ${digits}`)
     }
 
-    // Ex: "5585228619@c.us" ou "xxxxxxxxxxxx@lid"
+    // Ex: "553197606015@c.us" ou "xxxxxxx@lid"
     return numberId._serialized
   }
+
 
   /**
    * Inicia o client para um agente (engine)

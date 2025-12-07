@@ -165,10 +165,10 @@ Route.group(() => {
 
 
   // Engine (wwebjs) - controller único
-  Route.post('/whatsapp/engine/start/:id', 'WhatsAppEngineController.start')
-  Route.post('/whatsapp/engine/stop/:id', 'WhatsAppEngineController.stop')
-  Route.post('/whatsapp/engine/send', 'WhatsAppEngineController.send')
-  Route.get('/whatsapp/engine/status/:id', 'WhatsAppEngineController.status')
+  Route.post('/whatsapp/engine/start/:id', 'WhatsAppEnginesController.start')
+  Route.post('/whatsapp/engine/stop/:id', 'WhatsAppEnginesController.stop')
+  Route.post('/whatsapp/engine/send', 'WhatsAppEnginesController.send')
+  Route.get('/whatsapp/engine/status/:id', 'WhatsAppEnginesController.status')
 
 
 }).prefix('/api')

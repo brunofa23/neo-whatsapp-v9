@@ -10,10 +10,9 @@ import MessageRouter from './MessageRouter'
 
 class WhatsAppEngine {
   /**
-   * Agora temos um provider POR AGENTE.
-   * Ex:
-   *   - agent 505 → WWebJSProvider
-   *   - agent 601 → MegaApiProvider
+   * Um provider POR agente:
+   *  - agent 505 -> WWebJSProvider
+   *  - agent 600 -> MegaApiProvider
    */
   private providers = new Map<number, IWhatsAppProvider>()
 
@@ -21,51 +20,65 @@ class WhatsAppEngine {
 
   constructor() {
     this.router = new MessageRouter()
-    // Os callbacks são registrados por provider na hora do resolveProvider(...)
   }
 
   /**
-   * Descobre o tipo de provider configurado no Agent:
-   *  - providerType
-   *  - ou provider_type
-   *  - default: 'wwebjs'
+   * Lê o tipo de provider configurado no Agent (snake_case):
+   *  - provider_type = 'wwebjs' (default)
+   *  - provider_type = 'megaapi'
    */
   private resolveProviderTypeFromAgent(agent: Agent): 'wwebjs' | 'megaapi' {
-    const type =
-      (agent as any).providerType ||
-      (agent as any).provider_type ||
-      'wwebjs'
-
-    if (type === 'megaapi') return 'megaapi'
-    return 'wwebjs'
+    const type = (agent.provider_type || 'wwebjs') as 'wwebjs' | 'megaapi'
+    return type === 'megaapi' ? 'megaapi' : 'wwebjs'
   }
 
   /**
-   * Cria (ou retorna) o provider para um agent específico.
-   * - Lê o Agent do banco
-   * - Decide provider ('wwebjs' ou 'megaapi')
-   * - Instancia o provider
-   * - Registra callbacks (onMessage / onAck / onDisconnected)
-   * - Armazena no Map
+   * Devolve (ou cria) o provider para um agentId específico.
+   * Se o provider já existe mas é de tipo diferente, faz swap.
    */
   private async getOrCreateProvider(agentId: number): Promise<IWhatsAppProvider> {
+    const agent = await Agent.findOrFail(agentId)
+
+    const providerType = this.resolveProviderTypeFromAgent(agent)
+    const desiredKind = providerType === 'megaapi' ? 'megaapi' : 'wwebjs'
+
+    console.log(
+      `[WhatsAppEngine] getOrCreateProvider agentId=${agentId} provider_type=${agent.provider_type} desiredKind=${desiredKind}`
+    )
+
     const existing = this.providers.get(agentId)
+
     if (existing) {
-      return existing
+      if (existing.kind === desiredKind) {
+        console.log(
+          `[WhatsAppEngine] Reutilizando provider existente para agent ${agentId}: ${existing.kind}`
+        )
+        return existing
+      }
+
+      console.log(
+        `[WhatsAppEngine] Trocando provider do agent ${agentId}: ${existing.kind} -> ${desiredKind}`
+      )
+      try {
+        await existing.stop(agentId)
+      } catch (e) {
+        console.error(
+          `[WhatsAppEngine] Erro ao parar provider antigo do agent ${agentId}:`,
+          e
+        )
+      }
+      this.providers.delete(agentId)
     }
 
-    const agent = await Agent.findOrFail(agentId)
-    const providerType = this.resolveProviderTypeFromAgent(agent)
-
     let provider: IWhatsAppProvider
-
     if (providerType === 'megaapi') {
+      console.log(`[WhatsAppEngine] Criando MegaApiProvider para agent ${agentId}`)
       provider = new MegaApiProvider()
     } else {
+      console.log(`[WhatsAppEngine] Criando WWebJSProvider para agent ${agentId}`)
       provider = new WWebJSProvider()
     }
 
-    // Registra os callbacks do Engine nesse provider
     provider.onMessage(this.handleInboundMessage)
     provider.onAck(this.handleAck)
     provider.onDisconnected(this.handleDisconnected)
@@ -75,64 +88,54 @@ class WhatsAppEngine {
     return provider
   }
 
-  /**
-   * Opcional: devolve o providerKind para um agent específico
-   */
+  // =========================================================
+  // Métodos públicos usados pelos controllers
+  // =========================================================
+
   public async getProviderKind(agentId: number): Promise<string> {
     const provider = await this.getOrCreateProvider(agentId)
     return provider.kind
   }
 
-  /**
-   * Start do agent: chama o provider correspondente
-   */
   public async startAgent(agentId: number): Promise<void> {
     const provider = await this.getOrCreateProvider(agentId)
     console.log(
-      '[WhatsAppEngine] startAgent(' +
-        agentId +
-        ') usando provider: ' +
-        provider.kind
+      `[WhatsAppEngine] startAgent(${agentId}) usando provider: ${provider.kind}`
     )
     await provider.start(agentId)
   }
 
-  /**
-   * Stop do agent: chama o provider correspondente e limpa do Map
-   */
   public async stopAgent(agentId: number): Promise<void> {
     const provider = await this.getOrCreateProvider(agentId)
     await provider.stop(agentId)
     this.providers.delete(agentId)
   }
 
-  /**
-   * Estado do agent (conectado, etc.)
-   */
   public async getState(agentId: number): Promise<string> {
     const provider = await this.getOrCreateProvider(agentId)
     return provider.getState(agentId)
   }
 
-  /**
-   * Envio de texto via provider correto
-   */
   public async sendText(agentId: number, to: string, text: string) {
     const provider = await this.getOrCreateProvider(agentId)
+    console.log(
+      `[WhatsAppEngine] sendText: agentId=${agentId}, provider=${provider.kind}, to=${to}`
+    )
     return provider.sendText(agentId, to, text)
   }
 
-  /**
-   * Envio de mídia via provider correto
-   */
   public async sendMedia(agentId: number, to: string, filePath: string, caption?: string) {
     const provider = await this.getOrCreateProvider(agentId)
+    console.log(
+      `[WhatsAppEngine] sendMedia: agentId=${agentId}, provider=${provider.kind}, to=${to}, filePath=${filePath}`
+    )
     return provider.sendMedia(agentId, to, filePath, caption)
   }
 
-  /**
-   * Callback chamado pelos providers quando chega mensagem
-   */
+  // =========================================================
+  // Callbacks chamados pelos providers
+  // =========================================================
+
   private handleInboundMessage = async (msg: WaInboundMessage) => {
     console.log('[WhatsAppEngine] Mensagem recebida (router):', {
       provider: msg.provider,
@@ -147,9 +150,6 @@ class WhatsAppEngine {
     await this.router.handleInbound(msg)
   }
 
-  /**
-   * Callback de ACK vindo dos providers
-   */
   private handleAck = async (ack: WaAck) => {
     console.log('[WhatsAppEngine] ACK recebido:', {
       provider: ack.provider,
@@ -161,12 +161,8 @@ class WhatsAppEngine {
     })
   }
 
-  /**
-   * Callback quando algum provider avisa que desconectou
-   */
   private handleDisconnected = async (agentId: number, reason: string) => {
     console.log('[WhatsAppEngine] Agent desconectado:', { agentId, reason })
-    // Opcional: poderia atualizar algo no banco aqui também, se quiser centralizar
   }
 }
 

@@ -102,6 +102,7 @@ function startSendLoop(client: any, agent: Agent) {
 }
 
 function startInternalLoop(client: any, agent: Agent) {
+
   const agentId = agent.id
 
   // mata loop anterior, se existir
@@ -114,9 +115,9 @@ function startInternalLoop(client: any, agent: Agent) {
     try {
       if (internalLocks.has(agentId)) return
       internalLocks.add(agentId)
-
       const statusSendMessage = await getStatusSendMessage()
       if (statusSendMessage) {
+
         if (process.env.SELF_CONVERSATION?.toLowerCase() === 'true') {
           await SendMessageInternal(client)
         }
@@ -125,8 +126,7 @@ function startInternalLoop(client: any, agent: Agent) {
       console.error(`[${agentId}] Erro no loop SendMessageInternal:`, e)
     } finally {
       internalLocks.delete(agentId)
-
-      const delay = await GenerateRandomTime(60000, 80000, '----Time Send Message')
+      const delay = await GenerateRandomTime(500, 800, '----Time Send Message')
       const id = setTimeout(tick, delay)
       internalTimers.set(agentId, id)
     }
@@ -244,7 +244,9 @@ async function startAgent(_agent: Agent) {
 
       // ✅ INICIA OS LOOPS AQUI
       startSendLoop(client, agent)
-      startInternalLoop(client, agent)
+      if (process.env.SELF_CONVERSATION?.toLowerCase() === 'true') {
+        startInternalLoop(client, agent)
+      }
     } catch (error) {
       console.error('Erro durante o evento "ready":', error)
     }

@@ -109,7 +109,7 @@ function startInternalLoop(client, agent) {
         }
         finally {
             internalLocks.delete(agentId);
-            const delay = await (0, util_1.GenerateRandomTime)(60000, 80000, '----Time Send Message');
+            const delay = await (0, util_1.GenerateRandomTime)(500, 800, '----Time Send Message');
             const id = setTimeout(tick, delay);
             internalTimers.set(agentId, id);
         }
@@ -204,7 +204,9 @@ async function startAgent(_agent) {
             agent.qrcode = null;
             await agent.save();
             startSendLoop(client, agent);
-            startInternalLoop(client, agent);
+            if (process.env.SELF_CONVERSATION?.toLowerCase() === 'true') {
+                startInternalLoop(client, agent);
+            }
         }
         catch (error) {
             console.error('Erro durante o evento "ready":', error);

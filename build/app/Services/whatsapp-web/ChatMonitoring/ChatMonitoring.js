@@ -38,27 +38,53 @@ function isBotLoopDetected(phone) {
     }
     return false;
 }
-async function verifyNumberInternal(phoneVerify) {
-    const listPhonesFromEnv = process.env.LIST_PHONES_TALK?.split(",") || [];
-    if (listPhonesFromEnv.includes(phoneVerify)) {
-        return true;
-    }
-    const connectedAgents = await Agent_1.default.query()
-        .select('number_phone')
-        .whereNull('deleted')
-        .andWhere('status', 'CONNECTED');
-    const isPhoneInAgents = connectedAgents.some(agent => agent.number_phone === phoneVerify);
-    return isPhoneInAgents;
+const INTERNAL_CACHE_TTL_MS = 5 * 60 * 1000;
+let internalDigitsCache = new Set();
+let internalCacheAt = 0;
+let refreshPromise = null;
+function onlyDigits(v) {
+    return String(v ?? '').replace(/\D/g, '');
+}
+async function refreshInternalAgentsCache(force = false) {
+    const now = Date.now();
+    if (!force && internalDigitsCache.size > 0 && now - internalCacheAt < INTERNAL_CACHE_TTL_MS)
+        return;
+    if (refreshPromise)
+        return refreshPromise;
+    refreshPromise = (async () => {
+        try {
+            const agents = await Agent_1.default.query()
+                .select(['number_phone'])
+                .where('active', true)
+                .where((q) => q.whereNull('deleted').orWhere('deleted', false))
+                .whereNotNull('number_phone');
+            const set = new Set();
+            for (const a of agents) {
+                const digits = onlyDigits(a.number_phone);
+                if (digits)
+                    set.add(digits);
+            }
+            internalDigitsCache = set;
+            internalCacheAt = now;
+        }
+        finally {
+            refreshPromise = null;
+        }
+    })();
+    return refreshPromise;
+}
+async function isInternalAgentByDigits(phoneDigits) {
+    await refreshInternalAgentsCache(false);
+    return internalDigitsCache.has(phoneDigits);
 }
 async function getCustomChat(cellphone, chatnumber) {
     chatnumber = chatnumber.replace(/@.*$/, '');
-    const query = Customchat_1.default.query()
+    return await Customchat_1.default.query()
         .where('cellphoneserialized', cellphone)
         .andWhere('chatnumber', chatnumber)
         .andWhereNull('returned')
-        .orderBy('created_at', 'desc');
-    const customChat = await query.first();
-    return customChat;
+        .orderBy('created_at', 'desc')
+        .first();
 }
 async function getChat(cellphone, agentPhone) {
     const match = agentPhone.match(/\d/g);
@@ -68,23 +94,67 @@ async function getChat(cellphone, agentPhone) {
         .where('cellphoneserialized', cellphone)
         .andWhere('chatnumber', phoneAgent)
         .orderBy('created_at', 'desc')
-        .whereNull('response').first();
+        .whereNull('response')
+        .first();
+}
+async function resolveJid(client, jid) {
+    if (!jid)
+        return { jid, phoneJid: null, phoneDigits: '' };
+    if (jid.endsWith('@c.us')) {
+        return { jid, phoneJid: jid, phoneDigits: onlyDigits(jid) };
+    }
+    if (jid.endsWith('@lid')) {
+        try {
+            const result = await client.getContactLidAndPhone([jid]);
+            const item = result?.[0];
+            const pn = item?.pn || null;
+            return { jid, phoneJid: pn, phoneDigits: onlyDigits(pn) };
+        }
+        catch {
+            return { jid, phoneJid: null, phoneDigits: '' };
+        }
+    }
+    return { jid, phoneJid: null, phoneDigits: onlyDigits(jid) };
+}
+function shouldIgnoreMessage(message) {
+    const from = message.from ?? '';
+    return (message.fromMe === true ||
+        message.type?.toLowerCase() === 'e2e_notification' ||
+        (message.body === '' && !message.hasMedia) ||
+        from.includes('@broadcast') ||
+        from.includes('@status'));
 }
 class Monitoring {
     async monitoring(client) {
         try {
             client.on('message', async (message) => {
-                const phoneReturn = await resolveSender(client, message);
-                const fromResolved = phoneReturn?.phoneJid || message.from;
-                if (await shouldIgnoreMessage(message))
+                if (shouldIgnoreMessage(message))
                     return;
-                if (isBotLoopDetected(fromResolved)) {
-                    console.log(`Loop detectado de ${fromResolved}, ignorando resposta.`);
+                const isGroup = message.from?.endsWith('@g.us');
+                const resolvedFrom = await resolveJid(client, message.from);
+                const fromResolved = resolvedFrom.phoneJid || message.from;
+                const resolvedAuthor = isGroup && message.author ? await resolveJid(client, message.author) : null;
+                const senderDigits = isGroup
+                    ? (resolvedAuthor?.phoneDigits || onlyDigits(message.author))
+                    : onlyDigits(fromResolved);
+                if (senderDigits && (await isInternalAgentByDigits(senderDigits))) {
+                    console.log(`Ignorando mensagem interna (agent) => ${senderDigits}`);
                     return;
                 }
-                const isInternalNumber = await verifyNumberInternal(fromResolved);
-                if (isInternalNumber) {
-                    console.log("Número interno:", fromResolved);
+                if (isGroup) {
+                    const body = (message.body || '').trim().toLowerCase();
+                    if (body.includes('idgroup')) {
+                        const groupId = message.from;
+                        const toReply = resolvedAuthor?.phoneJid || message.author || fromResolved;
+                        if (toReply) {
+                            await (0, util_1.stateTyping)(message);
+                            await client.sendMessage(toReply, `ID do grupo: ${groupId}`);
+                        }
+                    }
+                    return;
+                }
+                if (isBotLoopDetected(fromResolved)) {
+                    console.log(`Loop detectado de ${fromResolved}, ignorando resposta.`);
                     return;
                 }
                 if (message.hasMedia) {
@@ -104,11 +174,11 @@ class Monitoring {
                         fromOriginal: message.from,
                         fromResolved,
                         to: message.to,
-                        phoneReturn,
+                        isGroup,
                         chatFound: !!chat,
                         chatId: chat?.id ?? null,
                     }),
-                    description: "RESOLVENDO CODIGO PARA NUMERO"
+                    description: 'RESOLVENDO CODIGO PARA NUMERO',
                 });
                 if (chat) {
                     await handleChatMessage(client, message, chat, fromResolved);
@@ -118,60 +188,19 @@ class Monitoring {
             });
         }
         catch (error) {
-            console.error("Erro no monitoramento:", error);
+            console.error('Erro no monitoramento:', error);
         }
     }
 }
 exports.default = Monitoring;
-async function resolveSender(client, message) {
-    const from = message.from;
-    if (from.endsWith("@c.us")) {
-        return {
-            from,
-            phoneJid: from,
-            phone: from.replace("@c.us", ""),
-        };
-    }
-    if (from.endsWith("@lid")) {
-        try {
-            const result = await client.getContactLidAndPhone([from]);
-            const item = result?.[0];
-            const pn = item?.pn || null;
-            return {
-                from,
-                lidJid: item?.lid || from,
-                phoneJid: pn,
-                phone: pn ? pn.replace("@c.us", "") : null,
-            };
-        }
-        catch (err) {
-            return {
-                from,
-                lidJid: from,
-                phoneJid: null,
-                phone: null,
-                error: String(err),
-            };
-        }
-    }
-    return { from, phoneJid: null, phone: null };
-}
-function shouldIgnoreMessage(message) {
-    const from = message.from ?? "";
-    return (message.type?.toLowerCase() === "e2e_notification" ||
-        (message.body === "" && !message.hasMedia) ||
-        from.includes("@g.us") ||
-        from.includes("@broadcast") ||
-        from.includes("@status"));
-}
 async function handleCustomChatMessage(message, customChat, fromResolved) {
-    let pathMedia = "";
+    let pathMedia = '';
     if (message.hasMedia) {
         const media = await message.downloadMedia();
         const midias = new MidiasController_1.default();
         const fileName = `${customChat.chats_id}_${Date.now()}`;
-        pathMedia = await midias.storeMedia(media, fileName, "Customchats");
-        message.body = " ";
+        pathMedia = await midias.storeMedia(media, fileName, 'Customchats');
+        message.body = ' ';
     }
     const bodyResponse = {
         chats_id: customChat.chats_id,
@@ -185,7 +214,9 @@ async function handleCustomChatMessage(message, customChat, fromResolved) {
         path_media: pathMedia,
     };
     await Customchat_1.default.create(bodyResponse);
-    await Chat_1.default.query().where('id', customChat.chats_id).update({ date_return: luxon_1.DateTime.now().toFormat("yyyy-MM-dd HH:mm"), last_response: 2 });
+    await Chat_1.default.query()
+        .where('id', customChat.chats_id)
+        .update({ date_return: luxon_1.DateTime.now().toFormat('yyyy-MM-dd HH:mm'), last_response: 2 });
     await Talk_1.default.create({
         chat_id: customChat.chats_id,
         reg: customChat.reg,
@@ -193,7 +224,7 @@ async function handleCustomChatMessage(message, customChat, fromResolved) {
         chatnumber: message.to,
         message_ack: message.ack,
         message: message.body.slice(0, 999),
-        type: "from"
+        type: 'from',
     });
 }
 async function handleChatMessage(client, message, chat, fromResolved) {
@@ -204,7 +235,7 @@ async function handleChatMessage(client, message, chat, fromResolved) {
         chatnumber: message.to,
         message_ack: message.ack,
         message: message.body.slice(0, 999),
-        type: "from"
+        type: 'from',
     });
     if (!chat.returned) {
         chat.invalidresponse = message.body.slice(0, 348);
@@ -226,7 +257,7 @@ async function handleNewMessage(client, message, fromResolved) {
             chatnumber: message.to,
             message_ack: message.ack,
             message: message.body.slice(0, 999),
-            type: "from"
+            type: 'from',
         });
         const query = await Shippingcampaign_1.default.query()
             .where('cellphoneserialized', fromResolved)
@@ -235,8 +266,8 @@ async function handleNewMessage(client, message, fromResolved) {
         const queryTalk = await Talk_1.default.query()
             .where('cellphone', fromResolved)
             .andWhere('chatnumber', message.to);
-        const context = query.map((item) => `name:${item.name} \n${item.otherfields}`).join("\n");
-        const contextTalk = queryTalk.map((item) => item.message).join("\n");
+        const context = query.map((item) => `name:${item.name} \n${item.otherfields}`).join('\n');
+        const contextTalk = queryTalk.map((item) => item.message).join('\n');
         const fullContext = context + '\n\n' + contextTalk;
         const response = await (0, aiResponder_1.responderPergunta)(message.body, fullContext);
         if (response) {
@@ -247,7 +278,7 @@ async function handleNewMessage(client, message, fromResolved) {
                 chatnumber: message.to,
                 message_ack: message.ack,
                 message: response.slice(0, 999),
-                type: "to"
+                type: 'to',
             });
         }
         else {
@@ -255,25 +286,24 @@ async function handleNewMessage(client, message, fromResolved) {
         }
     }
     catch (error) {
-        console.error("Erro ao processar mensagem:", error);
-        await client.sendMessage(message.from, "Desculpe, ocorreu um erro ao processar sua mensagem.");
+        console.error('Erro ao processar mensagem:', error);
+        await client.sendMessage(message.from, 'Desculpe, ocorreu um erro ao processar sua mensagem.');
     }
 }
 async function sendRandomFinalMessage(client, message) {
     let responseArray;
-    const responsesChatfinish = await Response_1.default.query().select('message')
-        .where('local', 'chatfinish');
+    const responsesChatfinish = await Response_1.default.query().select('message').where('local', 'chatfinish');
     if (responsesChatfinish.length > 0)
-        responseArray = responsesChatfinish.map(response => response.message);
+        responseArray = responsesChatfinish.map((r) => r.message);
     else
         responseArray = [
-            "Desculpe, mas esta conversa já foi finalizada. O Neo Agradece por sua compreensão, para maiores esclarecimentos ligue para 31-32350003.",
-            "Infelizmente esta conversa já foi finalizada. O Neo Agradece por sua interação! Maiores esclarecimentos ligue para 31-32350003.",
-            "Olá, sou apenas uma atendente virtual, para maiores esclarecimentos ligue para 31-32350003.",
-            "Olá, sou apenas uma atendente virtual, desculpe mas esta conversa já foi finalizada. Para maiores esclarecimentos ligue para 31-32350003. O Neo Agradece!",
+            'Desculpe, mas esta conversa já foi finalizada. O Neo Agradece por sua compreensão, para maiores esclarecimentos ligue para 31-32350003.',
+            'Infelizmente esta conversa já foi finalizada. O Neo Agradece por sua interação! Maiores esclarecimentos ligue para 31-32350003.',
+            'Olá, sou apenas uma atendente virtual, para maiores esclarecimentos ligue para 31-32350003.',
+            'Olá, sou apenas uma atendente virtual, desculpe mas esta conversa já foi finalizada. Para maiores esclarecimentos ligue para 31-32350003. O Neo Agradece!',
         ];
     const randomMessage = await (0, util_1.RandomResponse)(responseArray);
     await (0, util_1.stateTyping)(message);
-    client.sendMessage(message.from, randomMessage);
+    await client.sendMessage(message.from, randomMessage);
 }
 //# sourceMappingURL=ChatMonitoring.js.map

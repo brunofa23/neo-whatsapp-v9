@@ -28,7 +28,6 @@ interface MegaApiConfig {
  * - integrar webhook MegaAPI -> this.messageCb / this.ackCb
  */
 export default class MegaApiProvider implements IWhatsAppProvider {
-  
   public kind: ProviderKind = 'megaapi'
 
   // Callbacks registrados pelo engine
@@ -77,6 +76,45 @@ export default class MegaApiProvider implements IWhatsAppProvider {
     return {
       Authorization: `Bearer ${token}`,
     }
+  }
+
+  /**
+   * Atualiza o Agent no banco conforme o estado detectado no provider.
+   * - CONNECTED     => statusconnected=true, status='CONNECTED', qrcode=null
+   * - DISCONNECTED  => statusconnected=false, status='DISCONNECTED'
+   * - ERROR         => statusconnected=false, status='ERROR'
+   */
+  private async syncAgentConnection(agentId: number, status: string): Promise<void> {
+    const agent = await Agent.find(agentId)
+    if (!agent) return
+
+    const connected = status === 'CONNECTED'
+
+    // evita writes desnecessários
+    const changed =
+      agent.statusconnected !== connected ||
+      agent.status !== status ||
+      (connected && agent.qrcode !== null)
+
+    if (!changed) return
+
+    agent.statusconnected = connected
+    agent.status = status
+
+    if (connected) {
+      agent.qrcode = null
+    }
+
+    await agent.save()
+  }
+
+  /**
+   * Decide o status a partir do payload do endpoint /instance/{instance_key}
+   */
+  private computeStatusFromInstancePayload(respData: any): 'CONNECTED' | 'DISCONNECTED' {
+    const instance = respData?.instance || {}
+    const hasUser = instance.user || instance.id
+    return hasUser ? 'CONNECTED' : 'DISCONNECTED'
   }
 
   /**
@@ -148,11 +186,19 @@ export default class MegaApiProvider implements IWhatsAppProvider {
         `[MegaApiProvider][${agentId}] start(): instancia ok, message:`,
         resp.data?.message
       )
+
+      // ✅ sincroniza status no Agent conforme resposta
+      const status = this.computeStatusFromInstancePayload(resp.data)
+      await this.syncAgentConnection(agentId, status)
     } catch (error: any) {
       console.error(
         `[MegaApiProvider][${agentId}] Erro ao iniciar MegaAPI:`,
         error?.response?.data || error?.message || error
       )
+
+      // ✅ marca erro no Agent (não conectado)
+      await this.syncAgentConnection(agentId, 'ERROR')
+
       throw new Error('Falha ao iniciar MegaAPI para este agent')
     }
   }
@@ -176,6 +222,9 @@ export default class MegaApiProvider implements IWhatsAppProvider {
         resp.data?.message || 'Logout solicitado'
       )
 
+      // ✅ marca desconectado
+      await this.syncAgentConnection(agentId, 'DISCONNECTED')
+
       if (this.disconnectedCb) {
         await this.disconnectedCb(agentId, 'logout')
       }
@@ -184,6 +233,9 @@ export default class MegaApiProvider implements IWhatsAppProvider {
         `[MegaApiProvider][${agentId}] Erro ao parar MegaAPI:`,
         error?.response?.data || error?.message || error
       )
+
+      // ✅ não quebra fluxo, mas marca erro
+      await this.syncAgentConnection(agentId, 'ERROR')
       // não relançamos para não quebrar fluxo
     }
   }
@@ -202,11 +254,11 @@ export default class MegaApiProvider implements IWhatsAppProvider {
         headers: this.getAuthHeaders(cfg.token),
       })
 
-      const instance = resp.data?.instance || {}
-      const hasUser = instance.user || instance.id
-
-      const status = hasUser ? 'CONNECTED' : 'DISCONNECTED'
+      const status = this.computeStatusFromInstancePayload(resp.data)
       console.log(`[MegaApiProvider][${agentId}] getState():`, status)
+
+      // ✅ sincroniza status no Agent
+      await this.syncAgentConnection(agentId, status)
 
       return status
     } catch (error: any) {
@@ -214,6 +266,8 @@ export default class MegaApiProvider implements IWhatsAppProvider {
         `[MegaApiProvider][${agentId}] Erro em getState MegaAPI:`,
         error?.response?.data || error?.message || error
       )
+
+      await this.syncAgentConnection(agentId, 'ERROR')
       return 'ERROR'
     }
   }
@@ -255,12 +309,20 @@ export default class MegaApiProvider implements IWhatsAppProvider {
         id: data?.id,
       })
 
+      // ✅ opcional: se conseguiu enviar, podemos marcar como conectado
+      // (desde que a API esteja de fato online)
+      await this.syncAgentConnection(agentId, 'CONNECTED')
+
       return data
     } catch (error: any) {
       console.error(
         `[MegaApiProvider][${agentId}] Erro em sendText MegaAPI:`,
         error?.response?.data || error?.message || error
       )
+
+      // ✅ marca erro no Agent (não conectado)
+      await this.syncAgentConnection(agentId, 'ERROR')
+
       throw new Error('MegaApiProvider: erro ao enviar mensagem de texto')
     }
   }
@@ -281,7 +343,9 @@ export default class MegaApiProvider implements IWhatsAppProvider {
     console.warn(
       `[MegaApiProvider][${agentId}] sendMedia ainda não implementado. filePath: ${filePath}, caption: ${caption}`
     )
-    throw new Error('MegaApiProvider.sendMedia ainda não implementado (usar URL ou base64 futuramente)')
+    throw new Error(
+      'MegaApiProvider.sendMedia ainda não implementado (usar URL ou base64 futuramente)'
+    )
   }
 
   // =========================================================

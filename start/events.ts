@@ -12,7 +12,9 @@ import '../app/Services/plugins/axios'
 import Log from "App/Models/Log";
 import Chat from "App/Models/Chat";
 import Database from "@ioc:Adonis/Lucid/Database";
+import dispatchLoop from 'App/Services/whatsapp-web/DispatchLoops'
 
+dispatchLoop()
 
 async function destroyFullAgents() {
   console.log("Passei no destroy agentes 1222")

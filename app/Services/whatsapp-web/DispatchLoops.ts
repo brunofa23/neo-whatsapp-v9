@@ -1,47 +1,96 @@
-const timers = new Map<number, NodeJS.Timeout>()
-const locks = new Set<number>()
-import Agent from "App/Models/Agent"
+/**
+ * /app/Services/whatsapp/dispatch/dispatchloops.ts
+ */
 
-//FUNÇÃO PARA CHAMAR O SETINTERVAL DE QUALQUER AGENTE DE QUALQUER API
-export function stopDispatchLoop(agentId: number) {
-  const t = timers.get(agentId)
-  if (t) clearTimeout(t)
-  timers.delete(agentId)
-  locks.delete(agentId)
+import Agent from 'App/Models/Agent'
+import ShippingcampaignsController from 'App/Controllers/Http/ShippingcampaignsController'
+import sendMessage from 'App/Services/whatsapp-web/SendMessage'
+import { TimeSchedule } from 'App/Services/whatsapp-web/util'
+import { DateTime } from 'luxon'
+import Log from 'App/Models/Log'
+
+// helper sleep
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-export function startDispatchLoop(
-  agent: Agent,
-  sender: () => Promise<void>,
-  getStatusSendMessage: () => Promise<boolean>,
-  GenerateRandomTime: (...args:any[]) => Promise<number>
-) {
-  stopDispatchLoop(agent.id)
+// random entre min e max em segundos
+function randomMs(minSec: number, maxSec: number) {
+  const min = Math.ceil(minSec * 1000)
+  const max = Math.ceil(maxSec * 1000)
+  return Math.floor(Math.random() * (max - min) + min)
+}
 
-  const tick = async () => {
+// pega um agente aleatório
+function pickRandom<T>(list: T[]): T {
+  return list[Math.floor(Math.random() * list.length)]
+}
+
+export default async function dispatchLoop() {
+  console.log('🟢 DispatchLoop iniciado')
+
+  // controllers
+  const shippingCtrl = new ShippingcampaignsController()
+
+  while (true) {
     try {
-      if (locks.has(agent.id)) return
-      locks.add(agent.id)
-
-      const ok = await getStatusSendMessage()
-      if (ok) {
-        await sender()
+      // respeita agenda
+      if (!(await TimeSchedule())) {
+        await sleep(15_000)
+        continue
       }
-    } catch (e) {
-      console.error(`[${agent.id}] DispatchLoop error:`, e)
-    } finally {
-      locks.delete(agent.id)
 
-      const delay = await GenerateRandomTime(
-        agent.interval_init_message,
-        agent.interval_final_message,
-        'DispatchLoop'
+      // busca todos agentes conectados pelo campo statusconnected
+      const agentsConnected = await Agent.query()
+        .where('statusconnected', true)
+        .andWhere('status', 'CONNECTED')
+
+      if (!agentsConnected || agentsConnected.length === 0) {
+        console.log('⚠️ Nenhum agente conectado no momento')
+        await sleep(15_000)
+        continue
+      }
+
+      // 2) escolhe UM agente aleatório
+      const agent = pickRandom(agentsConnected)
+
+      // 1) pega UMA campanha pendente
+      const campaign = await shippingCtrl.patientToSend(agent)
+
+      // se você não tiver esta função, eu já explico como fazer abaixo
+
+      if (!campaign) {
+        console.log('🟡 Nenhuma campanha pendente')
+        await sleep(10_000)
+        continue
+      }
+
+
+      // 3) envia (client = null, porque agora sendMessage sabe decidir pelo provider_type)
+      await sendMessage(null, agent)
+
+      // 4) tempo entre envios randomizado
+      const delay = randomMs(
+        agent.min_time_send || 5,   // segundos configurados no agent
+        agent.max_time_send || 25
       )
 
-      const id = setTimeout(tick, delay)
-      timers.set(agent.id, id)
+      console.log(
+        `⏳ Aguardando ${delay / 1000}s - Agent ${agent.name} - Campanha ${campaign.id}`
+      )
+
+      await sleep(delay)
+    } catch (error) {
+      console.error('❌ ERRO DISPATCH LOOP', error)
+
+      await Log.create({
+        name: 'DispatchLoop',
+        message: String(error),
+        description: 'Erro no dispatchLoop principal',
+      })
+
+      // se der erro sério, espera e continua
+      await sleep(15_000)
     }
   }
-
-  tick()
 }

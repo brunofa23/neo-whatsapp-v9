@@ -23,9 +23,9 @@ export default class WWebJSProvider implements IWhatsAppProvider {
   private clients = new Map<number, Client>()
 
   // Callbacks registrados pelo WhatsAppEngine
-  private onMessageCb: (msg: WaInboundMessage) => Promise<void> = async () => {}
-  private onAckCb: (ack: WaAck) => Promise<void> = async () => {}
-  private onDisconnectedCb: (agentId: number, reason: string) => Promise<void> = async () => {}
+  private onMessageCb: (msg: WaInboundMessage) => Promise<void> = async () => { }
+  private onAckCb: (ack: WaAck) => Promise<void> = async () => { }
+  private onDisconnectedCb: (agentId: number, reason: string) => Promise<void> = async () => { }
 
   public onMessage(cb: (msg: WaInboundMessage) => Promise<void>): void {
     this.onMessageCb = cb
@@ -226,7 +226,7 @@ export default class WWebJSProvider implements IWhatsAppProvider {
           raw: message,
         }
 
-        console.log('[WhatsAppEngine] Mensagem recebida (router):', {
+        console.log('[WhatsAppEngine] Mensagem recebida (router) WEBJS:', {
           provider: inbound.provider,
           agentId: inbound.agentId,
           from: inbound.from,
@@ -257,14 +257,14 @@ export default class WWebJSProvider implements IWhatsAppProvider {
           timestamp: (msg.timestamp || Date.now() / 1000) * 1000,
         }
 
-        console.log('[WhatsAppEngine] ACK recebido:', {
-          provider: waAck.provider,
-          agentId: waAck.agentId,
-          from: waAck.from,
-          to: waAck.to,
-          messageId: waAck.messageId,
-          ack: waAck.ack,
-        })
+        // console.log('[WhatsAppEngine] ACK recebido:', {
+        //   provider: waAck.provider,
+        //   agentId: waAck.agentId,
+        //   from: waAck.from,
+        //   to: waAck.to,
+        //   messageId: waAck.messageId,
+        //   ack: waAck.ack,
+        // })
 
         await this.onAckCb(waAck)
       } catch (e) {
@@ -309,6 +309,7 @@ export default class WWebJSProvider implements IWhatsAppProvider {
     //    - continua interceptando resposta de paciente, IA etc.
     // ===========================================================
     try {
+      console.log("INICIANDO CHAT MONITORING #####")
       const chatMonitoring = new ChatMonitoring()
       await chatMonitoring.monitoring(client)
 

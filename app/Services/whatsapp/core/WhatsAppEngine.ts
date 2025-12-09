@@ -118,7 +118,7 @@ class WhatsAppEngine {
   // Callbacks que os providers vão chamar
   // --------------------------------------------------
   private handleInboundMessage = async (msg: WaInboundMessage) => {
-    console.log('[WhatsAppEngine] Mensagem recebida (router):', {
+    console.log('[WhatsAppEngine] Mensagem recebida (router): WHATSAPPENGINE', {
       provider: msg.provider,
       agentId: msg.agentId,
       from: msg.from,

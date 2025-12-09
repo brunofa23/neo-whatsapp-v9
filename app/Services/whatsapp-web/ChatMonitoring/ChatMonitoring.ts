@@ -156,6 +156,7 @@ function shouldIgnoreMessage(message: Message): boolean {
 // =======================
 export default class Monitoring {
   async monitoring(client: Client) {
+    console.log("ENTREI NO CHAT MONITORING 5555&&&&")
     try {
       client.on('message', async (message) => {
         // 0) ignora mensagens que não interessam

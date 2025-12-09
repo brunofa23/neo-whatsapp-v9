@@ -7,7 +7,6 @@ import Talk from 'App/Models/Talk'
 import Agent from 'App/Models/Agent'
 import Log from 'App/Models/Log'
 
-// Seus handlers refatorados para ctx
 import { ConfirmSchedule } from '../flows/ConfirmSchedule'
 import { ServiceEvaluation } from '../flows/ServiceEvaluation'
 
@@ -19,17 +18,13 @@ function onlyDigits(v: any) {
 }
 
 /**
- * Ignora mensagens que não interessam (equivalente ao ChatMonitoring.shouldIgnoreMessage)
- * - fromMe (quando provider wwebjs colocar isso em raw)
- * - e2e_notification
- * - vazias
- * - broadcast/status
+ * Ignora mensagens que não interessam
  */
 function shouldIgnoreInbound(msg: WaInboundMessage): boolean {
   const from = msg.from ?? ''
   const raw: any = msg.raw
 
-  const fromMe = raw?.fromMe === true // whatsapp-web.js: message.fromMe
+  const fromMe = raw?.fromMe === true
   const type = String(raw?.type ?? '').toLowerCase()
 
   return (
@@ -52,7 +47,6 @@ function isDuplicate(msg: WaInboundMessage) {
   const now = Date.now()
   const last = seenMessages.get(key)
 
-  // limpa alguns antigos (simples)
   if (seenMessages.size > 5000) {
     for (const [k, t] of seenMessages) {
       if (now - t > DEDUPE_TTL_MS) seenMessages.delete(k)
@@ -65,7 +59,7 @@ function isDuplicate(msg: WaInboundMessage) {
 }
 
 // =====================================================
-// Anti-loop simples (igual você tinha)
+// Anti-loop simples
 // =====================================================
 const messageTracker = new Map<string, { count: number; lastMessage: number }>()
 function isBotLoopDetected(key: string): boolean {
@@ -90,7 +84,7 @@ function isBotLoopDetected(key: string): boolean {
 }
 
 // =====================================================
-// Cache de agentes internos (igual ChatMonitoring)
+// Cache de agentes internos
 // =====================================================
 const INTERNAL_CACHE_TTL_MS = 5 * 60 * 1000
 let internalDigitsCache = new Set<string>()
@@ -127,16 +121,15 @@ async function refreshInternalAgentsCache(force = false) {
 }
 
 async function isInternalAgentByDigits(phoneDigits: string) {
+  if (!phoneDigits) return false
   await refreshInternalAgentsCache(false)
   return internalDigitsCache.has(phoneDigits)
 }
 
 // =====================================================
-// DB helpers (mantidos)
+// DB helpers
 // =====================================================
 async function getCustomChat(cellphoneJid: string, agentPhoneDigits: string) {
-  // no seu sistema: cellphoneserialized parece guardar jid (ex: 5531..@c.us)
-  // chatnumber = telefone do agent em dígitos
   return await Customchat.query()
     .where('cellphoneserialized', cellphoneJid)
     .andWhere('chatnumber', agentPhoneDigits)
@@ -168,10 +161,8 @@ export default class MessageRouter {
 
     const ctx = makeCtx(msg)
 
-    // 2) grupos: por enquanto encerra (se quiser tratar no futuro, cria um fluxo próprio)
+    // 2) grupos: por enquanto encerra
     if (msg.isGroup) {
-      // Se quiser manter o comando idgroup, dá para responder no próprio grupo:
-      // (sem client não dá para "responder no privado do author" de forma perfeita em todos providers)
       const body = (msg.body || '').trim().toLowerCase()
       if (body.includes('idgroup')) {
         await ctx.reply(`ID do grupo: ${msg.from}`)
@@ -180,17 +171,12 @@ export default class MessageRouter {
     }
 
     // 3) ignora mensagens internas (agents)
-    // use ctx.fromDigits (resolvido do lid quando houver)
-    if (ctx.fromDigits && (await isInternalAgentByDigits(ctx.fromDigits))) {
-      return
-    }
+    if (ctx.fromDigits && (await isInternalAgentByDigits(ctx.fromDigits))) return
 
     // 4) anti-loop por contato
-    if (isBotLoopDetected(ctx.fromResolvedJid)) {
-      return
-    }
+    if (isBotLoopDetected(ctx.fromResolvedJid)) return
 
-    // 5) mídia (mantém regra do antigo)
+    // 5) mídia
     if (msg.hasMedia) {
       await ctx.reply('Por favor não envie áudio, imagens ou vídeos apenas textos. Obrigada!')
       return
@@ -198,24 +184,42 @@ export default class MessageRouter {
 
     // 6) número do agent (substitui client.info.wid.user)
     const agent = await Agent.findOrFail(msg.agentId)
-    const agentDigits = onlyDigits(agent.number_phone)
+    const agentDigits = onlyDigits(agent.number_phone) || onlyDigits(msg.to)
 
-    // Log útil (igual você fazia no ChatMonitoring)
-    await Log.create({
-      name: 'InboundRouter',
-      message: JSON.stringify({
-        provider: msg.provider,
-        agentId: msg.agentId,
-        from: msg.from,
-        fromResolvedJid: ctx.fromResolvedJid,
-        fromDigits: ctx.fromDigits,
-        to: msg.to,
-      }),
-      description: 'MessageRouter inbound',
-    })
+    if (!agentDigits) {
+      await ctx.reply('Não consegui identificar o número do atendente. Tente novamente em instantes.')
+      return
+    }
 
-    // 7) CustomChat
-    const customChat = await getCustomChat(ctx.fromResolvedJid, agentDigits)
+    // ✅ 6.1) NORMALIZA o "from" para bater com o DB (sempre @c.us)
+    // Seu banco salva: 5531...@c.us
+    // Se vier @lid e não conseguir resolver, cai no fallback: `${digits}@c.us`
+    const fromForDb =
+      ctx.fromResolvedJid?.endsWith('@c.us')
+        ? ctx.fromResolvedJid
+        : (ctx.fromDigits ? `${ctx.fromDigits}@c.us` : ctx.fromResolvedJid)
+
+    // Log útil (igual você fazia)
+    try {
+      await Log.create({
+        name: 'InboundRouter',
+        message: JSON.stringify({
+          provider: msg.provider,
+          agentId: msg.agentId,
+          from: msg.from,
+          fromResolvedJid: ctx.fromResolvedJid,
+          fromDigits: ctx.fromDigits,
+          fromForDb,
+          to: msg.to,
+          agentDigits,
+          messageId: msg.messageId,
+        }),
+        description: 'MessageRouter inbound',
+      })
+    } catch {}
+
+    // 7) CustomChat (✅ usando fromForDb)
+    const customChat = await getCustomChat(fromForDb, agentDigits)
     if (customChat) {
       await Customchat.create({
         chats_id: customChat.chats_id,
@@ -232,7 +236,7 @@ export default class MessageRouter {
       await Talk.create({
         chat_id: customChat.chats_id,
         reg: customChat.reg,
-        cellphone: ctx.fromResolvedJid,
+        cellphone: fromForDb, // ✅ grava no padrão do DB
         chatnumber: msg.to,
         message_ack: null,
         message: (msg.body || '').slice(0, 999),
@@ -242,21 +246,20 @@ export default class MessageRouter {
       return
     }
 
-    // 8) Chat existente
-    
-    const chat = await getChat(ctx.fromResolvedJid, agentDigits)
+    // 8) Chat existente (✅ usando fromForDb)
+    const chat = await getChat(fromForDb, agentDigits)
     if (chat) {
       await Talk.create({
         chat_id: chat.id,
         reg: chat.reg,
-        cellphone: ctx.fromResolvedJid,
+        cellphone: fromForDb, // ✅ grava no padrão do DB
         chatnumber: msg.to,
         message_ack: null,
         message: (msg.body || '').slice(0, 999),
         type: 'from',
       })
 
-      // ✅ dispatch por interaction_id (o que você precisava)
+      // ✅ dispatch por interaction_id
       if (chat.interaction_id === 1) {
         await ConfirmSchedule(ctx, chat)
         return
@@ -271,7 +274,7 @@ export default class MessageRouter {
       return
     }
 
-    // 9) Sem chat: por enquanto responde (depois migramos seu handleNewMessage)
+    // 9) Sem chat: por enquanto
     await ctx.reply('Recebi sua mensagem. (fluxo novo ainda não implementado aqui)')
   }
 }

@@ -1,5 +1,3 @@
-// app/Services/whatsapp/providers/megaapi/MegaApiProvider.ts
-
 import axios from 'axios'
 import Agent from 'App/Models/Agent'
 import {
@@ -10,27 +8,14 @@ import {
 } from 'App/Services/whatsapp/core/IWhatsAppProvider'
 
 interface MegaApiConfig {
-  baseUrl: string // ex: https://apistart01.megaapi.com.br
+  baseUrl: string
   instanceKey: string
   token: string
 }
 
-/**
- * Provider para MegaAPI.
- *
- * Nesta versão ele faz:
- * - start(agentId): valida se a instância responde
- * - stop(agentId): chama logout da instância
- * - getState(agentId): consulta /instance/{instance_key}
- * - sendText(agentId, to, text): envia texto via /sendMessage/{instance_key}/text
- *
- * FUTURO:
- * - integrar webhook MegaAPI -> this.messageCb / this.ackCb
- */
 export default class MegaApiProvider implements IWhatsAppProvider {
   public kind: ProviderKind = 'megaapi'
 
-  // Callbacks registrados pelo engine
   private messageCb?: (msg: WaInboundMessage) => Promise<void>
   private ackCb?: (ack: WaAck) => Promise<void>
   private disconnectedCb?: (agentId: number, reason: string) => Promise<void>
@@ -38,18 +23,56 @@ export default class MegaApiProvider implements IWhatsAppProvider {
   // =========================================================
   // Utils
   // =========================================================
+  private onlyDigits(v: any): string {
+    return String(v ?? '').replace(/\D/g, '')
+  }
 
-  /**
-   * Carrega a configuração MegaAPI para este agent a partir do próprio Agent.
-   * Usa os campos snake_case: megaapi_host, megaapi_instance_key, megaapi_token.
+  /** converte:
+   *  - 5511...@s.whatsapp.net => 5511...@c.us
+   *  - 5511...@c.us => 5511...@c.us
+   *  - "5511..." => 5511...@c.us
    */
+  private toCusJid(jid: string | null | undefined): string | null {
+    if (!jid) return null
+    const v = String(jid).trim().toLowerCase()
+
+    if (v.endsWith('@c.us') || v.endsWith('@g.us') || v.endsWith('@broadcast') || v.endsWith('@lid')) {
+      return v
+    }
+
+    if (v.endsWith('@s.whatsapp.net')) {
+      const digits = this.onlyDigits(v)
+      return digits ? `${digits}@c.us` : null
+    }
+
+    const digits = this.onlyDigits(v)
+    return digits ? `${digits}@c.us` : null
+  }
+
+  private normalizeToJid(to: string): string {
+    const lower = (to || '').toLowerCase().trim()
+
+    if (lower.endsWith('@s.whatsapp.net') || lower.endsWith('@g.us')) return lower
+
+    if (lower.endsWith('@c.us')) {
+      const digits = this.onlyDigits(lower)
+      return `${digits}@s.whatsapp.net`
+    }
+
+    const digits = this.onlyDigits(lower)
+    if (!digits) throw new Error(`MegaApiProvider.normalizeToJid: número inválido: "${to}"`)
+    return `${digits}@s.whatsapp.net`
+  }
+
+  private getAuthHeaders(token: string) {
+    return { Authorization: `Bearer ${token}` }
+  }
+
   private async getConfig(agentId: number): Promise<MegaApiConfig> {
     const agent = await Agent.findOrFail(agentId)
 
     if (agent.provider_type !== 'megaapi') {
-      throw new Error(
-        `MegaApiProvider: agent ${agentId} não está configurado como provider_type = 'megaapi'`
-      )
+      throw new Error(`MegaApiProvider: agent ${agentId} não é provider_type='megaapi'`)
     }
 
     const host = agent.megaapi_host
@@ -57,40 +80,23 @@ export default class MegaApiProvider implements IWhatsAppProvider {
     const token = agent.megaapi_token
 
     if (!host || !instanceKey || !token) {
-      throw new Error(
-        `MegaApiProvider: campos megaapi_host, megaapi_instance_key ou megaapi_token não configurados para agent ${agentId}`
-      )
+      throw new Error(`MegaApiProvider: megaapi_host/instance_key/token ausentes no agent ${agentId}`)
     }
 
-    return {
-      baseUrl: `https://${host}/rest`,
-      instanceKey,
-      token,
-    }
+    return { baseUrl: `https://${host}/rest`, instanceKey, token }
   }
 
-  /**
-   * Header padrão com Bearer Token da MegaAPI
-   */
-  private getAuthHeaders(token: string) {
-    return {
-      Authorization: `Bearer ${token}`,
-    }
+  private computeStatusFromInstancePayload(respData: any): 'CONNECTED' | 'DISCONNECTED' {
+    const instance = respData?.instance || {}
+    const hasUser = instance.user || instance.id
+    return hasUser ? 'CONNECTED' : 'DISCONNECTED'
   }
 
-  /**
-   * Atualiza o Agent no banco conforme o estado detectado no provider.
-   * - CONNECTED     => statusconnected=true, status='CONNECTED', qrcode=null
-   * - DISCONNECTED  => statusconnected=false, status='DISCONNECTED'
-   * - ERROR         => statusconnected=false, status='ERROR'
-   */
   private async syncAgentConnection(agentId: number, status: string): Promise<void> {
     const agent = await Agent.find(agentId)
     if (!agent) return
 
     const connected = status === 'CONNECTED'
-
-    // evita writes desnecessários
     const changed =
       agent.statusconnected !== connected ||
       agent.status !== status ||
@@ -100,312 +106,190 @@ export default class MegaApiProvider implements IWhatsAppProvider {
 
     agent.statusconnected = connected
     agent.status = status
-
-    if (connected) {
-      agent.qrcode = null
-    }
-
+    if (connected) agent.qrcode = null
     await agent.save()
   }
 
-  /**
-   * Decide o status a partir do payload do endpoint /instance/{instance_key}
-   */
-  private computeStatusFromInstancePayload(respData: any): 'CONNECTED' | 'DISCONNECTED' {
-    const instance = respData?.instance || {}
-    const hasUser = instance.user || instance.id
-    return hasUser ? 'CONNECTED' : 'DISCONNECTED'
+  private extractBodyFromWebhook(payload: any): string {
+    const msg = payload?.message || {}
+    const type = String(payload?.messageType || '').trim()
+
+    // conversation
+    if (typeof msg.conversation === 'string') return msg.conversation
+
+    // extendedTextMessage
+    if (typeof msg?.extendedTextMessage?.text === 'string') return msg.extendedTextMessage.text
+
+    // ephemeralMessage -> message -> extendedTextMessage/conversation
+    if (type === 'ephemeralMessage') {
+      const inner = msg?.ephemeralMessage?.message || {}
+      if (typeof inner.conversation === 'string') return inner.conversation
+      if (typeof inner?.extendedTextMessage?.text === 'string') return inner.extendedTextMessage.text
+    }
+
+    // fallback (caso você mapeie outro formato depois)
+    if (typeof payload?.text === 'string') return payload.text
+    if (typeof payload?.messageText === 'string') return payload.messageText
+    if (typeof payload?.message === 'string') return payload.message
+
+    return ''
   }
 
-  /**
-   * Converte o "to" vindo do engine para o formato aceito pela MegaAPI:
-   *
-   * - Contatos privados: 551199999999@s.whatsapp.net
-   * - Grupos: já vem como ...@g.us (não mexemos)
-   *
-   * Entradas possíveis:
-   * - "551199999999"
-   * - "551199999999@c.us"
-   * - "551199999999@s.whatsapp.net"
-   * - "551199999999@g.us"
-   */
-  private normalizeToJid(to: string): string {
-    const lower = (to || '').toLowerCase().trim()
+  private detectHasMedia(payload: any): boolean {
+    if (!!payload?.hasMedia) return true
+    const msg = payload?.message || {}
+    const mediaKeys = [
+      'audioMessage',
+      'imageMessage',
+      'videoMessage',
+      'documentMessage',
+      'stickerMessage',
+      'ptvMessage',
+      'contactMessage',
+      'locationMessage',
+    ]
+    return mediaKeys.some((k) => !!msg?.[k])
+  }
 
-    // já está em formato aceito pela API
-    if (lower.endsWith('@s.whatsapp.net') || lower.endsWith('@g.us')) {
-      return lower
-    }
-
-    // formato do whatsapp-web.js
-    if (lower.endsWith('@c.us')) {
-      const digits = lower.replace(/\D/g, '')
-      return `${digits}@s.whatsapp.net`
-    }
-
-    // apenas dígitos
-    const digits = lower.replace(/\D/g, '')
-    if (!digits) {
-      throw new Error(`MegaApiProvider.normalizeToJid: número inválido: "${to}"`)
-    }
-
-    return `${digits}@s.whatsapp.net`
+  private normalizeTimestamp(payload: any): number {
+    const ts = Number(payload?.messageTimestamp ?? payload?.timestamp ?? Date.now())
+    return ts < 1e12 ? ts * 1000 : ts
   }
 
   // =========================================================
-  // Implementação da interface IWhatsAppProvider
+  // Interface
   // =========================================================
-
   public onMessage(cb: (msg: WaInboundMessage) => Promise<void>): void {
     this.messageCb = cb
   }
-
   public onAck(cb: (ack: WaAck) => Promise<void>): void {
     this.ackCb = cb
   }
-
   public onDisconnected(cb: (agentId: number, reason: string) => Promise<void>): void {
     this.disconnectedCb = cb
   }
 
-  /**
-   * Start:
-   * Na MegaAPI a sessão já roda lá, então aqui apenas validamos se a instância responde.
-   * GET /rest/instance/{instance_key}
-   */
   public async start(agentId: number): Promise<void> {
     const cfg = await this.getConfig(agentId)
-
     try {
       const url = `${cfg.baseUrl}/instance/${cfg.instanceKey}`
-      const resp = await axios.get(url, {
-        headers: this.getAuthHeaders(cfg.token),
-      })
-
-      console.log(
-        `[MegaApiProvider][${agentId}] start(): instancia ok, message:`,
-        resp.data?.message
-      )
-
-      // ✅ sincroniza status no Agent conforme resposta
+      const resp = await axios.get(url, { headers: this.getAuthHeaders(cfg.token) })
       const status = this.computeStatusFromInstancePayload(resp.data)
       await this.syncAgentConnection(agentId, status)
     } catch (error: any) {
-      console.error(
-        `[MegaApiProvider][${agentId}] Erro ao iniciar MegaAPI:`,
-        error?.response?.data || error?.message || error
-      )
-
-      // ✅ marca erro no Agent (não conectado)
       await this.syncAgentConnection(agentId, 'ERROR')
-
       throw new Error('Falha ao iniciar MegaAPI para este agent')
     }
   }
 
-  /**
-   * Stop:
-   * Desloga a instância na MegaAPI.
-   * DELETE /rest/instance/{instance_key}/logout
-   */
   public async stop(agentId: number): Promise<void> {
     const cfg = await this.getConfig(agentId)
-
     try {
       const url = `${cfg.baseUrl}/instance/${cfg.instanceKey}/logout`
-      const resp = await axios.delete(url, {
-        headers: this.getAuthHeaders(cfg.token),
-      })
-
-      console.log(
-        `[MegaApiProvider][${agentId}] stop():`,
-        resp.data?.message || 'Logout solicitado'
-      )
-
-      // ✅ marca desconectado
+      await axios.delete(url, { headers: this.getAuthHeaders(cfg.token) })
       await this.syncAgentConnection(agentId, 'DISCONNECTED')
-
-      if (this.disconnectedCb) {
-        await this.disconnectedCb(agentId, 'logout')
-      }
-    } catch (error: any) {
-      console.error(
-        `[MegaApiProvider][${agentId}] Erro ao parar MegaAPI:`,
-        error?.response?.data || error?.message || error
-      )
-
-      // ✅ não quebra fluxo, mas marca erro
+      if (this.disconnectedCb) await this.disconnectedCb(agentId, 'logout')
+    } catch {
       await this.syncAgentConnection(agentId, 'ERROR')
-      // não relançamos para não quebrar fluxo
     }
   }
 
-  /**
-   * Estado da instância:
-   * GET /rest/instance/{instance_key}
-   * Se houver "user" ou "id" consideramos CONNECTED, senão DISCONNECTED.
-   */
   public async getState(agentId: number): Promise<string> {
     const cfg = await this.getConfig(agentId)
-
     try {
       const url = `${cfg.baseUrl}/instance/${cfg.instanceKey}`
-      const resp = await axios.get(url, {
-        headers: this.getAuthHeaders(cfg.token),
-      })
-
+      const resp = await axios.get(url, { headers: this.getAuthHeaders(cfg.token) })
       const status = this.computeStatusFromInstancePayload(resp.data)
-      console.log(`[MegaApiProvider][${agentId}] getState():`, status)
-
-      // ✅ sincroniza status no Agent
       await this.syncAgentConnection(agentId, status)
-
       return status
-    } catch (error: any) {
-      console.error(
-        `[MegaApiProvider][${agentId}] Erro em getState MegaAPI:`,
-        error?.response?.data || error?.message || error
-      )
-
+    } catch {
       await this.syncAgentConnection(agentId, 'ERROR')
       return 'ERROR'
     }
   }
 
-  /**
-   * Envia texto:
-   * POST /rest/sendMessage/{instance_key}/text
-   * Body:
-   * {
-   *   "messageData": {
-   *     "to": "551199999999@s.whatsapp.net",
-   *     "text": "Mensagem..."
-   *   }
-   * }
-   */
   public async sendText(agentId: number, to: string, text: string): Promise<any> {
     const cfg = await this.getConfig(agentId)
+    const jid = this.normalizeToJid(to)
+    const url = `${cfg.baseUrl}/sendMessage/${cfg.instanceKey}/text`
 
-    try {
-      const jid = this.normalizeToJid(to)
-      const url = `${cfg.baseUrl}/sendMessage/${cfg.instanceKey}/text`
-
-      const body = {
-        messageData: {
-          to: jid,
-          text,
-        },
-      }
-
-      const resp = await axios.post(url, body, {
-        headers: this.getAuthHeaders(cfg.token),
-      })
-
-      const data = resp.data
-      console.log(`[MegaApiProvider][${agentId}] sendText OK ->`, {
-        to: jid,
-        error: data?.error,
-        message: data?.message,
-        id: data?.id,
-      })
-
-      // ✅ opcional: se conseguiu enviar, podemos marcar como conectado
-      // (desde que a API esteja de fato online)
-      await this.syncAgentConnection(agentId, 'CONNECTED')
-
-      return data
-    } catch (error: any) {
-      console.error(
-        `[MegaApiProvider][${agentId}] Erro em sendText MegaAPI:`,
-        error?.response?.data || error?.message || error
-      )
-
-      // ✅ marca erro no Agent (não conectado)
-      await this.syncAgentConnection(agentId, 'ERROR')
-
-      throw new Error('MegaApiProvider: erro ao enviar mensagem de texto')
-    }
+    const body = { messageData: { to: jid, text } }
+    const resp = await axios.post(url, body, { headers: this.getAuthHeaders(cfg.token) })
+    await this.syncAgentConnection(agentId, 'CONNECTED')
+    return resp.data
   }
 
-  /**
-   * Envio de mídia:
-   * Ainda não implementado.
-   * Provavelmente vamos usar:
-   *  - fileFromUrl (subir o arquivo em uma URL pública)
-   *  - ou fileFromBase64
-   */
-  public async sendMedia(
-    agentId: number,
-    to: string,
-    filePath: string,
-    caption?: string
-  ): Promise<any> {
-    console.warn(
-      `[MegaApiProvider][${agentId}] sendMedia ainda não implementado. filePath: ${filePath}, caption: ${caption}`
-    )
-    throw new Error(
-      'MegaApiProvider.sendMedia ainda não implementado (usar URL ou base64 futuramente)'
-    )
+  public async sendMedia(): Promise<any> {
+    throw new Error('MegaApiProvider.sendMedia ainda não implementado')
   }
 
   // =========================================================
-  // Métodos auxiliares para webhook (usar depois)
+  // WEBHOOK -> ENGINE
   // =========================================================
-
-  /**
-   * Para ser chamado pelo controller de webhook da MegaAPI
-   * quando chegar uma mensagem.
-   */
   public async handleInboundFromWebhook(agentId: number, payload: any): Promise<void> {
     if (!this.messageCb) return
+
+    // conforme exemplos oficiais:
+    // - payload.key.remoteJid é o chat (contato ou grupo)
+    // - payload.jid é o número da instância (seu WA)
+    // :contentReference[oaicite:1]{index=1}
+    const remoteJid = payload?.key?.remoteJid || payload?.from || ''
+    const myJid = payload?.jid || payload?.to || ''
+
+    const isGroup = String(remoteJid).toLowerCase().endsWith('@g.us')
+    const participant = payload?.key?.participant || payload?.participant || null
+
+    const body = this.extractBodyFromWebhook(payload)
+    const hasMedia = this.detectHasMedia(payload)
+    const messageId = payload?.key?.id || payload?.id || `${remoteJid}-${Date.now()}`
+    const timestamp = this.normalizeTimestamp(payload)
+
+    const fromDigits = isGroup
+      ? this.onlyDigits(participant)
+      : this.onlyDigits(remoteJid)
 
     const inbound: WaInboundMessage = {
       provider: this.kind,
       agentId,
-      from: payload.from,
-      to: payload.to,
-      body: payload.message || '',
-      hasMedia: !!payload.hasMedia,
-      messageId: payload.id || `${payload.from}-${Date.now()}`,
-      timestamp: payload.timestamp || Date.now(),
-      raw: payload,
-    }
 
-    console.log('[MegaApiProvider] Mensagem recebida via webhook MegaAPI:', {
-      agentId,
-      from: inbound.from,
-      to: inbound.to,
-      body: inbound.body,
-      hasMedia: inbound.hasMedia,
-      messageId: inbound.messageId,
-    })
+      from: String(remoteJid),
+      to: this.toCusJid(myJid) || String(myJid),
+
+      body,
+      hasMedia,
+
+      messageId,
+      timestamp,
+
+      raw: payload,
+
+      isGroup,
+      author: isGroup ? String(participant || '') : null,
+
+      // ✅ para o seu DB (que salva 5531...@c.us)
+      fromPhoneJid: isGroup ? null : this.toCusJid(remoteJid),
+      fromDigits,
+      authorDigits: isGroup ? this.onlyDigits(participant) : '',
+    }
 
     await this.messageCb(inbound)
   }
 
-  /**
-   * Para ser chamado pelo webhook MegaAPI quando houver atualizações de ACK / status.
-   */
   public async handleAckFromWebhook(agentId: number, payload: any): Promise<void> {
     if (!this.ackCb) return
+
+    const remoteJid = payload?.key?.remoteJid || payload?.from || ''
+    const myJid = payload?.jid || payload?.to || ''
 
     const ack: WaAck = {
       provider: this.kind,
       agentId,
-      from: payload.from,
-      to: payload.to,
-      messageId: payload.id,
-      ack: payload.ack ?? 0,
-      timestamp: payload.timestamp || Date.now(),
+      from: String(remoteJid),
+      to: this.toCusJid(myJid) || String(myJid),
+      messageId: payload?.key?.id || payload?.id || '',
+      ack: Number(payload?.ack ?? payload?.status ?? 0),
+      timestamp: this.normalizeTimestamp(payload),
     }
-
-    console.log('[MegaApiProvider] ACK recebido via webhook MegaAPI:', {
-      agentId,
-      from: ack.from,
-      to: ack.to,
-      messageId: ack.messageId,
-      ack: ack.ack,
-    })
 
     await this.ackCb(ack)
   }

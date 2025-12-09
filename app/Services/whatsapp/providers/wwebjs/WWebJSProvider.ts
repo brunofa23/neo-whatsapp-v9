@@ -20,9 +20,9 @@ export default class WWebJSProvider implements IWhatsAppProvider {
   private clients = new Map<number, Client>()
 
   // Callbacks registrados pelo WhatsAppEngine
-  private onMessageCb: (msg: WaInboundMessage) => Promise<void> = async () => {}
-  private onAckCb: (ack: WaAck) => Promise<void> = async () => {}
-  private onDisconnectedCb: (agentId: number, reason: string) => Promise<void> = async () => {}
+  private onMessageCb: (msg: WaInboundMessage) => Promise<void> = async () => { }
+  private onAckCb: (ack: WaAck) => Promise<void> = async () => { }
+  private onDisconnectedCb: (agentId: number, reason: string) => Promise<void> = async () => { }
 
   public onMessage(cb: (msg: WaInboundMessage) => Promise<void>): void {
     this.onMessageCb = cb
@@ -203,7 +203,7 @@ export default class WWebJSProvider implements IWhatsAppProvider {
           agent.statusconnected = false
           await agent.save()
         }
-      } catch {}
+      } catch { }
     })
 
     // ✅ útil pra diagnosticar quedas (CONNECTED / OPENING / PAIRING / etc.)
@@ -243,6 +243,17 @@ export default class WWebJSProvider implements IWhatsAppProvider {
      * - grupos: isGroup + authorDigits
      */
     client.on('message', async (message: Message) => {
+
+      console.log('********[WEBJS][RAW MESSAGE]', {
+        from: message.from,
+        to: message.to,
+        body: message.body,
+        hasMedia: message.hasMedia,
+        fromMe: (message as any).fromMe,
+        type: (message as any).type,
+        id: message.id?._serialized,
+      })
+
       try {
         const isGroup = !!message.from?.endsWith('@g.us')
 
@@ -351,7 +362,7 @@ export default class WWebJSProvider implements IWhatsAppProvider {
           agent.statusconnected = false
           await agent.save()
         }
-      } catch {}
+      } catch { }
     })
   }
 

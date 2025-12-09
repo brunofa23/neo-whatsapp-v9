@@ -1,5 +1,5 @@
 import Env from '@ioc:Adonis/Core/Env'
-import { BaseModel, column, hasOne, HasOne } from '@ioc:Adonis/Lucid/Orm'
+import { BaseModel, column, hasOne, HasOne, beforeCreate, beforeSave } from '@ioc:Adonis/Lucid/Orm'
 import { DateTime } from 'luxon'
 
 import Shippingcampaign from './Shippingcampaign'
@@ -131,5 +131,31 @@ export default class Chat extends BaseModel {
     localKey: 'shippingcampaigns_id'
   })
   public shippingcampaign: HasOne<typeof Shippingcampaign>
+
+
+  // ==========================
+  // DEBUG: saber QUEM está salvando
+  // ==========================
+  @beforeCreate()
+  public static debugCreate(chat: Chat) {
+    console.log('@@@ Chat.beforeCreate => NOVO REGISTRO')
+    console.log('   id (ainda sem):', chat.id)
+    console.log('   cellphoneserialized:', chat.cellphoneserialized)
+    console.log('   stack:\n', new Error().stack)
+  }
+
+  @beforeSave()
+  public static debugSave(chat: Chat) {
+    console.log('@@@ Chat.beforeSave => CREATE/UPDATE')
+    console.log('   id:', chat.id)
+    console.log('   cellphoneserialized:', chat.cellphoneserialized)
+    console.log('   stack:\n', new Error().stack)
+  }
+
+
+
+
+
+
 
 }

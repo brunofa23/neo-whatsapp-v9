@@ -224,12 +224,14 @@ export default async (client: Client | null, agent: Agent) => {
                   cfg
                 )
 
+                console.log("RESPONSE %%%%%%%%%>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>1111!!!", response)
+
 
                 returnResponse = response
                 global.contSend++
                 shippingCampaign.messagesent = true
                 shippingCampaign.phonevalid = true
-                shippingCampaign.cellphoneserialized = validationCellPhone
+                shippingCampaign.cellphoneserialized = response.from._serialized
                 await shippingCampaign.save()
 
                 const bodyChat = {

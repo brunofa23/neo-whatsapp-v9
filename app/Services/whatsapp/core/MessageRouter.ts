@@ -1,3 +1,5 @@
+// app/Services/whatsapp/core/MessageRouter.ts
+
 import { WaInboundMessage } from './IWhatsAppProvider'
 import { makeCtx } from './InboundContext'
 
@@ -17,9 +19,9 @@ function onlyDigits(v: any) {
   return String(v ?? '').replace(/\D/g, '')
 }
 
-/**
- * Ignora mensagens que não interessam
- */
+// =====================================================
+// Ignore filter
+// =====================================================
 function shouldIgnoreInbound(msg: WaInboundMessage): boolean {
   const from = msg.from ?? ''
   const raw: any = msg.raw
@@ -37,7 +39,7 @@ function shouldIgnoreInbound(msg: WaInboundMessage): boolean {
 }
 
 // =====================================================
-// Dedup (evita processar mesma mensagem 2x)
+// Dedup
 // =====================================================
 const DEDUPE_TTL_MS = 2 * 60 * 1000
 const seenMessages = new Map<string, number>()
@@ -59,15 +61,16 @@ function isDuplicate(msg: WaInboundMessage) {
 }
 
 // =====================================================
-// Anti-loop simples
+// Anti-loop
 // =====================================================
 const messageTracker = new Map<string, { count: number; lastMessage: number }>()
-function isBotLoopDetected(key: string): boolean {
+
+function isBotLoopDetected(jid: string): boolean {
   const now = Date.now()
-  const record = messageTracker.get(key)
+  const record = messageTracker.get(jid)
 
   if (!record) {
-    messageTracker.set(key, { count: 1, lastMessage: now })
+    messageTracker.set(jid, { count: 1, lastMessage: now })
     return false
   }
 
@@ -77,14 +80,14 @@ function isBotLoopDetected(key: string): boolean {
     record.lastMessage = now
     if (record.count >= 3) return true
   } else {
-    messageTracker.set(key, { count: 1, lastMessage: now })
+    messageTracker.set(jid, { count: 1, lastMessage: now })
   }
 
   return false
 }
 
 // =====================================================
-// Cache de agentes internos
+// Internal agents cache
 // =====================================================
 const INTERNAL_CACHE_TTL_MS = 5 * 60 * 1000
 let internalDigitsCache = new Set<string>()
@@ -121,7 +124,6 @@ async function refreshInternalAgentsCache(force = false) {
 }
 
 async function isInternalAgentByDigits(phoneDigits: string) {
-  if (!phoneDigits) return false
   await refreshInternalAgentsCache(false)
   return internalDigitsCache.has(phoneDigits)
 }
@@ -143,138 +145,105 @@ async function getChat(cellphoneJid: string, agentPhoneDigits: string) {
     .preload('shippingcampaign')
     .where('cellphoneserialized', cellphoneJid)
     .andWhere('chatnumber', agentPhoneDigits)
-    .orderBy('created_at', 'desc')
     .whereNull('response')
+    .orderBy('created_at', 'desc')
     .first()
 }
 
 // =====================================================
-// Router
+// ROUTER
 // =====================================================
 export default class MessageRouter {
   public async handleInbound(msg: WaInboundMessage) {
-    // 0) dedupe (principalmente p/ webhook megaapi)
-    if (isDuplicate(msg)) return
-
-    // 1) ignorados
-    if (shouldIgnoreInbound(msg)) return
-
-    const ctx = makeCtx(msg)
-
-    // 2) grupos: por enquanto encerra
-    if (msg.isGroup) {
-      const body = (msg.body || '').trim().toLowerCase()
-      if (body.includes('idgroup')) {
-        await ctx.reply(`ID do grupo: ${msg.from}`)
-      }
-      return
-    }
-
-    // 3) ignora mensagens internas (agents)
-    if (ctx.fromDigits && (await isInternalAgentByDigits(ctx.fromDigits))) return
-
-    // 4) anti-loop por contato
-    if (isBotLoopDetected(ctx.fromResolvedJid)) return
-
-    // 5) mídia
-    if (msg.hasMedia) {
-      await ctx.reply('Por favor não envie áudio, imagens ou vídeos apenas textos. Obrigada!')
-      return
-    }
-
-    // 6) número do agent (substitui client.info.wid.user)
-    const agent = await Agent.findOrFail(msg.agentId)
-    const agentDigits = onlyDigits(agent.number_phone) || onlyDigits(msg.to)
-
-    if (!agentDigits) {
-      await ctx.reply('Não consegui identificar o número do atendente. Tente novamente em instantes.')
-      return
-    }
-
-    // ✅ 6.1) NORMALIZA o "from" para bater com o DB (sempre @c.us)
-    // Seu banco salva: 5531...@c.us
-    // Se vier @lid e não conseguir resolver, cai no fallback: `${digits}@c.us`
-    const fromForDb =
-      ctx.fromResolvedJid?.endsWith('@c.us')
-        ? ctx.fromResolvedJid
-        : (ctx.fromDigits ? `${ctx.fromDigits}@c.us` : ctx.fromResolvedJid)
-
-    // Log útil (igual você fazia)
     try {
-      await Log.create({
-        name: 'InboundRouter',
-        message: JSON.stringify({
-          provider: msg.provider,
-          agentId: msg.agentId,
-          from: msg.from,
-          fromResolvedJid: ctx.fromResolvedJid,
-          fromDigits: ctx.fromDigits,
-          fromForDb,
-          to: msg.to,
-          agentDigits,
-          messageId: msg.messageId,
-        }),
-        description: 'MessageRouter inbound',
-      })
-    } catch {}
+      // 0) dedupe
+      if (isDuplicate(msg)) return
 
-    // 7) CustomChat (✅ usando fromForDb)
-    const customChat = await getCustomChat(fromForDb, agentDigits)
-    if (customChat) {
-      await Customchat.create({
-        chats_id: customChat.chats_id,
-        reg: customChat.reg,
-        cellphone: customChat.cellphone,
-        cellphoneserialized: customChat.cellphoneserialized,
-        chatnumber: customChat.chatnumber,
-        returned: true,
-        viewed: false,
-        response: msg.body,
-        path_media: '',
-      })
+      // 1) ignores
+      if (shouldIgnoreInbound(msg)) return
 
-      await Talk.create({
-        chat_id: customChat.chats_id,
-        reg: customChat.reg,
-        cellphone: fromForDb, // ✅ grava no padrão do DB
-        chatnumber: msg.to,
-        message_ack: null,
-        message: (msg.body || '').slice(0, 999),
-        type: 'from',
-      })
+      // 2) ctx
+      const ctx = makeCtx(msg)
 
-      return
-    }
+      // 3) groups
+      if (msg.isGroup) return
 
-    // 8) Chat existente (✅ usando fromForDb)
-    const chat = await getChat(fromForDb, agentDigits)
-    if (chat) {
-      await Talk.create({
-        chat_id: chat.id,
-        reg: chat.reg,
-        cellphone: fromForDb, // ✅ grava no padrão do DB
-        chatnumber: msg.to,
-        message_ack: null,
-        message: (msg.body || '').slice(0, 999),
-        type: 'from',
-      })
+      // 4) internal agents
+      if (ctx.fromDigits && (await isInternalAgentByDigits(ctx.fromDigits))) return
 
-      // ✅ dispatch por interaction_id
-      if (chat.interaction_id === 1) {
-        await ConfirmSchedule(ctx, chat)
+      // 5) anti-loop
+      if (isBotLoopDetected(ctx.fromResolvedJid)) return
+
+      // 6) media
+      if (msg.hasMedia) {
+        await ctx.reply('Por favor envie apenas texto.')
         return
       }
 
-      if (chat.interaction_id === 2) {
-        await ServiceEvaluation(ctx, chat)
+      // 7) agent digits
+      const agent = await Agent.findOrFail(msg.agentId)
+      const agentDigits = onlyDigits(agent.number_phone)
+
+      // 8) *** SERIALIZAÇÃO CRÍTICA ***
+      const fromForDb = ctx.fromResolvedJid // já é sempre @c.us do provider
+      console.log("SERIALIZAÇÃO &&&&&&&&&&&&&&&&>>>>>>", fromForDb)
+
+      // 9) SAVE TALK (EARLY)
+      await Talk.create({
+        cellphone: fromForDb,
+        chatnumber: agentDigits,
+        message: (msg.body || '').slice(0, 999),
+        message_ack: null,
+        type: 'from',
+      })
+
+      // 10) CUSTOMCHAT
+      const customChat = await getCustomChat(fromForDb, agentDigits)
+      if (customChat) {
+        await Customchat.create({
+          chats_id: customChat.chats_id,
+          reg: customChat.reg,
+          cellphone: fromForDb,
+          cellphoneserialized: fromForDb,
+          chatnumber: agentDigits,
+          returned: true,
+          response: msg.body,
+        })
         return
       }
 
-      await ctx.reply('Interação não reconhecida.')
-      return
-    }
+      // 11) CHAT EXISTENTE
+      const chat = await getChat(fromForDb, agentDigits)
+      if (chat) {
+        await Talk.create({
+          chat_id: chat.id,
+          reg: chat.reg,
+          cellphone: fromForDb,
+          chatnumber: agentDigits,
+          message: (msg.body || '').slice(0, 999),
+          message_ack: null,
+          type: 'from',
+        })
 
-    // 9) Sem chat: por enquanto
-    await ctx.reply('Recebi sua mensagem. (fluxo novo ainda não implementado aqui)')
+        if (chat.interaction_id === 1) {
+          await ConfirmSchedule(ctx, chat)
+          return
+        }
+
+        if (chat.interaction_id === 2) {
+          await ServiceEvaluation(ctx, chat)
+          return
+        }
+
+        await ctx.reply('Interação não reconhecida.')
+        return
+      }
+
+      // 12) fallback
+      await ctx.reply('Recebi sua mensagem.')
+    } catch (e) {
+      console.error('Router ERROR', e)
+      throw e
+    }
   }
 }

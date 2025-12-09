@@ -93,6 +93,9 @@ export async function ConfirmSchedule(ctx: InboundContext, chat: Chat) {
         company_id: (chat as any).shippingcampaign?.company_id,
       })
 
+      console.log("CHAT$$$$$$$$$$$$$$$$$%%%%>>", chat)
+
+
       await chat.save()
     } catch (error: any) {
       console.error('Erro ao enviar a mensagem de agendamento:', error?.message, error?.stack)

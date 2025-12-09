@@ -1,5 +1,7 @@
+// app/Services/whatsapp/core/InboundContext.ts
+
 import { WaInboundMessage } from './IWhatsAppProvider'
-import whatsAppEngine from './whatsappengine'
+import whatsAppEngine from './WhatsAppEngine'
 
 export type InboundContext = {
   msg: WaInboundMessage
@@ -14,44 +16,28 @@ export type InboundContext = {
   typing: () => Promise<void>
 
   // util
-  fromResolvedJid: string   // p/ DB: fromPhoneJid ?? from (preferir @c.us)
-  fromDigits: string        // 5531...
-}
-
-function onlyDigits(v: any) {
-  return String(v ?? '').replace(/\D/g, '')
-}
-
-function toCusJid(digits: string) {
-  return digits ? `${digits}@c.us` : ''
+  fromResolvedJid: string   // SEMPRE algo tipo 5531...@c.us
+  fromDigits: string        // somente dígitos (para anti-loop / agentes internos)
 }
 
 export function makeCtx(msg: WaInboundMessage): InboundContext {
-  // 1) resolve jid "melhor" (se o provider conseguiu converter lid -> c.us)
-  const fromResolvedJid = (msg.fromPhoneJid || msg.from) as string
+  // 1) prioriza o que o provider já resolveu (fromPhoneJid)
+  // 2) senão, usa msg.from (do wwebjs, que também já vem @c.us)
+  const baseJid = (msg.fromPhoneJid || msg.from || '').trim()
 
-  // 2) dígitos do remetente (para fallback)
-  const fromDigits =
-    (msg.fromDigits || onlyDigits(fromResolvedJid) || '').trim()
+  // garantir que não vamos mutilar o JID
+  const fromResolvedJid = baseJid
 
-  // 3) destino de reply (sempre que possível: @c.us)
-  // - se já for @c.us, usa ele
-  // - se for @lid (ou algo diferente), tenta montar digits@c.us
-  const replyTo =
-    fromResolvedJid?.endsWith('@c.us')
-      ? fromResolvedJid
-      : (toCusJid(fromDigits) || fromResolvedJid)
+  // dígitos só para lógica de comparação (NUNCA salvar isso em cellphoneserialized)
+  const fromDigits = msg.fromDigits || fromResolvedJid.replace(/\D/g, '') || ''
 
   return {
     msg,
     fromResolvedJid,
     fromDigits,
 
-    // ✅ responde no padrão certo (resolve problema de @lid)
-    reply: (text) => whatsAppEngine.sendText(msg.agentId, replyTo, text),
-
+    reply: (text) => whatsAppEngine.sendText(msg.agentId, msg.from, text),
     sendText: (to, text) => whatsAppEngine.sendText(msg.agentId, to, text),
-
     typing: async () => {}, // depois você implementa "digitando" por provider, se quiser
   }
 }

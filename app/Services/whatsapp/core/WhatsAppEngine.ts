@@ -146,6 +146,17 @@ class WhatsAppEngine {
     console.log('[WhatsAppEngine] Agent desconectado:', { agentId, reason })
     // aqui depois podemos sincronizar com tabela agents, logs, etc.
   }
+
+  public async handleWebhook(agentId: number, payload: any): Promise<void> {
+    const provider = await this.getOrCreateProvider(agentId)
+
+    if (!provider.ingestWebhook) {
+      throw new Error(`[WhatsAppEngine] Provider não suporta webhook: agentId=${agentId}`)
+    }
+
+    await provider.ingestWebhook(agentId, payload)
+  }
+
 }
 
 const whatsAppEngine = new WhatsAppEngine()

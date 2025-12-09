@@ -10,22 +10,19 @@ import { Client, LocalAuth, Message, MessageMedia } from 'whatsapp-web.js'
 import fs from 'fs'
 import path from 'path'
 
-import ChatMonitoring from 'App/Services/whatsapp-web/ChatMonitoring/ChatMonitoring'
-import ChatMonitoringInternal from 'App/Services/whatsapp-web/ChatMonitoring/ChatMonitoringInternal'
-
 const qrcodeTerminal = require('qrcode-terminal')
 const qrcode = require('qrcode')
 
 export default class WWebJSProvider implements IWhatsAppProvider {
   public kind: ProviderKind = 'wwebjs'
 
-  // Mapeia agentId -> Client
+  // agentId -> Client
   private clients = new Map<number, Client>()
 
   // Callbacks registrados pelo WhatsAppEngine
-  private onMessageCb: (msg: WaInboundMessage) => Promise<void> = async () => { }
-  private onAckCb: (ack: WaAck) => Promise<void> = async () => { }
-  private onDisconnectedCb: (agentId: number, reason: string) => Promise<void> = async () => { }
+  private onMessageCb: (msg: WaInboundMessage) => Promise<void> = async () => {}
+  private onAckCb: (ack: WaAck) => Promise<void> = async () => {}
+  private onDisconnectedCb: (agentId: number, reason: string) => Promise<void> = async () => {}
 
   public onMessage(cb: (msg: WaInboundMessage) => Promise<void>): void {
     this.onMessageCb = cb
@@ -39,33 +36,49 @@ export default class WWebJSProvider implements IWhatsAppProvider {
     this.onDisconnectedCb = cb
   }
 
-  /**
-   * Extrai apenas os dígitos de um número (5531999999999)
-   */
-  private extractDigits(v: any): string {
-    if (!v) return ''
+  // ==========================================================
+  // Utils
+  // ==========================================================
+  private onlyDigits(v: any): string {
     return String(v ?? '').replace(/\D/g, '')
   }
 
   /**
-   * Resolve o chatId correto:
-   *
-   * CASO 1: já é um JID válido:
-   *   - *@c.us
-   *   - *@lid
-   *   - *@g.us
-   *   - *@broadcast
-   *   => usa direto, sem chamar getNumberId
-   *
-   * CASO 2: entrada "humana" (apenas dígitos ou número formatado):
-   *   => extrai dígitos, usa client.getNumberId(digits) e pega _serialized
+   * Resolve JID -> phoneJid/digits quando vier @lid
+   * - @c.us => retorna o próprio
+   * - @lid  => tenta getContactLidAndPhone([jid]) e retorna pn (ex: 5531...@c.us)
+   */
+  private async resolveJid(client: Client, jid: string) {
+    if (!jid) return { jid, phoneJid: null as string | null, digits: '' }
+
+    if (jid.endsWith('@c.us')) {
+      return { jid, phoneJid: jid, digits: this.onlyDigits(jid) }
+    }
+
+    if (jid.endsWith('@lid')) {
+      try {
+        const result = await (client as any).getContactLidAndPhone([jid])
+        const pn: string | null = result?.[0]?.pn || null
+        return { jid, phoneJid: pn, digits: this.onlyDigits(pn) }
+      } catch {
+        return { jid, phoneJid: null, digits: '' }
+      }
+    }
+
+    // outros tipos
+    return { jid, phoneJid: null, digits: this.onlyDigits(jid) }
+  }
+
+  /**
+   * Resolve o chatId correto para envio:
+   * - se já for JID (c.us/lid/g.us/broadcast), usa direto
+   * - se for número, usa getNumberId
    */
   private async resolveChatId(client: Client, to: string): Promise<string> {
     if (!to) throw new Error('Destino (to) vazio')
 
     let v = String(to).trim()
 
-    // CASO 1: JID recebido do WhatsApp ou salvo no banco (@c.us / @lid / @g.us / @broadcast)
     if (
       v.endsWith('@c.us') ||
       v.endsWith('@lid') ||
@@ -75,29 +88,26 @@ export default class WWebJSProvider implements IWhatsAppProvider {
       return v
     }
 
-    // CASO 2: entrada humana, remove qualquer sufixo e resolve via getNumberId
     v = v.replace(/@.*/g, '')
-    const digits = this.extractDigits(v)
-
-    if (!digits) {
-      throw new Error(`Não foi possível extrair dígitos válidos de: ${to}`)
-    }
+    const digits = this.onlyDigits(v)
+    if (!digits) throw new Error(`Não foi possível extrair dígitos válidos de: ${to}`)
 
     const numberId = await client.getNumberId(digits)
+    if (!numberId) throw new Error(`Número não registrado no WhatsApp: ${digits}`)
 
-    if (!numberId) {
-      throw new Error(`Número não registrado no WhatsApp: ${digits}`)
-    }
-
-    // Ex: "5531999999999@c.us" ou "xxxxxx@lid"
     return numberId._serialized
   }
 
-  /**
-   * Inicia o client para um agente (engine)
-   * Usa pasta separada: tmp/sessions-engine/session-<agentId>
-   */
+  // ==========================================================
+  // Lifecycle
+  // ==========================================================
   public async start(agentId: number): Promise<void> {
+    // ✅ evita start duplicado (isso causa listener duplicado e mensagens duplicadas)
+    if (this.clients.has(agentId)) {
+      console.log(`[WWebJSProvider][${agentId}] start() ignorado: client já existe para este agentId`)
+      return
+    }
+
     console.log(`[WWebJSProvider] Inicializando client para agentId: ${agentId}`)
 
     const sessionsDir = Application.tmpPath('sessions-engine')
@@ -107,9 +117,7 @@ export default class WWebJSProvider implements IWhatsAppProvider {
 
     const singletonLock = path.join(sessionDir, 'SingletonLock')
     if (fs.existsSync(singletonLock)) {
-      console.log(
-        `[WWebJSProvider][${agentId}] Removendo SingletonLock antigo em sessions-engine...`
-      )
+      console.log(`[WWebJSProvider][${agentId}] Removendo SingletonLock antigo...`)
       fs.unlinkSync(singletonLock)
     }
 
@@ -139,20 +147,23 @@ export default class WWebJSProvider implements IWhatsAppProvider {
         'https://raw.githubusercontent.com/wppconnect-team/wa-version/refs/heads/main/html/2.3000.1026075099-alpha.html',
     })
 
-    // ===== Eventos principais =====
+    // registra ANTES do initialize (pra não perder eventos)
+    this.clients.set(agentId, client)
 
+    // ----------------------------------------------------------
+    // Eventos
+    // ----------------------------------------------------------
     client.on('loading_screen', (percent, message) => {
       console.log(`[WWebJSProvider][${agentId}] LOADING ${percent} ${message}`)
     })
 
     client.on('qr', async (qrValue) => {
-      console.log(`[WWebJSProvider][${agentId}] QR code recebido (engine).`)
+      console.log(`[WWebJSProvider][${agentId}] QR code recebido.`)
 
       try {
         const agent = await Agent.find(agentId)
         if (agent) {
           const url = await qrcode.toDataURL(qrValue)
-
           agent.status = 'Qrcode required'
           agent.statusconnected = false
           agent.qrcode = url
@@ -177,11 +188,27 @@ export default class WWebJSProvider implements IWhatsAppProvider {
           await agent.save()
         }
       } catch (e) {
-        console.error(
-          `[WWebJSProvider][${agentId}] Erro ao atualizar agent em AUTHENTICATED:`,
-          e
-        )
+        console.error(`[WWebJSProvider][${agentId}] Erro em AUTHENTICATED:`, e)
       }
+    })
+
+    // ✅ importante: quando falha auth (senha, sessão quebrada, etc.)
+    client.on('auth_failure', async (msg) => {
+      console.error(`[WWebJSProvider][${agentId}] AUTH_FAILURE =>`, msg)
+
+      try {
+        const agent = await Agent.find(agentId)
+        if (agent) {
+          agent.status = 'Auth failure'
+          agent.statusconnected = false
+          await agent.save()
+        }
+      } catch {}
+    })
+
+    // ✅ útil pra diagnosticar quedas (CONNECTED / OPENING / PAIRING / etc.)
+    client.on('change_state', async (state) => {
+      console.log(`[WWebJSProvider][${agentId}] STATE =>`, state)
     })
 
     client.on('ready', async () => {
@@ -205,32 +232,57 @@ export default class WWebJSProvider implements IWhatsAppProvider {
           await agent.save()
         }
       } catch (e) {
-        console.error(`[WWebJSProvider][${agentId}] Erro ao atualizar agent em READY:`, e)
+        console.error(`[WWebJSProvider][${agentId}] Erro em READY:`, e)
       }
     })
 
+    /**
+     * ✅ RECEBIMENTO -> Engine/Router
+     * Normaliza:
+     * - @lid -> fromPhoneJid + fromDigits
+     * - grupos: isGroup + authorDigits
+     */
     client.on('message', async (message: Message) => {
       try {
-        const from = message.from
-        const to = message.to
+        const isGroup = !!message.from?.endsWith('@g.us')
+
+        const resolvedFrom = await this.resolveJid(client, message.from)
+        const resolvedAuthor =
+          isGroup && message.author ? await this.resolveJid(client, message.author) : null
 
         const inbound: WaInboundMessage = {
           provider: this.kind,
           agentId,
-          from,
-          to,
+          from: message.from,
+          to: message.to,
           body: message.body || '',
           hasMedia: !!message.hasMedia,
-          messageId: message.id?._serialized || `${from}-${message.timestamp}`,
+          messageId: message.id?._serialized || `${message.from}-${message.timestamp}`,
           timestamp: (message.timestamp || Date.now() / 1000) * 1000,
           raw: message,
+
+          // extras pro Router
+          isGroup,
+          author: isGroup ? (message.author || null) : null,
+          fromPhoneJid: resolvedFrom.phoneJid,
+          fromDigits: isGroup
+            ? ''
+            : (resolvedFrom.digits || this.onlyDigits(message.from)),
+          authorDigits: isGroup
+            ? (resolvedAuthor?.digits || this.onlyDigits(message.author))
+            : '',
         }
 
-        console.log('[WhatsAppEngine] Mensagem recebida (router) WEBJS:', {
+        console.log('[WhatsAppEngine] Inbound WEBJS:', {
           provider: inbound.provider,
           agentId: inbound.agentId,
           from: inbound.from,
           to: inbound.to,
+          fromPhoneJid: inbound.fromPhoneJid,
+          fromDigits: inbound.fromDigits,
+          isGroup: inbound.isGroup,
+          author: inbound.author,
+          authorDigits: inbound.authorDigits,
           body: inbound.body,
           hasMedia: inbound.hasMedia,
           messageId: inbound.messageId,
@@ -244,31 +296,18 @@ export default class WWebJSProvider implements IWhatsAppProvider {
 
     client.on('message_ack', async (msg, ack) => {
       try {
-        const from = msg.from
-        const to = msg.to
-
         const waAck: WaAck = {
           provider: this.kind,
           agentId,
-          from,
-          to,
-          messageId: msg.id?._serialized || `${from}-${msg.timestamp}`,
+          from: msg.from,
+          to: msg.to,
+          messageId: msg.id?._serialized || `${msg.from}-${msg.timestamp}`,
           ack,
           timestamp: (msg.timestamp || Date.now() / 1000) * 1000,
         }
-
-        // console.log('[WhatsAppEngine] ACK recebido:', {
-        //   provider: waAck.provider,
-        //   agentId: waAck.agentId,
-        //   from: waAck.from,
-        //   to: waAck.to,
-        //   messageId: waAck.messageId,
-        //   ack: waAck.ack,
-        // })
-
         await this.onAckCb(waAck)
       } catch (e) {
-        console.error(`[WWebJSProvider][${agentId}] Erro ao processar message_ack:`, e)
+        console.error(`[WWebJSProvider][${agentId}] Erro em message_ack:`, e)
       }
     })
 
@@ -284,10 +323,7 @@ export default class WWebJSProvider implements IWhatsAppProvider {
           await agent.save()
         }
       } catch (e) {
-        console.error(
-          `[WWebJSProvider][${agentId}] Erro ao atualizar agent em DISCONNECTED:`,
-          e
-        )
+        console.error(`[WWebJSProvider][${agentId}] Erro em DISCONNECTED(save agent):`, e)
       }
 
       let reasonText = ''
@@ -303,35 +339,22 @@ export default class WWebJSProvider implements IWhatsAppProvider {
       await this.onDisconnectedCb(agentId, reasonText)
     })
 
-    // ===========================================================
-    // 🔹 LIGANDO O ChatMonitoring antigo AO NOVO ENGINE
-    //    - mesma lógica que você tinha no whatsappConnection.ts
-    //    - continua interceptando resposta de paciente, IA etc.
-    // ===========================================================
-    try {
-      console.log("INICIANDO CHAT MONITORING #####")
-      const chatMonitoring = new ChatMonitoring()
-      await chatMonitoring.monitoring(client)
+    // inicializa (com catch para não falhar silencioso)
+    client.initialize().catch(async (err) => {
+      console.error(`[WWebJSProvider][${agentId}] initialize() falhou:`, err)
+      this.clients.delete(agentId)
 
-      if (process.env.SELF_CONVERSATION?.toLowerCase() === 'true') {
-        const chatMonitoringInternal = new ChatMonitoringInternal()
-        await chatMonitoringInternal.monitoring(client)
-      }
-    } catch (e) {
-      console.error(
-        `[WWebJSProvider][${agentId}] Erro ao iniciar ChatMonitoring / ChatMonitoringInternal:`,
-        e
-      )
-    }
-
-    // registra client no provider e inicializa
-    this.clients.set(agentId, client)
-    client.initialize()
+      try {
+        const agent = await Agent.find(agentId)
+        if (agent) {
+          agent.status = 'Initialize failed'
+          agent.statusconnected = false
+          await agent.save()
+        }
+      } catch {}
+    })
   }
 
-  /**
-   * Para/destrói o client de um agent
-   */
   public async stop(agentId: number): Promise<void> {
     const client = this.clients.get(agentId)
     if (!client) return
@@ -356,9 +379,6 @@ export default class WWebJSProvider implements IWhatsAppProvider {
     }
   }
 
-  /**
-   * Estado atual do client (defensivo)
-   */
   public async getState(agentId: number): Promise<string> {
     const client = this.clients.get(agentId)
     if (!client) return 'DISCONNECTED'
@@ -366,9 +386,7 @@ export default class WWebJSProvider implements IWhatsAppProvider {
     try {
       // @ts-ignore internals
       const pupPage = (client as any).pupPage
-      if (!pupPage) {
-        return 'INITIALIZING'
-      }
+      if (!pupPage) return 'INITIALIZING'
 
       const state = await client.getState()
       return state || 'UNKNOWN'
@@ -378,22 +396,15 @@ export default class WWebJSProvider implements IWhatsAppProvider {
     }
   }
 
-  /**
-   * Envia texto usando o client do agent
-   */
   public async sendText(agentId: number, to: string, text: string): Promise<any> {
     const client = this.clients.get(agentId)
     if (!client) throw new Error(`Client não encontrado para agentId=${agentId}`)
 
     const chatId = await this.resolveChatId(client, to)
     console.log(`[WWebJSProvider][${agentId}] Enviando texto para ${chatId}`)
-
     return client.sendMessage(chatId, text)
   }
 
-  /**
-   * Envia mídia (como documento) com legenda opcional
-   */
   public async sendMedia(
     agentId: number,
     to: string,

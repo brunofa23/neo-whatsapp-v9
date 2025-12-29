@@ -27,6 +27,9 @@ export default class Agent extends BaseModel {
       'qrcode',
       'statusconnected',
       'default_chat',
+      'gupshup_source',
+      'gupshup_src_name',
+      'gupshup_template_id',
       'interaction_priority',
       'deleted',
       'company_id',
@@ -81,6 +84,16 @@ export default class Agent extends BaseModel {
 
   @column()
   public interaction_priority: string // confirmation or evaluation
+
+  @column({ columnName: 'gupshup_source' })
+  public gupshup_source: string
+
+  @column({ columnName: 'gupshup_src_name' })
+  public gupshup_src_name: string
+
+  @column({ columnName: 'gupshup_template_id' })
+  public gupshup_template_id: string
+
 
   @column()
   public deleted: boolean

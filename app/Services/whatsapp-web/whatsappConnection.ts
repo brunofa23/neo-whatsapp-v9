@@ -1,6 +1,6 @@
 import Agent from 'App/Models/Agent'
 import Config from 'App/Models/Config'
-import SendMessage from 'App/Services/whatsapp-web/SendMessage'
+//import SendMessage from 'App/Services/whatsapp-web/SendMessage'
 import { DateTime } from 'luxon'
 import ChatMonitoring from './ChatMonitoring/ChatMonitoring'
 import ChatMonitoringInternal from './ChatMonitoring/ChatMonitoringInternal'
@@ -11,6 +11,8 @@ import Application from '@ioc:Adonis/Core/Application'
 import WhatsAppClientManager from './WhatsAppClientManager'
 import Talk from 'App/Models/Talk'
 import Log from 'App/Models/Log'
+import SendDispatcher from 'App/Services/SendDispatcher'
+
 
 // whatsapp-web.js / qrcode
 const { Client, LocalAuth } = require('whatsapp-web.js')
@@ -76,7 +78,9 @@ function startSendLoop(client: any, agent: Agent) {
       sendLocks.add(agentId)
       const statusSendMessage = await getStatusSendMessage()
       if (statusSendMessage) {
-        await SendMessage(client, agent)
+        //await SendMessage(client, agent)
+        await SendDispatcher({ agent, client })
+
       }
     } catch (e) {
       console.error(`[${agentId}] Erro no loop SendMessage:`, e)

@@ -10,6 +10,8 @@ import { startAgentChat } from "../app/Services/whatsapp-web/whatsapp"
 import { startAgent } from "../app/Services/whatsapp-web/whatsappConnection"
 import '../app/Services/plugins/axios'
 import Log from "App/Models/Log";
+import { startGupshupLoop } from "../app/Services/whatsapp-gupshup/gupshupConnection"
+
 import Chat from "App/Models/Chat";
 import Database from "@ioc:Adonis/Lucid/Database";
 
@@ -20,31 +22,91 @@ async function destroyFullAgents() {
   await destroyAgents.destroyFullAgents()
 }
 
+// async function connectionAll() {
+//   try {
+//     console.log("connection all acionado...")
+//     await Agent.query().update({ statusconnected: false, qrcode: null })
+//     const agents = await Agent.query()
+//       .where('active', true)
+//       .where((q) => q.whereNull('deleted').orWhere('deleted', false))
+
+
+//     for (const agent of agents) {
+//       if (!agent) continue
+
+//       if (agent.default_chat) {
+//         console.log(`Conectando Agente Default: ${agent.name}`)
+//         startAgentChat(agent).catch(console.error)
+//       } else {
+//         console.log(`Conectando Agente Envio: ${agent.name}`)
+//         startAgent(agent).catch(console.error)
+//       }
+//     }
+
+//   } catch (error) {
+//     error
+//   }
+// }
 async function connectionAll() {
   try {
     console.log("connection all acionado...")
+
+    // reseta status visual
     await Agent.query().update({ statusconnected: false, qrcode: null })
+
     const agents = await Agent.query()
       .where('active', true)
       .where((q) => q.whereNull('deleted').orWhere('deleted', false))
 
-
     for (const agent of agents) {
       if (!agent) continue
 
+      const provider = (agent.provider_type || 'wwebjs').toLowerCase()
+
+      // ===============================
+      // AGENTE DEFAULT (CHAT INTERNO)
+      // ===============================
       if (agent.default_chat) {
         console.log(`Conectando Agente Default: ${agent.name}`)
         startAgentChat(agent).catch(console.error)
-      } else {
-        console.log(`Conectando Agente Envio: ${agent.name}`)
-        startAgent(agent).catch(console.error)
+        continue
       }
+
+      // ===============================
+      // AGENTE GUPSHUP (SEM WEBJS)
+      // ===============================
+      if (provider === 'gupshup') {
+        console.log(`Conectando Agente Envio (GUPSHUP): ${agent.name}`)
+
+        // status apenas informativo
+        await Agent.query()
+          .where('id', agent.id)
+          .update({
+            status: 'GUPSHUP',
+            statusconnected: true,
+            qrcode: null,
+          })
+
+        // inicia loop próprio do gupshup (sem client)
+        console.log("PASSEI AQUI 1")
+        startGupshupLoop(agent)
+
+        continue
+      }
+
+      // ===============================
+      // AGENTE WEBJS (PADRÃO)
+      // ===============================
+      console.log(`Conectando Agente Envio (WEBJS): ${agent.name}`)
+      startAgent(agent).catch(console.error)
     }
 
   } catch (error) {
-    error
+    console.error("Erro em connectionAll:", error)
   }
 }
+
+
 
 async function sendRepeatedMessage() {
   console.log("EXECUTANDO BUSCA SMART")

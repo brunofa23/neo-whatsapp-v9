@@ -3,19 +3,20 @@ import { BaseModel, column } from '@ioc:Adonis/Lucid/Orm'
 import { DateTime } from 'luxon'
 
 export default class Agent extends BaseModel {
-
-
   static get connection() {
-    //return 'mysql';
+    // return 'mysql';
     return Env.get('DB_CONNECTION_MAIN')
   }
-
 
   public static get fillable() {
     return [
       'id',
       'name',
       'number_phone',
+
+      // ✅ novo
+      'provider_type',
+
       'interval_init_query',
       'interval_final_query',
       'interval_init_message',
@@ -35,8 +36,6 @@ export default class Agent extends BaseModel {
     ]
   }
 
-
-
   @column({ isPrimary: true })
   public id: number
 
@@ -45,6 +44,10 @@ export default class Agent extends BaseModel {
 
   @column()
   public number_phone: string
+
+  // ✅ Provider (wwebjs | gupshup | both)
+  @column({ columnName: 'provider_type' })
+  public provider_type: string
 
   @column()
   public interval_init_query: number
@@ -77,16 +80,16 @@ export default class Agent extends BaseModel {
   public default_chat: boolean
 
   @column()
-  public interaction_priority:string //confirmation or evaluation
+  public interaction_priority: string // confirmation or evaluation
 
   @column()
   public deleted: boolean
 
   @column()
-  public company_id:number
+  public company_id: number
 
   @column()
-  public obs:string
+  public obs: string
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime

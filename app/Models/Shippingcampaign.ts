@@ -1,14 +1,11 @@
 import { BaseModel, column, hasOne, HasOne } from '@ioc:Adonis/Lucid/Orm'
 import { DateTime } from 'luxon'
 
-import Chat from './Chat';
+import Chat from './Chat'
 import Env from '@ioc:Adonis/Core/Env'
 
-
 export default class Shippingcampaign extends BaseModel {
-
   static get connection() {
-    //return 'mysql';
     return Env.get('DB_CONNECTION_MAIN')
   }
 
@@ -25,6 +22,10 @@ export default class Shippingcampaign extends BaseModel {
       'cellphoneserialized',
       'message',
       'otherfields',
+
+      // ✅ NOVO
+      'gupshup_params',
+
       'phonevalid',
       'messagesent',
       'dateshedule',
@@ -44,7 +45,7 @@ export default class Shippingcampaign extends BaseModel {
       'type_service',
       'created_at',
       'updated_at',
-      'filePath'
+      'filePath',
     ]
   }
 
@@ -61,7 +62,7 @@ export default class Shippingcampaign extends BaseModel {
   public idexternal: number
 
   @column()
-  public idexternal_array:string
+  public idexternal_array: string
 
   @column()
   public reg: number
@@ -81,6 +82,10 @@ export default class Shippingcampaign extends BaseModel {
   @column()
   public otherfields: string
 
+  // ✅ NOVO: sequência/params do template (JSON em texto)
+  @column({ columnName: 'gupshup_params' })
+  public gupshupParams: string
+
   @column()
   public phonevalid: boolean
 
@@ -97,7 +102,7 @@ export default class Shippingcampaign extends BaseModel {
   public unit: string
 
   @column()
-  public unit_cod:string
+  public unit_cod: string
 
   @column()
   public attendant: string
@@ -112,28 +117,28 @@ export default class Shippingcampaign extends BaseModel {
   public prioritysend: boolean
 
   @column()
-  public resend:number
+  public resend: number
 
   @column()
   public excluded: boolean
 
   @column()
-  public justify_excluded:string
+  public justify_excluded: string
 
   @column.dateTime()
-  public date_first_return:DateTime
+  public date_first_return: DateTime
 
   @column()
-  public company_id:number
+  public company_id: number
 
   @column()
-  public phone_unit:string
+  public phone_unit: string
 
   @column()
-  public type_service:string
+  public type_service: string
 
-  @column()
-  public file_path:string
+  @column({ columnName: 'file_path' })
+  public file_path: string
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
@@ -141,10 +146,8 @@ export default class Shippingcampaign extends BaseModel {
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   public updatedAt: DateTime
 
-
-
   @hasOne(() => Chat, {
-    foreignKey: 'shippingcampaigns_id'
+    foreignKey: 'shippingcampaigns_id',
   })
   public chat: HasOne<typeof Chat>
 }

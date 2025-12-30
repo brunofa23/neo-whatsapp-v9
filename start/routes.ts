@@ -59,7 +59,7 @@ Route.group(() => {
 
   //Executa busca no Smart
   Route.get('/executequery', async ({ request }) => {
-    const { unit, date, interaction_id } = request.only(['unit', 'date','interaction_id'])
+    const { unit, date, interaction_id } = request.only(['unit', 'date', 'interaction_id'])
     const dateQuery = DateTime.fromFormat(date, 'yyyy-MM-dd', { zone: 'America/Sao_Paulo' });
     console.log("EXECUTANDO BUSCA NO SMART", dateQuery)
 
@@ -160,6 +160,10 @@ Route.group(() => {
 
   //MAINSUBJECT
   Route.resource('/mainsubjects', 'MainsubjectsController').apiOnly()
+
+  // start/routes.ts
+  Route.post('/webhooks/gupshup', 'Webhooks/GupshupWebhookController.handle')
+
 
 }).prefix('/api')
 

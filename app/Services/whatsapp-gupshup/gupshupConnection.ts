@@ -36,7 +36,6 @@ export function stopGupshupLoop(agentId: number) {
 export function startGupshupLoop(agent: Agent) {
   const agentId = agent.id
 
-  console.log("PASSEI AQUI 2")
   // mata loop anterior
   stopGupshupLoop(agentId)
 
@@ -49,7 +48,7 @@ export function startGupshupLoop(agent: Agent) {
       if (statusSendMessage) {
         // ✅ chama dispatcher sem client
         await SendDispatcher({ agent, client: null })
-        console.log("VERIFICANDO SE TEM ID TEMPLATE")
+        //console.log("VERIFICANDO SE TEM ID TEMPLATE")
       }
     } catch (e) {
       console.error(`[${agentId}] Erro no loop Gupshup:`, e)

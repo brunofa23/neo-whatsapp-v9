@@ -162,7 +162,7 @@ Route.group(() => {
   Route.resource('/mainsubjects', 'MainsubjectsController').apiOnly()
 
   // start/routes.ts
-  Route.post('/webhooks/gupshup', 'Webhooks/GupshupWebhookController.handle')
+  Route.post('/webhooks/gupshup', 'GupshupWebhooksController.handle')
 
 
 }).prefix('/api')

@@ -44,15 +44,13 @@ function safeParseParams(jsonText: string): string[] {
 
 export default async function SendFromQueueGupshup(agent: Agent) {
   try {
-    console.log("PASSO 1")
+
     // horário permitido
     if ((await TimeSchedule()) === false) return
 
     // pega próxima campanha (sua regra central)
-    console.log("PASSO 2")
     const shippingCampaign = await shippingcampaignsController.patientToSend(agent)
     if (!shippingCampaign) return
-    console.log("PASSO 2.1")
 
     // chave do canal (equivalente ao wid.user do wwebjs)
     const chatnumberKey = onlyDigits(agent.gupshup_source || '')
@@ -65,12 +63,10 @@ export default async function SendFromQueueGupshup(agent: Agent) {
       return
     }
 
-    console.log("PASSO 3")
+
     // limite diário (mesma lógica do seu SendMessage atual)
      const totMessageSend = await shippingcampaignsController.maxLimitSendMessage(agent)
      const maxLimitSendAgent = agent.max_limit_message || 0
-
-    console.log("PASSO 3.1", maxLimitSendAgent)
     if (
       totMessageSend >= maxLimitSendAgent &&
       (shippingCampaign?.prioritysend === null ||
@@ -83,7 +79,7 @@ export default async function SendFromQueueGupshup(agent: Agent) {
       return
     }
 
-    console.log("PASSO 4")
+
     // evita enviar repetido pro mesmo paciente em 5 dias
     if (!shippingCampaign.prioritysend) {
       const already = await verifyClientSend(chatnumberKey, shippingCampaign.cellphone)
@@ -94,7 +90,7 @@ export default async function SendFromQueueGupshup(agent: Agent) {
     const chatExists = await verifyChatAlreadySaved(shippingCampaign)
     if (chatExists) return
 
-    console.log("PASSO 5")
+
     // destination vem do seu persist já limpo
     const destination = onlyDigits(shippingCampaign.cellphone)
     if (!destination) {
@@ -130,7 +126,6 @@ export default async function SendFromQueueGupshup(agent: Agent) {
       return
     }
 
-    console.log("PASSO 5.1==", params)
     // ✅ envia template via gupshup
     const response = await SendMessageGupshup({
       agent,

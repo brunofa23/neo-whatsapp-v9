@@ -735,7 +735,6 @@ export default class ShippingcampaignsController {
     else
       query.orderByRaw('RAND()').limit(10)
 
-    console.log(query.toQuery())
     const shippingCampaign = await query.first()
     return shippingCampaign
   }

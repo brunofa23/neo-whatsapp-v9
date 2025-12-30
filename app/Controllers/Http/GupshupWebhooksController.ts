@@ -9,6 +9,12 @@ export default class GupshupWebhookController {
   public async handle({ request, response }: HttpContextContract) {
     const payload = request.all()
 
+    console.log("passei no handle")
+
+    // ✅ AQUI: mostra exatamente o que chegou
+    console.log('=== GUPSHUP WEBHOOK RECEBIDO ===')
+    console.log(JSON.stringify(payload, null, 2))
+    console.log('=== FIM ===')
     // ✅ importante: responder 200 rápido
     response.status(200).send({ ok: true })
 
@@ -21,38 +27,32 @@ export default class GupshupWebhookController {
 }
 
 // ajuste conforme o payload real que você recebe do Gupshup
-function parseInbound(payload: any): MessageLike | null {
-  // Exemplos comuns:
-  // payload.payload?.sender?.phone
-  // payload.payload?.source
-  // payload.payload?.payload?.text
-  // payload.payload?.payload?.type
+function parseInbound(payload: any) {
+  if (payload?.type !== 'message') return null
 
-  const from = payload?.payload?.sender?.phone || payload?.payload?.source || payload?.sender?.phone
-  const to = payload?.payload?.destination || payload?.payload?.app || payload?.destination
+  const from =
+    payload?.payload?.source ||
+    payload?.payload?.sender?.phone
+
+  const to =
+    payload?.payload?.destination ||
+    payload?.payload?.app
 
   const text =
-    payload?.payload?.payload?.text ||
-    payload?.payload?.message?.text ||
-    payload?.message?.text ||
-    payload?.text ||
-    ''
+    payload?.payload?.payload?.text || ''
 
   const type =
-    payload?.payload?.payload?.type ||
-    payload?.payload?.type ||
-    payload?.type ||
-    'text'
+    payload?.payload?.type || 'text'
 
-  const hasMedia = type !== 'text' && type !== 'quick_reply' && type !== 'button_reply'
+  const hasMedia = type !== 'text'
 
   if (!from) return null
 
   return {
     from: String(from),
     to: String(to || ''),
-    body: String(text || ''),
+    body: String(text),
     hasMedia,
-    raw: payload,
+    raw: payload
   }
 }

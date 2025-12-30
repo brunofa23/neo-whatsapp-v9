@@ -3,7 +3,7 @@ import Chat from 'App/Models/Chat'
 import Talk from 'App/Models/Talk'
 import Log from 'App/Models/Log'
 import { DateTime } from 'luxon'
-import ConfirmSchedule from 'App/Services/whatsapp-web/ConfirmSchedule' // reaproveita
+import ConfirmSchedule from '../whatsapp-web/ChatMonitoring/ConfirmSchedule'
 import { MessageLike } from './types'
 import GupshupSender from './GupshupSender'
 

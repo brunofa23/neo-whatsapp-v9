@@ -3,16 +3,25 @@ import Chat from 'App/Models/Chat'
 import Talk from 'App/Models/Talk'
 import Log from 'App/Models/Log'
 import { DateTime } from 'luxon'
-import ConfirmSchedule from '../whatsapp-web/ChatMonitoring/ConfirmSchedule'
-import { MessageLike } from './types'
-import GupshupSender from './GupshupSender'
+
+
+// ✅ ConfirmSchedule exclusivo do Gupshup (sem whatsapp-web.js)
+import ConfirmScheduleGupshup from './ConfirmScheduleGupshup'
 
 function onlyDigits(v: any) {
   return String(v ?? '').replace(/\D/g, '')
 }
 
+/**
+ * Busca o chat pendente (mesma regra usada no whatsapp-web.js):
+ * - celular do paciente (cellphoneserialized)
+ * - número do agente/WABA (chatnumber)
+ * - último registro
+ * - response ainda nula (pendente)
+ */
 async function getChat(cellphone: string, agentPhone: string) {
   const phoneAgent = onlyDigits(agentPhone)
+
   return await Chat.query()
     .preload('shippingcampaign')
     .where('cellphoneserialized', cellphone)
@@ -23,55 +32,67 @@ async function getChat(cellphone: string, agentPhone: string) {
 }
 
 export default class GupshupMonitoring {
-  private sender = new GupshupSender()
-
-  public async handleInbound(message: MessageLike) {
+  /**
+   * Entrada única do webhook (MessageLike já parseado)
+   */
+  public async handleInbound(message: any) {
     const fromDigits = onlyDigits(message.from)
     const toDigits = onlyDigits(message.to)
+    const body = String(message.body || '')
+    const hasMedia = !!message.hasMedia
 
-    // logzinho básico pra depurar
+    // ✅ log rápido pra depuração
     await Log.create({
       name: 'gupshup_inbound',
-      message: JSON.stringify({ from: message.from, to: message.to, body: message.body?.slice?.(0, 120) }),
+      message: JSON.stringify({
+        at: DateTime.now().toISO(),
+        from: fromDigits,
+        to: toDigits,
+        body: body.slice(0, 200),
+        hasMedia,
+      }),
       description: 'GUPSHUP WEBHOOK INBOUND',
     })
 
-    // salva talk do inbound
+    // ✅ registra inbound no talk
     await Talk.create({
       cellphone: fromDigits,
       chatnumber: toDigits,
-      message: (message.body || '').slice(0, 999),
+      message: body.slice(0, 999),
       type: 'from',
     })
 
+    // ✅ tenta localizar chat pendente
     const chat = await getChat(fromDigits, toDigits)
 
+    console.log('GUPSHUP MONITORING => chat encontrado?', !!chat, 'from', fromDigits, 'to', toDigits)
+
     if (!chat) {
-      // aqui você decide: ignora, responde padrão, ou cai no seu fluxo de IA depois
+      // aqui você pode escolher:
+      // 1) ignorar
+      // 2) responder "não encontrei campanha ativa"
+      // 3) cair no seu fluxo de IA
       return
     }
 
-    // CHAVE: chamar seu handler existente, mas sem client do whatsapp-web.js
-    // vamos passar um "client fake" só com sendMessage
-    const clientLike = {
-      sendMessage: async (to: string, text: string) => this.sender.sendText(to, text),
-    } as any
-
-    // adaptar "message.from" e "message.to" pro formato que seu handler espera
-    const msgLikeForConfirm = {
-      from: fromDigits,      // você pode manter como digits
-      to: toDigits,
-      body: message.body,
-      hasMedia: message.hasMedia,
-    } as any
-
-    // fluxo 1 (confirm schedule)
+    // ✅ apenas fluxo 1 por enquanto
     if (chat.interaction_id === 1) {
-      await ConfirmSchedule(clientLike, msgLikeForConfirm, chat)
+      console.log("PASSEI AQUI@@@@@@@@@@@@@@@@@", fromDigits, "-",toDigits,'"-"',body, "hasmedia",hasMedia, "chat:")
+      await ConfirmScheduleGupshup(
+        {
+          from: fromDigits,
+          to: toDigits,
+          body,
+          hasMedia,
+        },
+        chat
+      )
       return
     }
 
-    // outros fluxos depois…
-    // if (chat.interaction_id === 2) ...
+    // ✅ preparado pros próximos fluxos (quando você quiser)
+    // if (chat.interaction_id === 2) {
+    //   await ServiceEvaluationGupshup({ from: fromDigits, to: toDigits, body, hasMedia }, chat)
+    // }
   }
 }

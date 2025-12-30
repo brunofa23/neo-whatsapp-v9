@@ -48,8 +48,8 @@ export function startGupshupLoop(agent: Agent) {
       const statusSendMessage = await getStatusSendMessage()
       if (statusSendMessage) {
         // ✅ chama dispatcher sem client
-        console.log("PASSEI AQUI 3")
         await SendDispatcher({ agent, client: null })
+        console.log("VERIFICANDO SE TEM ID TEMPLATE")
       }
     } catch (e) {
       console.error(`[${agentId}] Erro no loop Gupshup:`, e)

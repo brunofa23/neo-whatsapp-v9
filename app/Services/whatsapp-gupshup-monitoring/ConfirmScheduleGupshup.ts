@@ -74,6 +74,7 @@ async function sendTextAndLog(params: {
  * - Usa Chat/Response/Talk + interpretAnswer
  */
 export default async function ConfirmScheduleGupshup(inbound: GupshupInbound, chat: Chat) {
+  console.log("PASSO 1 CONFIRM SCHEDULE")
   const fromDigits = String(inbound.from || '').replace(/\D/g, '')
   const toDigits = String(inbound.to || '').replace(/\D/g, '')
   const body = String(inbound.body || '')
@@ -109,6 +110,7 @@ export default async function ConfirmScheduleGupshup(inbound: GupshupInbound, ch
   // =========================
   // 1) CONFIRMOU
   // =========================
+
   if (answer?.code === 1) {
     // Busca mensagem personalizada (se existir)
     const response1schedule = await Response.query()

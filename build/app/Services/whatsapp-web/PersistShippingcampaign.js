@@ -16,46 +16,55 @@ function isIterable(obj) {
     }
 }
 exports.default = async (date, prioritysend = false, interaction_id = 0, unit_cod = 0) => {
+    if (!date || typeof date !== 'string')
+        return [];
+    const asText = (v) => (v == null ? '' : String(v)).trim();
+    const onlyDigits = (v) => asText(v).replace(/\D+/g, '');
     const dataSourceList = await new DatasourcesController_1.default().DataSource(date, interaction_id, unit_cod);
     const patientList = [];
     if (!isIterable(dataSourceList)) {
-        console.log("Algum erro ocorrido, não é iterable", dataSourceList);
-        return;
+        console.log("Algum erro ocorrido, não é iterable", typeof dataSourceList);
+        return [];
     }
+    const since = luxon_1.DateTime.now()
+        .setZone('America/Sao_Paulo')
+        .minus({ days: 5 })
+        .startOf('day')
+        .toJSDate();
     for (const data of dataSourceList) {
         try {
+            if (!data?.reg || !data?.interaction_id)
+                continue;
             const shipping = new Shippingcampaign_1.default();
             shipping.interaction_id = data.interaction_id;
             shipping.interaction_seq = data.interaction_seq;
             shipping.reg = data.reg;
             shipping.dateshedule = data.agm_hini;
             shipping.idexternal = data.idexternal;
-            shipping.name = String(data.name).trim();
-            shipping.cellphone = String(data.cellphone).replace(/[^0-9]+/g, '');
-            if (!await (0, util_1.ValidatePhone)(data.cellphone))
-                shipping.phonevalid = false;
+            shipping.name = asText(data.name);
+            const phone = onlyDigits(data.cellphone);
+            shipping.cellphone = phone;
+            const normalized = await (0, util_1.ValidatePhone)(phone);
+            shipping.phonevalid = normalized ? true : null;
             shipping.messagesent = false;
-            shipping.message = String(data.message).replace(/@p[0-9]/g, '?');
-            shipping.otherfields = data.otherfields;
-            shipping.doctor = String(data.doctor).trim();
-            shipping.unit = String(data.unit).trim();
-            shipping.unit_cod = String(data.unit_cod).trim();
-            shipping.attendant = String(data.attendant).trim();
+            shipping.message = asText(data.message).replace(/@p[0-9]/g, '?');
+            shipping.otherfields = data.otherfields ?? null;
+            shipping.doctor = asText(data.doctor);
+            shipping.unit = asText(data.unit);
+            shipping.unit_cod = asText(data.unit_cod);
+            shipping.attendant = asText(data.attendant);
             shipping.covenant = '';
             shipping.dateservice = data.dateservice;
             shipping.company_id = data.company_id;
             shipping.phone_unit = data.phone_unit;
             shipping.type_service = data.type_service;
-            shipping.prioritysend = prioritysend ? true : false;
-            shipping.file_path = data.file_path;
-            const yesterday = luxon_1.DateTime.now()
-                .setZone('America/Sao_Paulo')
-                .minus({ days: 5 })
-                .toFormat('yyyy-MM-dd');
+            shipping.prioritysend = !!prioritysend;
+            shipping.file_path = data.file_path ?? null;
+            shipping.gupshupParams = data.gupshup_params ?? null;
             const verifyExist = await Shippingcampaign_1.default.query()
-                .where('reg', '=', data.reg)
-                .andWhere('created_at', '>=', yesterday)
-                .andWhere('interaction_id', '=', data.interaction_id)
+                .where('reg', data.reg)
+                .andWhere('created_at', '>=', since)
+                .andWhere('interaction_id', data.interaction_id)
                 .first();
             if (!verifyExist) {
                 await Shippingcampaign_1.default.create(shipping);
@@ -63,7 +72,7 @@ exports.default = async (date, prioritysend = false, interaction_id = 0, unit_co
             }
         }
         catch (error) {
-            console.log("Erro 44454>>>>", error);
+            console.log("Erro ao criar Shippingcampaign", { reg: data?.reg, interaction_id: data?.interaction_id }, error);
         }
     }
     return patientList;

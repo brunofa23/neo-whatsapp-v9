@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const Route_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Route"));
-const PersistShippingcampaign_new_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/PersistShippingcampaign new"));
+const PersistShippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/PersistShippingcampaign"));
 const events_1 = require("./events");
 const luxon_1 = require("luxon");
 console.log("***CHAT BOT V-126***16/05/2025", process.env.SERVER);
@@ -53,10 +53,10 @@ Route_1.default.group(() => {
     Route_1.default.get('/executequery', async ({ request }) => {
         const { unit, date, interaction_id } = request.only(['unit', 'date', 'interaction_id']);
         const dateQuery = luxon_1.DateTime.fromFormat(date, 'yyyy-MM-dd', { zone: 'America/Sao_Paulo' });
-        console.log("EXECUTANDO BUSCA NO SMART", dateQuery);
+        console.log("EXECUTANDO BUSCA NO SMART");
         if (dateQuery.isValid) {
             console.log('Data válida:', dateQuery.toISODate());
-            await (0, PersistShippingcampaign_new_1.default)(dateQuery.toFormat('yyyy-MM-dd'), false, interaction_id, unit);
+            await (0, PersistShippingcampaign_1.default)(dateQuery.toFormat('yyyy-MM-dd'), false, interaction_id, unit);
             return;
         }
         else {
@@ -119,5 +119,6 @@ Route_1.default.group(() => {
     Route_1.default.get('/getschedules', 'DatasourceApisController.getSchedules');
     Route_1.default.post('/confirmorcancelscheduleapi', 'DatasourceApisController.confirmOrCancelSchedule');
     Route_1.default.resource('/mainsubjects', 'MainsubjectsController').apiOnly();
+    Route_1.default.post('/webhooks/gupshup', 'GupshupWebhooksController.handle');
 }).prefix('/api');
 //# sourceMappingURL=routes.js.map

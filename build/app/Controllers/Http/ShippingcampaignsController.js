@@ -14,7 +14,7 @@ const axios_1 = __importDefault(require("axios"));
 const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
 const Validator_1 = global[Symbol.for('ioc.use')]("Adonis/Core/Validator");
 const header_1 = global[Symbol.for('ioc.use')]("App/util/header");
-const PersistShippingcampaign_new_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/PersistShippingcampaign new"));
+const PersistShippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/PersistShippingcampaign"));
 async function validateParams(request) {
     const payload = await request.validate({
         schema: Validator_1.schema.create({
@@ -473,7 +473,7 @@ class ShippingcampaignsController {
         const agentCompany = await Agent_1.default.query().where('id', agent.id).first();
         const yesterday = luxon_1.DateTime.local().toFormat('yyyy-MM-dd 00:00');
         const query = Shippingcampaign_1.default.query()
-            .whereNull('phonevalid')
+            .where('phonevalid', 1)
             .andWhere('messagesent', 0)
             .andWhere('created_at', '>', yesterday);
         if (agentCompany?.company_id) {
@@ -523,7 +523,7 @@ class ShippingcampaignsController {
     async executeSchedulePatients({ auth, request, response }) {
         console.log("INICIANDO A BUSCA COM WEBHOOK");
         const params = await validateParams(request);
-        const result = await (0, PersistShippingcampaign_new_1.default)(params.date, false, params.interaction_id, params?.unit_cod);
+        const result = await (0, PersistShippingcampaign_1.default)(params.date, false, params.interaction_id, params?.unit_cod);
         console.timeEnd('Rodei a busca manual');
         return response.status(200).send(result);
     }

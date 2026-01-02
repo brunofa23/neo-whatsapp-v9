@@ -41,6 +41,10 @@ __decorate([
     __metadata("design:type", String)
 ], Interaction.prototype, "querydev", void 0);
 __decorate([
+    (0, Orm_1.column)({ columnName: 'id_templates_gupshup' }),
+    __metadata("design:type", String)
+], Interaction.prototype, "idTemplatesGupshup", void 0);
+__decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", Boolean)
 ], Interaction.prototype, "status", void 0);

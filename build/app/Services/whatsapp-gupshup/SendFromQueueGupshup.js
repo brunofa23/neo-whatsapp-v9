@@ -1,0 +1,155 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const ShippingcampaignsController_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Controllers/Http/ShippingcampaignsController"));
+const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
+const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
+const Talk_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Talk"));
+const Log_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Log"));
+const Interaction_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Interaction"));
+const luxon_1 = require("luxon");
+const util_1 = global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/util");
+const SendMessageGupshup_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-gupshup/SendMessageGupshup"));
+const shippingcampaignsController = new ShippingcampaignsController_1.default();
+const dayBefore5 = luxon_1.DateTime.local().minus({ days: 5 }).toFormat('yyyy-MM-dd 00:00');
+function onlyDigits(v) {
+    return String(v || '').replace(/\D/g, '');
+}
+async function verifyClientSend(chatnumberKey, cellphone) {
+    return Chat_1.default.query()
+        .where('cellphone', cellphone)
+        .andWhere('created_at', '>', dayBefore5)
+        .andWhere('chatnumber', chatnumberKey)
+        .first();
+}
+async function verifyChatAlreadySaved(shippingCampaign) {
+    return Chat_1.default.query()
+        .where('interaction_id', shippingCampaign?.interaction_id)
+        .andWhere('interaction_seq', shippingCampaign?.interaction_seq)
+        .andWhere('shippingcampaigns_id', shippingCampaign?.id)
+        .andWhereNull('excluded')
+        .first();
+}
+function safeParseParams(jsonText) {
+    try {
+        const arr = JSON.parse(jsonText || '[]');
+        if (!Array.isArray(arr))
+            return [];
+        return arr.map((x) => String(x));
+    }
+    catch {
+        return [];
+    }
+}
+async function SendFromQueueGupshup(agent) {
+    try {
+        if ((await (0, util_1.TimeSchedule)()) === false)
+            return;
+        const shippingCampaign = await shippingcampaignsController.patientToSend(agent);
+        if (!shippingCampaign)
+            return;
+        const chatnumberKey = onlyDigits(agent.gupshup_source || '');
+        if (!chatnumberKey) {
+            await Log_1.default.create({
+                name: 'Gupshup',
+                message: 'Agent sem gupshup_source',
+                description: `SendFromQueueGupshup AgentId=${agent.id}`,
+            });
+            return;
+        }
+        const totMessageSend = await shippingcampaignsController.maxLimitSendMessage(agent);
+        const maxLimitSendAgent = agent.max_limit_message || 0;
+        if (totMessageSend >= maxLimitSendAgent &&
+            (shippingCampaign?.prioritysend === null ||
+                shippingCampaign?.prioritysend === undefined ||
+                shippingCampaign?.prioritysend === false)) {
+            console.log(`LIMITE DIÁRIO ATINGIDO (GUPSHUP), Id:${agent.id} Agent:${agent.name} Enviados:${totMessageSend} - Limite:${maxLimitSendAgent}`);
+            return;
+        }
+        if (!shippingCampaign.prioritysend) {
+            const already = await verifyClientSend(chatnumberKey, shippingCampaign.cellphone);
+            if (already)
+                return;
+        }
+        const chatExists = await verifyChatAlreadySaved(shippingCampaign);
+        if (chatExists)
+            return;
+        const destination = onlyDigits(shippingCampaign.cellphone);
+        if (!destination) {
+            shippingCampaign.phonevalid = false;
+            await shippingCampaign.save();
+            return;
+        }
+        const interaction = await Interaction_1.default.query()
+            .select('id_templates_gupshup')
+            .where('id', shippingCampaign.interaction_id)
+            .first();
+        const templateId = interaction?.idTemplatesGupshup;
+        if (!templateId) {
+            await Log_1.default.create({
+                name: 'GupshupTemplateMissing',
+                message: `interaction_id=${shippingCampaign.interaction_id} sem id_templates_gupshup`,
+                description: `shippingcampaign_id=${shippingCampaign.id}`,
+            });
+            return;
+        }
+        const params = safeParseParams(shippingCampaign.gupshupParams);
+        if (params.length === 0) {
+            await Log_1.default.create({
+                name: 'GupshupParamsMissing',
+                message: `shippingcampaign sem gupshup_params válido`,
+                description: `shippingcampaign_id=${shippingCampaign.id}`,
+            });
+            return;
+        }
+        const response = await (0, SendMessageGupshup_1.default)({
+            agent,
+            destination,
+            templateId,
+            params,
+        });
+        shippingCampaign.messagesent = true;
+        shippingCampaign.phonevalid = true;
+        shippingCampaign.cellphoneserialized = destination;
+        await shippingCampaign.save();
+        const bodyChat = {
+            interaction_id: shippingCampaign.interaction_id,
+            interaction_seq: shippingCampaign.interaction_seq,
+            idexternal: shippingCampaign.idexternal,
+            reg: shippingCampaign.reg,
+            name: shippingCampaign.name,
+            cellphone: shippingCampaign.cellphone,
+            cellphoneserialized: destination,
+            message: shippingCampaign.message,
+            shippingcampaigns_id: shippingCampaign.id,
+            chatname: agent.name,
+            chatnumber: chatnumberKey,
+        };
+        const chat = await Chat_1.default.create(bodyChat);
+        await Talk_1.default.create({
+            cellphone: destination,
+            chatnumber: chatnumberKey,
+            reg: shippingCampaign.reg,
+            chat_id: chat.id,
+            message: String(shippingCampaign.message || '').slice(0, 999),
+            type: 'to',
+        });
+        console.log('Mensagem enviada (GUPSHUP):', shippingCampaign.name, destination, 'agent', agent.name);
+        if (agent.statusconnected === false || agent.status !== 'GUPSHUP') {
+            await Agent_1.default.query().where('id', agent.id).update({ statusconnected: true, status: 'GUPSHUP' });
+        }
+        return response;
+    }
+    catch (error) {
+        console.error('Erro SendFromQueueGupshup:', error);
+        await Log_1.default.create({
+            name: 'SendFromQueueGupshup',
+            message: error?.message || String(error),
+            description: error?.stack || 'Sem stack',
+        });
+    }
+}
+exports.default = SendFromQueueGupshup;
+//# sourceMappingURL=SendFromQueueGupshup.js.map

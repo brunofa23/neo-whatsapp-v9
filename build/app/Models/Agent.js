@@ -24,6 +24,7 @@ class Agent extends Orm_1.BaseModel {
             'id',
             'name',
             'number_phone',
+            'provider_type',
             'interval_init_query',
             'interval_final_query',
             'interval_init_message',
@@ -34,6 +35,9 @@ class Agent extends Orm_1.BaseModel {
             'qrcode',
             'statusconnected',
             'default_chat',
+            'gupshup_source',
+            'gupshup_src_name',
+            'gupshup_template_id',
             'interaction_priority',
             'deleted',
             'company_id',
@@ -55,6 +59,10 @@ __decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", String)
 ], Agent.prototype, "number_phone", void 0);
+__decorate([
+    (0, Orm_1.column)({ columnName: 'provider_type' }),
+    __metadata("design:type", String)
+], Agent.prototype, "provider_type", void 0);
 __decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", Number)
@@ -99,6 +107,18 @@ __decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", String)
 ], Agent.prototype, "interaction_priority", void 0);
+__decorate([
+    (0, Orm_1.column)({ columnName: 'gupshup_source' }),
+    __metadata("design:type", String)
+], Agent.prototype, "gupshup_source", void 0);
+__decorate([
+    (0, Orm_1.column)({ columnName: 'gupshup_src_name' }),
+    __metadata("design:type", String)
+], Agent.prototype, "gupshup_src_name", void 0);
+__decorate([
+    (0, Orm_1.column)({ columnName: 'gupshup_template_id' }),
+    __metadata("design:type", String)
+], Agent.prototype, "gupshup_template_id", void 0);
 __decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", Boolean)

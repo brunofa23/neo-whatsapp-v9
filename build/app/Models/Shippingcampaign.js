@@ -33,6 +33,7 @@ class Shippingcampaign extends Orm_1.BaseModel {
             'cellphoneserialized',
             'message',
             'otherfields',
+            'gupshup_params',
             'phonevalid',
             'messagesent',
             'dateshedule',
@@ -52,7 +53,7 @@ class Shippingcampaign extends Orm_1.BaseModel {
             'type_service',
             'created_at',
             'updated_at',
-            'filePath'
+            'filePath',
         ];
     }
 }
@@ -100,6 +101,10 @@ __decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", String)
 ], Shippingcampaign.prototype, "otherfields", void 0);
+__decorate([
+    (0, Orm_1.column)({ columnName: 'gupshup_params' }),
+    __metadata("design:type", String)
+], Shippingcampaign.prototype, "gupshupParams", void 0);
 __decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", Boolean)
@@ -169,7 +174,7 @@ __decorate([
     __metadata("design:type", String)
 ], Shippingcampaign.prototype, "type_service", void 0);
 __decorate([
-    (0, Orm_1.column)(),
+    (0, Orm_1.column)({ columnName: 'file_path' }),
     __metadata("design:type", String)
 ], Shippingcampaign.prototype, "file_path", void 0);
 __decorate([
@@ -182,7 +187,7 @@ __decorate([
 ], Shippingcampaign.prototype, "updatedAt", void 0);
 __decorate([
     (0, Orm_1.hasOne)(() => Chat_1.default, {
-        foreignKey: 'shippingcampaigns_id'
+        foreignKey: 'shippingcampaigns_id',
     }),
     __metadata("design:type", Object)
 ], Shippingcampaign.prototype, "chat", void 0);

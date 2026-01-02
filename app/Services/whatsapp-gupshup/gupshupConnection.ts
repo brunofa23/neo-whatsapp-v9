@@ -41,12 +41,14 @@ export function startGupshupLoop(agent: Agent) {
 
   const tick = async () => {
     try {
+
       if (gupshupLocks.has(agentId)) return
       gupshupLocks.add(agentId)
 
       const statusSendMessage = await getStatusSendMessage()
       if (statusSendMessage) {
         // ✅ chama dispatcher sem client
+        
         await SendDispatcher({ agent, client: null })
         //console.log("VERIFICANDO SE TEM ID TEMPLATE")
       }

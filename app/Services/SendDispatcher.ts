@@ -26,7 +26,7 @@ export default async function SendDispatcher({ agent, client }: DispatchCtx) {
   // GUPSHUP (teste OU fila real)
   // =========================
   if (provider === 'gupshup') {
-    const testEnabled = String(Env.get('GUPSHUP_TEST', 'false')).toLowerCase() === 'true'
+     const testEnabled = String(Env.get('GUPSHUP_TEST', 'false')).toLowerCase() === 'true'
 
     // ✅ modo teste (1 vez por agent)
     if (testEnabled) {

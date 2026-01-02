@@ -712,9 +712,10 @@ export default class ShippingcampaignsController {
     const agentCompany = await Agent.query().where('id', agent.id).first()
     const yesterday = DateTime.local().toFormat('yyyy-MM-dd 00:00')
     const query = Shippingcampaign.query()
-      .whereNull('phonevalid')
-      .andWhere('messagesent', 0)
-      .andWhere('created_at', '>', yesterday)
+    .where('phonevalid',1)
+    .andWhere('messagesent', 0)
+    .andWhere('created_at', '>', yesterday)
+
 
     if (agentCompany?.company_id) {
       query.andWhere('company_id', agentCompany?.company_id)
@@ -736,6 +737,7 @@ export default class ShippingcampaignsController {
       query.orderByRaw('RAND()').limit(10)
 
     const shippingCampaign = await query.first()
+
     return shippingCampaign
   }
 

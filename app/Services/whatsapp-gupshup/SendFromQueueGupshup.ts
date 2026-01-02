@@ -50,6 +50,7 @@ export default async function SendFromQueueGupshup(agent: Agent) {
 
     // pega próxima campanha (sua regra central)
     const shippingCampaign = await shippingcampaignsController.patientToSend(agent)
+    
     if (!shippingCampaign) return
 
     // chave do canal (equivalente ao wid.user do wwebjs)

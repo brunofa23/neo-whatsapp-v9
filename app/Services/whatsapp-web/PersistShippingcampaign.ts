@@ -148,7 +148,6 @@ export default async (date: string, prioritysend: boolean = false, interaction_i
         .first()
 
       if (!verifyExist) {
-        console.log("@@@@@@@",shipping.phonevalid)
         await Shippingcampaign.create(shipping)
         patientList.push({ reg: shipping.reg, name: shipping.name, unit: shipping.unit })
       }

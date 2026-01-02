@@ -17,12 +17,14 @@ export default class DatasourcesController {
     interaction_id = Number(interaction_id) || 0;
     unit_cod = Number(unit_cod) || 0;
 
+
     try {
       let schedulePatientsArray: any[] = [];
       let serviceEvaluationArray: any[] = [];
       let generalMessagePatientArray: any[] = []
 
       // Executa interações específicas diretamente
+
       if (interaction_id === 1) {
         return await this.scheduledPatients(date, unit_cod);
       }
@@ -34,6 +36,7 @@ export default class DatasourcesController {
       if (interaction_id === 3) {
         return await this.generalMessagePatient(date, unit_cod);
       }
+
 
       const interactionList = await Interaction.query().where('status', 1);
       for (const interaction of interactionList) {
@@ -110,6 +113,7 @@ export default class DatasourcesController {
 
     try {
       const result = await Database.connection('mssql').rawQuery(query);
+      console.log("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
       for (const data of result) {
         if (data.message && typeof data.message === 'string') {
           data.message = await greeting(data.message);

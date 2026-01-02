@@ -61,7 +61,7 @@ Route.group(() => {
   Route.get('/executequery', async ({ request }) => {
     const { unit, date, interaction_id } = request.only(['unit', 'date', 'interaction_id'])
     const dateQuery = DateTime.fromFormat(date, 'yyyy-MM-dd', { zone: 'America/Sao_Paulo' });
-    console.log("EXECUTANDO BUSCA NO SMART", dateQuery)
+    console.log("EXECUTANDO BUSCA NO SMART")
 
     if (dateQuery.isValid) {
       console.log('Data válida:', dateQuery.toISODate());

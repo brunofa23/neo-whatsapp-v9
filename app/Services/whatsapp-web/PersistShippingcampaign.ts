@@ -103,6 +103,7 @@ export default async (date: string, prioritysend: boolean = false, interaction_i
     .toJSDate()
 
   for (const data of dataSourceList) {
+    //console.log("!!!!>>>>>", data)
     try {
       if (!data?.reg || !data?.interaction_id) continue
 
@@ -117,7 +118,10 @@ export default async (date: string, prioritysend: boolean = false, interaction_i
 
       const phone = onlyDigits(data.cellphone)
       shipping.cellphone = phone
-      shipping.phonevalid = await ValidatePhone(phone)
+
+      const normalized = await ValidatePhone(phone)
+      shipping.phonevalid = normalized ? true : null
+
 
       shipping.messagesent = false
       shipping.message = asText(data.message).replace(/@p[0-9]/g, '?')
@@ -144,6 +148,7 @@ export default async (date: string, prioritysend: boolean = false, interaction_i
         .first()
 
       if (!verifyExist) {
+        console.log("@@@@@@@",shipping.phonevalid)
         await Shippingcampaign.create(shipping)
         patientList.push({ reg: shipping.reg, name: shipping.name, unit: shipping.unit })
       }

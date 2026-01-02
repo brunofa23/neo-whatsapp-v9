@@ -9,7 +9,7 @@ import { interpretAnswer } from 'App/Services/whatsapp-web/IdentifyAnswer'
 import { responderPergunta } from 'App/Services/Ai/aiResponder'
 import Interaction from 'App/Models/Interaction'
 import ResponsesController from 'App/Controllers/Http/ResponsesController'
-import PersistShippingcampaign from "App/Services/whatsapp-web/PersistShippingcampaign new"
+import PersistShippingcampaign from "App/Services/whatsapp-web/PersistShippingcampaign"
 import Application from '@ioc:Adonis/Core/Application'
 import fs from 'fs'
 import ShippingcampaignsController from 'App/Controllers/Http/ShippingcampaignsController'
@@ -18,9 +18,9 @@ import SendFromQueueGupshup from 'App/Services/whatsapp-gupshup/SendFromQueueGup
 
 test('display welcome page', async ({ client }) => {
 
-const agent = await Agent.findOrFail(588)
-//console.log(agent)
-await SendFromQueueGupshup(agent)
+    const agent = await Agent.findOrFail(588)
+    //console.log(agent)
+    await SendFromQueueGupshup(agent)
 
 
 })

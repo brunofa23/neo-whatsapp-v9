@@ -113,7 +113,6 @@ export default class DatasourcesController {
 
     try {
       const result = await Database.connection('mssql').rawQuery(query);
-      console.log("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
       for (const data of result) {
         if (data.message && typeof data.message === 'string') {
           data.message = await greeting(data.message);

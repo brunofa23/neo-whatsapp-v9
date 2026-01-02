@@ -2,7 +2,7 @@ import AgentsController from "App/Controllers/Http/AgentsController";
 import DatasourcesController from "App/Controllers/Http/DatasourcesController";
 import DatasourceApisController from "App/Controllers/Http/DatasourceApisController";
 import Agent from "App/Models/Agent"
-import PersistShippingcampaign from "App/Services/whatsapp-web/PersistShippingcampaign new"
+import PersistShippingcampaign from "App/Services/whatsapp-web/PersistShippingcampaign"
 import Shippingcampaign from "App/Models/Shippingcampaign";
 import { DateTime } from 'luxon';
 import { getTargetDates, GenerateRandomTime, TimeSchedule } from '../app/Services/whatsapp-web/util'
@@ -22,31 +22,6 @@ async function destroyFullAgents() {
   await destroyAgents.destroyFullAgents()
 }
 
-// async function connectionAll() {
-//   try {
-//     console.log("connection all acionado...")
-//     await Agent.query().update({ statusconnected: false, qrcode: null })
-//     const agents = await Agent.query()
-//       .where('active', true)
-//       .where((q) => q.whereNull('deleted').orWhere('deleted', false))
-
-
-//     for (const agent of agents) {
-//       if (!agent) continue
-
-//       if (agent.default_chat) {
-//         console.log(`Conectando Agente Default: ${agent.name}`)
-//         startAgentChat(agent).catch(console.error)
-//       } else {
-//         console.log(`Conectando Agente Envio: ${agent.name}`)
-//         startAgent(agent).catch(console.error)
-//       }
-//     }
-
-//   } catch (error) {
-//     error
-//   }
-// }
 async function connectionAll() {
   try {
     console.log("connection all acionado...")

@@ -10,7 +10,7 @@ import axios from 'axios'
 import Agent from 'App/Models/Agent';
 import { schema } from '@ioc:Adonis/Core/Validator'
 import { getHeaders } from 'App/util/header'
-import PersistShippingcampaign from 'App/Services/whatsapp-web/PersistShippingcampaign new'
+import PersistShippingcampaign from 'App/Services/whatsapp-web/PersistShippingcampaign'
 
 
 async function validateParams(request: HttpContextContract['request']) {

@@ -117,3 +117,12 @@ Ver containers rodando:	docker ps
 Ver logs do MySQL:	docker logs mysql56
 Entrar no container:	docker exec -it mysql56 bash
 Reiniciar container:	docker restart mysql56
+
+
+# CONFIGURAÇÃO GUPSHUP
+## tabela interactions 
+id_templates_gupshup = 7c71e54-8e0e-4471-8957-af94bfc86522
+
+## tabela Agents
+provider_type = gupshup
+gupshup_source=

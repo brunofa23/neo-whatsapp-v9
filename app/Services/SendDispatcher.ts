@@ -26,7 +26,7 @@ export default async function SendDispatcher({ agent, client }: DispatchCtx) {
   // GUPSHUP (teste OU fila real)
   // =========================
   if (provider === 'gupshup') {
-     const testEnabled = String(Env.get('GUPSHUP_TEST', 'false')).toLowerCase() === 'true'
+    const testEnabled = String(Env.get('GUPSHUP_TEST', 'false')).toLowerCase() === 'true'
 
     // ✅ modo teste (1 vez por agent)
     if (testEnabled) {
@@ -39,9 +39,16 @@ export default async function SendDispatcher({ agent, client }: DispatchCtx) {
         return
       }
 
+      const templateId = String(Env.get('GUPSHUP_TEMPLATE', '')).trim()
+      if (!templateId) {
+        console.log('[GUPSHUP_TEST] template vazio. Defina GUPSHUP_TEMPLATE no .env')
+        return
+      }
+
       await SendMessageGupshup({
         agent,
         destination,
+        templateId,
         params: ['Bruno Favato', '26/12/2025 14:30', 'Unidade Centro', 'Dr. João Silva'],
       })
 

@@ -11,6 +11,8 @@ function onlyDigits(v) {
 async function SendMessageGupshup({ agent, destination, templateId, params, }) {
     const apiKey = Env_1.default.get('GUPSHUP_API_KEY');
     const url = 'https://api.gupshup.io/wa/api/v1/template/msg';
+    if (!apiKey)
+        throw new Error(`GUPSHUP_API_KEY não configurada`);
     if (!agent.gupshup_source)
         throw new Error(`Agent ${agent.id} sem gupshup_source`);
     if (!agent.gupshup_src_name)
@@ -35,7 +37,11 @@ async function SendMessageGupshup({ agent, destination, templateId, params, }) {
         },
         timeout: 30000,
     });
-    return res.data;
+    const { status, messageId } = res.data || {};
+    if (!messageId) {
+        throw new Error(`Gupshup: envio sem messageId. Resposta: ${JSON.stringify(res.data)}`);
+    }
+    return { status: String(status || ''), messageId: String(messageId) };
 }
 exports.default = SendMessageGupshup;
 //# sourceMappingURL=SendMessageGupshup.js.map

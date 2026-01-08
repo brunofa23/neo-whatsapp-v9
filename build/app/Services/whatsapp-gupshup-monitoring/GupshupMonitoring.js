@@ -11,28 +11,45 @@ const ConfirmScheduleGupshup_1 = __importDefault(require("./ConfirmScheduleGupsh
 function onlyDigits(v) {
     return String(v ?? '').replace(/\D/g, '');
 }
-async function getChat(cellphone, agentPhone) {
-    const phoneAgent = onlyDigits(agentPhone);
-    return await Chat_1.default.query()
+async function getChatByGsId(gsId) {
+    const id = String(gsId || '').trim();
+    if (!id)
+        return null;
+    return Chat_1.default.query()
         .preload('shippingcampaign')
-        .where('cellphoneserialized', cellphone)
-        .andWhere('chatnumber', phoneAgent)
-        .orderBy('created_at', 'desc')
+        .where('gupshup_gs_id', id)
         .whereNull('response')
+        .orderBy('created_at', 'desc')
         .first();
+}
+async function getChatByPhone(cellphone, agentPhone) {
+    const phoneAgent = onlyDigits(agentPhone);
+    const phoneClient = onlyDigits(cellphone);
+    if (!phoneClient)
+        return null;
+    const q = Chat_1.default.query()
+        .preload('shippingcampaign')
+        .where('cellphoneserialized', phoneClient)
+        .whereNull('response')
+        .orderBy('created_at', 'desc');
+    if (phoneAgent)
+        q.andWhere('chatnumber', phoneAgent);
+    return q.first();
 }
 class GupshupMonitoring {
     async handleInbound(message) {
-        const fromDigits = onlyDigits(message.from);
-        const toDigits = onlyDigits(message.to);
-        const body = String(message.body || '');
-        const hasMedia = !!message.hasMedia;
+        const fromDigits = onlyDigits(message?.from);
+        const toDigits = onlyDigits(message?.to);
+        const body = String(message?.body || '');
+        const hasMedia = !!message?.hasMedia;
+        const inboundGsId = String(message?.context?.gsId || '').trim();
         await Log_1.default.create({
             name: 'gupshup_inbound',
             message: JSON.stringify({
                 at: luxon_1.DateTime.now().toISO(),
                 from: fromDigits,
-                to: toDigits,
+                to: toDigits || null,
+                gsId: inboundGsId || null,
                 body: body.slice(0, 200),
                 hasMedia,
             }),
@@ -44,18 +61,24 @@ class GupshupMonitoring {
             message: body.slice(0, 999),
             type: 'from',
         });
-        const chat = await getChat(fromDigits, toDigits);
-        console.log('GUPSHUP MONITORING => chat encontrado?', !!chat, 'from', fromDigits, 'to', toDigits);
+        let chat = null;
+        if (inboundGsId) {
+            chat = await getChatByGsId(inboundGsId);
+        }
+        if (!chat) {
+            chat = await getChatByPhone(fromDigits, toDigits);
+        }
+        console.log('GUPSHUP MONITORING => chat encontrado?', !!chat, 'from', fromDigits, 'to', toDigits || '-', 'gsId', inboundGsId || '-');
         if (!chat) {
             return;
         }
         if (chat.interaction_id === 1) {
-            console.log("PASSEI AQUI@@@@@@@@@@@@@@@@@", fromDigits, "-", toDigits, '"-"', body, "hasmedia", hasMedia, "chat:");
             await (0, ConfirmScheduleGupshup_1.default)({
                 from: fromDigits,
                 to: toDigits,
                 body,
                 hasMedia,
+                context: inboundGsId ? { gsId: inboundGsId } : undefined,
             }, chat);
             return;
         }

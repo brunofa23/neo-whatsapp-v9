@@ -67,6 +67,10 @@ __decorate([
 __decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", Number)
+], Chat.prototype, "gupshup_gs_id", void 0);
+__decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", Number)
 ], Chat.prototype, "interaction_id", void 0);
 __decorate([
     (0, Orm_1.column)(),

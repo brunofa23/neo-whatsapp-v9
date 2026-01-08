@@ -51,10 +51,20 @@ async function sendTextAndLog(params) {
     });
 }
 async function ConfirmScheduleGupshup(inbound, chat) {
-    console.log("PASSO 1 CONFIRM SCHEDULE");
+    console.log('PASSO 1 CONFIRM SCHEDULE');
     const fromDigits = String(inbound.from || '').replace(/\D/g, '');
-    const toDigits = String(inbound.to || '').replace(/\D/g, '');
-    const body = String(inbound.body || '');
+    const toDigits = String(inbound.to || '').replace(/\D/g, '') ||
+        String(chat?.chatnumber || '').replace(/\D/g, '');
+    let body = String(inbound.body || '').trim();
+    const bodyLower = body.toLowerCase();
+    if (bodyLower === 'confirmar')
+        body = '1';
+    if (bodyLower === 'cancelar')
+        body = '2';
+    if (bodyLower === 'confirmado')
+        body = '1';
+    if (bodyLower === 'cancelado')
+        body = '2';
     if (inbound.hasMedia) {
         const msg = 'Por favor não envie áudio, imagens ou vídeos, apenas digite \n*1* para Confirmar o agendamento. \n*2* para Reagendamento ou Cancelamento.';
         await sendTextAndLog({
@@ -107,7 +117,7 @@ async function ConfirmScheduleGupshup(inbound, chat) {
     }
     if (answer?.code === 2) {
         Object.assign(chat, {
-            response: body,
+            response: body.slice(0, 500),
             absoluteresp: 2,
             externalstatus: 'A',
             company_id: chat.shippingcampaign?.company_id,

@@ -104,7 +104,7 @@ async function SendFromQueueGupshup(agent) {
             });
             return;
         }
-        const response = await (0, SendMessageGupshup_1.default)({
+        const { status, messageId } = await (0, SendMessageGupshup_1.default)({
             agent,
             destination,
             templateId,
@@ -126,6 +126,7 @@ async function SendFromQueueGupshup(agent) {
             shippingcampaigns_id: shippingCampaign.id,
             chatname: agent.name,
             chatnumber: chatnumberKey,
+            gupshup_gs_id: messageId,
         };
         const chat = await Chat_1.default.create(bodyChat);
         await Talk_1.default.create({
@@ -136,11 +137,11 @@ async function SendFromQueueGupshup(agent) {
             message: String(shippingCampaign.message || '').slice(0, 999),
             type: 'to',
         });
-        console.log('Mensagem enviada (GUPSHUP):', shippingCampaign.name, destination, 'agent', agent.name);
+        console.log('Mensagem enviada (GUPSHUP):', shippingCampaign.name, destination, 'agent', agent.name, 'status', status, 'messageId', messageId);
         if (agent.statusconnected === false || agent.status !== 'GUPSHUP') {
             await Agent_1.default.query().where('id', agent.id).update({ statusconnected: true, status: 'GUPSHUP' });
         }
-        return response;
+        return { status, messageId };
     }
     catch (error) {
         console.error('Erro SendFromQueueGupshup:', error);

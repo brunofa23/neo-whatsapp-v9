@@ -18,10 +18,11 @@ export default async function SendMessageGupshup({
   destination,
   templateId,
   params,
-}: SendGupshupTemplateArgs) {
+}: SendGupshupTemplateArgs): Promise<{ status: string; messageId: string }> {
   const apiKey = Env.get('GUPSHUP_API_KEY')
   const url = 'https://api.gupshup.io/wa/api/v1/template/msg'
 
+  if (!apiKey) throw new Error(`GUPSHUP_API_KEY não configurada`)
   if (!agent.gupshup_source) throw new Error(`Agent ${agent.id} sem gupshup_source`)
   if (!agent.gupshup_src_name) throw new Error(`Agent ${agent.id} sem gupshup_src_name`)
   if (!templateId) throw new Error(`templateId não informado`)
@@ -50,5 +51,11 @@ export default async function SendMessageGupshup({
     timeout: 30000,
   })
 
-  return res.data
+  const { status, messageId } = res.data || {}
+
+  if (!messageId) {
+    throw new Error(`Gupshup: envio sem messageId. Resposta: ${JSON.stringify(res.data)}`)
+  }
+
+  return { status: String(status || ''), messageId: String(messageId) }
 }

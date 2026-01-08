@@ -54,6 +54,9 @@ export default class Chat extends BaseModel {
   public shippingcampaigns_id: number
 
   @column()
+  public gupshup_gs_id:number
+
+  @column()
   public interaction_id: number
 
   @column()

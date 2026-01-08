@@ -44,13 +44,11 @@ function safeParseParams(jsonText: string): string[] {
 
 export default async function SendFromQueueGupshup(agent: Agent) {
   try {
-
     // horário permitido
     if ((await TimeSchedule()) === false) return
 
     // pega próxima campanha (sua regra central)
     const shippingCampaign = await shippingcampaignsController.patientToSend(agent)
-    
     if (!shippingCampaign) return
 
     // chave do canal (equivalente ao wid.user do wwebjs)
@@ -64,10 +62,9 @@ export default async function SendFromQueueGupshup(agent: Agent) {
       return
     }
 
-
     // limite diário (mesma lógica do seu SendMessage atual)
-     const totMessageSend = await shippingcampaignsController.maxLimitSendMessage(agent)
-     const maxLimitSendAgent = agent.max_limit_message || 0
+    const totMessageSend = await shippingcampaignsController.maxLimitSendMessage(agent)
+    const maxLimitSendAgent = agent.max_limit_message || 0
     if (
       totMessageSend >= maxLimitSendAgent &&
       (shippingCampaign?.prioritysend === null ||
@@ -80,7 +77,6 @@ export default async function SendFromQueueGupshup(agent: Agent) {
       return
     }
 
-
     // evita enviar repetido pro mesmo paciente em 5 dias
     if (!shippingCampaign.prioritysend) {
       const already = await verifyClientSend(chatnumberKey, shippingCampaign.cellphone)
@@ -90,7 +86,6 @@ export default async function SendFromQueueGupshup(agent: Agent) {
     // não duplicar se já existe chat salvo pra esse shippingcampaign
     const chatExists = await verifyChatAlreadySaved(shippingCampaign)
     if (chatExists) return
-
 
     // destination vem do seu persist já limpo
     const destination = onlyDigits(shippingCampaign.cellphone)
@@ -127,8 +122,8 @@ export default async function SendFromQueueGupshup(agent: Agent) {
       return
     }
 
-    // ✅ envia template via gupshup
-    const response = await SendMessageGupshup({
+    // ✅ envia template via gupshup (agora pegando messageId)
+    const { status, messageId } = await SendMessageGupshup({
       agent,
       destination,
       templateId,
@@ -149,10 +144,13 @@ export default async function SendFromQueueGupshup(agent: Agent) {
       name: shippingCampaign.name,
       cellphone: shippingCampaign.cellphone,
       cellphoneserialized: destination,
-      message: shippingCampaign.message, // mantém o texto “humano” que você já salva
+      message: shippingCampaign.message, // mantém o texto “humano”
       shippingcampaigns_id: shippingCampaign.id,
       chatname: agent.name,
       chatnumber: chatnumberKey,
+
+      // ✅ NOVO: salva id da mensagem enviada (vai bater com webhook payload.context.gsId)
+      gupshup_gs_id: messageId,
     }
 
     const chat = await Chat.create(bodyChat)
@@ -166,14 +164,24 @@ export default async function SendFromQueueGupshup(agent: Agent) {
       type: 'to',
     })
 
-    console.log('Mensagem enviada (GUPSHUP):', shippingCampaign.name, destination, 'agent', agent.name)
+    console.log(
+      'Mensagem enviada (GUPSHUP):',
+      shippingCampaign.name,
+      destination,
+      'agent',
+      agent.name,
+      'status',
+      status,
+      'messageId',
+      messageId
+    )
 
     // status informativo
     if (agent.statusconnected === false || agent.status !== 'GUPSHUP') {
       await Agent.query().where('id', agent.id).update({ statusconnected: true, status: 'GUPSHUP' })
     }
 
-    return response
+    return { status, messageId }
   } catch (error) {
     console.error('Erro SendFromQueueGupshup:', error)
     await Log.create({

@@ -122,7 +122,8 @@ Reiniciar container:	docker restart mysql56
 # CONFIGURAÇÃO GUPSHUP
 ## tabela interactions 
 id_templates_gupshup = 7c71e54-8e0e-4471-8957-af94bfc86522
-
 ## tabela Agents
 provider_type = gupshup
-gupshup_source=
+gupshup_source (phone number)=553199740981
+gupshup_src_name=neo_iris
+

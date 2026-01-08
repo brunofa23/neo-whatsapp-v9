@@ -8,9 +8,10 @@ import { DateTime } from 'luxon'
 
 type GupshupInbound = {
   from: string // digits do paciente (ex: 5531985...)
-  to: string // digits do seu WABA/source (ex: 553199740981)
+  to: string // digits do seu WABA/source (pode vir vazio no webhook)
   body: string
   hasMedia: boolean
+  context?: { gsId?: string }
 }
 
 function safeJsonParse<T = any>(v: any, fallback: T): T {
@@ -74,10 +75,26 @@ async function sendTextAndLog(params: {
  * - Usa Chat/Response/Talk + interpretAnswer
  */
 export default async function ConfirmScheduleGupshup(inbound: GupshupInbound, chat: Chat) {
-  console.log("PASSO 1 CONFIRM SCHEDULE")
+  console.log('PASSO 1 CONFIRM SCHEDULE')
+
   const fromDigits = String(inbound.from || '').replace(/\D/g, '')
-  const toDigits = String(inbound.to || '').replace(/\D/g, '')
-  const body = String(inbound.body || '')
+
+  // ✅ IMPORTANTE: "to" pode vir vazio no webhook.
+  //    Usa o inbound.to se vier; senão usa chat.chatnumber (salvo no envio).
+  const toDigits =
+    String(inbound.to || '').replace(/\D/g, '') ||
+    String((chat as any)?.chatnumber || '').replace(/\D/g, '')
+
+  let body = String(inbound.body || '').trim()
+
+  // ✅ Normaliza respostas de botão:
+  // Quick reply geralmente vem "Confirmar" / "Cancelar"
+  // Seu interpretAnswer já entende 1/2, então convertemos.
+  const bodyLower = body.toLowerCase()
+  if (bodyLower === 'confirmar') body = '1'
+  if (bodyLower === 'cancelar') body = '2'
+  if (bodyLower === 'confirmado') body = '1'
+  if (bodyLower === 'cancelado') body = '2'
 
   // Se vier mídia, pede texto (mantém comportamento)
   if (inbound.hasMedia) {
@@ -110,9 +127,7 @@ export default async function ConfirmScheduleGupshup(inbound: GupshupInbound, ch
   // =========================
   // 1) CONFIRMOU
   // =========================
-
   if (answer?.code === 1) {
-    // Busca mensagem personalizada (se existir)
     const response1schedule = await Response.query()
       .select('message')
       .where('local', 'response1schedule')
@@ -138,7 +153,7 @@ export default async function ConfirmScheduleGupshup(inbound: GupshupInbound, ch
     })
 
     Object.assign(chat, {
-      response: body.slice(0, 500),
+      response: body.slice(0, 500), // aqui ficará "1" se veio do botão Confirmar
       returned: true,
       absoluteresp: 1,
       externalstatus: 'A',
@@ -155,7 +170,7 @@ export default async function ConfirmScheduleGupshup(inbound: GupshupInbound, ch
   // =========================
   if (answer?.code === 2) {
     Object.assign(chat, {
-      response: body,
+      response: body.slice(0, 500), // aqui ficará "2" se veio do botão Cancelar
       absoluteresp: 2,
       externalstatus: 'A',
       company_id: (chat as any).shippingcampaign?.company_id,
@@ -187,7 +202,6 @@ export default async function ConfirmScheduleGupshup(inbound: GupshupInbound, ch
       text: msg2,
     })
 
-    // Segunda mensagem com link (se existir configuração)
     const response2schedule2 = await Response.query().where('local', 'response2schedule2').first()
 
     if (response2schedule2 && response2schedule2.inactive === false) {
@@ -202,7 +216,6 @@ export default async function ConfirmScheduleGupshup(inbound: GupshupInbound, ch
         text: linkRedirect,
       })
     } else {
-      // padrão
       const msgLink = `Olá, sou ${(chat as any).name} e gostaria de reagendar uma consulta com ${chatOtherFields?.medic}.`
       const phoneUnit = chatOtherFields?.phone_unit || (chat as any).shippingcampaign?.phone_unit
       const linkRedirect = messageLink(msgLink, phoneUnit)

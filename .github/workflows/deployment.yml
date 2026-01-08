@@ -3,7 +3,7 @@ name: Build and deploy api
 on:
   push:
     branches:
-      - main-ai-cob
+      - main-officialApi
 
 jobs:
   build-and-deploy:
@@ -11,13 +11,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Em vez de fazer checkout da main-ai-cob,
-      # a gente já trabalha em cima da production-ai-cob
-      - name: Checkout production-ai-cob
+      # Trabalha em cima da production-officialApi
+      - name: Checkout production-officialApi
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          ref: production-ai-cob
+          ref: production-officialApi
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -29,26 +28,29 @@ jobs:
           git config --global user.email "brunofa23@gmail.com"
           git config --global user.name "Bruno Favato"
 
-      # Traz a main-ai-cob atualizada do remoto
-      - name: Fetch main-ai-cob
+      # Traz a main-officialApi atualizada do remoto
+      - name: Fetch main-officialApi
         run: |
-          git fetch origin main-ai-cob
+          git fetch origin main-officialApi
 
-      # Faz merge da main-ai-cob dentro da production-ai-cob
-      # Agora o commit novo passa a ser continuação da production-ai-cob
-      - name: Merge main-ai-cob into production-ai-cob
+      # Merge da main-officialApi dentro da production-officialApi
+      - name: Merge main-officialApi into production-officialApi
         run: |
-          git merge --no-ff origin/main-ai-cob -m "Merge main-ai-cob into production-ai-cob"
+          git merge --no-ff origin/main-officialApi -m "Merge main-officialApi into production-officialApi"
 
       - name: Install dependencies
         run: npm install
 
-      # Aqui chama: node ace build --production --ignore-ts-errors
-      # e DEPOIS o postbuild (copyMedias.js)
-      - name: Build project
+      # ✅ Seu script build já ignora erros TS:
+      # "build": "node ace build --production --ignore-ts-errors"
+      - name: Build project (ignore TS errors)
         run: npm run build
 
-      # (Opcional) só para garantir deps de prod ok no repo (não na VPS)
+      # ✅ Roda seu postbuild (copyMedias.js)
+      - name: Postbuild
+        run: npm run postbuild
+
+      # (Opcional) garantir deps de prod ok (no runner)
       - name: Check production install
         run: npm ci --production
 
@@ -59,9 +61,9 @@ jobs:
           if git diff --cached --quiet; then
             echo "Sem mudanças para commitar."
           else
-            git commit -m "chore: build para deploy a partir da main-ai-cob"
+            git commit -m "chore: build para deploy a partir da main-officialApi"
           fi
 
-      - name: Push to production-ai-cob
+      - name: Push to production-officialApi
         run: |
-          git push origin HEAD:production-ai-cob
+          git push origin HEAD:production-officialApi

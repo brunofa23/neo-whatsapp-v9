@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main-officialApi
-#########@@@@@@
+
 jobs:
   build-and-deploy:
     name: Build api typescript project and deploy it to server

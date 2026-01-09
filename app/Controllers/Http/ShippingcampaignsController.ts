@@ -198,10 +198,11 @@ export default class ShippingcampaignsController {
     const dateStart = await DateFormat("yyyy-MM-dd 00:00:00", DateTime.local())
     const dateEnd = await DateFormat("yyyy-MM-dd 23:59:00", DateTime.local())
     const chatName = agent.name
-    const countMessage = await Chat.query()
+    const countMessage =await Chat.query()
       .countDistinct('shippingcampaigns_id as tot')
       .where('chatname', chatName)
       .whereBetween('created_at', [dateStart, dateEnd]).first()
+
     if (!countMessage || countMessage == undefined || countMessage == null)
       return 0
     return parseInt(countMessage.$extras.tot)

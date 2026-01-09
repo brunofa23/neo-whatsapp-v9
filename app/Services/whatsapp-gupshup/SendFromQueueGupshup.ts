@@ -65,17 +65,15 @@ export default async function SendFromQueueGupshup(agent: Agent) {
     // limite diário (mesma lógica do seu SendMessage atual)
     const totMessageSend = await shippingcampaignsController.maxLimitSendMessage(agent)
     const maxLimitSendAgent = agent.max_limit_message || 0
-    if (
-      totMessageSend >= maxLimitSendAgent &&
-      (shippingCampaign?.prioritysend === null ||
-        shippingCampaign?.prioritysend === undefined ||
-        shippingCampaign?.prioritysend === false)
-    ) {
+
+    const isPriority = !!shippingCampaign?.prioritysend
+    if (totMessageSend >= maxLimitSendAgent && !isPriority) {
       console.log(
         `LIMITE DIÁRIO ATINGIDO (GUPSHUP), Id:${agent.id} Agent:${agent.name} Enviados:${totMessageSend} - Limite:${maxLimitSendAgent}`
       )
       return
     }
+
 
     // evita enviar repetido pro mesmo paciente em 5 dias
     if (!shippingCampaign.prioritysend) {

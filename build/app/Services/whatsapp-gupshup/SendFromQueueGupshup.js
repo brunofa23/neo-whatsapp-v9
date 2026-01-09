@@ -61,10 +61,8 @@ async function SendFromQueueGupshup(agent) {
         }
         const totMessageSend = await shippingcampaignsController.maxLimitSendMessage(agent);
         const maxLimitSendAgent = agent.max_limit_message || 0;
-        if (totMessageSend >= maxLimitSendAgent &&
-            (shippingCampaign?.prioritysend === null ||
-                shippingCampaign?.prioritysend === undefined ||
-                shippingCampaign?.prioritysend === false)) {
+        const isPriority = !!shippingCampaign?.prioritysend;
+        if (totMessageSend >= maxLimitSendAgent && !isPriority) {
             console.log(`LIMITE DIÁRIO ATINGIDO (GUPSHUP), Id:${agent.id} Agent:${agent.name} Enviados:${totMessageSend} - Limite:${maxLimitSendAgent}`);
             return;
         }

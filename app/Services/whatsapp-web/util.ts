@@ -37,7 +37,7 @@ async function GenerateRandomTime(min: number, max: number, method: String = "")
 async function TimeSchedule() {
   const now = DateTime.local().setZone('America/Sao_Paulo');
 
-  const timeSchedule = (now.hour > 5 && now.hour < 21);
+  const timeSchedule = (now.hour > 7 && now.hour < 19);
   const message = !timeSchedule ? `Fora do Horario de Envio 7 às 19: ${now.toFormat('dd/MM/yyyy HH:mm:ss')}` : undefined;
 
   if (message) console.log(message);

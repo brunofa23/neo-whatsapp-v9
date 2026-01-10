@@ -48,7 +48,6 @@ async function connectionAll() {
                     statusconnected: true,
                     qrcode: null,
                 });
-                console.log("PASSEI AQUI 1");
                 (0, gupshupConnection_1.startGupshupLoop)(agent);
                 continue;
             }
@@ -66,6 +65,7 @@ async function sendRepeatedMessage() {
     const raw = Number(process.env.TIME_SENDREPEATEDMESSAGE);
     const intervalMs = Number.isFinite(raw) && raw >= 5000 ? raw : 50000;
     let running = false;
+    const scheduleNext = () => setTimeout(tick, intervalMs);
     const tick = async () => {
         if (running) {
             console.log('[sendRepeatedMessage] tick ignorado (execução anterior ainda em andamento)');
@@ -79,9 +79,11 @@ async function sendRepeatedMessage() {
             if (await (0, util_1.TimeSchedule)()) {
                 for (const date of targetDates) {
                     const formatted = date.toFormat('yyyy-MM-dd');
-                    console.log(`Buscando dados no Smart(Server): ${formatted}`);
-                    await (0, PersistShippingcampaign_1.default)(formatted);
+                    console.log(`Buscando dados no Smart(Server) [interaction=1]: ${formatted}`);
+                    await (0, PersistShippingcampaign_1.default)(formatted, false, 1);
                 }
+                console.log(`Buscando dados no Smart(Server) [interaction=2]`);
+                await (0, PersistShippingcampaign_1.default)(luxon_1.DateTime.now().setZone('America/Sao_Paulo').toFormat('yyyy-MM-dd'), false, 2);
                 const datasourcesController = new DatasourcesController_1.default();
                 await datasourcesController.confirmScheduleAll();
                 await datasourcesController.cancelScheduleAll();
@@ -97,7 +99,6 @@ async function sendRepeatedMessage() {
             scheduleNext();
         }
     };
-    const scheduleNext = () => setTimeout(tick, intervalMs);
     void tick();
 }
 exports.sendRepeatedMessage = sendRepeatedMessage;

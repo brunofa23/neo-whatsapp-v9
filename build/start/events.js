@@ -62,32 +62,63 @@ async function connectionAll() {
 }
 exports.connectionAll = connectionAll;
 async function sendRepeatedMessage() {
-    console.log("EXECUTANDO BUSCA SMART");
-    setInterval(async () => {
-        const targetDates = (0, util_1.getTargetDates)();
-        if (await (0, util_1.TimeSchedule)()) {
-            for (const date of targetDates) {
-                const formatted = date.toFormat('yyyy-MM-dd');
-                console.log(`Buscando dados no Smart(Server): ${formatted}`);
-                await (0, PersistShippingcampaign_1.default)(formatted);
-            }
-            const datasourcesController = new DatasourcesController_1.default;
-            await datasourcesController.confirmScheduleAll();
-            await datasourcesController.cancelScheduleAll();
+    console.log('EXECUTANDO BUSCA SMART');
+    const raw = Number(process.env.TIME_SENDREPEATEDMESSAGE);
+    const intervalMs = Number.isFinite(raw) && raw >= 5000 ? raw : 50000;
+    let running = false;
+    const tick = async () => {
+        if (running) {
+            console.log('[sendRepeatedMessage] tick ignorado (execução anterior ainda em andamento)');
+            scheduleNext();
+            return;
         }
-    }, Number(process.env.TIME_SENDREPEATEDMESSAGE || 50000));
+        running = true;
+        const startedAt = Date.now();
+        try {
+            const targetDates = (0, util_1.getTargetDates)();
+            if (await (0, util_1.TimeSchedule)()) {
+                for (const date of targetDates) {
+                    const formatted = date.toFormat('yyyy-MM-dd');
+                    console.log(`Buscando dados no Smart(Server): ${formatted}`);
+                    await (0, PersistShippingcampaign_1.default)(formatted);
+                }
+                const datasourcesController = new DatasourcesController_1.default();
+                await datasourcesController.confirmScheduleAll();
+                await datasourcesController.cancelScheduleAll();
+            }
+        }
+        catch (err) {
+            console.error('[sendRepeatedMessage] erro no ciclo:', err);
+        }
+        finally {
+            running = false;
+            const elapsed = Date.now() - startedAt;
+            console.log(`[sendRepeatedMessage] ciclo finalizado em ${elapsed}ms`);
+            scheduleNext();
+        }
+    };
+    const scheduleNext = () => setTimeout(tick, intervalMs);
+    void tick();
 }
 exports.sendRepeatedMessage = sendRepeatedMessage;
 async function resendMessage() {
-    setInterval(async () => {
+    const intervalMs = 4 * 60 * 60 * 1000;
+    let running = false;
+    const tick = async () => {
+        if (running) {
+            console.log('[resendMessage] tick ignorado (execução anterior ainda em andamento)');
+            return;
+        }
+        running = true;
         try {
-            console.log("passei no RESEND............................");
+            console.log('passei no RESEND............................');
             const now = luxon_1.DateTime.now();
             const yesterdayStart = now.minus({ days: 1 }).startOf('day');
             const yesterdayEnd = now.minus({ days: 1 }).endOf('day');
             const tomorrowStart = now.plus({ days: 1 }).startOf('day');
             const tomorrowEnd = now.plus({ days: 1 }).endOf('day');
-            const updatedResend = await Shippingcampaign_1.default.query()
+            const nowSql = luxon_1.DateTime.now().toFormat('yyyy-LL-dd HH:mm:ss');
+            const updatedResendResult = await Shippingcampaign_1.default.query()
                 .where('created_at', '>=', yesterdayStart.toSQL({ includeOffset: false }))
                 .where('created_at', '<=', yesterdayEnd.toSQL({ includeOffset: false }))
                 .where('dateshedule', '>=', tomorrowStart.toSQL({ includeOffset: false }))
@@ -97,9 +128,12 @@ async function resendMessage() {
                 .andWhere('messagesent', 0)
                 .andWhereNull('excluded')
                 .update({
-                createdAt: luxon_1.DateTime.now().toFormat("yyyy-LL-dd HH:mm:ss"),
-                resend: 1
+                createdAt: nowSql,
+                resend: 1,
             });
+            const updatedResend = typeof updatedResendResult === 'number'
+                ? updatedResendResult
+                : Number(updatedResendResult?.[0] ?? 0);
             const records = await Shippingcampaign_1.default.query()
                 .where('created_at', '>=', yesterdayStart.toSQL({ includeOffset: false }))
                 .where('created_at', '<=', yesterdayEnd.toSQL({ includeOffset: false }))
@@ -109,37 +143,45 @@ async function resendMessage() {
                 .andWhereNull('excluded')
                 .limit(60)
                 .select('id');
-            const ids = records.map(r => r.id);
+            const ids = records.map((r) => r.id);
             if (ids.length > 0) {
-                await Shippingcampaign_1.default.query()
-                    .whereIn('id', ids)
-                    .update({
-                    createdAt: luxon_1.DateTime.now().toFormat("yyyy-LL-dd HH:mm:ss"),
-                    resend: 1
+                await Shippingcampaign_1.default.query().whereIn('id', ids).update({
+                    createdAt: nowSql,
+                    resend: 1,
                 });
                 await Log_1.default.create({
-                    name: "Resend",
+                    name: 'Resend',
                     message: `Reenvio de AVALIAÇÕES não enviadas no dia anterior. Total: ${ids.length}`,
-                    description: "Function: resendMessage"
+                    description: 'Function: resendMessage',
                 });
             }
-            if (updatedResend[0] > 0) {
+            if (updatedResend > 0) {
                 await Log_1.default.create({
-                    name: "Resend",
+                    name: 'Resend',
                     message: `Reenvio de CONFIRMAÇÕES não enviadas no dia anterior. Total: ${updatedResend}`,
-                    description: "Function: resendMessage"
+                    description: 'Function: resendMessage',
                 });
             }
         }
         catch (error) {
-            console.error("Erro no resendMessage:", error);
-            await Log_1.default.create({
-                name: "ResendError",
-                message: error.message || "Erro desconhecido",
-                description: error.stack || "Sem stack trace"
-            });
+            console.error('Erro no resendMessage:', error);
+            try {
+                await Log_1.default.create({
+                    name: 'ResendError',
+                    message: error?.message ? String(error.message) : 'Erro desconhecido',
+                    description: error?.stack ? String(error.stack) : 'Sem stack trace',
+                });
+            }
+            catch (logErr) {
+                console.error('Erro ao gravar ResendError no banco:', logErr);
+            }
         }
-    }, 4 * 60 * 60 * 1000);
+        finally {
+            running = false;
+        }
+    };
+    setInterval(() => void tick(), intervalMs);
+    void tick();
 }
 exports.resendMessage = resendMessage;
 async function sendRepeatedMessageKlingo() {

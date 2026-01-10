@@ -12,8 +12,8 @@ import '../app/Services/plugins/axios'
 import Log from "App/Models/Log";
 import { startGupshupLoop } from "../app/Services/whatsapp-gupshup/gupshupConnection"
 
-import Chat from "App/Models/Chat";
-import Database from "@ioc:Adonis/Lucid/Database";
+// import Chat from "App/Models/Chat";
+// import Database from "@ioc:Adonis/Lucid/Database";
 
 
 async function destroyFullAgents() {
@@ -63,9 +63,7 @@ async function connectionAll() {
           })
 
         // inicia loop próprio do gupshup (sem client)
-        console.log("PASSEI AQUI 1")
         startGupshupLoop(agent)
-
         continue
       }
 
@@ -81,35 +79,16 @@ async function connectionAll() {
   }
 }
 
-
-
-// async function sendRepeatedMessage() {
-//   console.log("EXECUTANDO BUSCA SMART")
-//   setInterval(async () => {
-//     const targetDates = getTargetDates()
-//     if (await TimeSchedule()) {
-//       for (const date of targetDates) {
-//         const formatted = date.toFormat('yyyy-MM-dd')
-//         console.log(`Buscando dados no Smart(Server): ${formatted}`)
-//         await PersistShippingcampaign(formatted)
-//       }
-//       const datasourcesController = new DatasourcesController
-//       await datasourcesController.confirmScheduleAll()
-//       await datasourcesController.cancelScheduleAll()
-
-//     }
-//   }, Number(process.env.TIME_SENDREPEATEDMESSAGE || 50000))
-// }
-
 async function sendRepeatedMessage() {
   console.log('EXECUTANDO BUSCA SMART')
 
   const raw = Number(process.env.TIME_SENDREPEATEDMESSAGE)
-  const intervalMs = Number.isFinite(raw) && raw >= 5_000 ? raw : 50_000 // mínimo 5s (ajuste)
+  const intervalMs = Number.isFinite(raw) && raw >= 5_000 ? raw : 50_000
   let running = false
 
+  const scheduleNext = () => setTimeout(tick, intervalMs)
+
   const tick = async () => {
-    // impede sobreposição
     if (running) {
       console.log('[sendRepeatedMessage] tick ignorado (execução anterior ainda em andamento)')
       scheduleNext()
@@ -123,12 +102,16 @@ async function sendRepeatedMessage() {
       const targetDates = getTargetDates()
 
       if (await TimeSchedule()) {
-        // Se quiser manter 100% sequencial (como está hoje), ok:
+        // ✅ interação 1 depende de data: roda por data
         for (const date of targetDates) {
           const formatted = date.toFormat('yyyy-MM-dd')
-          console.log(`Buscando dados no Smart(Server): ${formatted}`)
-          await PersistShippingcampaign(formatted)
+          console.log(`Buscando dados no Smart(Server) [interaction=1]: ${formatted}`)
+          await PersistShippingcampaign(formatted, false, 1)
         }
+
+        // ✅ interação 2 não depende de data: roda 1x por ciclo
+        console.log(`Buscando dados no Smart(Server) [interaction=2]`)
+        await PersistShippingcampaign(DateTime.now().setZone('America/Sao_Paulo').toFormat('yyyy-MM-dd'), false, 2)
 
         const datasourcesController = new DatasourcesController()
         await datasourcesController.confirmScheduleAll()
@@ -144,11 +127,9 @@ async function sendRepeatedMessage() {
     }
   }
 
-  const scheduleNext = () => setTimeout(tick, intervalMs)
-
-  // dispara já e depois agenda os próximos
   void tick()
 }
+
 
 
 

@@ -83,41 +83,180 @@ async function connectionAll() {
 
 
 
-async function sendRepeatedMessage() {
-  console.log("EXECUTANDO BUSCA SMART")
-  setInterval(async () => {
-    const targetDates = getTargetDates()
-    if (await TimeSchedule()) {
-      for (const date of targetDates) {
-        const formatted = date.toFormat('yyyy-MM-dd')
-        console.log(`Buscando dados no Smart(Server): ${formatted}`)
-        await PersistShippingcampaign(formatted)
-      }
-      const datasourcesController = new DatasourcesController
-      await datasourcesController.confirmScheduleAll()
-      await datasourcesController.cancelScheduleAll()
+// async function sendRepeatedMessage() {
+//   console.log("EXECUTANDO BUSCA SMART")
+//   setInterval(async () => {
+//     const targetDates = getTargetDates()
+//     if (await TimeSchedule()) {
+//       for (const date of targetDates) {
+//         const formatted = date.toFormat('yyyy-MM-dd')
+//         console.log(`Buscando dados no Smart(Server): ${formatted}`)
+//         await PersistShippingcampaign(formatted)
+//       }
+//       const datasourcesController = new DatasourcesController
+//       await datasourcesController.confirmScheduleAll()
+//       await datasourcesController.cancelScheduleAll()
 
+//     }
+//   }, Number(process.env.TIME_SENDREPEATEDMESSAGE || 50000))
+// }
+
+async function sendRepeatedMessage() {
+  console.log('EXECUTANDO BUSCA SMART')
+
+  const raw = Number(process.env.TIME_SENDREPEATEDMESSAGE)
+  const intervalMs = Number.isFinite(raw) && raw >= 5_000 ? raw : 50_000 // mínimo 5s (ajuste)
+  let running = false
+
+  const tick = async () => {
+    // impede sobreposição
+    if (running) {
+      console.log('[sendRepeatedMessage] tick ignorado (execução anterior ainda em andamento)')
+      scheduleNext()
+      return
     }
-  }, Number(process.env.TIME_SENDREPEATEDMESSAGE || 50000))
+
+    running = true
+    const startedAt = Date.now()
+
+    try {
+      const targetDates = getTargetDates()
+
+      if (await TimeSchedule()) {
+        // Se quiser manter 100% sequencial (como está hoje), ok:
+        for (const date of targetDates) {
+          const formatted = date.toFormat('yyyy-MM-dd')
+          console.log(`Buscando dados no Smart(Server): ${formatted}`)
+          await PersistShippingcampaign(formatted)
+        }
+
+        const datasourcesController = new DatasourcesController()
+        await datasourcesController.confirmScheduleAll()
+        await datasourcesController.cancelScheduleAll()
+      }
+    } catch (err) {
+      console.error('[sendRepeatedMessage] erro no ciclo:', err)
+    } finally {
+      running = false
+      const elapsed = Date.now() - startedAt
+      console.log(`[sendRepeatedMessage] ciclo finalizado em ${elapsed}ms`)
+      scheduleNext()
+    }
+  }
+
+  const scheduleNext = () => setTimeout(tick, intervalMs)
+
+  // dispara já e depois agenda os próximos
+  void tick()
 }
 
 
 
 
+// async function resendMessage() {
+//   setInterval(async () => {
+//     try {
+//       console.log("passei no RESEND............................")
+//       const now = DateTime.now()
+//       const yesterdayStart = now.minus({ days: 1 }).startOf('day')
+//       const yesterdayEnd = now.minus({ days: 1 }).endOf('day')
+//       const tomorrowStart = now.plus({ days: 1 }).startOf('day')
+//       const tomorrowEnd = now.plus({ days: 1 }).endOf('day')
+//       //const yesterdayNoon = now.minus({ days: 1 }).set({ hour: 12, minute: 0, second: 0, millisecond: 0 })
+
+
+//       // 🔹 Atualiza mensagens para reenvio
+//       const updatedResend = await Shippingcampaign.query()
+//         .where('created_at', '>=', yesterdayStart.toSQL({ includeOffset: false }))
+//         .where('created_at', '<=', yesterdayEnd.toSQL({ includeOffset: false }))
+//         .where('dateshedule', '>=', tomorrowStart.toSQL({ includeOffset: false }))
+//         .where('dateshedule', '<=', tomorrowEnd.toSQL({ includeOffset: false }))
+//         .andWhere('interaction_id', 1)
+//         .whereNull('phonevalid')
+//         .andWhere('messagesent', 0)
+//         .andWhereNull('excluded')
+//         .update({
+//           createdAt: DateTime.now().toFormat("yyyy-LL-dd HH:mm:ss"),
+//           resend: 1
+//         })
+
+//       //BUSCA 40 PACIENTES DO DIA ANTERIOR DE AVALIAÇÃO
+//       const records = await Shippingcampaign.query()
+//         .where('created_at', '>=', yesterdayStart.toSQL({ includeOffset: false }))
+//         .where('created_at', '<=', yesterdayEnd.toSQL({ includeOffset: false }))
+//         .andWhere('interaction_id', 2)
+//         .whereNull('phonevalid')
+//         .andWhere('messagesent', 0)
+//         .andWhereNull('excluded')
+//         .limit(60) // <-- limita a busca
+//         .select('id') // só traz os ids para performance
+//       // pega apenas os ids
+//       const ids = records.map(r => r.id)
+//       if (ids.length > 0) {
+//         await Shippingcampaign.query()
+//           .whereIn('id', ids)
+//           .update({
+//             createdAt: DateTime.now().toFormat("yyyy-LL-dd HH:mm:ss"),
+//             resend: 1
+//           })
+//         await Log.create({
+//           name: "Resend",
+//           message: `Reenvio de AVALIAÇÕES não enviadas no dia anterior. Total: ${ids.length}`,
+//           description: "Function: resendMessage"
+//         })
+
+//       }
+
+
+//       if (updatedResend[0] > 0) {
+//         await Log.create({
+//           name: "Resend",
+//           message: `Reenvio de CONFIRMAÇÕES não enviadas no dia anterior. Total: ${updatedResend}`,
+//           description: "Function: resendMessage"
+//         })
+//       }
+
+
+//     } catch (error) {
+//       console.error("Erro no resendMessage:", error)
+//       // opcional: registrar no banco
+//       await Log.create({
+//         name: "ResendError",
+//         message: error.message || "Erro desconhecido",
+//         description: error.stack || "Sem stack trace"
+//       })
+//     }
+//   }, 4 * 60 * 60 * 1000) // 4 horas
+// }
+
+
+//BUSCANDO NO KLINGO
 async function resendMessage() {
-  setInterval(async () => {
+  const intervalMs = 4 * 60 * 60 * 1000 // 4 horas
+  let running = false
+
+  const tick = async () => {
+    // evita reentrância / overlap
+    if (running) {
+      console.log('[resendMessage] tick ignorado (execução anterior ainda em andamento)')
+      return
+    }
+
+    running = true
+
     try {
-      console.log("passei no RESEND............................")
+      console.log('passei no RESEND............................')
+
       const now = DateTime.now()
       const yesterdayStart = now.minus({ days: 1 }).startOf('day')
       const yesterdayEnd = now.minus({ days: 1 }).endOf('day')
       const tomorrowStart = now.plus({ days: 1 }).startOf('day')
       const tomorrowEnd = now.plus({ days: 1 }).endOf('day')
-      //const yesterdayNoon = now.minus({ days: 1 }).set({ hour: 12, minute: 0, second: 0, millisecond: 0 })
 
+      const nowSql = DateTime.now().toFormat('yyyy-LL-dd HH:mm:ss')
 
-      // 🔹 Atualiza mensagens para reenvio
-      const updatedResend = await Shippingcampaign.query()
+      // 🔹 Atualiza mensagens para reenvio (CONFIRMAÇÕES)
+      const updatedResendResult = await Shippingcampaign.query()
         .where('created_at', '>=', yesterdayStart.toSQL({ includeOffset: false }))
         .where('created_at', '<=', yesterdayEnd.toSQL({ includeOffset: false }))
         .where('dateshedule', '>=', tomorrowStart.toSQL({ includeOffset: false }))
@@ -127,11 +266,17 @@ async function resendMessage() {
         .andWhere('messagesent', 0)
         .andWhereNull('excluded')
         .update({
-          createdAt: DateTime.now().toFormat("yyyy-LL-dd HH:mm:ss"),
-          resend: 1
+          createdAt: nowSql,
+          resend: 1,
         })
 
-      //BUSCA 40 PACIENTES DO DIA ANTERIOR DE AVALIAÇÃO
+      // Lucid normalmente retorna number no update()
+      const updatedResend =
+        typeof updatedResendResult === 'number'
+          ? updatedResendResult
+          : Number((updatedResendResult as any)?.[0] ?? 0)
+
+      // 🔹 BUSCA 60 PACIENTES DO DIA ANTERIOR DE AVALIAÇÃO
       const records = await Shippingcampaign.query()
         .where('created_at', '>=', yesterdayStart.toSQL({ includeOffset: false }))
         .where('created_at', '<=', yesterdayEnd.toSQL({ includeOffset: false }))
@@ -139,88 +284,58 @@ async function resendMessage() {
         .whereNull('phonevalid')
         .andWhere('messagesent', 0)
         .andWhereNull('excluded')
-        .limit(60) // <-- limita a busca
-        .select('id') // só traz os ids para performance
-      // pega apenas os ids
-      const ids = records.map(r => r.id)
+        .limit(60)
+        .select('id')
+
+      const ids = records.map((r: any) => r.id)
+
       if (ids.length > 0) {
-        await Shippingcampaign.query()
-          .whereIn('id', ids)
-          .update({
-            createdAt: DateTime.now().toFormat("yyyy-LL-dd HH:mm:ss"),
-            resend: 1
-          })
+        await Shippingcampaign.query().whereIn('id', ids).update({
+          createdAt: nowSql,
+          resend: 1,
+        })
+
         await Log.create({
-          name: "Resend",
+          name: 'Resend',
           message: `Reenvio de AVALIAÇÕES não enviadas no dia anterior. Total: ${ids.length}`,
-          description: "Function: resendMessage"
+          description: 'Function: resendMessage',
         })
-
       }
 
-
-      if (updatedResend[0] > 0) {
+      if (updatedResend > 0) {
         await Log.create({
-          name: "Resend",
+          name: 'Resend',
           message: `Reenvio de CONFIRMAÇÕES não enviadas no dia anterior. Total: ${updatedResend}`,
-          description: "Function: resendMessage"
+          description: 'Function: resendMessage',
         })
       }
+    } catch (error: any) {
+      console.error('Erro no resendMessage:', error)
 
-      // 🔹 Atualiza CHATS (pacientes sem resposta)
-      // const subquery = Database.from('chats')
-      //   .innerJoin('shippingcampaigns', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
-      //   .where('shippingcampaigns.created_at', '>=', yesterdayStart.toSQL({ includeOffset: false }))
-      //   .where('shippingcampaigns.created_at', '<=', yesterdayNoon.toSQL({ includeOffset: false }))
-      //   .where('shippingcampaigns.interaction_id', 1)
-      //   .where('shippingcampaigns.interaction_seq', 1)
-      //   .where('chats.returned', 0)
-      //   .where('chats.ack', 2)
-      //   .select('chats.id')
-
-      //  await Chat.query()
-      //   .whereIn('id', Database.from(subquery.as('temp')))
-      //   .update({ excluded: 1 })
-
-      // // 🔹 Atualiza SHIPPINGCAMPAIGNS com mesmo filtro
-      // const subquery1 = Database
-      //   .from('shippingcampaigns as sc')
-      //   .innerJoin('chats as c', 'sc.id', 'c.shippingcampaigns_id')
-      //   .where('sc.created_at', '>=', yesterdayStart.toSQL({ includeOffset: false }))
-      //   .where('sc.created_at', '<=', yesterdayNoon.toSQL({ includeOffset: false }))
-      //   .where('sc.interaction_id', 1)
-      //   .where('sc.interaction_seq', 1)
-      //   .where('c.returned', 0)
-      //   .where('c.ack', 2)
-      //   .select('sc.id')
-
-      // const updatedShipping = await Shippingcampaign
-      //   .query()
-      //   .joinRaw(`JOIN (${subquery1.toQuery()}) as temp on shippingcampaigns.id = temp.id`)
-      //   .update({ createdAt: DateTime.now().toSQL({ includeOffset: false }), phonevalid: null, messagesent: 0 })
-
-      // await Log.create({
-      //   name: "Resend",
-      //   message: `reenvio de mensagens realizado:${updatedShipping}`,
-      //   description: "reenvio realizado"
-      // })
-
-      // console.log(">>>>update::", updatedShipping)
-
-    } catch (error) {
-      console.error("Erro no resendMessage:", error)
-      // opcional: registrar no banco
-      await Log.create({
-        name: "ResendError",
-        message: error.message || "Erro desconhecido",
-        description: error.stack || "Sem stack trace"
-      })
+      // não deixa o próprio log derrubar o catch
+      try {
+        await Log.create({
+          name: 'ResendError',
+          message: error?.message ? String(error.message) : 'Erro desconhecido',
+          description: error?.stack ? String(error.stack) : 'Sem stack trace',
+        })
+      } catch (logErr) {
+        console.error('Erro ao gravar ResendError no banco:', logErr)
+      }
+    } finally {
+      running = false
     }
-  }, 4 * 60 * 60 * 1000) // 4 horas
+  }
+
+  setInterval(() => void tick(), intervalMs)
+
+  // opcional: roda na inicialização também
+  void tick()
 }
 
 
-//BUSCANDO NO KLINGO
+
+
 async function sendRepeatedMessageKlingo() {
 
   // Função que será executada no intervalo

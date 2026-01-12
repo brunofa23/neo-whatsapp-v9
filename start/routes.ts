@@ -27,9 +27,9 @@ function operacaoAssincrona(callback) {
     console.log("INICIALIZANDO EASYTALK KLINGO....")
     destroyFullAgents()
     sendRepeatedMessageKlingo()
-    resetStatusConnected()
-    connectionAll()
-    resendMessage()
+    // resetStatusConnected()
+    // connectionAll()
+    // resendMessage()
     return
   }
 

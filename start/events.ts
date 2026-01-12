@@ -79,6 +79,7 @@ async function connectionAll() {
   }
 }
 
+//BUSCANDO NO SMART
 async function sendRepeatedMessage() {
   console.log('EXECUTANDO BUSCA SMART')
 
@@ -131,87 +132,168 @@ async function sendRepeatedMessage() {
 }
 
 
-
-
-
-// async function resendMessage() {
+//BUSCANDO NO KLINGO *************************************************************************************
+// async function sendRepeatedMessageKlingo() {
+//   // Função que será executada no intervalo
 //   setInterval(async () => {
-//     try {
-//       console.log("passei no RESEND............................")
-//       const now = DateTime.now()
-//       const yesterdayStart = now.minus({ days: 1 }).startOf('day')
-//       const yesterdayEnd = now.minus({ days: 1 }).endOf('day')
-//       const tomorrowStart = now.plus({ days: 1 }).startOf('day')
-//       const tomorrowEnd = now.plus({ days: 1 }).endOf('day')
-//       //const yesterdayNoon = now.minus({ days: 1 }).set({ hour: 12, minute: 0, second: 0, millisecond: 0 })
+//     const today = DateTime.local().setZone("America/Sao_Paulo")
+//     let daysToAdd = null
 
-
-//       // 🔹 Atualiza mensagens para reenvio
-//       const updatedResend = await Shippingcampaign.query()
-//         .where('created_at', '>=', yesterdayStart.toSQL({ includeOffset: false }))
-//         .where('created_at', '<=', yesterdayEnd.toSQL({ includeOffset: false }))
-//         .where('dateshedule', '>=', tomorrowStart.toSQL({ includeOffset: false }))
-//         .where('dateshedule', '<=', tomorrowEnd.toSQL({ includeOffset: false }))
-//         .andWhere('interaction_id', 1)
-//         .whereNull('phonevalid')
-//         .andWhere('messagesent', 0)
-//         .andWhereNull('excluded')
-//         .update({
-//           createdAt: DateTime.now().toFormat("yyyy-LL-dd HH:mm:ss"),
-//           resend: 1
-//         })
-
-//       //BUSCA 40 PACIENTES DO DIA ANTERIOR DE AVALIAÇÃO
-//       const records = await Shippingcampaign.query()
-//         .where('created_at', '>=', yesterdayStart.toSQL({ includeOffset: false }))
-//         .where('created_at', '<=', yesterdayEnd.toSQL({ includeOffset: false }))
-//         .andWhere('interaction_id', 2)
-//         .whereNull('phonevalid')
-//         .andWhere('messagesent', 0)
-//         .andWhereNull('excluded')
-//         .limit(60) // <-- limita a busca
-//         .select('id') // só traz os ids para performance
-//       // pega apenas os ids
-//       const ids = records.map(r => r.id)
-//       if (ids.length > 0) {
-//         await Shippingcampaign.query()
-//           .whereIn('id', ids)
-//           .update({
-//             createdAt: DateTime.now().toFormat("yyyy-LL-dd HH:mm:ss"),
-//             resend: 1
-//           })
-//         await Log.create({
-//           name: "Resend",
-//           message: `Reenvio de AVALIAÇÕES não enviadas no dia anterior. Total: ${ids.length}`,
-//           description: "Function: resendMessage"
-//         })
-
-//       }
-
-
-//       if (updatedResend[0] > 0) {
-//         await Log.create({
-//           name: "Resend",
-//           message: `Reenvio de CONFIRMAÇÕES não enviadas no dia anterior. Total: ${updatedResend}`,
-//           description: "Function: resendMessage"
-//         })
-//       }
-
-
-//     } catch (error) {
-//       console.error("Erro no resendMessage:", error)
-//       // opcional: registrar no banco
-//       await Log.create({
-//         name: "ResendError",
-//         message: error.message || "Erro desconhecido",
-//         description: error.stack || "Sem stack trace"
-//       })
+//     if (today.weekday >= 1 && today.weekday <= 4) {
+//       // Segunda a Quinta → +2
+//       daysToAdd = 2
+//     } else if (today.weekday === 5) {
+//       // Sexta → Segunda
+//       daysToAdd = 3
+//     } else if (today.weekday === 6) {
+//       // Sábado → Terça
+//       daysToAdd = 3
+//     } else if (today.weekday === 7) {
+//       // Domingo → não enviar
+//       return
 //     }
-//   }, 4 * 60 * 60 * 1000) // 4 horas
+
+//     const date = today.plus({ days: daysToAdd }).toFormat("yyyy-MM-dd")
+
+//     if (await TimeSchedule()) {
+//       console.log(`Buscando dados no Klingo: ${date}`)
+//       const datasourceApisController = new DatasourceApisController()
+//       datasourceApisController.getSchedulesInternal(date)
+//     }
+//   }, Number(process.env.TIME_SENDREPEATEDMESSAGE || 5000))
+
+//   //Atualiza os confirmados e cancelados
+//   //console.log("CONFIRM OR CANCEL DESABILITADO ****************")
+//   setInterval(async () => {
+//     if (await TimeSchedule()) {
+//       console.log(`Atualizando confirmações no Klingo: ${DateTime.now().toFormat("dd/MM/yyyy HH:mm")}`)
+//       const datasourceApisController = new DatasourceApisController
+//       datasourceApisController.confirmOrCancelScheduleInternal()
+//     }
+//   }, await GenerateRandomTime(500, 550, '****Send Message Repeated')
+//   )
+
 // }
+// BUSCANDO NO KLINGO (melhorado: sem sobreposição, com try/catch, await, timers mais seguros)
+async function sendRepeatedMessageKlingo() {
+  console.log("PASSO 1 KLINGO...")
+  // =========================
+  // helpers
+  // =========================
+  const zone = "America/Sao_Paulo"
+
+  const parseIntervalMs = (raw: any, fallback = 5000) => {
+    const n = Number(raw)
+    // evita 0, NaN e valores muito baixos que “espancam” sua API
+    return Number.isFinite(n) && n >= 1000 ? n : fallback
+  }
+
+  const computeTargetDate = () => {
+    const today = DateTime.local().setZone(zone)
+
+    // Luxon: weekday 1=Mon ... 7=Sun
+    const daysToAdd =
+      today.weekday >= 1 && today.weekday <= 4 ? 2 : // seg-qui → +2
+        today.weekday === 5 ? 3 :                      // sex → +3 (segunda)
+          today.weekday === 6 ? 3 :                      // sáb → +3 (terça)
+            null                                           // dom → não envia
+
+    if (daysToAdd === null) return null
+    return today.plus({ days: daysToAdd }).toFormat("yyyy-MM-dd")
+  }
+
+  // =========================
+  // loop 1: buscar agendas
+  // =========================
+  const intervalMs = parseIntervalMs(process.env.TIME_SENDREPEATEDMESSAGE, 5000)
+
+  let schedulesTimer: NodeJS.Timeout | null = null
+  let schedulesRunning = false
+
+  const schedulesTick = async () => {
+    schedulesTimer = setTimeout(schedulesTick, intervalMs)
+
+    if (schedulesRunning) {
+      console.log("[Klingo][getSchedules] tick ignorado (execução anterior em andamento)")
+      return
+    }
+
+    schedulesRunning = true
+    try {
+      const date = computeTargetDate()
+      if (!date) return // domingo
+
+      if (await TimeSchedule()) {
+        console.log(`Buscando dados no Klingo: ${date}`)
+        console.log("PASSO 2 KLINGO...")
+        const datasourceApisController = new DatasourceApisController()
+        console.log("PASSO 3 KLINGO...")
+        await datasourceApisController.getSchedulesInternal(date)
+        console.log("PASSO 4 KLINGO...")
+
+      }
+    } catch (err) {
+      console.error("[Klingo][getSchedules] erro:", err)
+    } finally {
+      schedulesRunning = false
+    }
+  }
+
+  // =========================
+  // loop 2: confirmar/cancelar (random a CADA execução, sem sobreposição)
+  // =========================
+  let confirmTimer: NodeJS.Timeout | null = null
+  let confirmRunning = false
+
+  const confirmTick = async () => {
+    // agenda o próximo com random NOVO (em vez de random fixo no setInterval)
+    let nextMs = 5000
+    try {
+      nextMs = await GenerateRandomTime(500, 550, "****Send Message Repeated")
+    } catch (e) {
+      // se der erro no random, mantém um fallback
+      nextMs = 30_000
+    }
+    confirmTimer = setTimeout(confirmTick, nextMs)
+
+    if (confirmRunning) {
+      console.log("[Klingo][confirmOrCancel] tick ignorado (execução anterior em andamento)")
+      return
+    }
+
+    confirmRunning = true
+    try {
+      if (await TimeSchedule()) {
+        console.log(
+          `Atualizando confirmações no Klingo: ${DateTime.now().setZone(zone).toFormat("dd/MM/yyyy HH:mm")}`
+        )
+        const datasourceApisController = new DatasourceApisController()
+        await datasourceApisController.confirmOrCancelScheduleInternal()
+      }
+    } catch (err) {
+      console.error("[Klingo][confirmOrCancel] erro:", err)
+    } finally {
+      confirmRunning = false
+    }
+  }
+
+  // start
+  schedulesTick()
+  //confirmTick()
+
+  // opcional: permitir parar os loops (útil em shutdown/PM2 reload)
+  return {
+    stop() {
+      if (schedulesTimer) clearTimeout(schedulesTimer)
+      if (confirmTimer) clearTimeout(confirmTimer)
+      schedulesTimer = null
+      confirmTimer = null
+    },
+  }
+}
 
 
-//BUSCANDO NO KLINGO
+
 async function resendMessage() {
   const intervalMs = 4 * 60 * 60 * 1000 // 4 horas
   let running = false
@@ -312,52 +394,6 @@ async function resendMessage() {
 
   // opcional: roda na inicialização também
   void tick()
-}
-
-
-
-
-async function sendRepeatedMessageKlingo() {
-
-  // Função que será executada no intervalo
-  setInterval(async () => {
-    const today = DateTime.local().setZone("America/Sao_Paulo")
-    let daysToAdd = null
-
-    if (today.weekday >= 1 && today.weekday <= 4) {
-      // Segunda a Quinta → +2
-      daysToAdd = 2
-    } else if (today.weekday === 5) {
-      // Sexta → Segunda
-      daysToAdd = 3
-    } else if (today.weekday === 6) {
-      // Sábado → Terça
-      daysToAdd = 3
-    } else if (today.weekday === 7) {
-      // Domingo → não enviar
-      return
-    }
-
-    const date = today.plus({ days: daysToAdd }).toFormat("yyyy-MM-dd")
-
-    if (await TimeSchedule()) {
-      console.log(`Buscando dados no Klingo: ${date}`)
-      const datasourceApisController = new DatasourceApisController()
-      datasourceApisController.getSchedulesInternal(date)
-    }
-  }, Number(process.env.TIME_SENDREPEATEDMESSAGE || 5000))
-
-  //Atualiza os confirmados e cancelados
-  //console.log("CONFIRM OR CANCEL DESABILITADO ****************")
-  setInterval(async () => {
-    if (await TimeSchedule()) {
-      console.log(`Atualizando confirmações no Klingo: ${DateTime.now().toFormat("dd/MM/yyyy HH:mm")}`)
-      const datasourceApisController = new DatasourceApisController
-      datasourceApisController.confirmOrCancelScheduleInternal()
-    }
-  }, await GenerateRandomTime(500, 550, '****Send Message Repeated')
-  )
-
 }
 
 async function resetStatusConnected() {

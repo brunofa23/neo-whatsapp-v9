@@ -64,7 +64,8 @@ export default async function SendFromQueueGupshup(agent: Agent) {
 
     // limite diário (mesma lógica do seu SendMessage atual)
     const totMessageSend = await shippingcampaignsController.maxLimitSendMessage(agent)
-    const maxLimitSendAgent = agent.max_limit_message || 0
+    const agentMaxMessage = await Agent.query().where('id',agent.id).first() 
+    const maxLimitSendAgent = agentMaxMessage?.max_limit_message || 0
 
     const isPriority = !!shippingCampaign?.prioritysend
     if (totMessageSend >= maxLimitSendAgent && !isPriority) {

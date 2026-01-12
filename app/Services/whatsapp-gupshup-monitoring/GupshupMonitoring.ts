@@ -11,7 +11,7 @@ function onlyDigits(v: any) {
   return String(v ?? '').replace(/\D/g, '')
 }
 
-/**
+/**0
  * ✅ Preferencial: encontra chat pendente pelo gsId (correlação do botão)
  */
 async function getChatByGsId(gsId: string) {

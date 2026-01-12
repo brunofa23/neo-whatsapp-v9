@@ -279,7 +279,7 @@ async function sendRepeatedMessageKlingo() {
 
   // start
   schedulesTick()
-  //confirmTick()
+  confirmTick()
 
   // opcional: permitir parar os loops (útil em shutdown/PM2 reload)
   return {

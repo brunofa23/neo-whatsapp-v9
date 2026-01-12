@@ -42,31 +42,86 @@ async function otherFields(schedule: Object) {
 }
 
 //FUNÇÃO PARA PREPARAR OS DADOS ARRAY BUSCADO DO KLINGO ANTES DE ARMAZENAR O SHIPPINGCAMPAIGN
-function prepareSchedules(records: object[]): object[] {
-  // Filtra apenas registros com status_confirmacao igual a "A Confirmar"
-  records = records.filter(item => item.status_confirmacao_id == null);
-  // Agrupa os registros por id_paciente
-  const groupedByPatient = records.reduce<Record<string, object[]>>((acc, record) => {
-    const key = record.id_paciente.toString();
-    acc[key] = acc[key] || [];
-    acc[key].push(record);
-    return acc;
-  }, {});
-  // Para cada grupo, pega apenas o registro com a data mais antiga
-  const oldestRecords = Object.values(groupedByPatient).map((group) => {
-    // Obtém todos os id_marcacao no grupo
-    const allIds = group.map(item => item.id_marcacao);
-    // Encontra o registro com a data mais antiga
-    const oldest = group.reduce((oldest, current) => {
-      return new Date(current.datahora) < new Date(oldest.datahora) ? current : oldest;
-    });
-    // Adiciona o atributo id_schedule ao registro mais antigo
-    oldest.idexternal_array = allIds;
-    return oldest;
-  });
+// function prepareSchedules(records: object[]): object[] {
+//   // Filtra apenas registros com status_confirmacao igual a "A Confirmar"
+//   records = records.filter(item => item.status_confirmacao_id == null);
+//   // Agrupa os registros por id_paciente
+//   const groupedByPatient = records.reduce<Record<string, object[]>>((acc, record) => {
+//     const key = record.id_paciente.toString();
+//     acc[key] = acc[key] || [];
+//     acc[key].push(record);
+//     return acc;
+//   }, {});
+//   // Para cada grupo, pega apenas o registro com a data mais antiga
+//   const oldestRecords = Object.values(groupedByPatient).map((group) => {
+//     // Obtém todos os id_marcacao no grupo
+//     const allIds = group.map(item => item.id_marcacao);
+//     // Encontra o registro com a data mais antiga
+//     const oldest = group.reduce((oldest, current) => {
+//       return new Date(current.datahora) < new Date(oldest.datahora) ? current : oldest;
+//     });
+//     // Adiciona o atributo id_schedule ao registro mais antigo
+//     oldest.idexternal_array = allIds;
+//     return oldest;
+//   });
 
-  return oldestRecords;
+//   return oldestRecords;
+// }
+
+type KlingoSchedule = {
+  status_confirmacao_id: any
+  id_paciente: string | number
+  id_marcacao: any
+  datahora: string | Date
+  // ... outros campos que você usa depois
+  idexternal_array?: any[]
 }
+
+function prepareSchedules(records?: unknown): KlingoSchedule[] {
+  // 1) garante array
+  if (!Array.isArray(records)) {
+    console.log('[prepareSchedules] records inválido (não é array):', records)
+    return []
+  }
+
+  // 2) filtra somente itens "A Confirmar" (status_confirmacao_id == null)
+  const filtered = records.filter((item): item is KlingoSchedule => {
+    if (!item || typeof item !== 'object') return false
+    const it = item as any
+    return it.status_confirmacao_id == null && it.id_paciente != null && it.datahora != null
+  })
+
+  if (filtered.length === 0) return []
+
+  // 3) agrupa por paciente
+  const groupedByPatient = filtered.reduce<Record<string, KlingoSchedule[]>>((acc, record) => {
+    const key = String(record.id_paciente)
+    ;(acc[key] ??= []).push(record)
+    return acc
+  }, {})
+
+  // 4) pega o mais antigo por paciente e adiciona idexternal_array
+  const oldestRecords = Object.values(groupedByPatient).map((group) => {
+    const allIds = group.map((item) => item.id_marcacao)
+
+    const oldest = group.reduce((oldest, current) => {
+      const tOld = Date.parse(String(oldest.datahora))
+      const tCur = Date.parse(String(current.datahora))
+
+      // se alguma data for inválida, mantém o "oldest" atual
+      if (!Number.isFinite(tCur)) return oldest
+      if (!Number.isFinite(tOld)) return current
+
+      return tCur < tOld ? current : oldest
+    })
+
+    // evita mutar objeto original (opcional)
+    return { ...oldest, idexternal_array: allIds }
+  })
+
+  return oldestRecords
+}
+
 
 //FUNÇÃO QUE RETORNA O IDEXTERNO OU IDEXTERNO_ARRAY
 async function returnIdExternal(chatObject: object): Promise<number[]> {

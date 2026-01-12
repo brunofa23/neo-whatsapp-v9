@@ -73,10 +73,6 @@ async function sendTextAndLog(params: {
  * - Não usa whatsapp-web.js
  * - Recebe inbound {from,to,body,hasMedia}
  * - Usa Chat/Response/Talk + interpretAnswer
- *
- * ✅ Regra nova:
- * - Aceita apenas: confirmar/cancelar (botões) OU sim/não (digitado) OU 1/2
- * - Se vier qualquer outra coisa (texto aleatório, emoji, etc.), responde pedindo para selecionar uma opção no menu.
  */
 export default async function ConfirmScheduleGupshup(inbound: GupshupInbound, chat: Chat) {
   console.log('PASSO 1 CONFIRM SCHEDULE')
@@ -91,38 +87,19 @@ export default async function ConfirmScheduleGupshup(inbound: GupshupInbound, ch
 
   let body = String(inbound.body || '').trim()
 
-  // ✅ Normalização "dura" para restringir o que aceitamos
-  // - Botões: "Confirmar" / "Cancelar"
-  // - Digitado: "sim" / "não" / "nao"
-  // - Números: 1 / 2
-  //
-  // A ideia é "fechar" o funil:
-  // se não cair nessas opções, a gente pergunta de novo pedindo para usar o menu.
-  const normalized = body.toLowerCase().replace(/\s+/g, ' ').trim()
-  if (normalized === 'confirmar' || normalized === 'confirmado' || normalized === 'sim' || normalized === 's') {
-    body = '1'
-  } else if (
-    normalized === 'cancelar' ||
-    normalized === 'cancelado' ||
-    normalized === 'nao' ||
-    normalized === 'não' ||
-    normalized === 'n' ||
-    normalized === '2'
-  ) {
-    body = '2'
-  } else if (normalized === '1') {
-    body = '1'
-  } else {
-    // mantém o texto original para o interpretAnswer tentar (ex: "1." ou "1 " etc.)
-    body = normalized
-  }
+  // ✅ Normaliza respostas de botão:
+  // Quick reply geralmente vem "Confirmar" / "Cancelar"
+  // Seu interpretAnswer já entende 1/2, então convertemos.
+  const bodyLower = body.toLowerCase()
+  if (bodyLower === 'confirmar') body = '1'
+  if (bodyLower === 'cancelar') body = '2'
+  if (bodyLower === 'confirmado') body = '1'
+  if (bodyLower === 'cancelado') body = '2'
 
   // Se vier mídia, pede texto (mantém comportamento)
   if (inbound.hasMedia) {
     const msg =
-      'Por favor não envie áudio, imagens ou vídeos.\n' +
-      'Use o menu e selecione uma opção:\n' +
-      '*Confirmar* ou *Cancelar*.'
+      'Por favor não envie áudio, imagens ou vídeos, apenas digite \n*1* para Confirmar o agendamento. \n*2* para Reagendamento ou Cancelamento.'
     await sendTextAndLog({
       sourcePhone: toDigits,
       destinationPhone: fromDigits,
@@ -146,27 +123,6 @@ export default async function ConfirmScheduleGupshup(inbound: GupshupInbound, ch
 
   // interpreta resposta ("1", "confirmado", "sim", etc.)
   const answer = await interpretAnswer(body)
-
-  // ✅ NOVO: validação principal
-  // Só permite confirmar (1) ou cancelar/reagendar (2).
-  // Qualquer outra coisa: pede para selecionar no menu.
-  if (answer?.code !== 1 && answer?.code !== 2) {
-    const msg =
-      'Não consegui identificar sua resposta.\n' +
-      'Por favor selecione uma opção no menu:\n' +
-      '*Confirmar* ou *Cancelar*.'
-
-    await sendTextAndLog({
-      sourcePhone: toDigits,
-      destinationPhone: fromDigits,
-      fromDigits,
-      toDigits,
-      chatId: chat.id,
-      reg: (chat as any).reg,
-      text: msg,
-    })
-    return
-  }
 
   // =========================
   // 1) CONFIRMOU
@@ -197,7 +153,7 @@ export default async function ConfirmScheduleGupshup(inbound: GupshupInbound, ch
     })
 
     Object.assign(chat, {
-      response: body.slice(0, 500), // aqui ficará "1" se veio do botão Confirmar / "sim"
+      response: body.slice(0, 500), // aqui ficará "1" se veio do botão Confirmar
       returned: true,
       absoluteresp: 1,
       externalstatus: 'A',
@@ -214,7 +170,7 @@ export default async function ConfirmScheduleGupshup(inbound: GupshupInbound, ch
   // =========================
   if (answer?.code === 2) {
     Object.assign(chat, {
-      response: body.slice(0, 500), // aqui ficará "2" se veio do botão Cancelar / "não"
+      response: body.slice(0, 500), // aqui ficará "2" se veio do botão Cancelar
       absoluteresp: 2,
       externalstatus: 'A',
       company_id: (chat as any).shippingcampaign?.company_id,
@@ -294,4 +250,36 @@ export default async function ConfirmScheduleGupshup(inbound: GupshupInbound, ch
 
     return
   }
+
+  // =========================
+  // 3) ENGANO
+  // =========================
+  if (answer?.code === 3) {
+    const defaultMessage = `Desculpe pelo engano, vou pedir para corrigir nosso cadastro.`
+    await sendTextAndLog({
+      sourcePhone: toDigits,
+      destinationPhone: fromDigits,
+      fromDigits,
+      toDigits,
+      chatId: chat.id,
+      reg: (chat as any).reg,
+      text: defaultMessage,
+    })
+    return
+  }
+
+  // =========================
+  // inválido
+  // =========================
+  const invalid =
+    'Oi, desculpe mas não consegui identificar uma resposta, por favor responda \n*1* para Confirmar o agendamento. \n*2* para Reagendamento ou Cancelamento.'
+  await sendTextAndLog({
+    sourcePhone: toDigits,
+    destinationPhone: fromDigits,
+    fromDigits,
+    toDigits,
+    chatId: chat.id,
+    reg: (chat as any).reg,
+    text: invalid,
+  })
 }

@@ -101,7 +101,6 @@ class DatasourceApisController {
             return raw;
         };
         const schedule_list = await prepareSchedules(await (0, request_1.getSchedulesApi)(date));
-        console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", schedule_list);
         const date_start = luxon_1.DateTime.now().setZone("America/Sao_Paulo").startOf("day").toSQL({ includeOffset: false });
         for (const data of schedule_list) {
             try {

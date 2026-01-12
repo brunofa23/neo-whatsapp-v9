@@ -109,6 +109,7 @@ class DatasourceApisController {
                 if (!regStr)
                     continue;
                 const firstName = String(data.nome ?? "").trim().split(/\s+/)[0] || "";
+                const firstNameDoctor = String(data.medico ?? "").trim().split(/\s+/)[0] || "";
                 const shipping = new Shippingcampaign_1.default();
                 shipping.interaction_id = 1;
                 shipping.interaction_seq = 1;
@@ -130,7 +131,7 @@ class DatasourceApisController {
                     firstName,
                     formatKlingoDate(data.datahora),
                     shipping.unit,
-                    shipping.doctor,
+                    firstNameDoctor,
                 ];
                 shipping.gupshupParams = JSON.stringify(gupParamsArr);
                 const verifyExist = await Shippingcampaign_1.default.query()

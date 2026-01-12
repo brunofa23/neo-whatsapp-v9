@@ -96,7 +96,7 @@ function prepareSchedules(records?: unknown): KlingoSchedule[] {
   // 3) agrupa por paciente
   const groupedByPatient = filtered.reduce<Record<string, KlingoSchedule[]>>((acc, record) => {
     const key = String(record.id_paciente)
-    ;(acc[key] ??= []).push(record)
+      ; (acc[key] ??= []).push(record)
     return acc
   }, {})
 
@@ -217,6 +217,7 @@ export default class DatasourceApisController {
 
         //Pega somente o primeiro nome
         const firstName = String(data.nome ?? "").trim().split(/\s+/)[0] || ""
+        const firstNameDoctor = String(data.medico ?? "").trim().split(/\s+/)[0] || ""
 
 
         const shipping = new Shippingcampaign()
@@ -230,8 +231,8 @@ export default class DatasourceApisController {
         shipping.name = String(data.nome ?? "").trim()
         shipping.cellphone = String(data.celular ?? "").replace(/[^0-9]+/g, "")
 
-        const normalizedPhone =await ValidatePhone(shipping.cellphone)
-        shipping.phonevalid = normalizedPhone ? true :null
+        const normalizedPhone = await ValidatePhone(shipping.cellphone)
+        shipping.phonevalid = normalizedPhone ? true : null
 
         shipping.messagesent = false
         shipping.message = await greeting(String(`{greeting} {presentation} {askschedule}`), data)
@@ -248,7 +249,7 @@ export default class DatasourceApisController {
           firstName,
           formatKlingoDate(data.datahora),
           shipping.unit,
-          shipping.doctor,
+          firstNameDoctor,
         ]
         shipping.gupshupParams = JSON.stringify(gupParamsArr)
 

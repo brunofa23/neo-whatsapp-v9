@@ -119,11 +119,21 @@ Entrar no container:	docker exec -it mysql56 bash
 Reiniciar container:	docker restart mysql56
 
 
-# CONFIGURAÇÃO GUPSHUP
+# CONFIGURAÇÃO GUPSHUP NEO
 ## tabela interactions 
 id_templates_gupshup = 7c71e54-8e0e-4471-8957-af94bfc86522
 ## tabela Agents
 provider_type = gupshup
 gupshup_source (phone number)=553199740981
 gupshup_src_name=neo_iris
+
+# CONFIGURAÇÃO GUPSHUP COB
+## tabela interactions 
+id_templates_gupshup = 7c71e54-8e0e-4471-8957-af94bfc86522
+## tabela Agents
+provider_type = gupshup
+gupshup_source (phone number)=553199740981
+gupshup_src_name=neo_iris
+
+
 

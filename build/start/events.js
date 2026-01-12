@@ -102,6 +102,97 @@ async function sendRepeatedMessage() {
     void tick();
 }
 exports.sendRepeatedMessage = sendRepeatedMessage;
+async function sendRepeatedMessageKlingo() {
+    console.log("PASSO 1 KLINGO...");
+    const zone = "America/Sao_Paulo";
+    const parseIntervalMs = (raw, fallback = 5000) => {
+        const n = Number(raw);
+        return Number.isFinite(n) && n >= 1000 ? n : fallback;
+    };
+    const computeTargetDate = () => {
+        const today = luxon_1.DateTime.local().setZone(zone);
+        const daysToAdd = today.weekday >= 1 && today.weekday <= 4 ? 2 :
+            today.weekday === 5 ? 3 :
+                today.weekday === 6 ? 3 :
+                    null;
+        if (daysToAdd === null)
+            return null;
+        return today.plus({ days: daysToAdd }).toFormat("yyyy-MM-dd");
+    };
+    const intervalMs = parseIntervalMs(process.env.TIME_SENDREPEATEDMESSAGE, 5000);
+    let schedulesTimer = null;
+    let schedulesRunning = false;
+    const schedulesTick = async () => {
+        schedulesTimer = setTimeout(schedulesTick, intervalMs);
+        if (schedulesRunning) {
+            console.log("[Klingo][getSchedules] tick ignorado (execução anterior em andamento)");
+            return;
+        }
+        schedulesRunning = true;
+        try {
+            const date = computeTargetDate();
+            if (!date)
+                return;
+            if (await (0, util_1.TimeSchedule)()) {
+                console.log(`Buscando dados no Klingo: ${date}`);
+                console.log("PASSO 2 KLINGO...");
+                const datasourceApisController = new DatasourceApisController_1.default();
+                console.log("PASSO 3 KLINGO...");
+                await datasourceApisController.getSchedulesInternal(date);
+                console.log("PASSO 4 KLINGO...");
+            }
+        }
+        catch (err) {
+            console.error("[Klingo][getSchedules] erro:", err);
+        }
+        finally {
+            schedulesRunning = false;
+        }
+    };
+    let confirmTimer = null;
+    let confirmRunning = false;
+    const confirmTick = async () => {
+        let nextMs = 5000;
+        try {
+            nextMs = await (0, util_1.GenerateRandomTime)(500, 550, "****Send Message Repeated");
+        }
+        catch (e) {
+            nextMs = 30000;
+        }
+        confirmTimer = setTimeout(confirmTick, nextMs);
+        if (confirmRunning) {
+            console.log("[Klingo][confirmOrCancel] tick ignorado (execução anterior em andamento)");
+            return;
+        }
+        confirmRunning = true;
+        try {
+            if (await (0, util_1.TimeSchedule)()) {
+                console.log(`Atualizando confirmações no Klingo: ${luxon_1.DateTime.now().setZone(zone).toFormat("dd/MM/yyyy HH:mm")}`);
+                const datasourceApisController = new DatasourceApisController_1.default();
+                await datasourceApisController.confirmOrCancelScheduleInternal();
+            }
+        }
+        catch (err) {
+            console.error("[Klingo][confirmOrCancel] erro:", err);
+        }
+        finally {
+            confirmRunning = false;
+        }
+    };
+    schedulesTick();
+    confirmTick();
+    return {
+        stop() {
+            if (schedulesTimer)
+                clearTimeout(schedulesTimer);
+            if (confirmTimer)
+                clearTimeout(confirmTimer);
+            schedulesTimer = null;
+            confirmTimer = null;
+        },
+    };
+}
+exports.sendRepeatedMessageKlingo = sendRepeatedMessageKlingo;
 async function resendMessage() {
     const intervalMs = 4 * 60 * 60 * 1000;
     let running = false;
@@ -185,38 +276,6 @@ async function resendMessage() {
     void tick();
 }
 exports.resendMessage = resendMessage;
-async function sendRepeatedMessageKlingo() {
-    setInterval(async () => {
-        const today = luxon_1.DateTime.local().setZone("America/Sao_Paulo");
-        let daysToAdd = null;
-        if (today.weekday >= 1 && today.weekday <= 4) {
-            daysToAdd = 2;
-        }
-        else if (today.weekday === 5) {
-            daysToAdd = 3;
-        }
-        else if (today.weekday === 6) {
-            daysToAdd = 3;
-        }
-        else if (today.weekday === 7) {
-            return;
-        }
-        const date = today.plus({ days: daysToAdd }).toFormat("yyyy-MM-dd");
-        if (await (0, util_1.TimeSchedule)()) {
-            console.log(`Buscando dados no Klingo: ${date}`);
-            const datasourceApisController = new DatasourceApisController_1.default();
-            datasourceApisController.getSchedulesInternal(date);
-        }
-    }, Number(process.env.TIME_SENDREPEATEDMESSAGE || 5000));
-    setInterval(async () => {
-        if (await (0, util_1.TimeSchedule)()) {
-            console.log(`Atualizando confirmações no Klingo: ${luxon_1.DateTime.now().toFormat("dd/MM/yyyy HH:mm")}`);
-            const datasourceApisController = new DatasourceApisController_1.default;
-            datasourceApisController.confirmOrCancelScheduleInternal();
-        }
-    }, await (0, util_1.GenerateRandomTime)(500, 550, '****Send Message Repeated'));
-}
-exports.sendRepeatedMessageKlingo = sendRepeatedMessageKlingo;
 async function resetStatusConnected() {
     await Agent_1.default.query().update({ status: null, statusconnected: false });
 }

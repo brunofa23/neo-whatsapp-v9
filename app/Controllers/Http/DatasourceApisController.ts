@@ -203,12 +203,8 @@ export default class DatasourceApisController {
       // 4) fallback: mantém como veio
       return raw
     }
-
     const schedule_list = await prepareSchedules(await getSchedulesApi(date))
-    console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", schedule_list)
-
     const date_start = DateTime.now().setZone("America/Sao_Paulo").startOf("day").toSQL({ includeOffset: false }) // "YYYY-MM-DD HH:mm:ss"
-
 
     for (const data of schedule_list) {
       try {
@@ -218,7 +214,6 @@ export default class DatasourceApisController {
         //Pega somente o primeiro nome
         const firstName = String(data.nome ?? "").trim().split(/\s+/)[0] || ""
         const firstNameDoctor = String(data.medico ?? "").trim().split(/\s+/)[0] || ""
-
 
         const shipping = new Shippingcampaign()
         shipping.interaction_id = 1

@@ -34,6 +34,7 @@ export default async (date: string, prioritysend: boolean = false, interaction_i
 
   for (const data of dataSourceList) {
     //console.log("!!!!>>>>>", data)
+
     try {
       if (!data?.reg || !data?.interaction_id) continue
 
@@ -52,7 +53,6 @@ export default async (date: string, prioritysend: boolean = false, interaction_i
       const normalized = await ValidatePhone(phone)
       shipping.phonevalid = normalized ? true : null
 
-
       shipping.messagesent = false
       shipping.message = asText(data.message).replace(/@p[0-9]/g, '?')
 
@@ -69,7 +69,20 @@ export default async (date: string, prioritysend: boolean = false, interaction_i
       shipping.type_service = data.type_service
       shipping.prioritysend = !!prioritysend
       shipping.file_path = data.file_path ?? null
-      shipping.gupshupParams = data.gupshup_params ?? null
+
+      //shipping.gupshupParams = data.gupshup_params ?? null
+      if (data.interaction_id == 1) {
+        const firstName = String(data.name ?? "").trim().split(/\s+/)[0] || ""
+        const firstNameDoctor = String(data.doctor ?? "").trim().split(/\s+/)[0] || ""
+        const dateSchedule = DateTime.fromJSDate(data.agm_hini, { zone: "utc" }).toFormat("dd/MM/yyyy HH:mm");
+        const gupParamsArr = [
+          firstName,
+          dateSchedule,
+          shipping.unit,
+          `Dr(a).${firstNameDoctor}`,
+        ]
+        shipping.gupshupParams = JSON.stringify(gupParamsArr) ?? null
+      }
 
       const verifyExist = await Shippingcampaign.query()
         .where('reg', data.reg)

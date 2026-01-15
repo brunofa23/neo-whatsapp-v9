@@ -60,7 +60,18 @@ exports.default = async (date, prioritysend = false, interaction_id = 0, unit_co
             shipping.type_service = data.type_service;
             shipping.prioritysend = !!prioritysend;
             shipping.file_path = data.file_path ?? null;
-            shipping.gupshupParams = data.gupshup_params ?? null;
+            if (data.interaction_id == 1) {
+                const firstName = String(data.name ?? "").trim().split(/\s+/)[0] || "";
+                const firstNameDoctor = String(data.doctor ?? "").trim().split(/\s+/)[0] || "";
+                const dateSchedule = luxon_1.DateTime.fromJSDate(data.agm_hini, { zone: "utc" }).toFormat("dd/MM/yyyy HH:mm");
+                const gupParamsArr = [
+                    firstName,
+                    dateSchedule,
+                    shipping.unit,
+                    `Dr(a).${firstNameDoctor}`,
+                ];
+                shipping.gupshupParams = JSON.stringify(gupParamsArr) ?? null;
+            }
             const verifyExist = await Shippingcampaign_1.default.query()
                 .where('reg', data.reg)
                 .andWhere('created_at', '>=', since)

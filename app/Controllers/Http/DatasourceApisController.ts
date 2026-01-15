@@ -137,51 +137,6 @@ async function returnIdExternal(chatObject: object): Promise<number[]> {
 }
 
 export default class DatasourceApisController {
-
-  //FUNÇÃO PARA BUSCAR OS PACIENTES AGENDADOS NO KLINGO
-  // public async getSchedulesInternal(date: string) {
-  //   const schedule_list = await prepareSchedules(await getSchedulesApi(date))
-  //   console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", schedule_list)
-
-  //   const date_start = DateTime.now().startOf('day').toFormat("yyyy-MM-dd HH:mm");
-  //   for (const data of schedule_list) {
-  //     try {
-  //       const reg = String(data.id_paciente).replace(/[^0-9.-]/g, "")
-  //       const shipping = new Shippingcampaign()
-  //       shipping.interaction_id = 1
-  //       shipping.interaction_seq = 1
-  //       shipping.reg = parseInt(reg)
-  //       shipping.dateshedule = data.datahora
-  //       shipping.idexternal = data.id_marcacao
-  //       shipping.name = String(data.nome).trim()
-  //       shipping.cellphone = String(data.celular).replace(/[^0-9]+/g, ''); //data.cellphone.replace("(", "").replace("-", "")
-  //       if (!await ValidatePhone(shipping.cellphone))
-  //         shipping.phonevalid = false
-  //       shipping.messagesent = false
-  //       shipping.message = await greeting(String(`{greeting} {presentation} {askschedule}`), data)
-  //       shipping.otherfields = String(await otherFields(data))
-  //       shipping.doctor = String(data.medico).trim()
-  //       shipping.unit = String(data.unidade).trim()
-  //       shipping.covenant = ''
-  //       shipping.idexternal_array = String(data.idexternal_array)
-  //       shipping.gupshupParams = "[" + data.nome + "," + data.datahora + "," + data.unidade + "," + data.medico + "]" ?? null  //data.gupshup_params ?? null
-
-  //       const verifyExist = await Shippingcampaign.query().where('reg', reg)
-  //         .andWhere('dateshedule', data.datahora)
-  //         .andWhere('created_at', '>=', date_start).first()
-
-  //       if (!verifyExist) {
-  //         await Shippingcampaign.create(shipping)
-  //       }
-
-  //     } catch (error) {
-  //       console.log("Erro 44454>>>>", error)
-  //       return false
-  //     }
-  //   }
-  //   return true
-  // }
-
   public async getSchedulesInternal(date: string) {
     // Helper: tenta converter `datahora` para "dd/LL/yyyy HH:mm"
     const formatKlingoDate = (datahora: any) => {

@@ -83,6 +83,16 @@ export default async (date: string, prioritysend: boolean = false, interaction_i
         ]
         shipping.gupshupParams = JSON.stringify(gupParamsArr) ?? null
       }
+      if (data.interaction_id == 2) {
+        const firstName = String(data.name ?? "").trim().split(/\s+/)[0] || ""
+        const dateservice = DateTime.fromJSDate(data.dateservice, { zone: "utc" }).toFormat("dd/MM/yyyy");
+        const gupParamsArr = [
+          firstName,
+          dateservice,
+          shipping.unit,
+        ]
+        shipping.gupshupParams = JSON.stringify(gupParamsArr) ?? null
+      }
 
       const verifyExist = await Shippingcampaign.query()
         .where('reg', data.reg)

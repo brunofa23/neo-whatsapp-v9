@@ -3,7 +3,6 @@ import Shippingcampaign from 'App/Models/Shippingcampaign'
 import { ValidatePhone } from './util'
 import { DateTime } from 'luxon';
 
-
 function isIterable(obj) {
   try {
     return obj !== null && typeof obj[Symbol.iterator] === 'function';
@@ -33,9 +32,6 @@ export default async (date: string, prioritysend: boolean = false, interaction_i
     .toJSDate()
 
   for (const data of dataSourceList) {
-    //console.log("!!!!>>>>>", data)
-
-
     try {
       if (!data?.reg || !data?.interaction_id) continue
 
@@ -51,8 +47,19 @@ export default async (date: string, prioritysend: boolean = false, interaction_i
       const phone = onlyDigits(data.cellphone)
       shipping.cellphone = phone
 
+      // ✅ usa ValidatePhone normalmente
       const normalized = await ValidatePhone(phone)
-      shipping.phonevalid = normalized ? true : null
+
+      // ✅ se for válido, marca phonevalid e já preenche o serialized
+      if (normalized) {
+        shipping.phonevalid = true
+        // CAMPO NOVO: chave técnica para batida com webhook
+        // ajuste o nome da propriedade se na model estiver diferente (ex: cellphoneserialized)
+        shipping.cellphoneSerialized = normalized
+      } else {
+        shipping.phonevalid = null
+        shipping.cellphoneSerialized = null
+      }
 
       shipping.messagesent = false
       shipping.message = asText(data.message).replace(/@p[0-9]/g, '?')
@@ -101,9 +108,25 @@ export default async (date: string, prioritysend: boolean = false, interaction_i
         .andWhere('interaction_id', data.interaction_id)
         .first()
 
-      if (verifyExist && (verifyExist.gupshupParams == null || String(verifyExist.gupshupParams).trim() === '') && shipping.gupshupParams) {
-        await Shippingcampaign.query().where('id', verifyExist.id).update({ gupshupParams: shipping.gupshupParams })
+      // ✅ se já existe e não tinha gupshupParams, atualiza só os params
+      if (
+        verifyExist &&
+        (verifyExist.gupshupParams == null || String(verifyExist.gupshupParams).trim() === '') &&
+        shipping.gupshupParams
+      ) {
+        await Shippingcampaign
+          .query()
+          .where('id', verifyExist.id)
+          .update({
+            gupshupParams: shipping.gupshupParams,
+            // opcional: se quiser ir “retroalimentando” o serialized em registros antigos
+            // só se ainda não tiver
+            ...(normalized && !verifyExist.cellphoneSerialized
+              ? { cellphoneSerialized: normalized }
+              : {}),
+          })
       }
+
       if (!verifyExist) {
         await Shippingcampaign.create(shipping)
         patientList.push({ reg: shipping.reg, name: shipping.name, unit: shipping.unit })
@@ -115,7 +138,3 @@ export default async (date: string, prioritysend: boolean = false, interaction_i
 
   return patientList
 }
-
-
-
-

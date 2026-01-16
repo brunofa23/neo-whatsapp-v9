@@ -11,7 +11,26 @@ function onlyDigits(v: any) {
   return String(v ?? '').replace(/\D/g, '')
 }
 
-/**0
+/**
+ * JSON.stringify seguro (evita crash por circular / bigints)
+ */
+function safeStringify(value: any) {
+  const seen = new WeakSet()
+  return JSON.stringify(
+    value,
+    (_key, val) => {
+      if (typeof val === 'bigint') return val.toString()
+      if (typeof val === 'object' && val !== null) {
+        if (seen.has(val)) return '[Circular]'
+        seen.add(val)
+      }
+      return val
+    },
+    2
+  )
+}
+
+/**
  * ✅ Preferencial: encontra chat pendente pelo gsId (correlação do botão)
  */
 async function getChatByGsId(gsId: string) {
@@ -59,6 +78,25 @@ export default class GupshupMonitoring {
    * - message.context?.gsId (✅ quando for quick_reply)
    */
   public async handleInbound(message: any) {
+    // ==========================================================
+    // ✅ LOG BRUTO: salva TODO o conteúdo do webhook para debugar
+    // ==========================================================
+    const MAX_LOG_LEN = 65000 // segurança (caso a coluna seja VARCHAR/TEXT)
+    const raw = safeStringify({
+      at: DateTime.now().toISO(),
+      webhook: message,
+    })
+
+    const truncated = raw.length > MAX_LOG_LEN
+    await Log.create({
+      name: 'webhook', // ✅ como você pediu
+      message: truncated ? raw.slice(0, MAX_LOG_LEN) : raw, // ✅ payload inteiro (ou truncado)
+      description: truncated ? 'GUPSHUP WEBHOOK RAW (TRUNCATED)' : 'GUPSHUP WEBHOOK RAW',
+    })
+
+    // -------------------------
+    // seu fluxo atual (mantido)
+    // -------------------------
     const fromDigits = onlyDigits(message?.from)
     const toDigits = onlyDigits(message?.to)
     const body = String(message?.body || '')
@@ -67,7 +105,7 @@ export default class GupshupMonitoring {
     // ✅ pega gsId do contexto (vem no webhook: payload.context.gsId quando é botão)
     const inboundGsId = String(message?.context?.gsId || '').trim()
 
-    // ✅ log rápido pra depuração
+    // ✅ log rápido pra depuração (mantido)
     await Log.create({
       name: 'gupshup_inbound',
       message: JSON.stringify({

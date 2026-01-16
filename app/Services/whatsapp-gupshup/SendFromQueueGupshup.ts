@@ -7,8 +7,7 @@ import Interaction from 'App/Models/Interaction'
 import { DateTime } from 'luxon'
 import { TimeSchedule } from 'App/Services/whatsapp-web/util'
 import SendMessageGupshup from 'App/Services/whatsapp-gupshup/SendMessageGupshup'
-// ✅ import da função que você já usa em outros pontos
-import { ValidatePhone } from 'App/Services/whatsapp-gupshup/util'
+import { ValidatePhone } from 'App/Services/whatsapp-web/util'
 
 const shippingcampaignsController = new ShippingcampaignsController()
 const dayBefore5 = DateTime.local().minus({ days: 5 }).toFormat('yyyy-MM-dd 00:00')
@@ -88,34 +87,21 @@ export default async function SendFromQueueGupshup(agent: Agent) {
     if (chatExists) return
 
     // =====================================================
-    // DESTINATION: usar SEMPRE o número serializado
+    // DESTINATION: usa cellphone + ValidatePhone APENAS para envio
+    // (NÃO vamos mexer em cellphoneserialized aqui)
     // =====================================================
 
-    // 1) tenta usar o que já veio do persist (ideal para novos registros)
-    let destination = onlyDigits(shippingCampaign.cellphoneserialized || '')
+    const rawPhone = onlyDigits(shippingCampaign.cellphone || '')
+    const normalized = await ValidatePhone(rawPhone)
 
-    // 2) se ainda não tiver, normaliza a partir do cellphone
-    if (!destination) {
-      const normalized = await ValidatePhone(onlyDigits(shippingCampaign.cellphone || ''))
-
-      if (!normalized) {
-        // número não é celular válido → marca como inválido e sai
-        shippingCampaign.phonevalid = false
-        await shippingCampaign.save()
-        return
-      }
-
-      destination = normalized
-      // salva para próximas vezes / para o "radar" do webhook
-      shippingCampaign.cellphoneserialized = normalized
-      await shippingCampaign.save()
-    }
-
-    if (!destination) {
+    if (!normalized) {
+      // número não é celular válido → marca como inválido e sai
       shippingCampaign.phonevalid = false
       await shippingCampaign.save()
       return
     }
+
+    const destination = normalized
 
     // ✅ busca template do interaction
     const interaction = await Interaction.query()
@@ -144,7 +130,7 @@ export default async function SendFromQueueGupshup(agent: Agent) {
       return
     }
 
-    // ✅ envia template via gupshup (agora pegando messageId)
+    // ✅ envia template via gupshup (pegando messageId)
     const { status, messageId } = await SendMessageGupshup({
       agent,
       destination,
@@ -155,7 +141,7 @@ export default async function SendFromQueueGupshup(agent: Agent) {
     // ✅ grava status e histórico (espelhando seu wwebjs)
     shippingCampaign.messagesent = true
     shippingCampaign.phonevalid = true
-    shippingCampaign.cellphoneserialized = destination
+    // 🔴 NÃO preenche cellphoneserialized aqui; será preenchido via webhook pelos destinos oficiais
     await shippingCampaign.save()
 
     const bodyChat = {
@@ -165,7 +151,7 @@ export default async function SendFromQueueGupshup(agent: Agent) {
       reg: shippingCampaign.reg,
       name: shippingCampaign.name,
       cellphone: shippingCampaign.cellphone,
-      cellphoneserialized: destination,
+      // 🔴 NÃO preenche cellphoneserialized aqui
       message: shippingCampaign.message, // mantém o texto “humano”
       shippingcampaigns_id: shippingCampaign.id,
       chatname: agent.name,
@@ -178,7 +164,7 @@ export default async function SendFromQueueGupshup(agent: Agent) {
     const chat = await Chat.create(bodyChat)
 
     await Talk.create({
-      cellphone: destination,
+      cellphone: destination, // aqui faz sentido guardar o destino que você realmente usou
       chatnumber: chatnumberKey,
       reg: shippingCampaign.reg,
       chat_id: chat.id,

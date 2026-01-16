@@ -7,6 +7,8 @@ import Interaction from 'App/Models/Interaction'
 import { DateTime } from 'luxon'
 import { TimeSchedule } from 'App/Services/whatsapp-web/util'
 import SendMessageGupshup from 'App/Services/whatsapp-gupshup/SendMessageGupshup'
+// ✅ import da função que você já usa em outros pontos
+import { ValidatePhone } from 'App/Services/whatsapp-gupshup/util'
 
 const shippingcampaignsController = new ShippingcampaignsController()
 const dayBefore5 = DateTime.local().minus({ days: 5 }).toFormat('yyyy-MM-dd 00:00')
@@ -64,7 +66,7 @@ export default async function SendFromQueueGupshup(agent: Agent) {
 
     // limite diário (mesma lógica do seu SendMessage atual)
     const totMessageSend = await shippingcampaignsController.maxLimitSendMessage(agent)
-    const agentMaxMessage = await Agent.query().where('id',agent.id).first() 
+    const agentMaxMessage = await Agent.query().where('id', agent.id).first()
     const maxLimitSendAgent = agentMaxMessage?.max_limit_message || 0
 
     const isPriority = !!shippingCampaign?.prioritysend
@@ -74,7 +76,6 @@ export default async function SendFromQueueGupshup(agent: Agent) {
       )
       return
     }
-
 
     // evita enviar repetido pro mesmo paciente em 5 dias
     if (!shippingCampaign.prioritysend) {
@@ -86,8 +87,30 @@ export default async function SendFromQueueGupshup(agent: Agent) {
     const chatExists = await verifyChatAlreadySaved(shippingCampaign)
     if (chatExists) return
 
-    // destination vem do seu persist já limpo
-    const destination = onlyDigits(shippingCampaign.cellphone)
+    // =====================================================
+    // DESTINATION: usar SEMPRE o número serializado
+    // =====================================================
+
+    // 1) tenta usar o que já veio do persist (ideal para novos registros)
+    let destination = onlyDigits(shippingCampaign.cellphoneserialized || '')
+
+    // 2) se ainda não tiver, normaliza a partir do cellphone
+    if (!destination) {
+      const normalized = await ValidatePhone(onlyDigits(shippingCampaign.cellphone || ''))
+
+      if (!normalized) {
+        // número não é celular válido → marca como inválido e sai
+        shippingCampaign.phonevalid = false
+        await shippingCampaign.save()
+        return
+      }
+
+      destination = normalized
+      // salva para próximas vezes / para o "radar" do webhook
+      shippingCampaign.cellphoneserialized = normalized
+      await shippingCampaign.save()
+    }
+
     if (!destination) {
       shippingCampaign.phonevalid = false
       await shippingCampaign.save()
@@ -148,7 +171,7 @@ export default async function SendFromQueueGupshup(agent: Agent) {
       chatname: agent.name,
       chatnumber: chatnumberKey,
 
-      // ✅ NOVO: salva id da mensagem enviada (vai bater com webhook payload.context.gsId)
+      // id da mensagem enviada (gsId) pra bater com webhook de "message-event"
       gupshup_gs_id: messageId,
     }
 

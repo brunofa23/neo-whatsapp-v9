@@ -11,6 +11,19 @@ const ConfirmScheduleGupshup_1 = __importDefault(require("./ConfirmScheduleGupsh
 function onlyDigits(v) {
     return String(v ?? '').replace(/\D/g, '');
 }
+function safeStringify(value) {
+    const seen = new WeakSet();
+    return JSON.stringify(value, (_key, val) => {
+        if (typeof val === 'bigint')
+            return val.toString();
+        if (typeof val === 'object' && val !== null) {
+            if (seen.has(val))
+                return '[Circular]';
+            seen.add(val);
+        }
+        return val;
+    }, 2);
+}
 async function getChatByGsId(gsId) {
     const id = String(gsId || '').trim();
     if (!id)
@@ -38,6 +51,17 @@ async function getChatByPhone(cellphone, agentPhone) {
 }
 class GupshupMonitoring {
     async handleInbound(message) {
+        const MAX_LOG_LEN = 65000;
+        const raw = safeStringify({
+            at: luxon_1.DateTime.now().toISO(),
+            webhook: message,
+        });
+        const truncated = raw.length > MAX_LOG_LEN;
+        await Log_1.default.create({
+            name: 'webhook',
+            message: truncated ? raw.slice(0, MAX_LOG_LEN) : raw,
+            description: truncated ? 'GUPSHUP WEBHOOK RAW (TRUNCATED)' : 'GUPSHUP WEBHOOK RAW',
+        });
         const fromDigits = onlyDigits(message?.from);
         const toDigits = onlyDigits(message?.to);
         const body = String(message?.body || '');

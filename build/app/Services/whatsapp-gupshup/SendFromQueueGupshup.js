@@ -12,6 +12,7 @@ const Interaction_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/
 const luxon_1 = require("luxon");
 const util_1 = global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/util");
 const SendMessageGupshup_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-gupshup/SendMessageGupshup"));
+const util_2 = global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/util");
 const shippingcampaignsController = new ShippingcampaignsController_1.default();
 const dayBefore5 = luxon_1.DateTime.local().minus({ days: 5 }).toFormat('yyyy-MM-dd 00:00');
 function onlyDigits(v) {
@@ -75,12 +76,14 @@ async function SendFromQueueGupshup(agent) {
         const chatExists = await verifyChatAlreadySaved(shippingCampaign);
         if (chatExists)
             return;
-        const destination = onlyDigits(shippingCampaign.cellphone);
-        if (!destination) {
+        const rawPhone = onlyDigits(shippingCampaign.cellphone || '');
+        const normalized = await (0, util_2.ValidatePhone)(rawPhone);
+        if (!normalized) {
             shippingCampaign.phonevalid = false;
             await shippingCampaign.save();
             return;
         }
+        const destination = normalized;
         const interaction = await Interaction_1.default.query()
             .select('id_templates_gupshup')
             .where('id', shippingCampaign.interaction_id)
@@ -111,7 +114,6 @@ async function SendFromQueueGupshup(agent) {
         });
         shippingCampaign.messagesent = true;
         shippingCampaign.phonevalid = true;
-        shippingCampaign.cellphoneserialized = destination;
         await shippingCampaign.save();
         const bodyChat = {
             interaction_id: shippingCampaign.interaction_id,
@@ -120,7 +122,6 @@ async function SendFromQueueGupshup(agent) {
             reg: shippingCampaign.reg,
             name: shippingCampaign.name,
             cellphone: shippingCampaign.cellphone,
-            cellphoneserialized: destination,
             message: shippingCampaign.message,
             shippingcampaigns_id: shippingCampaign.id,
             chatname: agent.name,

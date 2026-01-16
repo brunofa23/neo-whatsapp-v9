@@ -45,7 +45,14 @@ exports.default = async (date, prioritysend = false, interaction_id = 0, unit_co
             const phone = onlyDigits(data.cellphone);
             shipping.cellphone = phone;
             const normalized = await (0, util_1.ValidatePhone)(phone);
-            shipping.phonevalid = normalized ? true : null;
+            if (normalized) {
+                shipping.phonevalid = true;
+                shipping.cellphoneSerialized = normalized;
+            }
+            else {
+                shipping.phonevalid = null;
+                shipping.cellphoneSerialized = null;
+            }
             shipping.messagesent = false;
             shipping.message = asText(data.message).replace(/@p[0-9]/g, '?');
             shipping.otherfields = data.otherfields ?? null;
@@ -72,11 +79,34 @@ exports.default = async (date, prioritysend = false, interaction_id = 0, unit_co
                 ];
                 shipping.gupshupParams = JSON.stringify(gupParamsArr) ?? null;
             }
+            if (data.interaction_id == 2) {
+                const firstName = String(data.name ?? "").trim().split(/\s+/)[0] || "";
+                const dateservice = luxon_1.DateTime.fromJSDate(data.dateservice, { zone: "utc" }).toFormat("dd/MM/yyyy");
+                const gupParamsArr = [
+                    firstName,
+                    dateservice,
+                    shipping.unit,
+                ];
+                shipping.gupshupParams = JSON.stringify(gupParamsArr) ?? null;
+            }
             const verifyExist = await Shippingcampaign_1.default.query()
                 .where('reg', data.reg)
                 .andWhere('created_at', '>=', since)
                 .andWhere('interaction_id', data.interaction_id)
                 .first();
+            if (verifyExist &&
+                (verifyExist.gupshupParams == null || String(verifyExist.gupshupParams).trim() === '') &&
+                shipping.gupshupParams) {
+                await Shippingcampaign_1.default
+                    .query()
+                    .where('id', verifyExist.id)
+                    .update({
+                    gupshupParams: shipping.gupshupParams,
+                    ...(normalized && !verifyExist.cellphoneSerialized
+                        ? { cellphoneSerialized: normalized }
+                        : {}),
+                });
+            }
             if (!verifyExist) {
                 await Shippingcampaign_1.default.create(shipping);
                 patientList.push({ reg: shipping.reg, name: shipping.name, unit: shipping.unit });

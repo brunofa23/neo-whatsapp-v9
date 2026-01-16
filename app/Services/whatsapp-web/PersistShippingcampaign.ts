@@ -35,6 +35,7 @@ export default async (date: string, prioritysend: boolean = false, interaction_i
   for (const data of dataSourceList) {
     //console.log("!!!!>>>>>", data)
 
+
     try {
       if (!data?.reg || !data?.interaction_id) continue
 
@@ -100,6 +101,9 @@ export default async (date: string, prioritysend: boolean = false, interaction_i
         .andWhere('interaction_id', data.interaction_id)
         .first()
 
+      if (verifyExist && (verifyExist.gupshupParams == null || String(verifyExist.gupshupParams).trim() === '') && shipping.gupshupParams) {
+        await Shippingcampaign.query().where('id', verifyExist.id).update({ gupshupParams: shipping.gupshupParams })
+      }
       if (!verifyExist) {
         await Shippingcampaign.create(shipping)
         patientList.push({ reg: shipping.reg, name: shipping.name, unit: shipping.unit })

@@ -11,6 +11,7 @@ export default async (client: Client, message: Message, chat: Chat) => {
     client.sendMessage(message.from, 'Por favor não envie áudio, imagens ou vídeos, apenas digite uma nota de 0 a 10.')
     return
   }
+  
 
   //PERGUNTA 1 - AVALIAÇÃO DE ATENDIMENTO
   if (chat.interaction_seq == 1) {

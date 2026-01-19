@@ -130,6 +130,43 @@ async function ValidatePhone(cellphone: string): string | null {
   return normalized;
 }
 
+function normalizePhoneKey(v: any): string {
+  function onlyDigits(v: any) {
+    return String(v ?? '').replace(/\D/g, '')
+  }
+  
+  const digits = onlyDigits(v)
+  if (!digits) return ''
+
+  let phone = digits
+
+  // Remove DDI 55 se vier 12 ou 13 dígitos (55 + DDD + número)
+  if (phone.startsWith('55') && phone.length >= 12) {
+    phone = phone.slice(2)
+  }
+
+  // Agora esperamos DDD + número:
+  // 10 dígitos  -> DDD + 8
+  // 11 dígitos  -> DDD + 9 + 8 (celular com 9)
+  if (phone.length === 11) {
+    // DDD (2) + 9 + 8 dígitos -> removemos o "9"
+    return phone.slice(0, 2) + phone.slice(3)
+  }
+
+  if (phone.length === 10) {
+    return phone
+  }
+
+  // fallback: se for maior que 10, usamos os últimos 10
+  if (phone.length > 10) {
+    return phone.slice(-10)
+  }
+
+  // se for menor que 10, devolve o que tem (casos atípicos)
+  return phone
+}
+
+
 
 
 async function validAgent(agent) {
@@ -217,4 +254,4 @@ async function checkExistFile(file_name: string) {
 }
 
 
-export { sendMessageWarning, getTargetDates, stateTyping, DateFormat, GenerateRandomTime, TimeSchedule, PositiveResponse, NegativeResponse, ClearFolder, ValidatePhone, RandomResponse, validAgent, chunckPhone, extractCellphone, checkExistFile }
+export { sendMessageWarning, getTargetDates, stateTyping, DateFormat, GenerateRandomTime, TimeSchedule, PositiveResponse, NegativeResponse, ClearFolder, ValidatePhone, normalizePhoneKey, RandomResponse, validAgent, chunckPhone, extractCellphone, checkExistFile }

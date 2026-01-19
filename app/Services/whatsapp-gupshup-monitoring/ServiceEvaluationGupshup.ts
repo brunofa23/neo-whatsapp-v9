@@ -94,10 +94,7 @@ export default async function ServiceEvaluationGupshup(inbound: InboundGupshup, 
     // ==========================================================
     // PERGUNTA 1 - AVALIAÇÃO (nota 0 a 10)
     // ==========================================================
-    console.log('PASSO 1.0 SERVICE')
     if ((chat as any).interaction_seq == 1) {
-      console.log('PASSO 1.1 SERVICE')
-
       const notes = body.replace('1o', '10').match(/\d+/g)
 
       let invalidNote = false

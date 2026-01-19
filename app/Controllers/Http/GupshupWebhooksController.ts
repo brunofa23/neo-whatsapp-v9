@@ -10,7 +10,7 @@ export default class GupshupWebhookController {
   private monitoring = new GupshupMonitoring()
 
   public async handle({ request, response }: HttpContextContract) {
-    console.log("PASSO 1.1 55555")
+    
     const payload = request.all()
 
     // ✅ responde 200 rápido

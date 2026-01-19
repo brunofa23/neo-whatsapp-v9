@@ -5,6 +5,7 @@ import Talk from 'App/Models/Talk'
 import SendTextGupshup from 'App/Services/whatsapp-gupshup/SendTextGupshup'
 import { interpretAnswer } from 'App/Services/whatsapp-web/IdentifyAnswer'
 import { DateTime } from 'luxon'
+import { normalizePhoneKey } from 'App/Services/whatsapp-web/util'
 
 type GupshupInbound = {
   from: string // digits do paciente (ex: 5531985...)
@@ -57,11 +58,14 @@ async function sendTextAndLog(params: {
     text,
   })
 
+
   // ✅ grava histórico de envio
+  const phoneKey = normalizePhoneKey(fromDigits)
   await Talk.create({
     chat_id: chatId ?? null,
     reg: reg ?? null,
     cellphone: fromDigits,
+    cellphoneserialized: phoneKey,
     chatnumber: toDigits,
     message: text.slice(0, 999),
     type: 'to',

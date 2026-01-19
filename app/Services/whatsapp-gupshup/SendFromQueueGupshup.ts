@@ -190,6 +190,7 @@ export default async function SendFromQueueGupshup(agent: Agent) {
 
     await Talk.create({
       cellphone: destination, // destino efetivamente usado na API
+      cellphoneserialized:phoneKey,
       chatnumber: chatnumberKey,
       reg: shippingCampaign.reg,
       chat_id: chat.id,

@@ -150,7 +150,9 @@ export default class GupshupMonitoring {
     // ✅ registra inbound no talk (mantém o formato que você já usava)
     await Talk.create({
       cellphone: fromDigits, // ex: 5531985228619
+      cellphoneserialized:fromKey,
       chatnumber: toDigits,  // ex: 553185228619 ou vazio
+
       message: body.slice(0, 999),
       type: 'from',
     })

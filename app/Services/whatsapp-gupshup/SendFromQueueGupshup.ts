@@ -94,18 +94,29 @@ export default async function SendFromQueueGupshup(agent: Agent) {
     // e JÁ gera a chave técnica para correlação (cellphoneserialized)
     // =====================================================
 
-    const rawPhone = onlyDigits(shippingCampaign.cellphone || '')
+    // usamos o valor como está cadastrado (normalizePhoneKey já limpa dígitos por dentro)
+    const phoneKey = normalizePhoneKey(shippingCampaign.cellphone)
 
-    // ✅ chave canônica (para gravar em shipping + chat)
-    const phoneKey = rawPhone ? normalizePhoneKey(rawPhone) : null
+    if (!phoneKey) {
+      await Log.create({
+        name: 'GupshupPhoneKeyError',
+        message: `Não foi possível gerar cellphoneserialized para "${shippingCampaign.cellphone}"`,
+        description: `shippingcampaign_id=${shippingCampaign.id}`,
+      })
+      // marca como inválido e sai
+      shippingCampaign.phonevalid = false
+      shippingCampaign.cellphoneserialized = null
+      await shippingCampaign.save()
+      return
+    }
 
-    // ✅ validação de telefone para envio
-    const normalized = await ValidatePhone(rawPhone)
+    // validação de telefone para envio (E.164) – ValidatePhone já remove não-dígitos
+    const normalized = await ValidatePhone(shippingCampaign.cellphone)
 
     if (!normalized) {
       // número não é celular válido → marca como inválido e sai
       shippingCampaign.phonevalid = false
-      // ainda podemos gravar a chave pra rastrear, se quiser
+      // ainda assim gravamos a chave pra rastrear
       shippingCampaign.cellphoneserialized = phoneKey
       await shippingCampaign.save()
       return
@@ -151,7 +162,7 @@ export default async function SendFromQueueGupshup(agent: Agent) {
     // ✅ grava status e histórico
     shippingCampaign.messagesent = true
     shippingCampaign.phonevalid = true
-    // ✅ agora grava também a chave técnica
+    // ✅ grava também a chave técnica (normalizada com normalizePhoneKey)
     shippingCampaign.cellphoneserialized = phoneKey
     await shippingCampaign.save()
 

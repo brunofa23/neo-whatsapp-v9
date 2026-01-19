@@ -4,12 +4,13 @@ import Chat from 'App/Models/Chat'
 import Talk from 'App/Models/Talk'
 import Log from 'App/Models/Log'
 import Interaction from 'App/Models/Interaction'
+import Shippingcampaign from 'App/Models/Shippingcampaign'
 import { DateTime } from 'luxon'
 
 // ✅ tudo do util em um único import
 import { TimeSchedule, ValidatePhone, normalizePhoneKey } from 'App/Services/whatsapp-web/util'
 
-// ✅ import do sender Gupshup (que tinha sumido)
+// ✅ import do sender Gupshup
 import SendMessageGupshup from 'App/Services/whatsapp-gupshup/SendMessageGupshup'
 
 const shippingcampaignsController = new ShippingcampaignsController()
@@ -46,6 +47,36 @@ function safeParseParams(jsonText: string): string[] {
   }
 }
 
+/**
+ * 🔹 Conta quantas mensagens já foram enviadas HOJE para uma determinada interaction
+ *    usando Shippingcampaign (messagesent = true) filtrando por updated_at (momento do envio).
+ */
+/**
+ * 🔹 Conta quantas mensagens já foram enviadas HOJE para uma determinada interaction
+ *    usando Shippingcampaign (messagesent = true)
+ *    filtrando por created_at (data de criação do registro)
+ */
+async function countCampaignSentToday(interactionId: number): Promise<number> {
+  const start = DateTime.local().startOf('day').toSQL({ includeOffset: false })
+  const end = DateTime.local().endOf('day').toSQL({ includeOffset: false })
+
+  const result = await Shippingcampaign.query()
+    .where('interaction_id', interactionId)
+    .andWhere('messagesent', true)
+    .andWhere('created_at', '>=', start)
+    .andWhere('created_at', '<=', end)
+    .count('* as total')
+
+  const row = result[0]
+  const total =
+    row && row.$extras && row.$extras.total != null
+      ? Number(row.$extras.total)
+      : 0
+
+  return total
+}
+
+
 export default async function SendFromQueueGupshup(agent: Agent) {
   try {
     // horário permitido
@@ -54,6 +85,8 @@ export default async function SendFromQueueGupshup(agent: Agent) {
     // pega próxima campanha (sua regra central)
     const shippingCampaign = await shippingcampaignsController.patientToSend(agent)
     if (!shippingCampaign) return
+
+    const isPriority = !!shippingCampaign?.prioritysend
 
     // chave do canal (equivalente ao wid.user do wwebjs)
     const chatnumberKey = onlyDigits(agent.gupshup_source || '')
@@ -66,20 +99,65 @@ export default async function SendFromQueueGupshup(agent: Agent) {
       return
     }
 
-    // limite diário (mesma lógica do seu SendMessage atual)
+    // =====================================================
+    // 🔹 LIMITE DIÁRIO POR AGENTE
+    // =====================================================
     const totMessageSend = await shippingcampaignsController.maxLimitSendMessage(agent)
     const agentMaxMessage = await Agent.query().where('id', agent.id).first()
     const maxLimitSendAgent = agentMaxMessage?.max_limit_message || 0
 
-    const isPriority = !!shippingCampaign?.prioritysend
     if (totMessageSend >= maxLimitSendAgent && !isPriority) {
       console.log(
-        `LIMITE DIÁRIO ATINGIDO (GUPSHUP), Id:${agent.id} Agent:${agent.name} Enviados:${totMessageSend} - Limite:${maxLimitSendAgent}`
+        `LIMITE DIÁRIO ATINGIDO (AGENTE / GUPSHUP), Id:${agent.id} Agent:${agent.name} Enviados:${totMessageSend} - Limite:${maxLimitSendAgent}`
       )
       return
     }
 
-    // evita enviar repetido pro mesmo paciente em 5 dias
+    // =====================================================
+    // 🔹 BUSCA INTERACTION PELO ID (tabela interactions)
+    //    e pega template + maxsendlimit (limite diário da campanha)
+    // =====================================================
+    const interaction = await Interaction.query()
+      .select('id', 'id_templates_gupshup', 'maxsendlimit')
+      .where('id', shippingCampaign.interaction_id)
+      .first()
+
+    if (!interaction) {
+      await Log.create({
+        name: 'InteractionMissing',
+        message: `interaction_id=${shippingCampaign.interaction_id} não encontrada`,
+        description: `shippingcampaign_id=${shippingCampaign.id}`,
+      })
+      return
+    }
+
+    const templateId = interaction.idTemplatesGupshup
+    if (!templateId) {
+      await Log.create({
+        name: 'GupshupTemplateMissing',
+        message: `interaction_id=${interaction.id} sem id_templates_gupshup`,
+        description: `shippingcampaign_id=${shippingCampaign.id}`,
+      })
+      return
+    }
+
+    const maxLimitCampaign = Number(interaction.maxsendlimit || 0)
+
+    // =====================================================
+    // 🔹 LIMITE DIÁRIO POR CAMPANHA (Interaction.maxsendlimit)
+    // =====================================================
+    if (maxLimitCampaign > 0 && !isPriority) {
+      const totCampaignSentToday = await countCampaignSentToday(Number(shippingCampaign.interaction_id))
+
+      if (totCampaignSentToday >= maxLimitCampaign) {
+        console.log(
+          `LIMITE DIÁRIO ATINGIDO (CAMPANHA / interaction_id=${shippingCampaign.interaction_id}) EnviadosHoje:${totCampaignSentToday} - Limite:${maxLimitCampaign}`
+        )
+        return
+      }
+    }
+
+    // evita enviar repetido pro mesmo paciente em 5 dias (quando não é prioridade)
     if (!shippingCampaign.prioritysend) {
       const already = await verifyClientSend(chatnumberKey, shippingCampaign.cellphone)
       if (already) return
@@ -123,22 +201,6 @@ export default async function SendFromQueueGupshup(agent: Agent) {
     }
 
     const destination = normalized
-
-    // ✅ busca template do interaction
-    const interaction = await Interaction.query()
-      .select('id_templates_gupshup')
-      .where('id', shippingCampaign.interaction_id)
-      .first()
-
-    const templateId = interaction?.idTemplatesGupshup
-    if (!templateId) {
-      await Log.create({
-        name: 'GupshupTemplateMissing',
-        message: `interaction_id=${shippingCampaign.interaction_id} sem id_templates_gupshup`,
-        description: `shippingcampaign_id=${shippingCampaign.id}`,
-      })
-      return
-    }
 
     // ✅ params prontos no banco (JSON string)
     const params = safeParseParams(shippingCampaign.gupshupParams)
@@ -190,7 +252,7 @@ export default async function SendFromQueueGupshup(agent: Agent) {
 
     await Talk.create({
       cellphone: destination, // destino efetivamente usado na API
-      cellphoneserialized:phoneKey,
+      cellphoneserialized: phoneKey,
       chatnumber: chatnumberKey,
       reg: shippingCampaign.reg,
       chat_id: chat.id,

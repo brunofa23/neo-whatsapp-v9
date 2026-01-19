@@ -9,6 +9,7 @@ const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"))
 const Talk_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Talk"));
 const Log_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Log"));
 const Interaction_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Interaction"));
+const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Shippingcampaign"));
 const luxon_1 = require("luxon");
 const util_1 = global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/util");
 const SendMessageGupshup_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-gupshup/SendMessageGupshup"));
@@ -43,6 +44,21 @@ function safeParseParams(jsonText) {
         return [];
     }
 }
+async function countCampaignSentToday(interactionId) {
+    const start = luxon_1.DateTime.local().startOf('day').toSQL({ includeOffset: false });
+    const end = luxon_1.DateTime.local().endOf('day').toSQL({ includeOffset: false });
+    const result = await Shippingcampaign_1.default.query()
+        .where('interaction_id', interactionId)
+        .andWhere('messagesent', true)
+        .andWhere('created_at', '>=', start)
+        .andWhere('created_at', '<=', end)
+        .count('* as total');
+    const row = result[0];
+    const total = row && row.$extras && row.$extras.total != null
+        ? Number(row.$extras.total)
+        : 0;
+    return total;
+}
 async function SendFromQueueGupshup(agent) {
     try {
         if ((await (0, util_1.TimeSchedule)()) === false)
@@ -50,6 +66,7 @@ async function SendFromQueueGupshup(agent) {
         const shippingCampaign = await shippingcampaignsController.patientToSend(agent);
         if (!shippingCampaign)
             return;
+        const isPriority = !!shippingCampaign?.prioritysend;
         const chatnumberKey = onlyDigits(agent.gupshup_source || '');
         if (!chatnumberKey) {
             await Log_1.default.create({
@@ -62,10 +79,38 @@ async function SendFromQueueGupshup(agent) {
         const totMessageSend = await shippingcampaignsController.maxLimitSendMessage(agent);
         const agentMaxMessage = await Agent_1.default.query().where('id', agent.id).first();
         const maxLimitSendAgent = agentMaxMessage?.max_limit_message || 0;
-        const isPriority = !!shippingCampaign?.prioritysend;
         if (totMessageSend >= maxLimitSendAgent && !isPriority) {
-            console.log(`LIMITE DIÁRIO ATINGIDO (GUPSHUP), Id:${agent.id} Agent:${agent.name} Enviados:${totMessageSend} - Limite:${maxLimitSendAgent}`);
+            console.log(`LIMITE DIÁRIO ATINGIDO (AGENTE / GUPSHUP), Id:${agent.id} Agent:${agent.name} Enviados:${totMessageSend} - Limite:${maxLimitSendAgent}`);
             return;
+        }
+        const interaction = await Interaction_1.default.query()
+            .select('id', 'id_templates_gupshup', 'maxsendlimit')
+            .where('id', shippingCampaign.interaction_id)
+            .first();
+        if (!interaction) {
+            await Log_1.default.create({
+                name: 'InteractionMissing',
+                message: `interaction_id=${shippingCampaign.interaction_id} não encontrada`,
+                description: `shippingcampaign_id=${shippingCampaign.id}`,
+            });
+            return;
+        }
+        const templateId = interaction.idTemplatesGupshup;
+        if (!templateId) {
+            await Log_1.default.create({
+                name: 'GupshupTemplateMissing',
+                message: `interaction_id=${interaction.id} sem id_templates_gupshup`,
+                description: `shippingcampaign_id=${shippingCampaign.id}`,
+            });
+            return;
+        }
+        const maxLimitCampaign = Number(interaction.maxsendlimit || 0);
+        if (maxLimitCampaign > 0 && !isPriority) {
+            const totCampaignSentToday = await countCampaignSentToday(Number(shippingCampaign.interaction_id));
+            if (totCampaignSentToday >= maxLimitCampaign) {
+                console.log(`LIMITE DIÁRIO ATINGIDO (CAMPANHA / interaction_id=${shippingCampaign.interaction_id}) EnviadosHoje:${totCampaignSentToday} - Limite:${maxLimitCampaign}`);
+                return;
+            }
         }
         if (!shippingCampaign.prioritysend) {
             const already = await verifyClientSend(chatnumberKey, shippingCampaign.cellphone);
@@ -95,19 +140,6 @@ async function SendFromQueueGupshup(agent) {
             return;
         }
         const destination = normalized;
-        const interaction = await Interaction_1.default.query()
-            .select('id_templates_gupshup')
-            .where('id', shippingCampaign.interaction_id)
-            .first();
-        const templateId = interaction?.idTemplatesGupshup;
-        if (!templateId) {
-            await Log_1.default.create({
-                name: 'GupshupTemplateMissing',
-                message: `interaction_id=${shippingCampaign.interaction_id} sem id_templates_gupshup`,
-                description: `shippingcampaign_id=${shippingCampaign.id}`,
-            });
-            return;
-        }
         const params = safeParseParams(shippingCampaign.gupshupParams);
         if (params.length === 0) {
             await Log_1.default.create({

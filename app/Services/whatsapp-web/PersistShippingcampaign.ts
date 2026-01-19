@@ -79,22 +79,22 @@ export default async (
       shipping.type_service = data.type_service
       shipping.prioritysend = !!prioritysend
       shipping.file_path = data.file_path ?? null
+      shipping.gupshupParams = data.gupshupParams ?? null
 
-      // shipping.gupshupParams = data.gupshup_params ?? null
-      if (data.interaction_id == 1) {
-        const firstName = String(data.name ?? '').trim().split(/\s+/)[0] || ''
-        const firstNameDoctor = String(data.doctor ?? '').trim().split(/\s+/)[0] || ''
-        const dateSchedule = DateTime.fromJSDate(data.agm_hini, { zone: 'utc' }).toFormat('dd/MM/yyyy HH:mm')
-        const gupParamsArr = [firstName, dateSchedule, shipping.unit, `Dr(a).${firstNameDoctor}`]
-        shipping.gupshupParams = JSON.stringify(gupParamsArr) ?? null
-      }
+      // if (data.interaction_id == 1) {
+      //   const firstName = String(data.name ?? '').trim().split(/\s+/)[0] || ''
+      //   const firstNameDoctor = String(data.doctor ?? '').trim().split(/\s+/)[0] || ''
+      //   const dateSchedule = DateTime.fromJSDate(data.agm_hini, { zone: 'utc' }).toFormat('dd/MM/yyyy HH:mm')
+      //   const gupParamsArr = [firstName, dateSchedule, shipping.unit, `Dr(a).${firstNameDoctor}`]
+      //   shipping.gupshupParams = JSON.stringify(gupParamsArr) ?? null
+      // }
 
-      if (data.interaction_id == 2) {
-        const firstName = String(data.name ?? '').trim().split(/\s+/)[0] || ''
-        const dateservice = DateTime.fromJSDate(data.dateservice, { zone: 'utc' }).toFormat('dd/MM/yyyy')
-        const gupParamsArr = [firstName, dateservice, shipping.unit]
-        shipping.gupshupParams = JSON.stringify(gupParamsArr) ?? null
-      }
+      // if (data.interaction_id == 2) {
+      //   const firstName = String(data.name ?? '').trim().split(/\s+/)[0] || ''
+      //   const dateservice = DateTime.fromJSDate(data.dateservice, { zone: 'utc' }).toFormat('dd/MM/yyyy')
+      //   const gupParamsArr = [firstName, dateservice, shipping.unit]
+      //   shipping.gupshupParams = JSON.stringify(gupParamsArr) ?? null
+      // }
 
       const verifyExist = await Shippingcampaign.query()
         .where('reg', data.reg)

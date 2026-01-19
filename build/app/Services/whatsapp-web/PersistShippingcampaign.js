@@ -7,6 +7,7 @@ const DatasourcesController_1 = __importDefault(global[Symbol.for('ioc.use')]("A
 const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Shippingcampaign"));
 const util_1 = require("./util");
 const luxon_1 = require("luxon");
+const util_2 = global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/util");
 function isIterable(obj) {
     try {
         return obj !== null && typeof obj[Symbol.iterator] === 'function';
@@ -23,14 +24,10 @@ exports.default = async (date, prioritysend = false, interaction_id = 0, unit_co
     const dataSourceList = await new DatasourcesController_1.default().DataSource(date, interaction_id, unit_cod);
     const patientList = [];
     if (!isIterable(dataSourceList)) {
-        console.log("Algum erro ocorrido, não é iterable", typeof dataSourceList);
+        console.log('Algum erro ocorrido, não é iterable', typeof dataSourceList);
         return [];
     }
-    const since = luxon_1.DateTime.now()
-        .setZone('America/Sao_Paulo')
-        .minus({ days: 5 })
-        .startOf('day')
-        .toJSDate();
+    const since = luxon_1.DateTime.now().setZone('America/Sao_Paulo').minus({ days: 5 }).startOf('day').toJSDate();
     for (const data of dataSourceList) {
         try {
             if (!data?.reg || !data?.interaction_id)
@@ -44,14 +41,13 @@ exports.default = async (date, prioritysend = false, interaction_id = 0, unit_co
             shipping.name = asText(data.name);
             const phone = onlyDigits(data.cellphone);
             shipping.cellphone = phone;
+            shipping.cellphoneserialized = phone ? (0, util_2.normalizePhoneKey)(phone) : null;
             const normalized = await (0, util_1.ValidatePhone)(phone);
             if (normalized) {
                 shipping.phonevalid = true;
-                shipping.cellphoneSerialized = normalized;
             }
             else {
                 shipping.phonevalid = null;
-                shipping.cellphoneSerialized = null;
             }
             shipping.messagesent = false;
             shipping.message = asText(data.message).replace(/@p[0-9]/g, '?');
@@ -67,28 +63,7 @@ exports.default = async (date, prioritysend = false, interaction_id = 0, unit_co
             shipping.type_service = data.type_service;
             shipping.prioritysend = !!prioritysend;
             shipping.file_path = data.file_path ?? null;
-            if (data.interaction_id == 1) {
-                const firstName = String(data.name ?? "").trim().split(/\s+/)[0] || "";
-                const firstNameDoctor = String(data.doctor ?? "").trim().split(/\s+/)[0] || "";
-                const dateSchedule = luxon_1.DateTime.fromJSDate(data.agm_hini, { zone: "utc" }).toFormat("dd/MM/yyyy HH:mm");
-                const gupParamsArr = [
-                    firstName,
-                    dateSchedule,
-                    shipping.unit,
-                    `Dr(a).${firstNameDoctor}`,
-                ];
-                shipping.gupshupParams = JSON.stringify(gupParamsArr) ?? null;
-            }
-            if (data.interaction_id == 2) {
-                const firstName = String(data.name ?? "").trim().split(/\s+/)[0] || "";
-                const dateservice = luxon_1.DateTime.fromJSDate(data.dateservice, { zone: "utc" }).toFormat("dd/MM/yyyy");
-                const gupParamsArr = [
-                    firstName,
-                    dateservice,
-                    shipping.unit,
-                ];
-                shipping.gupshupParams = JSON.stringify(gupParamsArr) ?? null;
-            }
+            shipping.gupshupParams = data.gupshupParams ?? null;
             const verifyExist = await Shippingcampaign_1.default.query()
                 .where('reg', data.reg)
                 .andWhere('created_at', '>=', since)
@@ -97,14 +72,12 @@ exports.default = async (date, prioritysend = false, interaction_id = 0, unit_co
             if (verifyExist &&
                 (verifyExist.gupshupParams == null || String(verifyExist.gupshupParams).trim() === '') &&
                 shipping.gupshupParams) {
-                await Shippingcampaign_1.default
-                    .query()
+                const phoneKey = phone ? (0, util_2.normalizePhoneKey)(phone) : null;
+                await Shippingcampaign_1.default.query()
                     .where('id', verifyExist.id)
                     .update({
                     gupshupParams: shipping.gupshupParams,
-                    ...(normalized && !verifyExist.cellphoneSerialized
-                        ? { cellphoneSerialized: normalized }
-                        : {}),
+                    ...(phoneKey && !verifyExist.cellphoneserialized ? { cellphoneserialized: phoneKey } : {}),
                 });
             }
             if (!verifyExist) {
@@ -113,7 +86,7 @@ exports.default = async (date, prioritysend = false, interaction_id = 0, unit_co
             }
         }
         catch (error) {
-            console.log("Erro ao criar Shippingcampaign", { reg: data?.reg, interaction_id: data?.interaction_id }, error);
+            console.log('Erro ao criar Shippingcampaign', { reg: data?.reg, interaction_id: data?.interaction_id }, error);
         }
     }
     return patientList;

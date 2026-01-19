@@ -12,6 +12,7 @@ class GupshupWebhookController {
         this.monitoring = new GupshupMonitoring_1.default();
     }
     async handle({ request, response }) {
+        console.log("PASSO 1.1 55555");
         const payload = request.all();
         response.status(200).send({ ok: true });
         try {

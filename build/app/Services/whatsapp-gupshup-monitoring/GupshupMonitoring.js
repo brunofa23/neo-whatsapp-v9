@@ -8,6 +8,8 @@ const Talk_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Talk"))
 const Log_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Log"));
 const luxon_1 = require("luxon");
 const ConfirmScheduleGupshup_1 = __importDefault(require("./ConfirmScheduleGupshup"));
+const ServiceEvaluationGupshup_1 = __importDefault(require("./ServiceEvaluationGupshup"));
+const util_1 = global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/util");
 function onlyDigits(v) {
     return String(v ?? '').replace(/\D/g, '');
 }
@@ -35,18 +37,22 @@ async function getChatByGsId(gsId) {
         .orderBy('created_at', 'desc')
         .first();
 }
-async function getChatByPhone(cellphone, agentPhone) {
-    const phoneAgent = onlyDigits(agentPhone);
-    const phoneClient = onlyDigits(cellphone);
-    if (!phoneClient)
+async function getChatByPhone(cellphone, agentPhone, interactionId) {
+    const phoneClientKey = (0, util_1.normalizePhoneKey)(cellphone);
+    const phoneAgentKey = (0, util_1.normalizePhoneKey)(agentPhone);
+    if (!phoneClientKey)
         return null;
     const q = Chat_1.default.query()
         .preload('shippingcampaign')
-        .where('cellphoneserialized', phoneClient)
+        .where('cellphoneserialized', phoneClientKey)
         .whereNull('response')
         .orderBy('created_at', 'desc');
-    if (phoneAgent)
-        q.andWhere('chatnumber', phoneAgent);
+    if (phoneAgentKey) {
+        q.andWhere('chatnumber', phoneAgentKey);
+    }
+    if (interactionId !== undefined) {
+        q.andWhere('interaction_id', interactionId);
+    }
     return q.first();
 }
 class GupshupMonitoring {
@@ -56,6 +62,7 @@ class GupshupMonitoring {
             at: luxon_1.DateTime.now().toISO(),
             webhook: message,
         });
+        console.log('PASSO 1 1544');
         const truncated = raw.length > MAX_LOG_LEN;
         await Log_1.default.create({
             name: 'webhook',
@@ -64,6 +71,8 @@ class GupshupMonitoring {
         });
         const fromDigits = onlyDigits(message?.from);
         const toDigits = onlyDigits(message?.to);
+        const fromKey = (0, util_1.normalizePhoneKey)(message?.from);
+        const toKey = (0, util_1.normalizePhoneKey)(message?.to);
         const body = String(message?.body || '');
         const hasMedia = !!message?.hasMedia;
         const inboundGsId = String(message?.context?.gsId || '').trim();
@@ -72,7 +81,9 @@ class GupshupMonitoring {
             message: JSON.stringify({
                 at: luxon_1.DateTime.now().toISO(),
                 from: fromDigits,
+                fromKey,
                 to: toDigits || null,
+                toKey: toKey || null,
                 gsId: inboundGsId || null,
                 body: body.slice(0, 200),
                 hasMedia,
@@ -81,6 +92,7 @@ class GupshupMonitoring {
         });
         await Talk_1.default.create({
             cellphone: fromDigits,
+            cellphoneserialized: fromKey,
             chatnumber: toDigits,
             message: body.slice(0, 999),
             type: 'from',
@@ -90,14 +102,25 @@ class GupshupMonitoring {
             chat = await getChatByGsId(inboundGsId);
         }
         if (!chat) {
-            chat = await getChatByPhone(fromDigits, toDigits);
+            const evaluationChat = await getChatByPhone(fromDigits, toDigits, 2);
+            chat = evaluationChat || (await getChatByPhone(fromDigits, toDigits));
         }
-        console.log('GUPSHUP MONITORING => chat encontrado?', !!chat, 'from', fromDigits, 'to', toDigits || '-', 'gsId', inboundGsId || '-');
+        console.log('GUPSHUP MONITORING => chat encontrado?', !!chat, 'fromDigits', fromDigits, 'fromKey', fromKey, 'toDigits', toDigits || '-', 'toKey', toKey || '-', 'gsId', inboundGsId || '-');
         if (!chat) {
             return;
         }
         if (chat.interaction_id === 1) {
             await (0, ConfirmScheduleGupshup_1.default)({
+                from: fromDigits,
+                to: toDigits,
+                body,
+                hasMedia,
+                context: inboundGsId ? { gsId: inboundGsId } : undefined,
+            }, chat);
+            return;
+        }
+        if (chat.interaction_id === 2) {
+            await (0, ServiceEvaluationGupshup_1.default)({
                 from: fromDigits,
                 to: toDigits,
                 body,

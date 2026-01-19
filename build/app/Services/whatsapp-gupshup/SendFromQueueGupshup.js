@@ -12,7 +12,6 @@ const Interaction_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/
 const luxon_1 = require("luxon");
 const util_1 = global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/util");
 const SendMessageGupshup_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-gupshup/SendMessageGupshup"));
-const util_2 = global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/util");
 const shippingcampaignsController = new ShippingcampaignsController_1.default();
 const dayBefore5 = luxon_1.DateTime.local().minus({ days: 5 }).toFormat('yyyy-MM-dd 00:00');
 function onlyDigits(v) {
@@ -76,10 +75,22 @@ async function SendFromQueueGupshup(agent) {
         const chatExists = await verifyChatAlreadySaved(shippingCampaign);
         if (chatExists)
             return;
-        const rawPhone = onlyDigits(shippingCampaign.cellphone || '');
-        const normalized = await (0, util_2.ValidatePhone)(rawPhone);
+        const phoneKey = (0, util_1.normalizePhoneKey)(shippingCampaign.cellphone);
+        if (!phoneKey) {
+            await Log_1.default.create({
+                name: 'GupshupPhoneKeyError',
+                message: `Não foi possível gerar cellphoneserialized para "${shippingCampaign.cellphone}"`,
+                description: `shippingcampaign_id=${shippingCampaign.id}`,
+            });
+            shippingCampaign.phonevalid = false;
+            shippingCampaign.cellphoneserialized = null;
+            await shippingCampaign.save();
+            return;
+        }
+        const normalized = await (0, util_1.ValidatePhone)(shippingCampaign.cellphone);
         if (!normalized) {
             shippingCampaign.phonevalid = false;
+            shippingCampaign.cellphoneserialized = phoneKey;
             await shippingCampaign.save();
             return;
         }
@@ -114,6 +125,7 @@ async function SendFromQueueGupshup(agent) {
         });
         shippingCampaign.messagesent = true;
         shippingCampaign.phonevalid = true;
+        shippingCampaign.cellphoneserialized = phoneKey;
         await shippingCampaign.save();
         const bodyChat = {
             interaction_id: shippingCampaign.interaction_id,
@@ -122,6 +134,7 @@ async function SendFromQueueGupshup(agent) {
             reg: shippingCampaign.reg,
             name: shippingCampaign.name,
             cellphone: shippingCampaign.cellphone,
+            cellphoneserialized: phoneKey,
             message: shippingCampaign.message,
             shippingcampaigns_id: shippingCampaign.id,
             chatname: agent.name,
@@ -131,6 +144,7 @@ async function SendFromQueueGupshup(agent) {
         const chat = await Chat_1.default.create(bodyChat);
         await Talk_1.default.create({
             cellphone: destination,
+            cellphoneserialized: phoneKey,
             chatnumber: chatnumberKey,
             reg: shippingCampaign.reg,
             chat_id: chat.id,

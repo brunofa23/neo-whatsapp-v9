@@ -9,6 +9,7 @@ const Talk_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Talk"))
 const SendTextGupshup_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-gupshup/SendTextGupshup"));
 const IdentifyAnswer_1 = global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/IdentifyAnswer");
 const luxon_1 = require("luxon");
+const util_1 = global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/util");
 function safeJsonParse(v, fallback) {
     try {
         if (v == null)
@@ -41,10 +42,12 @@ async function sendTextAndLog(params) {
         destination: destinationPhone,
         text,
     });
+    const phoneKey = (0, util_1.normalizePhoneKey)(fromDigits);
     await Talk_1.default.create({
         chat_id: chatId ?? null,
         reg: reg ?? null,
         cellphone: fromDigits,
+        cellphoneserialized: phoneKey,
         chatnumber: toDigits,
         message: text.slice(0, 999),
         type: 'to',

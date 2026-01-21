@@ -4,7 +4,6 @@ import { ValidatePhone } from './util'
 import { DateTime } from 'luxon'
 import { normalizePhoneKey } from 'App/Services/whatsapp-web/util'
 
-
 function isIterable(obj) {
   try {
     return obj !== null && typeof obj[Symbol.iterator] === 'function'
@@ -32,7 +31,11 @@ export default async (
     return []
   }
 
-  const since = DateTime.now().setZone('America/Sao_Paulo').minus({ days: 5 }).startOf('day').toJSDate()
+  const since = DateTime.now()
+    .setZone('America/Sao_Paulo')
+    .minus({ days: 5 })
+    .startOf('day')
+    .toJSDate()
 
   for (const data of dataSourceList) {
     try {
@@ -51,10 +54,9 @@ export default async (
       shipping.cellphone = phone
 
       // ✅ CHAVE TÉCNICA (sempre): usada pra bater com o webhook
-      // ex: 5531985228619 / 31985228619 / 3185228619 -> mesma chave
       shipping.cellphoneserialized = phone ? normalizePhoneKey(phone) : null
 
-      // ✅ validação: mantém sua regra atual
+      // ✅ validação telefone
       const normalized = await ValidatePhone(phone)
 
       if (normalized) {
@@ -81,44 +83,49 @@ export default async (
       shipping.file_path = data.file_path ?? null
       shipping.gupshupParams = data.gupshupParams ?? null
 
-      // if (data.interaction_id == 1) {
-      //   const firstName = String(data.name ?? '').trim().split(/\s+/)[0] || ''
-      //   const firstNameDoctor = String(data.doctor ?? '').trim().split(/\s+/)[0] || ''
-      //   const dateSchedule = DateTime.fromJSDate(data.agm_hini, { zone: 'utc' }).toFormat('dd/MM/yyyy HH:mm')
-      //   const gupParamsArr = [firstName, dateSchedule, shipping.unit, `Dr(a).${firstNameDoctor}`]
-      //   shipping.gupshupParams = JSON.stringify(gupParamsArr) ?? null
-      // }
-
-      // if (data.interaction_id == 2) {
-      //   const firstName = String(data.name ?? '').trim().split(/\s+/)[0] || ''
-      //   const dateservice = DateTime.fromJSDate(data.dateservice, { zone: 'utc' }).toFormat('dd/MM/yyyy')
-      //   const gupParamsArr = [firstName, dateservice, shipping.unit]
-      //   shipping.gupshupParams = JSON.stringify(gupParamsArr) ?? null
-      // }
-
       const verifyExist = await Shippingcampaign.query()
         .where('reg', data.reg)
         .andWhere('created_at', '>=', since)
         .andWhere('interaction_id', data.interaction_id)
         .first()
 
-      // ✅ se já existe e não tinha gupshupParams, atualiza só os params
-      // e aproveita pra “retroalimentar” o cellphoneserialized se estiver vazio
+      const phoneKey = phone ? normalizePhoneKey(phone) : null
+
+      // 🔹 BLOCO 1: atualizar phonevalid e cellphoneserialized SEMPRE que já existir registro
+      if (verifyExist) {
+        const updatePhonePayload: any = {}
+
+        // atualiza phonevalid se mudou ou se não tinha
+        if (shipping.phonevalid !== undefined && shipping.phonevalid !== verifyExist.phonevalid) {
+          updatePhonePayload.phonevalid = shipping.phonevalid
+        }
+
+        // retroalimentar cellphoneserialized se ainda não tiver
+        if (phoneKey && !verifyExist.cellphoneserialized) {
+          updatePhonePayload.cellphoneserialized = phoneKey
+        }
+
+        if (Object.keys(updatePhonePayload).length > 0) {
+          await Shippingcampaign.query()
+            .where('id', verifyExist.id)
+            .update(updatePhonePayload)
+        }
+      }
+
+      // 🔹 BLOCO 2: se já existe e não tinha gupshupParams, atualiza SÓ os params
       if (
         verifyExist &&
         (verifyExist.gupshupParams == null || String(verifyExist.gupshupParams).trim() === '') &&
         shipping.gupshupParams
       ) {
-        const phoneKey = phone ? normalizePhoneKey(phone) : null
-
         await Shippingcampaign.query()
           .where('id', verifyExist.id)
           .update({
             gupshupParams: shipping.gupshupParams,
-            ...(phoneKey && !verifyExist.cellphoneserialized ? { cellphoneserialized: phoneKey } : {}),
           })
       }
 
+      // 🔹 se NÃO existe, cria normalmente
       if (!verifyExist) {
         await Shippingcampaign.create(shipping)
         patientList.push({ reg: shipping.reg, name: shipping.name, unit: shipping.unit })

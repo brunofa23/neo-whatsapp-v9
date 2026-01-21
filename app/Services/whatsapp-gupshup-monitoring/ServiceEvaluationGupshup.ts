@@ -50,9 +50,6 @@ export default async function ServiceEvaluationGupshup(inbound: InboundGupshup, 
   // 1) chat.chatnumber (normalmente você grava o número WABA aí quando envia)
   // 2) inbound.to (quando vier)
   const source = onlyDigits((chat as any)?.chatnumber || '') || toDigits
-
-  console.log('service evaluation @@@@@@@@@@@@@@@@@@', source)
-
   try {
     // Se não tiver source, não tem como responder pelo Gupshup
     if (!source) {
@@ -94,10 +91,7 @@ export default async function ServiceEvaluationGupshup(inbound: InboundGupshup, 
     // ==========================================================
     // PERGUNTA 1 - AVALIAÇÃO (nota 0 a 10)
     // ==========================================================
-    console.log('PASSO 1.0 SERVICE')
     if ((chat as any).interaction_seq == 1) {
-      console.log('PASSO 1.1 SERVICE')
-
       const notes = body.replace('1o', '10').match(/\d+/g)
 
       let invalidNote = false

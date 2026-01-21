@@ -27,7 +27,6 @@ async function ServiceEvaluationGupshup(inbound, chat) {
     const hasMedia = !!inbound?.hasMedia;
     const cellphoneserialized = (0, util_1.normalizePhoneKey)(fromDigits);
     const source = onlyDigits(chat?.chatnumber || '') || toDigits;
-    console.log('service evaluation @@@@@@@@@@@@@@@@@@', source);
     try {
         if (!source) {
             await Log_1.default.create({
@@ -60,9 +59,7 @@ async function ServiceEvaluationGupshup(inbound, chat) {
             });
             return;
         }
-        console.log('PASSO 1.0 SERVICE');
         if (chat.interaction_seq == 1) {
-            console.log('PASSO 1.1 SERVICE');
             const notes = body.replace('1o', '10').match(/\d+/g);
             let invalidNote = false;
             let invalidNoteNegative = false;

@@ -27,7 +27,11 @@ exports.default = async (date, prioritysend = false, interaction_id = 0, unit_co
         console.log('Algum erro ocorrido, não é iterable', typeof dataSourceList);
         return [];
     }
-    const since = luxon_1.DateTime.now().setZone('America/Sao_Paulo').minus({ days: 5 }).startOf('day').toJSDate();
+    const since = luxon_1.DateTime.now()
+        .setZone('America/Sao_Paulo')
+        .minus({ days: 5 })
+        .startOf('day')
+        .toJSDate();
     for (const data of dataSourceList) {
         try {
             if (!data?.reg || !data?.interaction_id)
@@ -69,15 +73,28 @@ exports.default = async (date, prioritysend = false, interaction_id = 0, unit_co
                 .andWhere('created_at', '>=', since)
                 .andWhere('interaction_id', data.interaction_id)
                 .first();
+            const phoneKey = phone ? (0, util_2.normalizePhoneKey)(phone) : null;
+            if (verifyExist) {
+                const updatePhonePayload = {};
+                if (shipping.phonevalid !== undefined && shipping.phonevalid !== verifyExist.phonevalid) {
+                    updatePhonePayload.phonevalid = shipping.phonevalid;
+                }
+                if (phoneKey && !verifyExist.cellphoneserialized) {
+                    updatePhonePayload.cellphoneserialized = phoneKey;
+                }
+                if (Object.keys(updatePhonePayload).length > 0) {
+                    await Shippingcampaign_1.default.query()
+                        .where('id', verifyExist.id)
+                        .update(updatePhonePayload);
+                }
+            }
             if (verifyExist &&
                 (verifyExist.gupshupParams == null || String(verifyExist.gupshupParams).trim() === '') &&
                 shipping.gupshupParams) {
-                const phoneKey = phone ? (0, util_2.normalizePhoneKey)(phone) : null;
                 await Shippingcampaign_1.default.query()
                     .where('id', verifyExist.id)
                     .update({
                     gupshupParams: shipping.gupshupParams,
-                    ...(phoneKey && !verifyExist.cellphoneserialized ? { cellphoneserialized: phoneKey } : {}),
                 });
             }
             if (!verifyExist) {

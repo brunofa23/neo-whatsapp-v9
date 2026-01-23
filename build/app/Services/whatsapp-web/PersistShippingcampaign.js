@@ -17,6 +17,18 @@ function isIterable(obj) {
         return false;
     }
 }
+function toMessageValue(v) {
+    if (v === undefined || v === null)
+        return null;
+    if (typeof v === 'string')
+        return v;
+    try {
+        return JSON.stringify(v);
+    }
+    catch {
+        return String(v);
+    }
+}
 exports.default = async (date, prioritysend = false, interaction_id = 0, unit_cod = 0) => {
     if (!date || typeof date !== 'string')
         return [];
@@ -38,16 +50,15 @@ exports.default = async (date, prioritysend = false, interaction_id = 0, unit_co
             try {
                 await Log_1.default.create({
                     name: 'PersistShippingcampaign',
-                    message: JSON.stringify({
-                        step: 'raw-data',
-                        data,
-                        meta: {
-                            dateParam: date,
-                            prioritysend,
-                            interaction_id,
-                            unit_cod,
-                        },
+                    description: JSON.stringify({
+                        source: 'raw-data',
+                        reg: data?.reg ?? null,
+                        interaction_id: data?.interaction_id ?? null,
+                        dateParam: date,
+                        prioritysend,
+                        unit_cod,
                     }),
+                    message: toMessageValue(data?.gupshupParams),
                 });
             }
             catch (logError) {
@@ -57,11 +68,13 @@ exports.default = async (date, prioritysend = false, interaction_id = 0, unit_co
                 try {
                     await Log_1.default.create({
                         name: 'PersistShippingcampaign',
-                        message: JSON.stringify({
-                            step: 'skip-invalid',
+                        description: JSON.stringify({
+                            source: 'skip-invalid',
                             reason: 'reg or interaction_id missing',
-                            data,
+                            reg: data?.reg ?? null,
+                            interaction_id: data?.interaction_id ?? null,
                         }),
+                        message: toMessageValue(data?.gupshupParams),
                     });
                 }
                 catch (logError) {
@@ -104,10 +117,12 @@ exports.default = async (date, prioritysend = false, interaction_id = 0, unit_co
             try {
                 await Log_1.default.create({
                     name: 'PersistShippingcampaign',
-                    message: JSON.stringify({
-                        step: 'shipping-built',
-                        shipping: shipping.toJSON(),
+                    description: JSON.stringify({
+                        source: 'shipping-built',
+                        reg: shipping.reg,
+                        interaction_id: shipping.interaction_id,
                     }),
+                    message: toMessageValue(shipping.gupshupParams),
                 });
             }
             catch (logError) {
@@ -122,13 +137,14 @@ exports.default = async (date, prioritysend = false, interaction_id = 0, unit_co
             try {
                 await Log_1.default.create({
                     name: 'PersistShippingcampaign',
-                    message: JSON.stringify({
-                        step: 'verify-exist',
+                    description: JSON.stringify({
+                        source: 'verify-exist',
                         reg: data.reg,
                         interaction_id: data.interaction_id,
                         found: !!verifyExist,
-                        existing: verifyExist ? verifyExist.toJSON() : null,
                     }),
+                    message: toMessageValue(shipping.gupshupParams ??
+                        (verifyExist ? verifyExist.gupshupParams : null)),
                 });
             }
             catch (logError) {
@@ -149,12 +165,13 @@ exports.default = async (date, prioritysend = false, interaction_id = 0, unit_co
                     try {
                         await Log_1.default.create({
                             name: 'PersistShippingcampaign',
-                            message: JSON.stringify({
-                                step: 'update-phone',
+                            description: JSON.stringify({
+                                source: 'update-phone',
                                 reg: data.reg,
                                 interaction_id: data.interaction_id,
-                                updatePhonePayload,
                             }),
+                            message: toMessageValue(shipping.gupshupParams ??
+                                verifyExist.gupshupParams),
                         });
                     }
                     catch (logError) {
@@ -173,12 +190,12 @@ exports.default = async (date, prioritysend = false, interaction_id = 0, unit_co
                 try {
                     await Log_1.default.create({
                         name: 'PersistShippingcampaign',
-                        message: JSON.stringify({
-                            step: 'update-gupshupParams',
+                        description: JSON.stringify({
+                            source: 'update-gupshupParams',
                             reg: data.reg,
                             interaction_id: data.interaction_id,
-                            newGupshupParams: shipping.gupshupParams,
                         }),
+                        message: toMessageValue(shipping.gupshupParams),
                     });
                 }
                 catch (logError) {
@@ -191,10 +208,12 @@ exports.default = async (date, prioritysend = false, interaction_id = 0, unit_co
                 try {
                     await Log_1.default.create({
                         name: 'PersistShippingcampaign',
-                        message: JSON.stringify({
-                            step: 'create-shipping',
-                            created: created.toJSON(),
+                        description: JSON.stringify({
+                            source: 'create-shipping',
+                            reg: created.reg,
+                            interaction_id: created.interaction_id,
                         }),
+                        message: toMessageValue(created.gupshupParams),
                     });
                 }
                 catch (logError) {
@@ -207,13 +226,13 @@ exports.default = async (date, prioritysend = false, interaction_id = 0, unit_co
             try {
                 await Log_1.default.create({
                     name: 'PersistShippingcampaign',
-                    message: JSON.stringify({
-                        step: 'error',
-                        reg: data?.reg,
-                        interaction_id: data?.interaction_id,
+                    description: JSON.stringify({
+                        source: 'error',
+                        reg: data?.reg ?? null,
+                        interaction_id: data?.interaction_id ?? null,
                         error: String(error?.message || error),
-                        stack: error?.stack,
                     }),
+                    message: toMessageValue(data?.gupshupParams),
                 });
             }
             catch (logError) {

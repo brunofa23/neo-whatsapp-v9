@@ -38,7 +38,7 @@ exports.default = async (date, prioritysend = false, interaction_id = 0, unit_co
             try {
                 await Log_1.default.create({
                     name: 'PersistShippingcampaign',
-                    messagem: JSON.stringify({
+                    message: JSON.stringify({
                         step: 'raw-data',
                         data,
                         meta: {
@@ -57,7 +57,7 @@ exports.default = async (date, prioritysend = false, interaction_id = 0, unit_co
                 try {
                     await Log_1.default.create({
                         name: 'PersistShippingcampaign',
-                        messagem: JSON.stringify({
+                        message: JSON.stringify({
                             step: 'skip-invalid',
                             reason: 'reg or interaction_id missing',
                             data,
@@ -104,7 +104,7 @@ exports.default = async (date, prioritysend = false, interaction_id = 0, unit_co
             try {
                 await Log_1.default.create({
                     name: 'PersistShippingcampaign',
-                    messagem: JSON.stringify({
+                    message: JSON.stringify({
                         step: 'shipping-built',
                         shipping: shipping.toJSON(),
                     }),
@@ -122,7 +122,7 @@ exports.default = async (date, prioritysend = false, interaction_id = 0, unit_co
             try {
                 await Log_1.default.create({
                     name: 'PersistShippingcampaign',
-                    messagem: JSON.stringify({
+                    message: JSON.stringify({
                         step: 'verify-exist',
                         reg: data.reg,
                         interaction_id: data.interaction_id,
@@ -149,7 +149,7 @@ exports.default = async (date, prioritysend = false, interaction_id = 0, unit_co
                     try {
                         await Log_1.default.create({
                             name: 'PersistShippingcampaign',
-                            messagem: JSON.stringify({
+                            message: JSON.stringify({
                                 step: 'update-phone',
                                 reg: data.reg,
                                 interaction_id: data.interaction_id,
@@ -173,7 +173,7 @@ exports.default = async (date, prioritysend = false, interaction_id = 0, unit_co
                 try {
                     await Log_1.default.create({
                         name: 'PersistShippingcampaign',
-                        messagem: JSON.stringify({
+                        message: JSON.stringify({
                             step: 'update-gupshupParams',
                             reg: data.reg,
                             interaction_id: data.interaction_id,
@@ -191,7 +191,7 @@ exports.default = async (date, prioritysend = false, interaction_id = 0, unit_co
                 try {
                     await Log_1.default.create({
                         name: 'PersistShippingcampaign',
-                        messagem: JSON.stringify({
+                        message: JSON.stringify({
                             step: 'create-shipping',
                             created: created.toJSON(),
                         }),
@@ -207,7 +207,7 @@ exports.default = async (date, prioritysend = false, interaction_id = 0, unit_co
             try {
                 await Log_1.default.create({
                     name: 'PersistShippingcampaign',
-                    messagem: JSON.stringify({
+                    message: JSON.stringify({
                         step: 'error',
                         reg: data?.reg,
                         interaction_id: data?.interaction_id,

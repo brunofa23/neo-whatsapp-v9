@@ -3,6 +3,7 @@ import Shippingcampaign from 'App/Models/Shippingcampaign'
 import { ValidatePhone } from './util'
 import { DateTime } from 'luxon'
 import { normalizePhoneKey } from 'App/Services/whatsapp-web/util'
+import Log from 'App/Models/Log' // ⬅️ IMPORT DO LOG
 
 function isIterable(obj) {
   try {
@@ -39,7 +40,41 @@ export default async (
 
   for (const data of dataSourceList) {
     try {
-      if (!data?.reg || !data?.interaction_id) continue
+      // 🔍 DEBUG 1: GRAVA TUDO QUE VOLTOU DO BANCO LEGADO
+      try {
+        await Log.create({
+          name: 'PersistShippingcampaign',
+          messagem: JSON.stringify({
+            step: 'raw-data',
+            data,
+            meta: {
+              dateParam: date,
+              prioritysend,
+              interaction_id,
+              unit_cod,
+            },
+          }),
+        })
+      } catch (logError) {
+        console.log('Erro ao gravar log PersistShippingcampaign (raw-data)', logError)
+      }
+
+      if (!data?.reg || !data?.interaction_id) {
+        // 🔍 DEBUG 2: loga quando pula registro
+        try {
+          await Log.create({
+            name: 'PersistShippingcampaign',
+            messagem: JSON.stringify({
+              step: 'skip-invalid',
+              reason: 'reg or interaction_id missing',
+              data,
+            }),
+          })
+        } catch (logError) {
+          console.log('Erro ao gravar log PersistShippingcampaign (skip-invalid)', logError)
+        }
+        continue
+      }
 
       const shipping = new Shippingcampaign()
       shipping.interaction_id = data.interaction_id
@@ -83,6 +118,19 @@ export default async (
       shipping.file_path = data.file_path ?? null
       shipping.gupshupParams = data.gupshupParams ?? null
 
+      // 🔍 DEBUG 3: LOGA SHIPPING MONTADO (antes de consultar se existe)
+      try {
+        await Log.create({
+          name: 'PersistShippingcampaign',
+          messagem: JSON.stringify({
+            step: 'shipping-built',
+            shipping: shipping.toJSON(), // toJSON pra não dar problema de serialização
+          }),
+        })
+      } catch (logError) {
+        console.log('Erro ao gravar log PersistShippingcampaign (shipping-built)', logError)
+      }
+
       const verifyExist = await Shippingcampaign.query()
         .where('reg', data.reg)
         .andWhere('created_at', '>=', since)
@@ -90,6 +138,22 @@ export default async (
         .first()
 
       const phoneKey = phone ? normalizePhoneKey(phone) : null
+
+      // 🔍 DEBUG 4: ACHOU/NAO ACHOU REGISTRO EXISTENTE
+      try {
+        await Log.create({
+          name: 'PersistShippingcampaign',
+          messagem: JSON.stringify({
+            step: 'verify-exist',
+            reg: data.reg,
+            interaction_id: data.interaction_id,
+            found: !!verifyExist,
+            existing: verifyExist ? verifyExist.toJSON() : null,
+          }),
+        })
+      } catch (logError) {
+        console.log('Erro ao gravar log PersistShippingcampaign (verify-exist)', logError)
+      }
 
       // 🔹 BLOCO 1: atualizar phonevalid e cellphoneserialized SEMPRE que já existir registro
       if (verifyExist) {
@@ -109,6 +173,21 @@ export default async (
           await Shippingcampaign.query()
             .where('id', verifyExist.id)
             .update(updatePhonePayload)
+
+          // 🔍 DEBUG 5: loga update de phone
+          try {
+            await Log.create({
+              name: 'PersistShippingcampaign',
+              messagem: JSON.stringify({
+                step: 'update-phone',
+                reg: data.reg,
+                interaction_id: data.interaction_id,
+                updatePhonePayload,
+              }),
+            })
+          } catch (logError) {
+            console.log('Erro ao gravar log PersistShippingcampaign (update-phone)', logError)
+          }
         }
       }
 
@@ -123,20 +202,65 @@ export default async (
           .update({
             gupshupParams: shipping.gupshupParams,
           })
+
+        // 🔍 DEBUG 6: update de gupshupParams
+        try {
+          await Log.create({
+            name: 'PersistShippingcampaign',
+            messagem: JSON.stringify({
+              step: 'update-gupshupParams',
+              reg: data.reg,
+              interaction_id: data.interaction_id,
+              newGupshupParams: shipping.gupshupParams,
+            }),
+          })
+        } catch (logError) {
+          console.log('Erro ao gravar log PersistShippingcampaign (update-gupshupParams)', logError)
+        }
       }
 
       // 🔹 se NÃO existe, cria normalmente
       if (!verifyExist) {
-        await Shippingcampaign.create(shipping)
-        patientList.push({ reg: shipping.reg, name: shipping.name, unit: shipping.unit })
+        const created = await Shippingcampaign.create(shipping)
+        patientList.push({ reg: created.reg, name: created.name, unit: created.unit })
+
+        // 🔍 DEBUG 7: criação de novo registro
+        try {
+          await Log.create({
+            name: 'PersistShippingcampaign',
+            messagem: JSON.stringify({
+              step: 'create-shipping',
+              created: created.toJSON(),
+            }),
+          })
+        } catch (logError) {
+          console.log('Erro ao gravar log PersistShippingcampaign (create-shipping)', logError)
+        }
       }
     } catch (error) {
       console.log('Erro ao criar Shippingcampaign', { reg: data?.reg, interaction_id: data?.interaction_id }, error)
+
+      // 🔍 DEBUG 8: log de erro geral
+      try {
+        await Log.create({
+          name: 'PersistShippingcampaign',
+          messagem: JSON.stringify({
+            step: 'error',
+            reg: data?.reg,
+            interaction_id: data?.interaction_id,
+            error: String(error?.message || error),
+            stack: error?.stack,
+          }),
+        })
+      } catch (logError) {
+        console.log('Erro ao gravar log PersistShippingcampaign (error)', logError)
+      }
     }
   }
 
   return patientList
 }
+
 
 //############################################################################################################################
 // Como usar esses logs pra achar o “maldito problema”

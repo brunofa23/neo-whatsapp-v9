@@ -137,3 +137,15 @@ export default async (
 
   return patientList
 }
+
+//############################################################################################################################
+// Como usar esses logs pra achar o “maldito problema”
+// Na tabela logs:
+// Filtra por: name = 'PersistShippingcampaign'
+// Depois olha por step dentro do JSON (raw-data, shipping-built, verify-exist, update-gupshupParams, create-shipping, etc.)
+// Pra focar no problema do gupshupParams:
+// Procura registros onde step = 'raw-data' e vê se data.gupshupParams está vindo preenchido.
+// Compara com os shipping-built e com os create-shipping / update-gupshupParams.
+// Se em raw-data veio certo mas em shipping-built ou create-shipping está null, o bug está na transformação.
+// Se nem em raw-data veio algo, o problema está na query do SQL Server mesmo.
+// Se quiser, depois que você rodar isso e pegar um exemplo real (copia um log de raw-data + shipping-built + create-shipping) e me manda, que eu te ajudo a fechar o diagnóstico em cima de um caso re

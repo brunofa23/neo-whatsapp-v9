@@ -131,49 +131,6 @@ async function sendRepeatedMessage() {
   void tick()
 }
 
-
-//BUSCANDO NO KLINGO *************************************************************************************
-// async function sendRepeatedMessageKlingo() {
-//   // Função que será executada no intervalo
-//   setInterval(async () => {
-//     const today = DateTime.local().setZone("America/Sao_Paulo")
-//     let daysToAdd = null
-
-//     if (today.weekday >= 1 && today.weekday <= 4) {
-//       // Segunda a Quinta → +2
-//       daysToAdd = 2
-//     } else if (today.weekday === 5) {
-//       // Sexta → Segunda
-//       daysToAdd = 3
-//     } else if (today.weekday === 6) {
-//       // Sábado → Terça
-//       daysToAdd = 3
-//     } else if (today.weekday === 7) {
-//       // Domingo → não enviar
-//       return
-//     }
-
-//     const date = today.plus({ days: daysToAdd }).toFormat("yyyy-MM-dd")
-
-//     if (await TimeSchedule()) {
-//       console.log(`Buscando dados no Klingo: ${date}`)
-//       const datasourceApisController = new DatasourceApisController()
-//       datasourceApisController.getSchedulesInternal(date)
-//     }
-//   }, Number(process.env.TIME_SENDREPEATEDMESSAGE || 5000))
-
-//   //Atualiza os confirmados e cancelados
-//   //console.log("CONFIRM OR CANCEL DESABILITADO ****************")
-//   setInterval(async () => {
-//     if (await TimeSchedule()) {
-//       console.log(`Atualizando confirmações no Klingo: ${DateTime.now().toFormat("dd/MM/yyyy HH:mm")}`)
-//       const datasourceApisController = new DatasourceApisController
-//       datasourceApisController.confirmOrCancelScheduleInternal()
-//     }
-//   }, await GenerateRandomTime(500, 550, '****Send Message Repeated')
-//   )
-
-// }
 // BUSCANDO NO KLINGO (melhorado: sem sobreposição, com try/catch, await, timers mais seguros)
 async function sendRepeatedMessageKlingo() {
   console.log("PASSO 1 KLINGO...")

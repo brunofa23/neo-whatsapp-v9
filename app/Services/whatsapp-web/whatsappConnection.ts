@@ -145,6 +145,7 @@ function startInternalLoop(client: any, agent: Agent) {
 async function startAgent(_agent: Agent) {
   console.log('whatsappConnections.....')
 
+
   // OBS: aqui você usava Agent.findOrFail(_agent.id) antes de checar _agent;
   // como _agent vem do banco no seu for, ele sempre existe — mantive simples:
   const agent = await Agent.findOrFail(_agent.id)

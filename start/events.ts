@@ -6,8 +6,8 @@ import PersistShippingcampaign from "App/Services/whatsapp-web/PersistShippingca
 import Shippingcampaign from "App/Models/Shippingcampaign";
 import { DateTime } from 'luxon';
 import { getTargetDates, GenerateRandomTime, TimeSchedule } from '../app/Services/whatsapp-web/util'
-import { startAgentChat } from "../app/Services/whatsapp-web/whatsapp"
-import { startAgent } from "../app/Services/whatsapp-web/whatsappConnection"
+//import { startAgentChat } from "../app/Services/whatsapp-web/whatsapp"
+//import { startAgent } from "../app/Services/whatsapp-web/whatsappConnection"
 import '../app/Services/plugins/axios'
 import Log from "App/Models/Log";
 import { startGupshupLoop } from "../app/Services/whatsapp-gupshup/gupshupConnection"
@@ -43,7 +43,7 @@ async function connectionAll() {
       // ===============================
       if (agent.default_chat) {
         console.log(`Conectando Agente Default: ${agent.name}`)
-        startAgentChat(agent).catch(console.error)
+        //startAgentChat(agent).catch(console.error)
         continue
       }
 
@@ -71,7 +71,7 @@ async function connectionAll() {
       // AGENTE WEBJS (PADRÃO)
       // ===============================
       console.log(`Conectando Agente Envio (WEBJS): ${agent.name}`)
-      startAgent(agent).catch(console.error)
+      //startAgent(agent).catch(console.error)
     }
 
   } catch (error) {

@@ -12,6 +12,7 @@ const qrcodeTerminal = require('qrcode-terminal');
 const qrcode = require('qrcode')
 
 async function startAgentChat(_agent: Agent) {
+  
   const agent = await Agent.findOrFail(_agent.id)
   if (!_agent) {
     console.log("CHATNAME INVÁLIDO - Verifique o .env Chatname está igual ao name tabela Agents")

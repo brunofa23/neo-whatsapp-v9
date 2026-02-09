@@ -15,7 +15,7 @@ function operacaoAssincrona(callback) {
 
   if (process.env.SERVER?.toLowerCase() === 'false') {
     console.log("INICIALIZANDO EASYTALK SMART")
-    destroyFullAgents()
+    //destroyFullAgents()
     resetStatusConnected()
     connectionAll()
     resendMessage()
@@ -25,7 +25,7 @@ function operacaoAssincrona(callback) {
   if (process.env.SERVER?.toLowerCase() === "klingo") {
     //FAZ INTEGRAÇÃO COM O SISTEMA KLINGO
     console.log("INICIALIZANDO EASYTALK KLINGO....")
-    destroyFullAgents()
+    //destroyFullAgents()
     sendRepeatedMessageKlingo()
     resetStatusConnected()
     connectionAll()

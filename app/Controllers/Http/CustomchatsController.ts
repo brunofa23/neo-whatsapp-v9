@@ -31,45 +31,6 @@ export default class CustomchatsController {
   }
 
 
-  // public async sendMessage({ auth, request, response }: HttpContextContract) {
-  //   await auth.use('api').authenticate()
-  //   const body = request.only(Customchat.fillable)
-  //   body.messagesent = false
-  //   body.chats_id = body.id
-  //   delete body.returned
-  //   delete body.created_at
-  //   delete body.id
-  //   delete body.response
-
-  //   console.log("BODY>>", body)
-
-  //   try {
-  //     const agent = await Agent.query().where('default_chat', true).first()
-  //     if (agent) {
-  //       const client = WhatsAppClientManager.getClient(String(agent.id));
-  //       await client.sendMessage(body.cellphoneserialized, body.message);
-
-  //       const payLoad = await Customchat.create({ ...body, chatnumber: agent.number_phone })
-  //       await Talk.create({ chat_id: body.chats_id, reg: body.reg, cellphone: body.cellphoneserialized, message: body.message, chatnumber: client.to, type: 'to' })
-  //       await Chat.query().where('id', body.chats_id).update({ last_response: 1 })
-  //       // Obtém `shippingcampaigns_id` diretamente
-  //       const chat = await Chat.find(body.chats_id)
-  //       if (chat?.shippingcampaigns_id) {
-  //         const shippingcampaign = await Shippingcampaign.find(chat.shippingcampaigns_id)
-  //         if (shippingcampaign && !shippingcampaign.date_first_return) {
-  //           shippingcampaign.date_first_return = DateTime.local().toFormat("yyyy-MM-dd HH:mm")
-  //           await shippingcampaign.save()
-  //         }
-  //       }
-  //       return response.status(201).send(payLoad)
-  //     }
-  //   } catch (error) {
-  //     console.log("erro", error)
-  //     return response.status(500).send({ error: 'Erro ao enviar mensagem.' })
-
-  //   }
-  // }
-
   public async sendMessage({ auth, request, response }: HttpContextContract) {
     await auth.use('api').authenticate()
 

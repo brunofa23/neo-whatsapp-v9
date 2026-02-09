@@ -190,7 +190,7 @@ export default class AgentsController {
 
   }
 
-    public async destroyFullAgents() {
+  public async destroyFullAgents() {
 
     const agents = await Agent.query().where('deleted', true);
     for (const agent of agents) {

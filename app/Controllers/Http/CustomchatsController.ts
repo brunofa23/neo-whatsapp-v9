@@ -4,9 +4,12 @@ import Chat from 'App/Models/Chat'
 import Database from '@ioc:Adonis/Lucid/Database'
 import Shippingcampaign from 'App/Models/Shippingcampaign'
 import { DateTime } from 'luxon'
-import WhatsAppClientManager from 'App/Services/whatsapp-web/WhatsAppClientManager'
+//import WhatsAppClientManager from 'App/Services/whatsapp-web/WhatsAppClientManager'
 import Agent from 'App/Models/Agent'
 import Talk from 'App/Models/Talk'
+import Template from 'App/Models/Template'
+import SendMessageGupshup from 'App/Services/whatsapp-gupshup/SendMessageGupshup'
+
 export default class CustomchatsController {
 
   public async show({ auth, params, response }: HttpContextContract) {

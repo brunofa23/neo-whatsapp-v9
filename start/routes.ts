@@ -164,6 +164,15 @@ Route.group(() => {
   // start/routes.ts
   Route.post('/webhooks/gupshup', 'GupshupWebhooksController.handle')
 
+  //ROUTE TEMPLATES
+  Route.get('/templates', 'TemplatesController.index')
+  Route.get('/templates/:id', 'TemplatesController.show')
+  Route.post('/templates', 'TemplatesController.store')
+  Route.put('/templates/:id', 'TemplatesController.update')
+  Route.delete('/templates/:id', 'TemplatesController.destroy')
+
+
+
 
 }).prefix('/api')
 

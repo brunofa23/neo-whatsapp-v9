@@ -17,7 +17,6 @@ function operacaoAssincrona(callback) {
     }
     if (process.env.SERVER?.toLowerCase() === 'false') {
         console.log("INICIALIZANDO EASYTALK SMART");
-        (0, events_1.destroyFullAgents)();
         (0, events_1.resetStatusConnected)();
         (0, events_1.connectionAll)();
         (0, events_1.resendMessage)();
@@ -25,7 +24,6 @@ function operacaoAssincrona(callback) {
     }
     if (process.env.SERVER?.toLowerCase() === "klingo") {
         console.log("INICIALIZANDO EASYTALK KLINGO....");
-        (0, events_1.destroyFullAgents)();
         (0, events_1.sendRepeatedMessageKlingo)();
         (0, events_1.resetStatusConnected)();
         (0, events_1.connectionAll)();
@@ -120,5 +118,10 @@ Route_1.default.group(() => {
     Route_1.default.post('/confirmorcancelscheduleapi', 'DatasourceApisController.confirmOrCancelSchedule');
     Route_1.default.resource('/mainsubjects', 'MainsubjectsController').apiOnly();
     Route_1.default.post('/webhooks/gupshup', 'GupshupWebhooksController.handle');
+    Route_1.default.get('/templates', 'TemplatesController.index');
+    Route_1.default.get('/templates/:id', 'TemplatesController.show');
+    Route_1.default.post('/templates', 'TemplatesController.store');
+    Route_1.default.put('/templates/:id', 'TemplatesController.update');
+    Route_1.default.delete('/templates/:id', 'TemplatesController.destroy');
 }).prefix('/api');
 //# sourceMappingURL=routes.js.map

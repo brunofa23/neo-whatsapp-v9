@@ -8,9 +8,10 @@ const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"))
 const Database_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Lucid/Database"));
 const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Shippingcampaign"));
 const luxon_1 = require("luxon");
-const WhatsAppClientManager_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/WhatsAppClientManager"));
 const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
 const Talk_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Talk"));
+const Template_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Template"));
+const SendMessageGupshup_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-gupshup/SendMessageGupshup"));
 class CustomchatsController {
     async show({ auth, params, response }) {
         await auth.use('api').authenticate();
@@ -28,8 +29,15 @@ class CustomchatsController {
     async sendMessage({ auth, request, response }) {
         await auth.use('api').authenticate();
         const rawBody = request.only(Customchat_1.default.fillable);
-        if (!rawBody.id || !rawBody.cellphoneserialized || !rawBody.message) {
-            return response.badRequest({ error: 'Campos obrigatórios ausentes (id, message ou cellphoneserialized).' });
+        if (!rawBody.id || !rawBody.cellphoneserialized) {
+            return response.badRequest({
+                error: 'Campos obrigatórios ausentes (id ou cellphoneserialized).',
+            });
+        }
+        if (!rawBody.template_id) {
+            return response.badRequest({
+                error: 'template_id é obrigatório para envio via Gupshup.',
+            });
         }
         const formattedBody = {
             ...rawBody,
@@ -42,27 +50,42 @@ class CustomchatsController {
         delete formattedBody.response;
         try {
             const agent = await Agent_1.default.query().where('default_chat', true).firstOrFail();
-            const client = WhatsAppClientManager_1.default.getClient(String(agent.id));
-            if (!client) {
-                return response.status(500).send({ error: 'Cliente WhatsApp não encontrado para o agente.' });
-            }
-            await client.sendMessage(formattedBody.cellphoneserialized, formattedBody.message);
+            const chat = await Chat_1.default.findOrFail(formattedBody.chats_id);
+            const patientName = chat.patient_name ||
+                chat.name ||
+                chat.person_name ||
+                '';
+            const template = await Template_1.default.findOrFail(rawBody.template_id);
+            const templateId = template.gupshup_template_id || template.id;
+            const templateParams = [
+                patientName,
+            ];
+            const { status, messageId } = await (0, SendMessageGupshup_1.default)({
+                agent,
+                destination: formattedBody.cellphoneserialized,
+                templateId,
+                params: templateParams,
+            });
+            const mensagemParaHistorico = formattedBody.message ||
+                `TEMPLATE ${templateId} | params: ${templateParams.join(' | ')}`;
+            formattedBody.message = mensagemParaHistorico;
             const payLoad = await Customchat_1.default.create({
                 ...formattedBody,
-                chatnumber: agent.number_phone,
+                chatnumber: agent.gupshup_source,
+                messagesent: true,
             });
-            console.log(">>>>", client.info.wid._serialized);
             await Talk_1.default.create({
                 chat_id: formattedBody.chats_id,
                 reg: formattedBody.reg,
                 cellphone: formattedBody.cellphoneserialized,
-                message: formattedBody.message,
-                chatnumber: client.info.wid._serialized,
+                message: mensagemParaHistorico,
+                chatnumber: agent.gupshup_source,
                 type: 'to',
             });
-            await Chat_1.default.query().where('id', formattedBody.chats_id).update({ last_response: 1 });
-            const chat = await Chat_1.default.find(formattedBody.chats_id);
-            if (chat?.shippingcampaigns_id) {
+            await Chat_1.default.query()
+                .where('id', formattedBody.chats_id)
+                .update({ last_response: 1 });
+            if (chat.shippingcampaigns_id) {
                 const shippingcampaign = await Shippingcampaign_1.default.find(chat.shippingcampaigns_id);
                 if (shippingcampaign && !shippingcampaign.date_first_return) {
                     shippingcampaign.date_first_return = luxon_1.DateTime.now().setZone('America/Sao_Paulo');
@@ -72,8 +95,10 @@ class CustomchatsController {
             return response.status(201).send(payLoad);
         }
         catch (error) {
-            console.error('Erro ao enviar mensagem:', error);
-            return response.status(500).send({ error: `Falha ao enviar mensagem. Verifique o servidor.ERRO:${error}` });
+            console.error('Erro ao enviar mensagem Gupshup:', error);
+            return response
+                .status(500)
+                .send({ error: `Falha ao enviar mensagem via Gupshup. ERRO: ${error}` });
         }
     }
     async viewedConfirmed({ auth, params, response }) {

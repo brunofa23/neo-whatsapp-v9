@@ -266,17 +266,13 @@ export default class CustomchatsController {
     await auth.use('api').authenticate()
 
     console.log('PASSEI AQUI')
-
     // Captura apenas template_id e campos permitidos do Customchat
-    const  template_id  = 1//request.only(['template_id'])
+    const  {template_id}  = request.only(['template_id'])
     const rawBody = request.only(Customchat.fillable)
+    rawBody.template_id = 1//template_id
 
-    // Garante que o template_id venha do request, mesmo que não esteja em fillable
-    rawBody.template_id = template_id
-
-    // Guarda o created_at original ANTES de mexer no formattedBody
+    //Guarda o created_at original ANTES de mexer no formattedBody
     const createdAtRaw = rawBody.created_at
-
     if (!rawBody.id || !rawBody.cellphoneserialized) {
       return response.badRequest({
         error: 'Campos obrigatórios ausentes (id ou cellphoneserialized).',
@@ -334,10 +330,8 @@ export default class CustomchatsController {
         // ex.: chat.doctor_name,
         // ex.: chat.schedule_date,
       ]
-
       // === 5) Verificar se já se passaram mais de 23 horas desde o created_at ===
       let shouldSendTemplate = false
-
       if (createdAtRaw) {
         // tenta interpretar como ISO
         const createdAt = DateTime.fromISO(String(createdAtRaw))
@@ -351,7 +345,7 @@ export default class CustomchatsController {
         } else {
           // Se o created_at vier zoado, você decide:
           // aqui vou considerar que NÃO envia template
-          shouldSendTemplate = false
+          shouldSendTemplate = true
         }
       } else {
         // Se não tiver created_at, você define a regra.

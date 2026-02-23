@@ -9,6 +9,7 @@ import Agent from 'App/Models/Agent'
 import Talk from 'App/Models/Talk'
 import Template from 'App/Models/Template'
 import SendMessageGupshup from 'App/Services/whatsapp-gupshup/SendMessageGupshup'
+import SendTextGupshup from 'App/Services/whatsapp-gupshup/SendTextGupshup'
 
 export default class CustomchatsController {
 
@@ -114,7 +115,7 @@ export default class CustomchatsController {
 
     console.log("PASSEI AQUI")
     // Captura apenas os campos permitidos
-    const {template_id} = request.only(['template_id'])
+    const { template_id } = request.only(['template_id'])
     const rawBody = request.only(Customchat.fillable)
     rawBody.template_id = template_id
 
@@ -161,6 +162,7 @@ export default class CustomchatsController {
     delete formattedBody.created_at
     delete formattedBody.id
     delete formattedBody.response
+    delete formattedBody.template_id
 
     try {
       // === 1) Buscar agente padrão (como você já fazia) ===
@@ -181,7 +183,7 @@ export default class CustomchatsController {
       const template = await Template.findOrFail(rawBody.template_id)
       // 🔴 Ajuste aqui conforme o campo que guarda o id do template no Gupshup
       const templateId = template.id_external//(template as any).gupshup_template_id || template.id
-      console.log("template:", template, "templateID:", templateId)
+      //console.log("template:", template, "templateID:", templateId)
 
       // === 4) Montar os parâmetros do template ===
       // Aqui você coloca na ordem dos placeholders configurados no Gupshup/meta.
@@ -195,13 +197,22 @@ export default class CustomchatsController {
       ]
 
       // === 5) Enviar via Gupshup (template) ===
-      const { status, messageId } = await SendMessageGupshup({
-        agent,
-        destination: formattedBody.cellphoneserialized,
-        templateId,
-        params: templateParams,
-        useDefaultApiKey:true
-      })
+       // const { status, messageId } = await SendMessageGupshup({
+      //   agent,
+      //   destination: formattedBody.cellphoneserialized,
+      //   templateId,
+      //   params: templateParams,
+      //   useDefaultApiKey:true
+      // })
+
+        // ✅ envia texto via endpoint /msg
+        await SendTextGupshup({
+          source: agent.gupshup_source,
+          destination: formattedBody.cellphoneserialized,
+          text:formattedBody.message,
+          useDefaultApiKey:true
+        })
+
 
       // Para salvar no histórico, se o campo "message" for NOT NULL,
       // você pode montar uma descrição amigável:
@@ -211,16 +222,24 @@ export default class CustomchatsController {
 
       formattedBody.message = mensagemParaHistorico
 
+      console.log("TEMPLATER::::", formattedBody)
+
       // === 6) Salvar registro da mensagem no Customchat ===
-      const payLoad = await Customchat.create({
-        ...formattedBody,
-        chatnumber: agent.gupshup_source, // ou agent.number_phone, ajuste conforme seu modelo
-        messagesent: true,
-        // se tiver colunas específicas para o retorno do Gupshup:
-        // returned: JSON.stringify({ status, messageId }),
-        // gupshup_message_id: messageId,
-        // gupshup_status: status,
-      })
+      try {
+        const payLoad = await Customchat.create({
+          ...formattedBody,
+          chatnumber: agent.gupshup_source, // ou agent.number_phone, ajuste conforme seu modelo
+          messagesent: true,
+          // se tiver colunas específicas para o retorno do Gupshup:
+          // returned: JSON.stringify({ status, messageId }),
+          // gupshup_message_id: messageId,
+          // gupshup_status: status,
+        })
+        console.log("RETORNO:", payLoad)
+      } catch (error) {
+        console.log(error)
+      }
+
 
       // === 7) Registrar na Talk (histórico de conversas) ===
       await Talk.create({

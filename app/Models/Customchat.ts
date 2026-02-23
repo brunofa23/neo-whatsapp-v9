@@ -79,4 +79,6 @@ export default class Customchat extends BaseModel {
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   public updatedAt: DateTime
+
+  
 }

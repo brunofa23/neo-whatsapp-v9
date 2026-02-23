@@ -6,7 +6,8 @@ type SendGupshupTemplateArgs = {
   agent: Agent
   destination: string
   templateId: string
-  params: (string | number)[]
+  params?: (string | number)[]  // 🔹 opcional
+  useDefaultApiKey?: boolean    // 🔹 boolean opcional, não "false"
 }
 
 function onlyDigits(v: string) {
@@ -18,8 +19,13 @@ export default async function SendMessageGupshup({
   destination,
   templateId,
   params,
+  useDefaultApiKey = false, // 🔹 default = false aqui
 }: SendGupshupTemplateArgs): Promise<{ status: string; messageId: string }> {
-  const apiKey = Env.get('GUPSHUP_API_KEY')
+
+  const apiKey = Env.get(
+    useDefaultApiKey ? 'GUPSHUP_API_KEY_DEFAULT' : 'GUPSHUP_API_KEY'
+  )
+
   const url = 'https://api.gupshup.io/wa/api/v1/template/msg'
 
   if (!apiKey) throw new Error(`GUPSHUP_API_KEY não configurada`)
@@ -43,6 +49,14 @@ export default async function SendMessageGupshup({
     })
   )
 
+
+  // 👇 AQUI: antes do axios.post
+  console.log('DEBUG GUPSHUP ENVIANDO >>>', {
+    templateId,
+    params,
+    body: data.toString(),   // opcional, pra ver o payload inteiro
+  })
+
   const res = await axios.post(url, data, {
     headers: {
       apikey: apiKey,
@@ -50,6 +64,9 @@ export default async function SendMessageGupshup({
     },
     timeout: 30000,
   })
+
+  console.log('RESPOSTA GUPSHUP >>>', res.data) // 👈 adiciona isso
+
 
   const { status, messageId } = res.data || {}
 

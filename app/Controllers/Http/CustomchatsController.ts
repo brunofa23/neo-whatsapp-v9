@@ -112,8 +112,17 @@ export default class CustomchatsController {
   public async sendMessage({ auth, request, response }: HttpContextContract) {
     await auth.use('api').authenticate()
 
+    console.log("PASSEI AQUI")
     // Captura apenas os campos permitidos
+    const {template_id} = request.only(['template_id'])
     const rawBody = request.only(Customchat.fillable)
+    rawBody.template_id = template_id
+
+    // const rawBody = {
+    //   id: 4856,
+    //   template_id: 1,
+    //   cellphoneserialized: '5531985228619'
+    // }
 
     /**
      * Esperado no payload (além do que você já tem):
@@ -170,9 +179,9 @@ export default class CustomchatsController {
 
       // === 3) Buscar o template na sua tabela ===
       const template = await Template.findOrFail(rawBody.template_id)
-
       // 🔴 Ajuste aqui conforme o campo que guarda o id do template no Gupshup
-      const templateId = (template as any).gupshup_template_id || template.id
+      const templateId = template.id_external//(template as any).gupshup_template_id || template.id
+      console.log("template:", template, "templateID:", templateId)
 
       // === 4) Montar os parâmetros do template ===
       // Aqui você coloca na ordem dos placeholders configurados no Gupshup/meta.
@@ -191,6 +200,7 @@ export default class CustomchatsController {
         destination: formattedBody.cellphoneserialized,
         templateId,
         params: templateParams,
+        useDefaultApiKey:true
       })
 
       // Para salvar no histórico, se o campo "message" for NOT NULL,
@@ -243,10 +253,11 @@ export default class CustomchatsController {
 
       return response.status(201).send(payLoad)
     } catch (error) {
-      console.error('Erro ao enviar mensagem Gupshup:', error)
-      return response
-        .status(500)
-        .send({ error: `Falha ao enviar mensagem via Gupshup. ERRO: ${error}` })
+      console.log('ERRO GUPSHUP DATA >>>', error.response?.data)
+      // console.error('Erro ao enviar mensagem Gupshup:', error)
+      // return response
+      //   .status(500)
+      //   .send({ error: `Falha ao enviar mensagem via Gupshup. ERRO: ${error}` })
     }
   }
 

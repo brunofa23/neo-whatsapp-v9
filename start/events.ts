@@ -75,6 +75,11 @@ async function connectionAll() {
       // ===============================
       if (agent.default_chat) {
         console.log(`Conectando Agente Default: ${agent.name}`);
+         await Agent.query().where("id", agent.id).update({
+          status: "GUPSHUP",
+          statusconnected: true,
+          qrcode: null,
+        });
         //startAgentChat(agent).catch(console.error)
         continue;
       }

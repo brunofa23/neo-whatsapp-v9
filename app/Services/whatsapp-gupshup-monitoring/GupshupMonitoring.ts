@@ -141,7 +141,7 @@ export default class GupshupMonitoring {
         message?.app ||
         message?.payload?.appName ||
         message?.payload?.app ||
-        message?.raw?.app 
+        message?.raw?.app ||
         ''
     ).trim()
 
@@ -151,7 +151,6 @@ export default class GupshupMonitoring {
     //    agents.default_chat == true
     // ==========================================================
     let defaultAgent: Agent | null = null
-
     if (appName) {
       defaultAgent = await Agent.query()
         .where('gupshup_src_name', appName)
@@ -163,6 +162,7 @@ export default class GupshupMonitoring {
     // CASO ESPECIAL: app marcado como default_chat → CUSTOMCHAT
     // ==========================================================
     if (defaultAgent) {
+      console.log("ENTREI NO DEFAULT...")
       await Log.create({
         name: 'gupshup_customchat_inbound',
         message: JSON.stringify(
@@ -183,14 +183,21 @@ export default class GupshupMonitoring {
         description: 'INBOUND VIA APP DEFAULT_CHAT → CUSTOMCHATS',
       })
 
+      console.log(".....", appName)
+
       // 🔹 tenta localizar um customchat aberto para esse cliente + número
       //    (equivalente ao getCustomChat do Monitoring antigo)
-      const openCustom = await Customchat.query()
+      const query = Customchat.query()
         .where('cellphoneserialized', fromKey)
-        .andWhere('chatnumber', toDigits)
+        //.andWhere('chatnumber', toDigits)
+        .andWhere('chatname',appName)
         .andWhereNull('returned')
         .orderBy('created_at', 'desc')
-        .first()
+
+        const openCustom = await query.first()
+
+        console.log(">>>>>>>>>111111>", query.toQuery())
+
 
       // 🔹 cria o registro em customchats no padrão antigo:
       //    chats_id, reg, cellphone, cellphoneserialized, chatnumber, returned, viewed, response, path_media
@@ -200,6 +207,7 @@ export default class GupshupMonitoring {
         cellphone: openCustom?.cellphone || fromDigits,
         cellphoneserialized: fromKey,
         chatnumber: toDigits || null,
+        chatname:appName||null,
         returned: true, // é um retorno/resposta do cliente
         viewed: false,
         response: body.slice(0, 999),

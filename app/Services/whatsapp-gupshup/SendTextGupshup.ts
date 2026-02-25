@@ -8,11 +8,16 @@ function onlyDigits(v: string) {
 type SendTextArgs = {
   source: string        // seu número WABA (ex: 553199740981)
   destination: string   // número do paciente
-  text: string
+  text: string,
+  useDefaultApiKey? : boolean
 }
 
-export default async function SendTextGupshup({ source, destination, text }: SendTextArgs) {
-  const apiKey = Env.get('GUPSHUP_API_KEY')
+export default async function SendTextGupshup({ source, destination, text,useDefaultApiKey = false }: SendTextArgs) {
+//  const apiKey = Env.get('GUPSHUP_API_KEY')
+ const apiKey = Env.get(
+    useDefaultApiKey ? 'GUPSHUP_API_KEY_DEFAULT' : 'GUPSHUP_API_KEY'
+  )
+
   const url = 'https://api.gupshup.io/wa/api/v1/msg'
 
   const data = new URLSearchParams()

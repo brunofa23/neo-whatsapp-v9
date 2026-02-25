@@ -8,8 +8,8 @@ const Env_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Env"));
 function onlyDigits(v) {
     return String(v || '').replace(/\D/g, '');
 }
-async function SendTextGupshup({ source, destination, text }) {
-    const apiKey = Env_1.default.get('GUPSHUP_API_KEY');
+async function SendTextGupshup({ source, destination, text, useDefaultApiKey = false }) {
+    const apiKey = Env_1.default.get(useDefaultApiKey ? 'GUPSHUP_API_KEY_DEFAULT' : 'GUPSHUP_API_KEY');
     const url = 'https://api.gupshup.io/wa/api/v1/msg';
     const data = new URLSearchParams();
     data.append('channel', 'whatsapp');

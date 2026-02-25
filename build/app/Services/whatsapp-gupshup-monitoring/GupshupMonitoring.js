@@ -7,6 +7,8 @@ const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"))
 const Talk_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Talk"));
 const Log_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Log"));
 const luxon_1 = require("luxon");
+const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
+const Customchat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Customchat"));
 const ConfirmScheduleGupshup_1 = __importDefault(require("./ConfirmScheduleGupshup"));
 const ServiceEvaluationGupshup_1 = __importDefault(require("./ServiceEvaluationGupshup"));
 const util_1 = global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/util");
@@ -76,6 +78,58 @@ class GupshupMonitoring {
         const body = String(message?.body || '');
         const hasMedia = !!message?.hasMedia;
         const inboundGsId = String(message?.context?.gsId || '').trim();
+        const appName = String(message?.appName ||
+            message?.app ||
+            message?.payload?.appName ||
+            message?.payload?.app ||
+            message?.raw?.app ||
+            '').trim();
+        let defaultAgent = null;
+        if (appName) {
+            defaultAgent = await Agent_1.default.query()
+                .where('gupshup_src_name', appName)
+                .where('default_chat', true)
+                .first();
+        }
+        if (defaultAgent) {
+            console.log("ENTREI NO DEFAULT...");
+            await Log_1.default.create({
+                name: 'gupshup_customchat_inbound',
+                message: JSON.stringify({
+                    at: luxon_1.DateTime.now().toISO(),
+                    appName,
+                    agentId: defaultAgent.id,
+                    from: fromDigits,
+                    fromKey,
+                    to: toDigits || null,
+                    toKey: toKey || null,
+                    body: body.slice(0, 200),
+                    hasMedia,
+                }, null, 2),
+                description: 'INBOUND VIA APP DEFAULT_CHAT → CUSTOMCHATS',
+            });
+            console.log(".....", appName);
+            const query = Customchat_1.default.query()
+                .where('cellphoneserialized', fromKey)
+                .andWhere('chatname', appName)
+                .andWhereNull('returned')
+                .orderBy('created_at', 'desc');
+            const openCustom = await query.first();
+            console.log(">>>>>>>>>111111>", query.toQuery());
+            await Customchat_1.default.create({
+                chats_id: openCustom?.chats_id || null,
+                reg: openCustom?.reg || null,
+                cellphone: openCustom?.cellphone || fromDigits,
+                cellphoneserialized: fromKey,
+                chatnumber: toDigits || null,
+                chatname: appName || null,
+                returned: true,
+                viewed: false,
+                response: body.slice(0, 999),
+                path_media: null,
+            });
+            return;
+        }
         await Log_1.default.create({
             name: 'gupshup_inbound',
             message: JSON.stringify({
@@ -87,6 +141,7 @@ class GupshupMonitoring {
                 gsId: inboundGsId || null,
                 body: body.slice(0, 200),
                 hasMedia,
+                appName: appName || null,
             }),
             description: 'GUPSHUP WEBHOOK INBOUND',
         });
@@ -105,7 +160,7 @@ class GupshupMonitoring {
             const evaluationChat = await getChatByPhone(fromDigits, toDigits, 2);
             chat = evaluationChat || (await getChatByPhone(fromDigits, toDigits));
         }
-        console.log('GUPSHUP MONITORING => chat encontrado?', !!chat, 'fromDigits', fromDigits, 'fromKey', fromKey, 'toDigits', toDigits || '-', 'toKey', toKey || '-', 'gsId', inboundGsId || '-');
+        console.log('GUPSHUP MONITORING => chat encontrado?', !!chat, 'fromDigits', fromDigits, 'fromKey', fromKey, 'toDigits', toDigits || '-', 'toKey', toKey || '-', 'gsId', inboundGsId || '-', 'appName', appName || '-');
         if (!chat) {
             return;
         }

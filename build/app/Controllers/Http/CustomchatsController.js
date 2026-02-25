@@ -12,6 +12,9 @@ const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"
 const Talk_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Talk"));
 const Template_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Template"));
 const SendMessageGupshup_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-gupshup/SendMessageGupshup"));
+const SendTextGupshup_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-gupshup/SendTextGupshup"));
+const CustomchatValidator_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Validators/CustomchatValidator"));
+const util_1 = global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/util");
 class CustomchatsController {
     async show({ auth, params, response }) {
         await auth.use('api').authenticate();
@@ -28,7 +31,12 @@ class CustomchatsController {
     }
     async sendMessage({ auth, request, response }) {
         await auth.use('api').authenticate();
-        const rawBody = request.only(Customchat_1.default.fillable);
+        console.log('PASSEI AQUI');
+        const { template_id } = request.only(['template_id']);
+        const rawBody = await request.validate(CustomchatValidator_1.default);
+        rawBody.template_id = 1;
+        console.log("#####", rawBody);
+        const createdAtRaw = rawBody.created_at;
         if (!rawBody.id || !rawBody.cellphoneserialized) {
             return response.badRequest({
                 error: 'Campos obrigatórios ausentes (id ou cellphoneserialized).',
@@ -41,13 +49,16 @@ class CustomchatsController {
         }
         const formattedBody = {
             ...rawBody,
+            cellphoneserialized: await (0, util_1.normalizePhoneKey)(rawBody.cellphoneserialized) || null,
             messagesent: false,
             chats_id: rawBody.id,
         };
+        console.log("FFFFFFFFFFFFFFFFFFFFFFFF", formattedBody);
         delete formattedBody.returned;
         delete formattedBody.created_at;
         delete formattedBody.id;
         delete formattedBody.response;
+        delete formattedBody.template_id;
         try {
             const agent = await Agent_1.default.query().where('default_chat', true).firstOrFail();
             const chat = await Chat_1.default.findOrFail(formattedBody.chats_id);
@@ -56,24 +67,66 @@ class CustomchatsController {
                 chat.person_name ||
                 '';
             const template = await Template_1.default.findOrFail(rawBody.template_id);
-            const templateId = template.gupshup_template_id || template.id;
+            const templateId = template.id_external;
+            if (!templateId) {
+                throw new Error(`Template ${template.id} sem id_external configurado`);
+            }
             const templateParams = [
                 patientName,
             ];
-            const { status, messageId } = await (0, SendMessageGupshup_1.default)({
-                agent,
+            let shouldSendTemplate = false;
+            if (createdAtRaw) {
+                const customChat = await Customchat_1.default.query().where('chats_id', rawBody.id).orderBy('created_at', 'desc').first();
+                const createdAt = customChat?.$attributes.createdAt;
+                console.log("CREATED_AT:", createdAt);
+                if (createdAt.isValid) {
+                    const diffHours = luxon_1.DateTime.now()
+                        .setZone('America/Sao_Paulo')
+                        .diff(createdAt, 'hours').hours;
+                    console.log("DIFF HOURS:", diffHours);
+                    shouldSendTemplate = diffHours > 23;
+                }
+                else {
+                    shouldSendTemplate = true;
+                }
+            }
+            else {
+                shouldSendTemplate = false;
+            }
+            if (shouldSendTemplate) {
+                const { status, messageId } = await (0, SendMessageGupshup_1.default)({
+                    agent,
+                    destination: formattedBody.cellphoneserialized,
+                    templateId,
+                    params: templateParams,
+                    useDefaultApiKey: true,
+                });
+                console.log("PASSO 1 - NÃO PODE PASSAR POR AQUI....");
+            }
+            else {
+                console.log('Template NÃO enviado (menos de 23h desde created_at)');
+            }
+            const sendText = await (0, SendTextGupshup_1.default)({
+                source: agent.gupshup_source,
                 destination: formattedBody.cellphoneserialized,
-                templateId,
-                params: templateParams,
+                text: formattedBody.message,
+                useDefaultApiKey: true,
             });
+            console.log("PASSO 2 - TEM QUE PASSAR POR AQUI....", sendText);
             const mensagemParaHistorico = formattedBody.message ||
                 `TEMPLATE ${templateId} | params: ${templateParams.join(' | ')}`;
             formattedBody.message = mensagemParaHistorico;
-            const payLoad = await Customchat_1.default.create({
-                ...formattedBody,
-                chatnumber: agent.gupshup_source,
-                messagesent: true,
-            });
+            let payLoad;
+            try {
+                payLoad = await Customchat_1.default.create({
+                    ...formattedBody,
+                    chatnumber: agent.gupshup_source,
+                    messagesent: true,
+                });
+            }
+            catch (error) {
+                console.log('Erro ao salvar Customchat:', error);
+            }
             await Talk_1.default.create({
                 chat_id: formattedBody.chats_id,
                 reg: formattedBody.reg,
@@ -92,9 +145,10 @@ class CustomchatsController {
                     await shippingcampaign.save();
                 }
             }
-            return response.status(201).send(payLoad);
+            return response.status(201).send(payLoad || formattedBody);
         }
         catch (error) {
+            console.log('ERRO GUPSHUP DATA >>>', error.response?.data);
             console.error('Erro ao enviar mensagem Gupshup:', error);
             return response
                 .status(500)

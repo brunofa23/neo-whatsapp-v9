@@ -56,6 +56,11 @@ async function connectionAll() {
             const provider = (agent.provider_type || "wwebjs").toLowerCase();
             if (agent.default_chat) {
                 console.log(`Conectando Agente Default: ${agent.name}`);
+                await Agent_1.default.query().where("id", agent.id).update({
+                    status: "GUPSHUP",
+                    statusconnected: true,
+                    qrcode: null,
+                });
                 continue;
             }
             if (provider === "gupshup") {

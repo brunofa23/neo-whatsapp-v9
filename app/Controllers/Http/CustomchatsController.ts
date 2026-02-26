@@ -65,7 +65,7 @@ export default class CustomchatsController {
     // Preparação base do corpo para salvar
     const formattedBody: any = {
       ...rawBody,
-      cellphoneserialized:await normalizePhoneKey(rawBody.cellphoneserialized)||null,
+      cellphoneserialized: await normalizePhoneKey(rawBody.cellphoneserialized) || null,
       messagesent: false,
       chats_id: rawBody.id,
     }
@@ -112,128 +112,150 @@ export default class CustomchatsController {
       ]
       // === 5) Verificar se já se passaram mais de 23 horas desde o created_at ===
       let shouldSendTemplate = false
+      // if (createdAtRaw) {
+      //   // tenta interpretar como ISO
+      //   const customChat = await Customchat.query().where('chats_id',rawBody.id).orderBy('created_at','desc').first()
+      //   const createdAt = customChat?.$attributes.createdAt
+      //   console.log("CREATED_AT:", createdAt)
+      //   if (createdAt.isValid) {
+      //     const diffHours = DateTime.now()
+      //       .setZone('America/Sao_Paulo')
+      //       .diff(createdAt, 'hours').hours
+
+      //       console.log("DIFF HOURS:", diffHours)
+      //     // Só envia template se o registro foi criado há mais de 23h
+      //     shouldSendTemplate = diffHours > 23
+      //   } else {
+      //     // Se o created_at vier zoado, você decide:
+      //     // aqui vou considerar que NÃO envia template
+      //     shouldSendTemplate = true
+      //   }
+      // }
       if (createdAtRaw) {
-        // tenta interpretar como ISO
-        const customChat = await Customchat.query().where('chats_id',rawBody.id).orderBy('created_at','desc').first()
-        const createdAt = customChat?.$attributes.createdAt
-        console.log("CREATED_AT:", createdAt)
-        if (createdAt.isValid) {
+        const customChat = await Customchat
+          .query()
+          .where('chats_id', rawBody.id)
+          .orderBy('created_at', 'desc')
+          .first()
+
+        const createdAt = customChat?.createdAt // DateTime | undefined
+
+        console.log('CREATED_AT:', createdAt?.toISO?.())
+
+        if (createdAt && createdAt.isValid) {
           const diffHours = DateTime.now()
             .setZone('America/Sao_Paulo')
             .diff(createdAt, 'hours').hours
 
-            console.log("DIFF HOURS:", diffHours)
+          console.log('DIFF HOURS:', diffHours)
+
           // Só envia template se o registro foi criado há mais de 23h
           shouldSendTemplate = diffHours > 23
-        } else {
-          // Se o created_at vier zoado, você decide:
-          // aqui vou considerar que NÃO envia template
-          shouldSendTemplate = true
         }
-      } else {
-        // Se não tiver created_at, você define a regra.
-        // Se quiser, pode colocar true aqui para enviar template mesmo assim.
-        shouldSendTemplate = false
-      }
+        else {
+          // Se não tiver created_at, você define a regra.
+          // Se quiser, pode colocar true aqui para enviar template mesmo assim.
+          shouldSendTemplate = false
+        }
 
-      // Envia o TEMPLATE via Gupshup somente se passou de 23 horas
-      if (shouldSendTemplate) {
-        //************************************************************ */
-        const { status, messageId } = await SendMessageGupshup({
-          agent,
+        // Envia o TEMPLATE via Gupshup somente se passou de 23 horas
+        if (shouldSendTemplate) {
+          //************************************************************ */
+          const { status, messageId } = await SendMessageGupshup({
+            agent,
+            destination: formattedBody.cellphoneserialized,
+            templateId,
+            params: templateParams,
+            useDefaultApiKey: true,
+          })
+          console.log("PASSO 1 - NÃO PODE PASSAR POR AQUI....")
+          //*************************************************************** */
+
+          // Se quiser, pode logar:
+          //console.log('TEMPLATE ENVIADO >>>', { status, messageId })
+        } else {
+          console.log('Template NÃO enviado (menos de 23h desde created_at)')
+        }
+
+        // ✅ Envia texto normal via endpoint /msg (sempre)
+        //***************************************************************** */
+        const sendText = await SendTextGupshup({
+          source: agent.gupshup_source,
           destination: formattedBody.cellphoneserialized,
-          templateId,
-          params: templateParams,
+          text: formattedBody.message,
           useDefaultApiKey: true,
         })
-        console.log("PASSO 1 - NÃO PODE PASSAR POR AQUI....")
-        //*************************************************************** */
+        console.log("PASSO 2 - TEM QUE PASSAR POR AQUI....", sendText)
+        //console.log("mensagem de texto enviada", sendText)
+        //*********************************************************************** */
 
-        // Se quiser, pode logar:
-        //console.log('TEMPLATE ENVIADO >>>', { status, messageId })
-      } else {
-        console.log('Template NÃO enviado (menos de 23h desde created_at)')
-      }
+        // Para salvar no histórico, se o campo "message" for NOT NULL,
+        // você pode montar uma descrição amigável:
+        const mensagemParaHistorico =
+          formattedBody.message ||
+          `TEMPLATE ${templateId} | params: ${templateParams.join(' | ')}`
 
-      // ✅ Envia texto normal via endpoint /msg (sempre)
-      //***************************************************************** */
-      const sendText = await SendTextGupshup({
-        source: agent.gupshup_source,
-        destination: formattedBody.cellphoneserialized,
-        text: formattedBody.message,
-        useDefaultApiKey: true,
-      })
-      console.log("PASSO 2 - TEM QUE PASSAR POR AQUI....", sendText)
-      //console.log("mensagem de texto enviada", sendText)
-      //*********************************************************************** */
+        formattedBody.message = mensagemParaHistorico
 
-      // Para salvar no histórico, se o campo "message" for NOT NULL,
-      // você pode montar uma descrição amigável:
-      const mensagemParaHistorico =
-        formattedBody.message ||
-        `TEMPLATE ${templateId} | params: ${templateParams.join(' | ')}`
+        //console.log('TEMPLATER::::', formattedBody)
 
-      formattedBody.message = mensagemParaHistorico
+        // === 6) Salvar registro da mensagem no Customchat ===
+        let payLoad: Customchat | undefined
 
-      //console.log('TEMPLATER::::', formattedBody)
-
-      // === 6) Salvar registro da mensagem no Customchat ===
-      let payLoad: Customchat | undefined
-
-      try {
-        payLoad = await Customchat.create({
-          ...formattedBody,
-          chatnumber: agent.gupshup_source,
-          messagesent: true,
-          // se tiver colunas específicas para o retorno do Gupshup:
-          // returned: JSON.stringify({ status, messageId }),
-          // gupshup_message_id: messageId,
-          // gupshup_status: status,
-        })
-        //console.log('RETORNO:', payLoad)
-      } catch (error) {
-        console.log('Erro ao salvar Customchat:', error)
-      }
-
-      // === 7) Registrar na Talk (histórico de conversas) ===
-      await Talk.create({
-        chat_id: formattedBody.chats_id,
-        reg: formattedBody.reg,
-        cellphone: formattedBody.cellphoneserialized,
-        message: mensagemParaHistorico,
-        chatnumber: agent.gupshup_source,
-        type: 'to',
-      })
-
-      // === 8) Atualizar a resposta no chat ===
-      await Chat.query()
-        .where('id', formattedBody.chats_id)
-        .update({ last_response: 1 })
-
-      // === 9) Atualizar primeiro retorno de campanha, se aplicável ===
-      if (chat.shippingcampaigns_id) {
-        const shippingcampaign = await Shippingcampaign.find(
-          chat.shippingcampaigns_id
-        )
-
-        if (shippingcampaign && !shippingcampaign.date_first_return) {
-          shippingcampaign.date_first_return = DateTime.now().setZone(
-            'America/Sao_Paulo'
-          )
-          await shippingcampaign.save()
+        try {
+          payLoad = await Customchat.create({
+            ...formattedBody,
+            chatnumber: agent.gupshup_source,
+            messagesent: true,
+            // se tiver colunas específicas para o retorno do Gupshup:
+            // returned: JSON.stringify({ status, messageId }),
+            // gupshup_message_id: messageId,
+            // gupshup_status: status,
+          })
+          //console.log('RETORNO:', payLoad)
+        } catch (error) {
+          console.log('Erro ao salvar Customchat:', error)
         }
-      }
 
-      // Se por algum motivo não criou o Customchat, ainda assim retorna 201
-      return response.status(201).send(payLoad || formattedBody)
-    } catch (error) {
-      console.log('ERRO GUPSHUP DATA >>>', (error as any).response?.data)
-      console.error('Erro ao enviar mensagem Gupshup:', error)
-      return response
-        .status(500)
-        .send({ error: `Falha ao enviar mensagem via Gupshup. ERRO: ${error}` })
+        // === 7) Registrar na Talk (histórico de conversas) ===
+        await Talk.create({
+          chat_id: formattedBody.chats_id,
+          reg: formattedBody.reg,
+          cellphone: formattedBody.cellphoneserialized,
+          message: mensagemParaHistorico,
+          chatnumber: agent.gupshup_source,
+          type: 'to',
+        })
+
+        // === 8) Atualizar a resposta no chat ===
+        await Chat.query()
+          .where('id', formattedBody.chats_id)
+          .update({ last_response: 1 })
+
+        // === 9) Atualizar primeiro retorno de campanha, se aplicável ===
+        if (chat.shippingcampaigns_id) {
+          const shippingcampaign = await Shippingcampaign.find(
+            chat.shippingcampaigns_id
+          )
+
+          if (shippingcampaign && !shippingcampaign.date_first_return) {
+            shippingcampaign.date_first_return = DateTime.now().setZone(
+              'America/Sao_Paulo'
+            )
+            await shippingcampaign.save()
+          }
+        }
+
+        // Se por algum motivo não criou o Customchat, ainda assim retorna 201
+        return response.status(201).send(payLoad || formattedBody)
+      } catch (error) {
+        console.log('ERRO GUPSHUP DATA >>>', (error as any).response?.data)
+        console.error('Erro ao enviar mensagem Gupshup:', error)
+        return response
+          .status(500)
+          .send({ error: `Falha ao enviar mensagem via Gupshup. ERRO: ${error}` })
+      }
     }
-  }
 
 
 

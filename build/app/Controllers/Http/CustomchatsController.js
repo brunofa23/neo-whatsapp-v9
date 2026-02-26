@@ -76,83 +76,87 @@ class CustomchatsController {
             ];
             let shouldSendTemplate = false;
             if (createdAtRaw) {
-                const customChat = await Customchat_1.default.query().where('chats_id', rawBody.id).orderBy('created_at', 'desc').first();
-                const createdAt = customChat?.$attributes.createdAt;
-                console.log("CREATED_AT:", createdAt);
-                if (createdAt.isValid) {
+                const customChat = await Customchat_1.default
+                    .query()
+                    .where('chats_id', rawBody.id)
+                    .orderBy('created_at', 'desc')
+                    .first();
+                const createdAt = customChat?.createdAt;
+                console.log('CREATED_AT:', createdAt?.toISO?.());
+                if (createdAt && createdAt.isValid) {
                     const diffHours = luxon_1.DateTime.now()
                         .setZone('America/Sao_Paulo')
                         .diff(createdAt, 'hours').hours;
-                    console.log("DIFF HOURS:", diffHours);
+                    console.log('DIFF HOURS:', diffHours);
                     shouldSendTemplate = diffHours > 23;
                 }
                 else {
-                    shouldSendTemplate = true;
+                    shouldSendTemplate = false;
                 }
-            }
-            else {
-                shouldSendTemplate = false;
-            }
-            if (shouldSendTemplate) {
-                const { status, messageId } = await (0, SendMessageGupshup_1.default)({
-                    agent,
+                if (shouldSendTemplate) {
+                    const { status, messageId } = await (0, SendMessageGupshup_1.default)({
+                        agent,
+                        destination: formattedBody.cellphoneserialized,
+                        templateId,
+                        params: templateParams,
+                        useDefaultApiKey: true,
+                    });
+                    console.log("PASSO 1 - NÃO PODE PASSAR POR AQUI....");
+                }
+                else {
+                    console.log('Template NÃO enviado (menos de 23h desde created_at)');
+                }
+                const sendText = await (0, SendTextGupshup_1.default)({
+                    source: agent.gupshup_source,
                     destination: formattedBody.cellphoneserialized,
-                    templateId,
-                    params: templateParams,
+                    text: formattedBody.message,
                     useDefaultApiKey: true,
                 });
-                console.log("PASSO 1 - NÃO PODE PASSAR POR AQUI....");
-            }
-            else {
-                console.log('Template NÃO enviado (menos de 23h desde created_at)');
-            }
-            const sendText = await (0, SendTextGupshup_1.default)({
-                source: agent.gupshup_source,
-                destination: formattedBody.cellphoneserialized,
-                text: formattedBody.message,
-                useDefaultApiKey: true,
-            });
-            console.log("PASSO 2 - TEM QUE PASSAR POR AQUI....", sendText);
-            const mensagemParaHistorico = formattedBody.message ||
-                `TEMPLATE ${templateId} | params: ${templateParams.join(' | ')}`;
-            formattedBody.message = mensagemParaHistorico;
-            let payLoad;
-            try {
-                payLoad = await Customchat_1.default.create({
-                    ...formattedBody,
-                    chatnumber: agent.gupshup_source,
-                    messagesent: true,
-                });
-            }
-            catch (error) {
-                console.log('Erro ao salvar Customchat:', error);
-            }
-            await Talk_1.default.create({
-                chat_id: formattedBody.chats_id,
-                reg: formattedBody.reg,
-                cellphone: formattedBody.cellphoneserialized,
-                message: mensagemParaHistorico,
-                chatnumber: agent.gupshup_source,
-                type: 'to',
-            });
-            await Chat_1.default.query()
-                .where('id', formattedBody.chats_id)
-                .update({ last_response: 1 });
-            if (chat.shippingcampaigns_id) {
-                const shippingcampaign = await Shippingcampaign_1.default.find(chat.shippingcampaigns_id);
-                if (shippingcampaign && !shippingcampaign.date_first_return) {
-                    shippingcampaign.date_first_return = luxon_1.DateTime.now().setZone('America/Sao_Paulo');
-                    await shippingcampaign.save();
+                console.log("PASSO 2 - TEM QUE PASSAR POR AQUI....", sendText);
+                const mensagemParaHistorico = formattedBody.message ||
+                    `TEMPLATE ${templateId} | params: ${templateParams.join(' | ')}`;
+                formattedBody.message = mensagemParaHistorico;
+                let payLoad;
+                try {
+                    payLoad = await Customchat_1.default.create({
+                        ...formattedBody,
+                        chatnumber: agent.gupshup_source,
+                        messagesent: true,
+                    });
                 }
+                catch (error) {
+                    console.log('Erro ao salvar Customchat:', error);
+                }
+                await Talk_1.default.create({
+                    chat_id: formattedBody.chats_id,
+                    reg: formattedBody.reg,
+                    cellphone: formattedBody.cellphoneserialized,
+                    message: mensagemParaHistorico,
+                    chatnumber: agent.gupshup_source,
+                    type: 'to',
+                });
+                await Chat_1.default.query()
+                    .where('id', formattedBody.chats_id)
+                    .update({ last_response: 1 });
+                if (chat.shippingcampaigns_id) {
+                    const shippingcampaign = await Shippingcampaign_1.default.find(chat.shippingcampaigns_id);
+                    if (shippingcampaign && !shippingcampaign.date_first_return) {
+                        shippingcampaign.date_first_return = luxon_1.DateTime.now().setZone('America/Sao_Paulo');
+                        await shippingcampaign.save();
+                    }
+                }
+                return response.status(201).send(payLoad || formattedBody);
             }
-            return response.status(201).send(payLoad || formattedBody);
+            try { }
+            catch (error) {
+                console.log('ERRO GUPSHUP DATA >>>', error.response?.data);
+                console.error('Erro ao enviar mensagem Gupshup:', error);
+                return response
+                    .status(500)
+                    .send({ error: `Falha ao enviar mensagem via Gupshup. ERRO: ${error}` });
+            }
         }
-        catch (error) {
-            console.log('ERRO GUPSHUP DATA >>>', error.response?.data);
-            console.error('Erro ao enviar mensagem Gupshup:', error);
-            return response
-                .status(500)
-                .send({ error: `Falha ao enviar mensagem via Gupshup. ERRO: ${error}` });
+        finally {
         }
     }
     async viewedConfirmed({ auth, params, response }) {

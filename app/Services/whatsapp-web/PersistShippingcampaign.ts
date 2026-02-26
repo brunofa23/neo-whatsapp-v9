@@ -52,39 +52,39 @@ export default async (
   for (const data of dataSourceList) {
     try {
       // 🔍 DEBUG 1: gupshupParams vindo do banco legado
-      try {
-        await Log.create({
-          name: 'PersistShippingcampaign',
-          description: JSON.stringify({
-            source: 'raw-data',
-            reg: data?.reg ?? null,
-            interaction_id: data?.interaction_id ?? null,
-            dateParam: date,
-            prioritysend,
-            unit_cod,
-          }),
-          message: toMessageValue(data?.gupshupParams),
-        })
-      } catch (logError) {
-        console.log('Erro ao gravar log PersistShippingcampaign (raw-data)', logError)
-      }
+      // try {
+      //   await Log.create({
+      //     name: 'PersistShippingcampaign',
+      //     description: JSON.stringify({
+      //       source: 'raw-data',
+      //       reg: data?.reg ?? null,
+      //       interaction_id: data?.interaction_id ?? null,
+      //       dateParam: date,
+      //       prioritysend,
+      //       unit_cod,
+      //     }),
+      //     message: toMessageValue(data?.gupshupParams),
+      //   })
+      // } catch (logError) {
+      //   console.log('Erro ao gravar log PersistShippingcampaign (raw-data)', logError)
+      // }
 
       if (!data?.reg || !data?.interaction_id) {
         // 🔍 DEBUG 2: registro ignorado – description com contexto, message só gupshupParams
-        try {
-          await Log.create({
-            name: 'PersistShippingcampaign',
-            description: JSON.stringify({
-              source: 'skip-invalid',
-              reason: 'reg or interaction_id missing',
-              reg: data?.reg ?? null,
-              interaction_id: data?.interaction_id ?? null,
-            }),
-            message: toMessageValue(data?.gupshupParams),
-          })
-        } catch (logError) {
-          console.log('Erro ao gravar log PersistShippingcampaign (skip-invalid)', logError)
-        }
+        // try {
+        //   await Log.create({
+        //     name: 'PersistShippingcampaign',
+        //     description: JSON.stringify({
+        //       source: 'skip-invalid',
+        //       reason: 'reg or interaction_id missing',
+        //       reg: data?.reg ?? null,
+        //       interaction_id: data?.interaction_id ?? null,
+        //     }),
+        //     message: toMessageValue(data?.gupshupParams),
+        //   })
+        // } catch (logError) {
+        //   console.log('Erro ao gravar log PersistShippingcampaign (skip-invalid)', logError)
+        // }
         continue
       }
 
@@ -131,19 +131,19 @@ export default async (
       shipping.gupshupParams = data.gupshupParams ?? null
 
       // 🔍 DEBUG 3: gupshupParams na instância shipping
-      try {
-        await Log.create({
-          name: 'PersistShippingcampaign',
-          description: JSON.stringify({
-            source: 'shipping-built',
-            reg: shipping.reg,
-            interaction_id: shipping.interaction_id,
-          }),
-          message: toMessageValue(shipping.gupshupParams),
-        })
-      } catch (logError) {
-        console.log('Erro ao gravar log PersistShippingcampaign (shipping-built)', logError)
-      }
+      // try {
+      //   await Log.create({
+      //     name: 'PersistShippingcampaign',
+      //     description: JSON.stringify({
+      //       source: 'shipping-built',
+      //       reg: shipping.reg,
+      //       interaction_id: shipping.interaction_id,
+      //     }),
+      //     message: toMessageValue(shipping.gupshupParams),
+      //   })
+      // } catch (logError) {
+      //   console.log('Erro ao gravar log PersistShippingcampaign (shipping-built)', logError)
+      // }
 
       const verifyExist = await Shippingcampaign.query()
         .where('reg', data.reg)
@@ -154,23 +154,23 @@ export default async (
       const phoneKey = phone ? normalizePhoneKey(phone) : null
 
       // 🔍 DEBUG 4: gupshupParams do registro existente (se houver) + novo
-      try {
-        await Log.create({
-          name: 'PersistShippingcampaign',
-          description: JSON.stringify({
-            source: 'verify-exist',
-            reg: data.reg,
-            interaction_id: data.interaction_id,
-            found: !!verifyExist,
-          }),
-          message: toMessageValue(
-            shipping.gupshupParams ??
-              (verifyExist ? verifyExist.gupshupParams : null)
-          ),
-        })
-      } catch (logError) {
-        console.log('Erro ao gravar log PersistShippingcampaign (verify-exist)', logError)
-      }
+      // try {
+      //   await Log.create({
+      //     name: 'PersistShippingcampaign',
+      //     description: JSON.stringify({
+      //       source: 'verify-exist',
+      //       reg: data.reg,
+      //       interaction_id: data.interaction_id,
+      //       found: !!verifyExist,
+      //     }),
+      //     message: toMessageValue(
+      //       shipping.gupshupParams ??
+      //         (verifyExist ? verifyExist.gupshupParams : null)
+      //     ),
+      //   })
+      // } catch (logError) {
+      //   console.log('Erro ao gravar log PersistShippingcampaign (verify-exist)', logError)
+      // }
 
       // 🔹 BLOCO 1: atualizar phonevalid e cellphoneserialized SEMPRE que já existir registro
       if (verifyExist) {
@@ -192,22 +192,22 @@ export default async (
             .update(updatePhonePayload)
 
           // 🔍 DEBUG 5: update de phone (só registra gupshupParams em message)
-          try {
-            await Log.create({
-              name: 'PersistShippingcampaign',
-              description: JSON.stringify({
-                source: 'update-phone',
-                reg: data.reg,
-                interaction_id: data.interaction_id,
-              }),
-              message: toMessageValue(
-                shipping.gupshupParams ??
-                  verifyExist.gupshupParams
-              ),
-            })
-          } catch (logError) {
-            console.log('Erro ao gravar log PersistShippingcampaign (update-phone)', logError)
-          }
+          // try {
+          //   await Log.create({
+          //     name: 'PersistShippingcampaign',
+          //     description: JSON.stringify({
+          //       source: 'update-phone',
+          //       reg: data.reg,
+          //       interaction_id: data.interaction_id,
+          //     }),
+          //     message: toMessageValue(
+          //       shipping.gupshupParams ??
+          //         verifyExist.gupshupParams
+          //     ),
+          //   })
+          // } catch (logError) {
+          //   console.log('Erro ao gravar log PersistShippingcampaign (update-phone)', logError)
+          // }
         }
       }
 
@@ -224,19 +224,19 @@ export default async (
           })
 
         // 🔍 DEBUG 6: update de gupshupParams
-        try {
-          await Log.create({
-            name: 'PersistShippingcampaign',
-            description: JSON.stringify({
-              source: 'update-gupshupParams',
-              reg: data.reg,
-              interaction_id: data.interaction_id,
-            }),
-            message: toMessageValue(shipping.gupshupParams),
-          })
-        } catch (logError) {
-          console.log('Erro ao gravar log PersistShippingcampaign (update-gupshupParams)', logError)
-        }
+        // try {
+        //   await Log.create({
+        //     name: 'PersistShippingcampaign',
+        //     description: JSON.stringify({
+        //       source: 'update-gupshupParams',
+        //       reg: data.reg,
+        //       interaction_id: data.interaction_id,
+        //     }),
+        //     message: toMessageValue(shipping.gupshupParams),
+        //   })
+        // } catch (logError) {
+        //   console.log('Erro ao gravar log PersistShippingcampaign (update-gupshupParams)', logError)
+        // }
       }
 
       // 🔹 se NÃO existe, cria normalmente
@@ -245,38 +245,38 @@ export default async (
         patientList.push({ reg: created.reg, name: created.name, unit: created.unit })
 
         // 🔍 DEBUG 7: criação de novo registro – só gupshupParams do criado
-        try {
-          await Log.create({
-            name: 'PersistShippingcampaign',
-            description: JSON.stringify({
-              source: 'create-shipping',
-              reg: created.reg,
-              interaction_id: created.interaction_id,
-            }),
-            message: toMessageValue(created.gupshupParams),
-          })
-        } catch (logError) {
-          console.log('Erro ao gravar log PersistShippingcampaign (create-shipping)', logError)
-        }
+        // try {
+        //   await Log.create({
+        //     name: 'PersistShippingcampaign',
+        //     description: JSON.stringify({
+        //       source: 'create-shipping',
+        //       reg: created.reg,
+        //       interaction_id: created.interaction_id,
+        //     }),
+        //     message: toMessageValue(created.gupshupParams),
+        //   })
+        // } catch (logError) {
+        //   console.log('Erro ao gravar log PersistShippingcampaign (create-shipping)', logError)
+        // }
       }
     } catch (error) {
       console.log('Erro ao criar Shippingcampaign', { reg: data?.reg, interaction_id: data?.interaction_id }, error)
 
       // 🔍 DEBUG 8: log de erro geral – description com contexto, message só gupshupParams (se tiver)
-      try {
-        await Log.create({
-          name: 'PersistShippingcampaign',
-          description: JSON.stringify({
-            source: 'error',
-            reg: data?.reg ?? null,
-            interaction_id: data?.interaction_id ?? null,
-            error: String(error?.message || error),
-          }),
-          message: toMessageValue(data?.gupshupParams),
-        })
-      } catch (logError) {
-        console.log('Erro ao gravar log PersistShippingcampaign (error)', logError)
-      }
+      // try {
+      //   await Log.create({
+      //     name: 'PersistShippingcampaign',
+      //     description: JSON.stringify({
+      //       source: 'error',
+      //       reg: data?.reg ?? null,
+      //       interaction_id: data?.interaction_id ?? null,
+      //       error: String(error?.message || error),
+      //     }),
+      //     message: toMessageValue(data?.gupshupParams),
+      //   })
+      // } catch (logError) {
+      //   console.log('Erro ao gravar log PersistShippingcampaign (error)', logError)
+      // }
     }
   }
 

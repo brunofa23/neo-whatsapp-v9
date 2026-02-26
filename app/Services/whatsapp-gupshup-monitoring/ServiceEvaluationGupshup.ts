@@ -53,19 +53,19 @@ export default async function ServiceEvaluationGupshup(inbound: InboundGupshup, 
   try {
     // Se não tiver source, não tem como responder pelo Gupshup
     if (!source) {
-      await Log.create({
-        name: 'ServiceEvaluationGupshupNoSource',
-        message: JSON.stringify({
-          at: DateTime.now().toISO(),
-          chat_id: (chat as any)?.id,
-          from: fromDigits,
-          inbound_to: toDigits || null,
-          chatnumber: (chat as any)?.chatnumber || null,
-          cellphoneserialized: cellphoneserialized || null,
-          note: 'Não foi possível enviar resposta: source (WABA) ausente',
-        }),
-        description: 'Sem source (WABA) para enviar via Gupshup',
-      })
+      // await Log.create({
+      //   name: 'ServiceEvaluationGupshupNoSource',
+      //   message: JSON.stringify({
+      //     at: DateTime.now().toISO(),
+      //     chat_id: (chat as any)?.id,
+      //     from: fromDigits,
+      //     inbound_to: toDigits || null,
+      //     chatnumber: (chat as any)?.chatnumber || null,
+      //     cellphoneserialized: cellphoneserialized || null,
+      //     note: 'Não foi possível enviar resposta: source (WABA) ausente',
+      //   }),
+      //   description: 'Sem source (WABA) para enviar via Gupshup',
+      // })
       return
     }
 

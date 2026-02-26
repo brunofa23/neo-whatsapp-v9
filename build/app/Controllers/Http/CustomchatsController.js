@@ -21,8 +21,9 @@ class CustomchatsController {
         const query = Database_1.default.from('chats')
             .select('id', 'reg', 'cellphone', 'cellphoneserialized', 'message', 'response', 'invalidresponse', 'returned', 'chatname', Database_1.default.raw('0 messagesent'), 'chatnumber', Database_1.default.raw('0  phonevalid'), Database_1.default.raw('0 `read`'), Database_1.default.raw('0 viewed'), Database_1.default.raw('0 ack'), Database_1.default.raw('0 path_media'), Database_1.default.raw('created_at'))
             .where('id', params.id)
-            .union(query => {
-            query.from('customchats')
+            .union((query) => {
+            query
+                .from('customchats')
                 .select('id', 'reg', 'cellphone', 'cellphoneserialized', 'message', 'response', 'response', 'returned', 'chatname', 'messagesent', 'chatnumber', 'phonevalid', 'read', 'viewed', 'ack', 'path_media', 'created_at')
                 .where('chats_id', params.id);
         });
@@ -35,7 +36,7 @@ class CustomchatsController {
         const { template_id } = request.only(['template_id']);
         const rawBody = await request.validate(CustomchatValidator_1.default);
         rawBody.template_id = 1;
-        console.log("#####", rawBody);
+        console.log('#####', rawBody);
         const createdAtRaw = rawBody.created_at;
         if (!rawBody.id || !rawBody.cellphoneserialized) {
             return response.badRequest({
@@ -49,11 +50,11 @@ class CustomchatsController {
         }
         const formattedBody = {
             ...rawBody,
-            cellphoneserialized: await (0, util_1.normalizePhoneKey)(rawBody.cellphoneserialized) || null,
+            cellphoneserialized: (await (0, util_1.normalizePhoneKey)(rawBody.cellphoneserialized)) || null,
             messagesent: false,
             chats_id: rawBody.id,
         };
-        console.log("FFFFFFFFFFFFFFFFFFFFFFFF", formattedBody);
+        console.log('FFFFFFFFFFFFFFFFFFFFFFFF', formattedBody);
         delete formattedBody.returned;
         delete formattedBody.created_at;
         delete formattedBody.id;
@@ -76,13 +77,12 @@ class CustomchatsController {
             ];
             let shouldSendTemplate = false;
             if (createdAtRaw) {
-                const customChat = await Customchat_1.default
-                    .query()
+                const customChat = await Customchat_1.default.query()
                     .where('chats_id', rawBody.id)
                     .orderBy('created_at', 'desc')
                     .first();
                 const createdAt = customChat?.createdAt;
-                console.log('CREATED_AT:', createdAt?.toISO?.());
+                console.log('CREATED_AT:', createdAt ? createdAt.toISO() : null);
                 if (createdAt && createdAt.isValid) {
                     const diffHours = luxon_1.DateTime.now()
                         .setZone('America/Sao_Paulo')
@@ -93,70 +93,67 @@ class CustomchatsController {
                 else {
                     shouldSendTemplate = false;
                 }
-                if (shouldSendTemplate) {
-                    const { status, messageId } = await (0, SendMessageGupshup_1.default)({
-                        agent,
-                        destination: formattedBody.cellphoneserialized,
-                        templateId,
-                        params: templateParams,
-                        useDefaultApiKey: true,
-                    });
-                    console.log("PASSO 1 - NÃO PODE PASSAR POR AQUI....");
-                }
-                else {
-                    console.log('Template NÃO enviado (menos de 23h desde created_at)');
-                }
-                const sendText = await (0, SendTextGupshup_1.default)({
-                    source: agent.gupshup_source,
+            }
+            if (shouldSendTemplate) {
+                const { status, messageId } = await (0, SendMessageGupshup_1.default)({
+                    agent,
                     destination: formattedBody.cellphoneserialized,
-                    text: formattedBody.message,
+                    templateId,
+                    params: templateParams,
                     useDefaultApiKey: true,
                 });
-                console.log("PASSO 2 - TEM QUE PASSAR POR AQUI....", sendText);
-                const mensagemParaHistorico = formattedBody.message ||
-                    `TEMPLATE ${templateId} | params: ${templateParams.join(' | ')}`;
-                formattedBody.message = mensagemParaHistorico;
-                let payLoad;
-                try {
-                    payLoad = await Customchat_1.default.create({
-                        ...formattedBody,
-                        chatnumber: agent.gupshup_source,
-                        messagesent: true,
-                    });
-                }
-                catch (error) {
-                    console.log('Erro ao salvar Customchat:', error);
-                }
-                await Talk_1.default.create({
-                    chat_id: formattedBody.chats_id,
-                    reg: formattedBody.reg,
-                    cellphone: formattedBody.cellphoneserialized,
-                    message: mensagemParaHistorico,
+                console.log('PASSO 1 - TEMPLATE ENVIADO....', { status, messageId });
+            }
+            else {
+                console.log('Template NÃO enviado (menos de 23h desde created_at ou data inválida)');
+            }
+            const sendText = await (0, SendTextGupshup_1.default)({
+                source: agent.gupshup_source,
+                destination: formattedBody.cellphoneserialized,
+                text: formattedBody.message,
+                useDefaultApiKey: true,
+            });
+            console.log('PASSO 2 - TEM QUE PASSAR POR AQUI....', sendText);
+            const mensagemParaHistorico = formattedBody.message ||
+                `TEMPLATE ${templateId} | params: ${templateParams.join(' | ')}`;
+            formattedBody.message = mensagemParaHistorico;
+            let payLoad;
+            try {
+                payLoad = await Customchat_1.default.create({
+                    ...formattedBody,
                     chatnumber: agent.gupshup_source,
-                    type: 'to',
+                    messagesent: true,
                 });
-                await Chat_1.default.query()
-                    .where('id', formattedBody.chats_id)
-                    .update({ last_response: 1 });
-                if (chat.shippingcampaigns_id) {
-                    const shippingcampaign = await Shippingcampaign_1.default.find(chat.shippingcampaigns_id);
-                    if (shippingcampaign && !shippingcampaign.date_first_return) {
-                        shippingcampaign.date_first_return = luxon_1.DateTime.now().setZone('America/Sao_Paulo');
-                        await shippingcampaign.save();
-                    }
-                }
-                return response.status(201).send(payLoad || formattedBody);
             }
-            try { }
             catch (error) {
-                console.log('ERRO GUPSHUP DATA >>>', error.response?.data);
-                console.error('Erro ao enviar mensagem Gupshup:', error);
-                return response
-                    .status(500)
-                    .send({ error: `Falha ao enviar mensagem via Gupshup. ERRO: ${error}` });
+                console.log('Erro ao salvar Customchat:', error);
             }
+            await Talk_1.default.create({
+                chat_id: formattedBody.chats_id,
+                reg: formattedBody.reg,
+                cellphone: formattedBody.cellphoneserialized,
+                message: mensagemParaHistorico,
+                chatnumber: agent.gupshup_source,
+                type: 'to',
+            });
+            await Chat_1.default.query()
+                .where('id', formattedBody.chats_id)
+                .update({ last_response: 1 });
+            if (chat.shippingcampaigns_id) {
+                const shippingcampaign = await Shippingcampaign_1.default.find(chat.shippingcampaigns_id);
+                if (shippingcampaign && !shippingcampaign.date_first_return) {
+                    shippingcampaign.date_first_return = luxon_1.DateTime.now().setZone('America/Sao_Paulo');
+                    await shippingcampaign.save();
+                }
+            }
+            return response.status(201).send(payLoad || formattedBody);
         }
-        finally {
+        catch (error) {
+            console.log('ERRO GUPSHUP DATA >>>', error.response?.data);
+            console.error('Erro ao enviar mensagem Gupshup:', error);
+            return response
+                .status(500)
+                .send({ error: `Falha ao enviar mensagem via Gupshup. ERRO: ${error}` });
         }
     }
     async viewedConfirmed({ auth, params, response }) {

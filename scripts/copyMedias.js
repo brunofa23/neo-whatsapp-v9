@@ -1,26 +1,37 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
 function copyDir(src, dest) {
-  if (!fs.existsSync(dest)) {
-    fs.mkdirSync(dest, { recursive: true });
+  // ✅ não quebra o build se não existir (GitHub Actions geralmente não tem mídia)
+  if (!fs.existsSync(src)) {
+    console.log(`[copyMedias] Pasta não existe, pulando: ${src}`);
+    return;
   }
 
-  for (const file of fs.readdirSync(src)) {
-    const srcFile = path.join(src, file);
-    const destFile = path.join(dest, file);
+  fs.mkdirSync(dest, { recursive: true });
 
-    if (fs.lstatSync(srcFile).isDirectory()) {
-      copyDir(srcFile, destFile);
+  const entries = fs.readdirSync(src, { withFileTypes: true });
+
+  for (const entry of entries) {
+    const srcPath = path.join(src, entry.name);
+    const destPath = path.join(dest, entry.name);
+
+    if (entry.isDirectory()) {
+      copyDir(srcPath, destPath);
     } else {
-      fs.copyFileSync(srcFile, destFile);
+      fs.copyFileSync(srcPath, destPath);
     }
   }
 }
 
-const source = path.resolve('app/Medias');
-const destination = path.resolve('build/app/Medias');
+const root = process.cwd();
 
-copyDir(source, destination);
+// ✅ NOVO PADRÃO: Medias na raiz do projeto
+const src = path.join(root, "Medias");
+const dest = path.join(root, "build", "Medias"); // ajuste se seu output for outro
 
-console.log('✔ Pasta app/Medias copiada para build/Medias.');
+console.log("[copyMedias] src:", src);
+console.log("[copyMedias] dest:", dest);
+
+copyDir(src, dest);
+console.log("[copyMedias] OK");

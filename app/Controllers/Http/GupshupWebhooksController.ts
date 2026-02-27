@@ -11,6 +11,12 @@ export default class GupshupWebhookController {
 
   public async handle({ request, response }: HttpContextContract) {
 
+    // 🔴 body cru exatamente como a Gupshup manda (igual webhook.site)
+    const rawBody = request.raw()
+    console.log('=== GUPSHUP WEBHOOK RAW STRING ===')
+    console.log(rawBody)
+    console.log('=== FIM RAW STRING ===')
+
     const payload = request.all()
 
     // ✅ responde 200 rápido

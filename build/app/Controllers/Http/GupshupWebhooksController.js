@@ -33,7 +33,7 @@ class GupshupWebhookController {
                     return;
                 }
                 const extension = contentType.includes('ogg') ? 'ogg' : contentType.includes('mpeg') ? 'mp3' : 'bin';
-                const messageId = String(payload.payload?.id || Date.now());
+                const messageId = String(payload.payload?.id || Date.now()).replace(/[^a-zA-Z0-9._-]/g, '_');
                 const fileName = `${messageId}.${extension}`;
                 const filePath = Application_1.default.makePath(`Medias/Customchats/${fileName}`);
                 await fs_1.promises.mkdir((0, path_1.dirname)(filePath), { recursive: true });

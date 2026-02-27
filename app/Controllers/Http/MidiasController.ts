@@ -6,29 +6,35 @@ import { createReadStream } from 'fs'
 const fs = require('fs-extra')
 
 export default class MidiasController {
-  public async midia({ response, params }: HttpContextContract) {
+  public async midia({ request, response, params }: HttpContextContract) {
     const fileName = params.filename
-
-    // Arquivo salvo em: <root>/Medias/Customchats/<fileName>
     const filePath = Application.makePath(`Medias/Customchats/${fileName}`)
 
-    console.log('MidiasController.midia fileName:', fileName)
-    console.log('MidiasController.midia filePath:', filePath)
-
     if (!fs.existsSync(filePath)) {
-      console.log('MidiasController.midia -> arquivo não encontrado')
-      return response.notFound({
-        error: 'Arquivo não encontrado',
-        fileName,
-        filePath,
-      })
+      return response.notFound({ error: 'Arquivo não encontrado', fileName, filePath })
     }
 
-    // Header correto pro áudio
+    const stat = await fs.stat(filePath)
+    const range = request.header('range')
+
     response.header('Content-Type', 'audio/ogg')
     response.header('Accept-Ranges', 'bytes')
 
-    return response.stream(createReadStream(filePath))
+    if (!range) {
+      response.header('Content-Length', stat.size)
+      return response.stream(createReadStream(filePath))
+    }
+
+    const parts = range.replace(/bytes=/, '').split('-')
+    const start = parseInt(parts[0], 10)
+    const end = parts[1] ? parseInt(parts[1], 10) : stat.size - 1
+    const chunkSize = end - start + 1
+
+    response.status(206)
+    response.header('Content-Range', `bytes ${start}-${end}/${stat.size}`)
+    response.header('Content-Length', chunkSize)
+
+    return response.stream(createReadStream(filePath, { start, end }))
   }
 
   public async midiapath({ params }: HttpContextContract) {

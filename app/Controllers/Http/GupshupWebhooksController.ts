@@ -6,6 +6,12 @@ import Chat from 'App/Models/Chat'
 import Log from 'App/Models/Log'
 import { DateTime } from 'luxon'
 
+import axios from 'axios'
+import Application from '@ioc:Adonis/Core/Application'
+import { promises as fs } from 'fs'
+import { join, dirname } from 'path'
+import Customchat from 'App/Models/Customchat'
+
 export default class GupshupWebhookController {
   private monitoring = new GupshupMonitoring()
 
@@ -22,12 +28,57 @@ export default class GupshupWebhookController {
     // ✅ responde 200 rápido
     response.status(200).send({ ok: true })
 
-    // (opcional) log do payload bruto (cuidado com volume)
-    // console.log('=== GUPSHUP WEBHOOK RECEBIDO ===')
-    // console.log(JSON.stringify(payload, null, 2))
-    // console.log('=== FIM ===')
-
     try {
+      // ✅ DOWNLOAD DE ÁUDIO (mensagens inbound de áudio)
+      // ✅ DOWNLOAD DE ÁUDIO (mensagens inbound de áudio)
+      if (payload?.type === 'message' && payload?.payload?.type === 'audio') {
+        const audioPayload = payload.payload?.payload
+        const url: string | undefined = audioPayload?.url
+        const contentType: string = audioPayload?.contentType || ''
+
+        const appName: string = String(payload.app || '').trim()
+        const dialCode: string = String(payload.payload?.sender?.dial_code || '').trim()
+
+        if (url) {
+          const extension =
+            contentType.includes('ogg') ? 'ogg'
+              : contentType.includes('mpeg') ? 'mp3'
+                : 'bin'
+
+          const messageId = String(payload.payload?.id || Date.now())
+          const fileName = `${messageId}.${extension}`
+
+          // 🔴 PRESTA ATENÇÃO AQUI:
+          // Vai salvar em: <root-do-projeto>/Medias/Customchats/arquivo.ogg
+          const filePath = Application.makePath(`Medias/Customchats/${fileName}`)
+
+          await fs.mkdir(path.dirname(filePath), { recursive: true })
+
+          const { data } = await axios.get<ArrayBuffer>(url, {
+            responseType: 'arraybuffer',
+          })
+
+          await fs.writeFile(filePath, Buffer.from(data))
+
+          console.log('🎧 Áudio Gupshup salvo em:', filePath)
+
+          // NO BANCO, SÓ O NOME DO ARQUIVO:
+          const relativeFileName = fileName
+
+          const existing = await Customchat.query()
+            .where('cellphoneserialized', dialCode)
+            .andWhere('chatname', appName)
+            .whereNull('returned')
+            .orderBy('created_at', 'desc')
+            .first()
+
+          if (existing) {
+            existing.merge({ path_media: relativeFileName })
+            await existing.save()
+          }
+        }
+      }
+
       // ✅ 1) Eventos de status/ack (read/delivered/sent/played/failed...)
       const evt = parseMessageEvent(payload)
       if (evt) {
@@ -42,7 +93,7 @@ export default class GupshupWebhookController {
             // ack_date: DateTime.fromSeconds(evt.ts || DateTime.now().toSeconds()).toFormat('yyyy-MM-dd HH:mm'),
           })
 
-        // loga só se não encontrou chat
+        // se quiser logar quando não encontrar chat, reativa o bloco abaixo
         // if (!updated) {
         //   await Log.create({
         //     name: 'gupshup_message_event_unmatched',
@@ -61,7 +112,7 @@ export default class GupshupWebhookController {
         return
       }
 
-      // ✅ 2) Mensagens inbound (texto / quick_reply)
+      // ✅ 2) Mensagens inbound (texto / quick_reply / media)
       const msg: MessageLike | null = parseInbound(payload)
       if (!msg) return
 
@@ -72,7 +123,7 @@ export default class GupshupWebhookController {
       //   message: error?.message || String(error),
       //   description: error?.stack || 'Sem stack',
       // })
-      console.log("código 155478:",error)
+      console.log('código 155478:', error)
     }
   }
 }

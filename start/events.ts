@@ -382,33 +382,33 @@ async function resendMessage() {
           resend: 1,
         });
 
-        await Log.create({
-          name: "Resend",
-          message: `Reenvio de AVALIAÇÕES não enviadas no dia anterior. Total: ${ids.length}`,
-          description: "Function: resendMessage",
-        });
+        // await Log.create({
+        //   name: "Resend",
+        //   message: `Reenvio de AVALIAÇÕES não enviadas no dia anterior. Total: ${ids.length}`,
+        //   description: "Function: resendMessage",
+        // });
       }
 
-      if (updatedResend > 0) {
-        await Log.create({
-          name: "Resend",
-          message: `Reenvio de CONFIRMAÇÕES não enviadas no dia anterior. Total: ${updatedResend}`,
-          description: "Function: resendMessage",
-        });
-      }
+      // if (updatedResend > 0) {
+      //   await Log.create({
+      //     name: "Resend",
+      //     message: `Reenvio de CONFIRMAÇÕES não enviadas no dia anterior. Total: ${updatedResend}`,
+      //     description: "Function: resendMessage",
+      //   });
+      // }
     } catch (error: any) {
       console.error("Erro no resendMessage:", error);
 
       // não deixa o próprio log derrubar o catch
-      try {
-        await Log.create({
-          name: "ResendError",
-          message: error?.message ? String(error.message) : "Erro desconhecido",
-          description: error?.stack ? String(error.stack) : "Sem stack trace",
-        });
-      } catch (logErr) {
-        console.error("Erro ao gravar ResendError no banco:", logErr);
-      }
+      // try {
+      //   await Log.create({
+      //     name: "ResendError",
+      //     message: error?.message ? String(error.message) : "Erro desconhecido",
+      //     description: error?.stack ? String(error.stack) : "Sem stack trace",
+      //   });
+      // } catch (logErr) {
+      //   console.error("Erro ao gravar ResendError no banco:", logErr);
+      // }
     } finally {
       running = false;
     }

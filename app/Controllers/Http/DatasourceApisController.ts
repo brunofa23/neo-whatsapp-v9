@@ -263,7 +263,7 @@ export default class DatasourceApisController {
           await processSchedule(idExternal, 'N', 'Não Confirmada pelo EasyTalk');
         } else {
           //console.warn(`Resposta absoluta inválida para o registro:${data.id}`, data.id);
-          await Log.create({ name: 'DataSourceApiController', message: error, description: `Resposta absoluta inválida para o registro:${data.id}` })
+          //await Log.create({ name: 'DataSourceApiController', message: error, description: `Resposta absoluta inválida para o registro:${data.id}` })
         }
 
         // Atualiza o status externo após o processamento

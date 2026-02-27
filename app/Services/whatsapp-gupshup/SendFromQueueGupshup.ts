@@ -91,11 +91,11 @@ export default async function SendFromQueueGupshup(agent: Agent) {
     // chave do canal (equivalente ao wid.user do wwebjs)
     const chatnumberKey = onlyDigits(agent.gupshup_source || '')
     if (!chatnumberKey) {
-      await Log.create({
-        name: 'Gupshup',
-        message: 'Agent sem gupshup_source',
-        description: `SendFromQueueGupshup AgentId=${agent.id}`,
-      })
+      // await Log.create({
+      //   name: 'Gupshup',
+      //   message: 'Agent sem gupshup_source',
+      //   description: `SendFromQueueGupshup AgentId=${agent.id}`,
+      // })
       return
     }
 
@@ -123,21 +123,21 @@ export default async function SendFromQueueGupshup(agent: Agent) {
       .first()
 
     if (!interaction) {
-      await Log.create({
-        name: 'InteractionMissing',
-        message: `interaction_id=${shippingCampaign.interaction_id} não encontrada`,
-        description: `shippingcampaign_id=${shippingCampaign.id}`,
-      })
+      // await Log.create({
+      //   name: 'InteractionMissing',
+      //   message: `interaction_id=${shippingCampaign.interaction_id} não encontrada`,
+      //   description: `shippingcampaign_id=${shippingCampaign.id}`,
+      // })
       return
     }
 
     const templateId = interaction.idTemplatesGupshup
     if (!templateId) {
-      await Log.create({
-        name: 'GupshupTemplateMissing',
-        message: `interaction_id=${interaction.id} sem id_templates_gupshup`,
-        description: `shippingcampaign_id=${shippingCampaign.id}`,
-      })
+      // await Log.create({
+      //   name: 'GupshupTemplateMissing',
+      //   message: `interaction_id=${interaction.id} sem id_templates_gupshup`,
+      //   description: `shippingcampaign_id=${shippingCampaign.id}`,
+      // })
       return
     }
 
@@ -176,11 +176,11 @@ export default async function SendFromQueueGupshup(agent: Agent) {
     const phoneKey = normalizePhoneKey(shippingCampaign.cellphone)
 
     if (!phoneKey) {
-      await Log.create({
-        name: 'GupshupPhoneKeyError',
-        message: `Não foi possível gerar cellphoneserialized para "${shippingCampaign.cellphone}"`,
-        description: `shippingcampaign_id=${shippingCampaign.id}`,
-      })
+      // await Log.create({
+      //   name: 'GupshupPhoneKeyError',
+      //   message: `Não foi possível gerar cellphoneserialized para "${shippingCampaign.cellphone}"`,
+      //   description: `shippingcampaign_id=${shippingCampaign.id}`,
+      // })
       // marca como inválido e sai
       shippingCampaign.phonevalid = false
       shippingCampaign.cellphoneserialized = null
@@ -205,11 +205,11 @@ export default async function SendFromQueueGupshup(agent: Agent) {
     // ✅ params prontos no banco (JSON string)
     const params = safeParseParams(shippingCampaign.gupshupParams)
     if (params.length === 0) {
-      await Log.create({
-        name: 'GupshupParamsMissing',
-        message: `shippingcampaign sem gupshup_params válido`,
-        description: `shippingcampaign_id=${shippingCampaign.id}`,
-      })
+      // await Log.create({
+      //   name: 'GupshupParamsMissing',
+      //   message: `shippingcampaign sem gupshup_params válido`,
+      //   description: `shippingcampaign_id=${shippingCampaign.id}`,
+      // })
       return
     }
 
@@ -280,10 +280,10 @@ export default async function SendFromQueueGupshup(agent: Agent) {
     return { status, messageId }
   } catch (error) {
     console.error('Erro SendFromQueueGupshup:', error)
-    await Log.create({
-      name: 'SendFromQueueGupshup',
-      message: error?.message || String(error),
-      description: error?.stack || 'Sem stack',
-    })
+    // await Log.create({
+    //   name: 'SendFromQueueGupshup',
+    //   message: error?.message || String(error),
+    //   description: error?.stack || 'Sem stack',
+    // })
   }
 }

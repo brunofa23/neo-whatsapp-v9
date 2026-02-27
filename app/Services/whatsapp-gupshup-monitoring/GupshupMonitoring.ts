@@ -110,11 +110,11 @@ export default class GupshupMonitoring {
     console.log('PASSO 1 1544')
 
     const truncated = raw.length > MAX_LOG_LEN
-    await Log.create({
-      name: 'webhook', // tudo que chegar aqui vai com name=webhook
-      message: truncated ? raw.slice(0, MAX_LOG_LEN) : raw,
-      description: truncated ? 'GUPSHUP WEBHOOK RAW (TRUNCATED)' : 'GUPSHUP WEBHOOK RAW',
-    })
+    // await Log.create({
+    //   name: 'webhook', // tudo que chegar aqui vai com name=webhook
+    //   message: truncated ? raw.slice(0, MAX_LOG_LEN) : raw,
+    //   description: truncated ? 'GUPSHUP WEBHOOK RAW (TRUNCATED)' : 'GUPSHUP WEBHOOK RAW',
+    // })
 
     // -------------------------
     // fluxo normal
@@ -163,25 +163,25 @@ export default class GupshupMonitoring {
     // ==========================================================
     if (defaultAgent) {
       console.log("ENTREI NO DEFAULT...")
-      await Log.create({
-        name: 'gupshup_customchat_inbound',
-        message: JSON.stringify(
-          {
-            at: DateTime.now().toISO(),
-            appName,
-            agentId: defaultAgent.id,
-            from: fromDigits,
-            fromKey,
-            to: toDigits || null,
-            toKey: toKey || null,
-            body: body.slice(0, 200),
-            hasMedia,
-          },
-          null,
-          2
-        ),
-        description: 'INBOUND VIA APP DEFAULT_CHAT → CUSTOMCHATS',
-      })
+      // await Log.create({
+      //   name: 'gupshup_customchat_inbound',
+      //   message: JSON.stringify(
+      //     {
+      //       at: DateTime.now().toISO(),
+      //       appName,
+      //       agentId: defaultAgent.id,
+      //       from: fromDigits,
+      //       fromKey,
+      //       to: toDigits || null,
+      //       toKey: toKey || null,
+      //       body: body.slice(0, 200),
+      //       hasMedia,
+      //     },
+      //     null,
+      //     2
+      //   ),
+      //   description: 'INBOUND VIA APP DEFAULT_CHAT → CUSTOMCHATS',
+      // })
 
       console.log(".....", appName)
 
@@ -223,21 +223,21 @@ export default class GupshupMonitoring {
     // ==========================================================
 
     // ✅ log rápido pra depuração
-    await Log.create({
-      name: 'gupshup_inbound',
-      message: JSON.stringify({
-        at: DateTime.now().toISO(),
-        from: fromDigits,
-        fromKey,
-        to: toDigits || null,
-        toKey: toKey || null,
-        gsId: inboundGsId || null,
-        body: body.slice(0, 200),
-        hasMedia,
-        appName: appName || null,
-      }),
-      description: 'GUPSHUP WEBHOOK INBOUND',
-    })
+    // await Log.create({
+    //   name: 'gupshup_inbound',
+    //   message: JSON.stringify({
+    //     at: DateTime.now().toISO(),
+    //     from: fromDigits,
+    //     fromKey,
+    //     to: toDigits || null,
+    //     toKey: toKey || null,
+    //     gsId: inboundGsId || null,
+    //     body: body.slice(0, 200),
+    //     hasMedia,
+    //     appName: appName || null,
+    //   }),
+    //   description: 'GUPSHUP WEBHOOK INBOUND',
+    // })
 
     // ✅ registra inbound no talk (mantém o formato que você já usava)
     await Talk.create({

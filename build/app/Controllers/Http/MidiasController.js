@@ -10,10 +10,12 @@ class MidiasController {
     async midia({ request, response, params }) {
         const fileName = params.filename;
         const filePath = Application_1.default.makePath(`Medias/Customchats/${fileName}`);
+        console.log('MidiasController.midia fileName:', fileName);
+        console.log('MidiasController.midia filePath:', filePath);
         if (!fs.existsSync(filePath)) {
             return response.notFound({ error: 'Arquivo não encontrado', fileName, filePath });
         }
-        const stat = await fs.stat(filePath);
+        const stat = fs.statSync(filePath);
         const range = request.header('range');
         response.header('Content-Type', 'audio/ogg');
         response.header('Accept-Ranges', 'bytes');
@@ -24,6 +26,10 @@ class MidiasController {
         const parts = range.replace(/bytes=/, '').split('-');
         const start = parseInt(parts[0], 10);
         const end = parts[1] ? parseInt(parts[1], 10) : stat.size - 1;
+        if (Number.isNaN(start) || Number.isNaN(end) || start > end) {
+            response.header('Content-Length', stat.size);
+            return response.stream((0, fs_1.createReadStream)(filePath));
+        }
         const chunkSize = end - start + 1;
         response.status(206);
         response.header('Content-Range', `bytes ${start}-${end}/${stat.size}`);

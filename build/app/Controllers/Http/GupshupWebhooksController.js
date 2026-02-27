@@ -28,49 +28,62 @@ class GupshupWebhookController {
                 const contentType = audioPayload?.contentType || '';
                 const appName = String(payload.app || '').trim();
                 const dialCode = String(payload.payload?.sender?.dial_code || '').trim();
-                if (url) {
-                    const extension = contentType.includes('ogg') ? 'ogg'
-                        : contentType.includes('mpeg') ? 'mp3'
-                            : 'bin';
-                    const messageId = String(payload.payload?.id || Date.now());
-                    const fileName = `${messageId}.${extension}`;
-                    const filePath = Application_1.default.makePath(`Medias/Customchats/${fileName}`);
-                    await fs_1.promises.mkdir((0, path_1.dirname)(filePath), { recursive: true });
-                    const { data } = await axios_1.default.get(url, {
-                        responseType: 'arraybuffer',
-                    });
-                    await fs_1.promises.writeFile(filePath, Buffer.from(data));
-                    console.log('🎧 Áudio Gupshup salvo em:', filePath);
-                    const relativeFileName = fileName;
-                    console.log('🔎 Tentando localizar Customchat com:', {
-                        appName,
-                        dialCode,
-                    });
-                    const existing = await Customchat_1.default.query()
-                        .where('cellphoneserialized', dialCode)
-                        .andWhere('chatname', appName)
-                        .whereNull('returned')
-                        .orderBy('created_at', 'desc')
-                        .first();
-                    if (existing) {
-                        console.log('✅ Customchat encontrado, id:', existing.id);
-                        existing.merge({ path_media: relativeFileName });
-                        await existing.save();
-                        console.log('✅ path_media atualizado no Customchat.');
-                    }
-                    else {
-                        console.log('⚠️ Nenhum Customchat encontrado para esse dialCode/appName; só salvei o arquivo em disco.');
+                if (!url) {
+                    console.log('⚠️ Áudio recebido mas sem URL no payload.');
+                    return;
+                }
+                const extension = contentType.includes('ogg') ? 'ogg' : contentType.includes('mpeg') ? 'mp3' : 'bin';
+                const messageId = String(payload.payload?.id || Date.now());
+                const fileName = `${messageId}.${extension}`;
+                const filePath = Application_1.default.makePath(`Medias/Customchats/${fileName}`);
+                await fs_1.promises.mkdir((0, path_1.dirname)(filePath), { recursive: true });
+                const res = await axios_1.default.get(url, {
+                    responseType: 'arraybuffer',
+                    validateStatus: () => true,
+                    timeout: 30000,
+                });
+                const ct = String(res.headers?.['content-type'] || '');
+                if (res.status !== 200) {
+                    console.log('❌ Download do áudio falhou (status != 200)', { status: res.status, ct });
+                    return;
+                }
+                if (!ct.startsWith('audio/')) {
+                    console.log('❌ Download retornou conteúdo que NÃO é áudio', { status: res.status, ct });
+                    return;
+                }
+                const buf = Buffer.from(res.data);
+                if (extension === 'ogg') {
+                    const magic = buf.slice(0, 4).toString('ascii');
+                    if (magic !== 'OggS') {
+                        console.log('❌ Conteúdo baixado não parece OGG (header inválido)', { magic, ct });
+                        return;
                     }
                 }
+                await fs_1.promises.writeFile(filePath, buf);
+                console.log('🎧 Áudio Gupshup salvo em:', filePath, 'CT:', ct);
+                const relativeFileName = fileName;
+                console.log('🔎 Tentando localizar Customchat com:', { appName, dialCode });
+                const existing = await Customchat_1.default.query()
+                    .where('cellphoneserialized', dialCode)
+                    .andWhere('chatname', appName)
+                    .whereNull('returned')
+                    .orderBy('created_at', 'desc')
+                    .first();
+                if (existing) {
+                    console.log('✅ Customchat encontrado, id:', existing.id);
+                    existing.merge({ path_media: relativeFileName });
+                    await existing.save();
+                    console.log('✅ path_media atualizado no Customchat.');
+                }
+                else {
+                    console.log('⚠️ Nenhum Customchat encontrado para esse dialCode/appName; só salvei o arquivo em disco.');
+                }
+                return;
             }
             const evt = parseMessageEvent(payload);
             if (evt) {
                 const ack = mapEventToAck(evt.eventType);
-                await Chat_1.default.query()
-                    .where('gupshup_gs_id', evt.gsId)
-                    .update({
-                    ack,
-                });
+                await Chat_1.default.query().where('gupshup_gs_id', evt.gsId).update({ ack });
                 return;
             }
             const msg = parseInbound(payload);

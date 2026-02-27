@@ -115,7 +115,7 @@ __decorate([
 ], Customchat.prototype, "ack", void 0);
 __decorate([
     (0, Orm_1.column)(),
-    __metadata("design:type", String)
+    __metadata("design:type", Object)
 ], Customchat.prototype, "path_media", void 0);
 __decorate([
     Orm_1.column.dateTime({ autoCreate: true }),

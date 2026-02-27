@@ -5,6 +5,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const GupshupMonitoring_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-gupshup-monitoring/GupshupMonitoring"));
 const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
+const axios_1 = __importDefault(require("axios"));
+const Application_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Application"));
+const fs_1 = require("fs");
+const Customchat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Customchat"));
 class GupshupWebhookController {
     constructor() {
         this.monitoring = new GupshupMonitoring_1.default();
@@ -17,6 +21,38 @@ class GupshupWebhookController {
         const payload = request.all();
         response.status(200).send({ ok: true });
         try {
+            if (payload?.type === 'message' && payload?.payload?.type === 'audio') {
+                const audioPayload = payload.payload?.payload;
+                const url = audioPayload?.url;
+                const contentType = audioPayload?.contentType || '';
+                const appName = String(payload.app || '').trim();
+                const dialCode = String(payload.payload?.sender?.dial_code || '').trim();
+                if (url) {
+                    const extension = contentType.includes('ogg') ? 'ogg'
+                        : contentType.includes('mpeg') ? 'mp3'
+                            : 'bin';
+                    const messageId = String(payload.payload?.id || Date.now());
+                    const fileName = `${messageId}.${extension}`;
+                    const filePath = Application_1.default.makePath(`Medias/Customchats/${fileName}`);
+                    await fs_1.promises.mkdir(path.dirname(filePath), { recursive: true });
+                    const { data } = await axios_1.default.get(url, {
+                        responseType: 'arraybuffer',
+                    });
+                    await fs_1.promises.writeFile(filePath, Buffer.from(data));
+                    console.log('🎧 Áudio Gupshup salvo em:', filePath);
+                    const relativeFileName = fileName;
+                    const existing = await Customchat_1.default.query()
+                        .where('cellphoneserialized', dialCode)
+                        .andWhere('chatname', appName)
+                        .whereNull('returned')
+                        .orderBy('created_at', 'desc')
+                        .first();
+                    if (existing) {
+                        existing.merge({ path_media: relativeFileName });
+                        await existing.save();
+                    }
+                }
+            }
             const evt = parseMessageEvent(payload);
             if (evt) {
                 const ack = mapEventToAck(evt.eventType);
@@ -33,7 +69,7 @@ class GupshupWebhookController {
             await this.monitoring.handleInbound(msg);
         }
         catch (error) {
-            console.log("código 155478:", error);
+            console.log('código 155478:', error);
         }
     }
 }

@@ -4,36 +4,28 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const Application_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Application"));
-const Env_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Env"));
 const fs = require('fs-extra');
 const path = require('path');
 class MidiasController {
     async midia({ response, params }) {
-        const filePath = `Medias/Customchats/${params.filename}`;
-        console.log("Index Midias...", filePath);
+        const fileName = params.filename;
+        const filePath = Application_1.default.makePath(`Medias/Customchats/${fileName}`);
+        console.log('MidiasController.midia filename:', fileName);
+        console.log('MidiasController.midia filePath:', filePath);
+        if (!fs.existsSync(filePath)) {
+            console.log('MidiasController.midia -> arquivo não encontrado');
+            return response.notFound({
+                error: 'Arquivo não encontrado',
+                fileName,
+                filePath,
+            });
+        }
         return response.download(filePath);
     }
     async midiapath({ params }) {
         const fileName = params.filename;
-        const baseUrl = `${Env_1.default.get('APP_URL')}/api/midia`;
-        return { url: `${baseUrl}/${fileName}` };
-    }
-    async storeMedia(media, fileName, folder) {
-        try {
-            const { mimetype, data } = media;
-            if (!mimetype.includes("audio/ogg"))
-                return;
-            const buffer = Buffer.from(data, 'base64');
-            const fileNameFull = `audio_${fileName}.ogg`;
-            const filePath = Application_1.default.makePath(`Medias/${folder}/${fileNameFull}`);
-            await fs.ensureDir(path.dirname(filePath));
-            fs.writeFileSync(filePath, buffer);
-            console.log("ARQUIVO SALVO COM SUCESSO");
-            return `${fileNameFull}`;
-        }
-        catch (error) {
-            console.log("ERROR");
-        }
+        const url = `/api/midia/${fileName}`;
+        return { url };
     }
 }
 exports.default = MidiasController;

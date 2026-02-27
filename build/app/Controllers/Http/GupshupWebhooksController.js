@@ -62,22 +62,13 @@ class GupshupWebhookController {
                 await fs_1.promises.writeFile(filePath, buf);
                 console.log('🎧 Áudio Gupshup salvo em:', filePath, 'CT:', ct);
                 const relativeFileName = fileName;
-                console.log('🔎 Tentando localizar Customchat com:', { appName, dialCode });
-                const existing = await Customchat_1.default.query()
-                    .where('cellphoneserialized', dialCode)
-                    .andWhere('chatname', appName)
-                    .whereNull('returned')
-                    .orderBy('created_at', 'desc')
-                    .first();
-                if (existing) {
-                    console.log('✅ Customchat encontrado, id:', existing.id);
-                    existing.merge({ path_media: relativeFileName });
-                    await existing.save();
-                    console.log('✅ path_media atualizado no Customchat.');
-                }
-                else {
-                    console.log('⚠️ Nenhum Customchat encontrado para esse dialCode/appName; só salvei o arquivo em disco.');
-                }
+                console.log('🟢 Criando novo Customchat só com áudio:', { appName, dialCode, relativeFileName });
+                await Customchat_1.default.create({
+                    chatname: appName,
+                    cellphoneserialized: dialCode,
+                    path_media: relativeFileName,
+                });
+                console.log('✅ Novo Customchat criado com path_media.');
                 return;
             }
             const evt = parseMessageEvent(payload);

@@ -10,6 +10,10 @@ class GupshupWebhookController {
         this.monitoring = new GupshupMonitoring_1.default();
     }
     async handle({ request, response }) {
+        const rawBody = request.raw();
+        console.log('=== GUPSHUP WEBHOOK RAW STRING ===');
+        console.log(rawBody);
+        console.log('=== FIM RAW STRING ===');
         const payload = request.all();
         response.status(200).send({ ok: true });
         try {

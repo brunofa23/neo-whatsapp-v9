@@ -72,7 +72,7 @@ export default class Customchat extends BaseModel {
   @column()
   public ack:number
   @column()
-  public path_media:string
+  public path_media:string | null
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
@@ -80,5 +80,5 @@ export default class Customchat extends BaseModel {
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   public updatedAt: DateTime
 
-  
+
 }

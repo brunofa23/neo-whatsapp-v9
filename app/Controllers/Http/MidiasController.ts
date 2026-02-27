@@ -1,18 +1,18 @@
 // app/Controllers/Http/MidiasController.ts
 import Application from '@ioc:Adonis/Core/Application'
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
+import { createReadStream } from 'fs'
 
 const fs = require('fs-extra')
-const path = require('path')
 
 export default class MidiasController {
   public async midia({ response, params }: HttpContextContract) {
     const fileName = params.filename
 
-    // Vai procurar em: <root-do-projeto>/Medias/Customchats/arquivo.ogg
+    // Arquivo salvo em: <root>/Medias/Customchats/<fileName>
     const filePath = Application.makePath(`Medias/Customchats/${fileName}`)
 
-    console.log('MidiasController.midia filename:', fileName)
+    console.log('MidiasController.midia fileName:', fileName)
     console.log('MidiasController.midia filePath:', filePath)
 
     if (!fs.existsSync(filePath)) {
@@ -24,12 +24,16 @@ export default class MidiasController {
       })
     }
 
-    return response.download(filePath)
+    // Header correto pro áudio
+    response.header('Content-Type', 'audio/ogg')
+    response.header('Accept-Ranges', 'bytes')
+
+    return response.stream(createReadStream(filePath))
   }
 
   public async midiapath({ params }: HttpContextContract) {
     const fileName = params.filename
-    const url = `/api/midia/${fileName}`
-    return { url }
+    // ⚠️ IMPORTANTE: caminho RELATIVO, sem /app1
+    return { url: `/api/midia/${fileName}` }
   }
 }

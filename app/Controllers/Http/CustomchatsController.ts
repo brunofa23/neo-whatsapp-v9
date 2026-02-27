@@ -76,10 +76,10 @@ export default class CustomchatsController {
 
     // Usa o template_id vindo do request (se quiser fixo em 1, troque de volta)
     rawBody.template_id = 1//template_id
-    console.log('#####', rawBody)
 
     // Guarda o created_at original ANTES de mexer no formattedBody
     const createdAtRaw = rawBody.created_at
+
 
     if (!rawBody.id || !rawBody.cellphoneserialized) {
       return response.badRequest({
@@ -92,7 +92,6 @@ export default class CustomchatsController {
         error: 'template_id é obrigatório para envio via Gupshup.',
       })
     }
-
     // Preparação base do corpo para salvar
     const formattedBody: any = {
       ...rawBody,
@@ -100,9 +99,7 @@ export default class CustomchatsController {
       messagesent: false,
       chats_id: rawBody.id,
     }
-
-    console.log('FFFFFFFFFFFFFFFFFFFFFFFF', formattedBody)
-
+    //console.log('#####', rawBody)
     // Remoção de campos não permitidos ou que serão tratados separadamente
     delete formattedBody.returned
     delete formattedBody.created_at
@@ -150,23 +147,23 @@ export default class CustomchatsController {
           .first()
 
         const createdAt = customChat?.createdAt // DateTime | undefined
-
         console.log('CREATED_AT:', createdAt ? createdAt.toISO() : null)
-
-        if (createdAt && createdAt.isValid) {
-          const diffHours = DateTime.now()
-            .setZone('America/Sao_Paulo')
-            .diff(createdAt, 'hours').hours
-
-          console.log('DIFF HOURS:', diffHours)
-
-          // Só envia template se o registro foi criado há mais de 23h
-          shouldSendTemplate = diffHours > 23
-        } else {
-          // Se não tiver created_at válido, você define a regra.
-          // Aqui vou deixar como false (não envia template).
-          shouldSendTemplate = false
-        }
+        if (!createdAt) {
+          shouldSendTemplate = true
+          console.log("CREATED ATTTTT NULOOOOO", shouldSendTemplate)
+        } else
+          if (createdAt && createdAt.isValid) {
+            const diffHours = DateTime.now()
+              .setZone('America/Sao_Paulo')
+              .diff(createdAt, 'hours').hours
+            console.log('DIFF HOURS:', diffHours)
+            // Só envia template se o registro foi criado há mais de 23h
+            shouldSendTemplate = diffHours > 23
+          } else {
+            // Se não tiver created_at válido, você define a regra.
+            // Aqui vou deixar como false (não envia template).
+            shouldSendTemplate = false
+          }
       }
 
       // Envia o TEMPLATE via Gupshup somente se passou de 23 horas
@@ -193,7 +190,8 @@ export default class CustomchatsController {
       })
       console.log('PASSO 2 - TEM QUE PASSAR POR AQUI....', sendText)
 
-      // Para salvar no histórico
+      console.log('FFFFFFFFFFFFFFFFFFFFFFFF', shouldSendTemplate)
+            // Para salvar no histórico
       const mensagemParaHistorico =
         formattedBody.message ||
         `TEMPLATE ${templateId} | params: ${templateParams.join(' | ')}`
@@ -207,9 +205,10 @@ export default class CustomchatsController {
         payLoad = await Customchat.create({
           ...formattedBody,
           chatnumber: agent.gupshup_source,
+          chatname:agent?.name,
           messagesent: true,
         })
-        //console.log('RETORNO:', payLoad)
+        console.log('RETORNO:', agent.name)
       } catch (error) {
         console.log('Erro ao salvar Customchat:', error)
       }

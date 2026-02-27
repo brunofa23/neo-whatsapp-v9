@@ -5,7 +5,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
 const Talk_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Talk"));
-const Log_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Log"));
 const luxon_1 = require("luxon");
 const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
 const Customchat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Customchat"));
@@ -66,11 +65,6 @@ class GupshupMonitoring {
         });
         console.log('PASSO 1 1544');
         const truncated = raw.length > MAX_LOG_LEN;
-        await Log_1.default.create({
-            name: 'webhook',
-            message: truncated ? raw.slice(0, MAX_LOG_LEN) : raw,
-            description: truncated ? 'GUPSHUP WEBHOOK RAW (TRUNCATED)' : 'GUPSHUP WEBHOOK RAW',
-        });
         const fromDigits = onlyDigits(message?.from);
         const toDigits = onlyDigits(message?.to);
         const fromKey = (0, util_1.normalizePhoneKey)(message?.from);
@@ -93,21 +87,6 @@ class GupshupMonitoring {
         }
         if (defaultAgent) {
             console.log("ENTREI NO DEFAULT...");
-            await Log_1.default.create({
-                name: 'gupshup_customchat_inbound',
-                message: JSON.stringify({
-                    at: luxon_1.DateTime.now().toISO(),
-                    appName,
-                    agentId: defaultAgent.id,
-                    from: fromDigits,
-                    fromKey,
-                    to: toDigits || null,
-                    toKey: toKey || null,
-                    body: body.slice(0, 200),
-                    hasMedia,
-                }, null, 2),
-                description: 'INBOUND VIA APP DEFAULT_CHAT → CUSTOMCHATS',
-            });
             console.log(".....", appName);
             const query = Customchat_1.default.query()
                 .where('cellphoneserialized', fromKey)
@@ -130,21 +109,6 @@ class GupshupMonitoring {
             });
             return;
         }
-        await Log_1.default.create({
-            name: 'gupshup_inbound',
-            message: JSON.stringify({
-                at: luxon_1.DateTime.now().toISO(),
-                from: fromDigits,
-                fromKey,
-                to: toDigits || null,
-                toKey: toKey || null,
-                gsId: inboundGsId || null,
-                body: body.slice(0, 200),
-                hasMedia,
-                appName: appName || null,
-            }),
-            description: 'GUPSHUP WEBHOOK INBOUND',
-        });
         await Talk_1.default.create({
             cellphone: fromDigits,
             cellphoneserialized: fromKey,

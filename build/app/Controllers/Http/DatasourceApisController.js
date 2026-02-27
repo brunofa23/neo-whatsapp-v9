@@ -5,7 +5,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Shippingcampaign"));
 const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
-const Log_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Log"));
 const Unit_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Unit"));
 const request_1 = global[Symbol.for('ioc.use')]("App/Services/requestExternal/request");
 const util_1 = global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/util");
@@ -183,7 +182,6 @@ class DatasourceApisController {
                     await processSchedule(idExternal, 'N', 'Não Confirmada pelo EasyTalk');
                 }
                 else {
-                    await Log_1.default.create({ name: 'DataSourceApiController', message: error, description: `Resposta absoluta inválida para o registro:${data.id}` });
                 }
                 await Chat_1.default.query().where("id", data.id).update({ externalstatus: 'B' });
             }

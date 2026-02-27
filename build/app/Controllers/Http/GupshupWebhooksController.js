@@ -5,8 +5,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const GupshupMonitoring_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-gupshup-monitoring/GupshupMonitoring"));
 const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
-const Log_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Log"));
-const luxon_1 = require("luxon");
 class GupshupWebhookController {
     constructor() {
         this.monitoring = new GupshupMonitoring_1.default();
@@ -23,20 +21,6 @@ class GupshupWebhookController {
                     .update({
                     ack,
                 });
-                if (!updated) {
-                    await Log_1.default.create({
-                        name: 'gupshup_message_event_unmatched',
-                        message: JSON.stringify({
-                            at: luxon_1.DateTime.now().toISO(),
-                            gsId: evt.gsId,
-                            eventType: evt.eventType,
-                            ack,
-                            destination: evt.destination,
-                            ts: evt.ts,
-                        }),
-                        description: 'Evento de mensagem sem chat correspondente (gupshup_gs_id não encontrado)',
-                    });
-                }
                 return;
             }
             const msg = parseInbound(payload);
@@ -45,11 +29,7 @@ class GupshupWebhookController {
             await this.monitoring.handleInbound(msg);
         }
         catch (error) {
-            await Log_1.default.create({
-                name: 'GupshupWebhookError',
-                message: error?.message || String(error),
-                description: error?.stack || 'Sem stack',
-            });
+            console.log("código 155478:", error);
         }
     }
 }

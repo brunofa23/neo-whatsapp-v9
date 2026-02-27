@@ -36,7 +36,6 @@ class CustomchatsController {
         const { template_id } = request.only(['template_id']);
         const rawBody = await request.validate(CustomchatValidator_1.default);
         rawBody.template_id = 1;
-        console.log('#####', rawBody);
         const createdAtRaw = rawBody.created_at;
         if (!rawBody.id || !rawBody.cellphoneserialized) {
             return response.badRequest({
@@ -54,7 +53,6 @@ class CustomchatsController {
             messagesent: false,
             chats_id: rawBody.id,
         };
-        console.log('FFFFFFFFFFFFFFFFFFFFFFFF', formattedBody);
         delete formattedBody.returned;
         delete formattedBody.created_at;
         delete formattedBody.id;
@@ -83,7 +81,11 @@ class CustomchatsController {
                     .first();
                 const createdAt = customChat?.createdAt;
                 console.log('CREATED_AT:', createdAt ? createdAt.toISO() : null);
-                if (createdAt && createdAt.isValid) {
+                if (!createdAt) {
+                    shouldSendTemplate = true;
+                    console.log("CREATED ATTTTT NULOOOOO", shouldSendTemplate);
+                }
+                else if (createdAt && createdAt.isValid) {
                     const diffHours = luxon_1.DateTime.now()
                         .setZone('America/Sao_Paulo')
                         .diff(createdAt, 'hours').hours;
@@ -114,6 +116,7 @@ class CustomchatsController {
                 useDefaultApiKey: true,
             });
             console.log('PASSO 2 - TEM QUE PASSAR POR AQUI....', sendText);
+            console.log('FFFFFFFFFFFFFFFFFFFFFFFF', shouldSendTemplate);
             const mensagemParaHistorico = formattedBody.message ||
                 `TEMPLATE ${templateId} | params: ${templateParams.join(' | ')}`;
             formattedBody.message = mensagemParaHistorico;
@@ -122,8 +125,10 @@ class CustomchatsController {
                 payLoad = await Customchat_1.default.create({
                     ...formattedBody,
                     chatnumber: agent.gupshup_source,
+                    chatname: agent?.name,
                     messagesent: true,
                 });
+                console.log('RETORNO:', agent.name);
             }
             catch (error) {
                 console.log('Erro ao salvar Customchat:', error);

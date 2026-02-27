@@ -29,19 +29,6 @@ async function ServiceEvaluationGupshup(inbound, chat) {
     const source = onlyDigits(chat?.chatnumber || '') || toDigits;
     try {
         if (!source) {
-            await Log_1.default.create({
-                name: 'ServiceEvaluationGupshupNoSource',
-                message: JSON.stringify({
-                    at: luxon_1.DateTime.now().toISO(),
-                    chat_id: chat?.id,
-                    from: fromDigits,
-                    inbound_to: toDigits || null,
-                    chatnumber: chat?.chatnumber || null,
-                    cellphoneserialized: cellphoneserialized || null,
-                    note: 'Não foi possível enviar resposta: source (WABA) ausente',
-                }),
-                description: 'Sem source (WABA) para enviar via Gupshup',
-            });
             return;
         }
         if (hasMedia) {

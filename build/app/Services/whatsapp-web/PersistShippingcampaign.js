@@ -8,7 +8,6 @@ const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Mo
 const util_1 = require("./util");
 const luxon_1 = require("luxon");
 const util_2 = global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/util");
-const Log_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Log"));
 function isIterable(obj) {
     try {
         return obj !== null && typeof obj[Symbol.iterator] === 'function';
@@ -47,39 +46,7 @@ exports.default = async (date, prioritysend = false, interaction_id = 0, unit_co
         .toJSDate();
     for (const data of dataSourceList) {
         try {
-            try {
-                await Log_1.default.create({
-                    name: 'PersistShippingcampaign',
-                    description: JSON.stringify({
-                        source: 'raw-data',
-                        reg: data?.reg ?? null,
-                        interaction_id: data?.interaction_id ?? null,
-                        dateParam: date,
-                        prioritysend,
-                        unit_cod,
-                    }),
-                    message: toMessageValue(data?.gupshupParams),
-                });
-            }
-            catch (logError) {
-                console.log('Erro ao gravar log PersistShippingcampaign (raw-data)', logError);
-            }
             if (!data?.reg || !data?.interaction_id) {
-                try {
-                    await Log_1.default.create({
-                        name: 'PersistShippingcampaign',
-                        description: JSON.stringify({
-                            source: 'skip-invalid',
-                            reason: 'reg or interaction_id missing',
-                            reg: data?.reg ?? null,
-                            interaction_id: data?.interaction_id ?? null,
-                        }),
-                        message: toMessageValue(data?.gupshupParams),
-                    });
-                }
-                catch (logError) {
-                    console.log('Erro ao gravar log PersistShippingcampaign (skip-invalid)', logError);
-                }
                 continue;
             }
             const shipping = new Shippingcampaign_1.default();
@@ -114,42 +81,12 @@ exports.default = async (date, prioritysend = false, interaction_id = 0, unit_co
             shipping.prioritysend = !!prioritysend;
             shipping.file_path = data.file_path ?? null;
             shipping.gupshupParams = data.gupshupParams ?? null;
-            try {
-                await Log_1.default.create({
-                    name: 'PersistShippingcampaign',
-                    description: JSON.stringify({
-                        source: 'shipping-built',
-                        reg: shipping.reg,
-                        interaction_id: shipping.interaction_id,
-                    }),
-                    message: toMessageValue(shipping.gupshupParams),
-                });
-            }
-            catch (logError) {
-                console.log('Erro ao gravar log PersistShippingcampaign (shipping-built)', logError);
-            }
             const verifyExist = await Shippingcampaign_1.default.query()
                 .where('reg', data.reg)
                 .andWhere('created_at', '>=', since)
                 .andWhere('interaction_id', data.interaction_id)
                 .first();
             const phoneKey = phone ? (0, util_2.normalizePhoneKey)(phone) : null;
-            try {
-                await Log_1.default.create({
-                    name: 'PersistShippingcampaign',
-                    description: JSON.stringify({
-                        source: 'verify-exist',
-                        reg: data.reg,
-                        interaction_id: data.interaction_id,
-                        found: !!verifyExist,
-                    }),
-                    message: toMessageValue(shipping.gupshupParams ??
-                        (verifyExist ? verifyExist.gupshupParams : null)),
-                });
-            }
-            catch (logError) {
-                console.log('Erro ao gravar log PersistShippingcampaign (verify-exist)', logError);
-            }
             if (verifyExist) {
                 const updatePhonePayload = {};
                 if (shipping.phonevalid !== undefined && shipping.phonevalid !== verifyExist.phonevalid) {
@@ -162,21 +99,6 @@ exports.default = async (date, prioritysend = false, interaction_id = 0, unit_co
                     await Shippingcampaign_1.default.query()
                         .where('id', verifyExist.id)
                         .update(updatePhonePayload);
-                    try {
-                        await Log_1.default.create({
-                            name: 'PersistShippingcampaign',
-                            description: JSON.stringify({
-                                source: 'update-phone',
-                                reg: data.reg,
-                                interaction_id: data.interaction_id,
-                            }),
-                            message: toMessageValue(shipping.gupshupParams ??
-                                verifyExist.gupshupParams),
-                        });
-                    }
-                    catch (logError) {
-                        console.log('Erro ao gravar log PersistShippingcampaign (update-phone)', logError);
-                    }
                 }
             }
             if (verifyExist &&
@@ -187,57 +109,14 @@ exports.default = async (date, prioritysend = false, interaction_id = 0, unit_co
                     .update({
                     gupshupParams: shipping.gupshupParams,
                 });
-                try {
-                    await Log_1.default.create({
-                        name: 'PersistShippingcampaign',
-                        description: JSON.stringify({
-                            source: 'update-gupshupParams',
-                            reg: data.reg,
-                            interaction_id: data.interaction_id,
-                        }),
-                        message: toMessageValue(shipping.gupshupParams),
-                    });
-                }
-                catch (logError) {
-                    console.log('Erro ao gravar log PersistShippingcampaign (update-gupshupParams)', logError);
-                }
             }
             if (!verifyExist) {
                 const created = await Shippingcampaign_1.default.create(shipping);
                 patientList.push({ reg: created.reg, name: created.name, unit: created.unit });
-                try {
-                    await Log_1.default.create({
-                        name: 'PersistShippingcampaign',
-                        description: JSON.stringify({
-                            source: 'create-shipping',
-                            reg: created.reg,
-                            interaction_id: created.interaction_id,
-                        }),
-                        message: toMessageValue(created.gupshupParams),
-                    });
-                }
-                catch (logError) {
-                    console.log('Erro ao gravar log PersistShippingcampaign (create-shipping)', logError);
-                }
             }
         }
         catch (error) {
             console.log('Erro ao criar Shippingcampaign', { reg: data?.reg, interaction_id: data?.interaction_id }, error);
-            try {
-                await Log_1.default.create({
-                    name: 'PersistShippingcampaign',
-                    description: JSON.stringify({
-                        source: 'error',
-                        reg: data?.reg ?? null,
-                        interaction_id: data?.interaction_id ?? null,
-                        error: String(error?.message || error),
-                    }),
-                    message: toMessageValue(data?.gupshupParams),
-                });
-            }
-            catch (logError) {
-                console.log('Erro ao gravar log PersistShippingcampaign (error)', logError);
-            }
         }
     }
     return patientList;

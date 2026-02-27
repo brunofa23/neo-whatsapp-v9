@@ -7,7 +7,6 @@ const ShippingcampaignsController_1 = __importDefault(global[Symbol.for('ioc.use
 const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
 const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
 const Talk_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Talk"));
-const Log_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Log"));
 const Interaction_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Interaction"));
 const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Shippingcampaign"));
 const luxon_1 = require("luxon");
@@ -69,11 +68,6 @@ async function SendFromQueueGupshup(agent) {
         const isPriority = !!shippingCampaign?.prioritysend;
         const chatnumberKey = onlyDigits(agent.gupshup_source || '');
         if (!chatnumberKey) {
-            await Log_1.default.create({
-                name: 'Gupshup',
-                message: 'Agent sem gupshup_source',
-                description: `SendFromQueueGupshup AgentId=${agent.id}`,
-            });
             return;
         }
         const totMessageSend = await shippingcampaignsController.maxLimitSendMessage(agent);
@@ -88,20 +82,10 @@ async function SendFromQueueGupshup(agent) {
             .where('id', shippingCampaign.interaction_id)
             .first();
         if (!interaction) {
-            await Log_1.default.create({
-                name: 'InteractionMissing',
-                message: `interaction_id=${shippingCampaign.interaction_id} não encontrada`,
-                description: `shippingcampaign_id=${shippingCampaign.id}`,
-            });
             return;
         }
         const templateId = interaction.idTemplatesGupshup;
         if (!templateId) {
-            await Log_1.default.create({
-                name: 'GupshupTemplateMissing',
-                message: `interaction_id=${interaction.id} sem id_templates_gupshup`,
-                description: `shippingcampaign_id=${shippingCampaign.id}`,
-            });
             return;
         }
         const maxLimitCampaign = Number(interaction.maxsendlimit || 0);
@@ -122,11 +106,6 @@ async function SendFromQueueGupshup(agent) {
             return;
         const phoneKey = (0, util_1.normalizePhoneKey)(shippingCampaign.cellphone);
         if (!phoneKey) {
-            await Log_1.default.create({
-                name: 'GupshupPhoneKeyError',
-                message: `Não foi possível gerar cellphoneserialized para "${shippingCampaign.cellphone}"`,
-                description: `shippingcampaign_id=${shippingCampaign.id}`,
-            });
             shippingCampaign.phonevalid = false;
             shippingCampaign.cellphoneserialized = null;
             await shippingCampaign.save();
@@ -142,11 +121,6 @@ async function SendFromQueueGupshup(agent) {
         const destination = normalized;
         const params = safeParseParams(shippingCampaign.gupshupParams);
         if (params.length === 0) {
-            await Log_1.default.create({
-                name: 'GupshupParamsMissing',
-                message: `shippingcampaign sem gupshup_params válido`,
-                description: `shippingcampaign_id=${shippingCampaign.id}`,
-            });
             return;
         }
         const { status, messageId } = await (0, SendMessageGupshup_1.default)({
@@ -191,11 +165,6 @@ async function SendFromQueueGupshup(agent) {
     }
     catch (error) {
         console.error('Erro SendFromQueueGupshup:', error);
-        await Log_1.default.create({
-            name: 'SendFromQueueGupshup',
-            message: error?.message || String(error),
-            description: error?.stack || 'Sem stack',
-        });
     }
 }
 exports.default = SendFromQueueGupshup;

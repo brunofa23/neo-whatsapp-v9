@@ -9,7 +9,7 @@ import { DateTime } from 'luxon'
 import axios from 'axios'
 import Application from '@ioc:Adonis/Core/Application'
 import { promises as fs } from 'fs'
-import { dirname } from 'path'   // ✅ usa só dirname
+import { dirname } from 'path'
 import Customchat from 'App/Models/Customchat'
 
 export default class GupshupWebhookController {
@@ -34,58 +34,81 @@ export default class GupshupWebhookController {
         const url: string | undefined = audioPayload?.url
         const contentType: string = audioPayload?.contentType || ''
 
-        const appName: string = String(payload.app || '').trim()                     // ex.: 'Digi3Sistemas6'
-        const dialCode: string = String(payload.payload?.sender?.dial_code || '').trim() // ex.: '3185228619'
+        const appName: string = String(payload.app || '').trim()
+        const dialCode: string = String(payload.payload?.sender?.dial_code || '').trim()
 
-        if (url) {
-          const extension =
-            contentType.includes('ogg') ? 'ogg'
-            : contentType.includes('mpeg') ? 'mp3'
-            : 'bin'
+        if (!url) {
+          console.log('⚠️ Áudio recebido mas sem URL no payload.')
+          return
+        }
 
-          const messageId = String(payload.payload?.id || Date.now())
-          const fileName = `${messageId}.${extension}`
+        const extension =
+          contentType.includes('ogg') ? 'ogg' : contentType.includes('mpeg') ? 'mp3' : 'bin'
 
-          // 🟢 salva em: <root>/Medias/Customchats/<fileName>
-          const filePath = Application.makePath(`Medias/Customchats/${fileName}`)
+        const messageId = String(payload.payload?.id || Date.now())
+        const fileName = `${messageId}.${extension}`
 
-          // 🔧 CORREÇÃO: usar dirname() importado, não path.dirname
-          await fs.mkdir(dirname(filePath), { recursive: true })
+        // 🟢 salva em: <root>/Medias/Customchats/<fileName>
+        const filePath = Application.makePath(`Medias/Customchats/${fileName}`)
+        await fs.mkdir(dirname(filePath), { recursive: true })
 
-          const { data } = await axios.get<ArrayBuffer>(url, {
-            responseType: 'arraybuffer',
-          })
+        // ✅ baixa o binário e valida resposta (não salva lixo como .ogg)
+        const res = await axios.get<ArrayBuffer>(url, {
+          responseType: 'arraybuffer',
+          validateStatus: () => true,
+          timeout: 30000,
+        })
 
-          await fs.writeFile(filePath, Buffer.from(data))
+        const ct = String(res.headers?.['content-type'] || '')
+        if (res.status !== 200) {
+          console.log('❌ Download do áudio falhou (status != 200)', { status: res.status, ct })
+          return
+        }
 
-          console.log('🎧 Áudio Gupshup salvo em:', filePath)
+        if (!ct.startsWith('audio/')) {
+          console.log('❌ Download retornou conteúdo que NÃO é áudio', { status: res.status, ct })
+          return
+        }
 
-          // No banco, só o nome do arquivo
-          const relativeFileName = fileName
+        const buf = Buffer.from(res.data)
 
-          console.log('🔎 Tentando localizar Customchat com:', {
-            appName,
-            dialCode,
-          })
-
-          const existing = await Customchat.query()
-            .where('cellphoneserialized', dialCode)
-            .andWhere('chatname', appName)
-            .whereNull('returned')
-            .orderBy('created_at', 'desc')
-            .first()
-
-          if (existing) {
-            console.log('✅ Customchat encontrado, id:', existing.id)
-            existing.merge({ path_media: relativeFileName })
-            await existing.save()
-            console.log('✅ path_media atualizado no Customchat.')
-          } else {
-            console.log(
-              '⚠️ Nenhum Customchat encontrado para esse dialCode/appName; só salvei o arquivo em disco.'
-            )
+        // ✅ se for ogg, valida header "OggS"
+        if (extension === 'ogg') {
+          const magic = buf.slice(0, 4).toString('ascii')
+          if (magic !== 'OggS') {
+            console.log('❌ Conteúdo baixado não parece OGG (header inválido)', { magic, ct })
+            return
           }
         }
+
+        await fs.writeFile(filePath, buf)
+        console.log('🎧 Áudio Gupshup salvo em:', filePath, 'CT:', ct)
+
+        // No banco, só o nome do arquivo
+        const relativeFileName = fileName
+
+        console.log('🔎 Tentando localizar Customchat com:', { appName, dialCode })
+
+        const existing = await Customchat.query()
+          .where('cellphoneserialized', dialCode)
+          .andWhere('chatname', appName)
+          .whereNull('returned')
+          .orderBy('created_at', 'desc')
+          .first()
+
+        if (existing) {
+          console.log('✅ Customchat encontrado, id:', existing.id)
+          existing.merge({ path_media: relativeFileName })
+          await existing.save()
+          console.log('✅ path_media atualizado no Customchat.')
+        } else {
+          console.log(
+            '⚠️ Nenhum Customchat encontrado para esse dialCode/appName; só salvei o arquivo em disco.'
+          )
+        }
+
+        // ✅ não deixa cair no parseInbound/monitoring
+        return
       }
 
       // ✅ 1) Eventos de status/ack (read/delivered/sent/played/failed...)
@@ -93,12 +116,7 @@ export default class GupshupWebhookController {
       if (evt) {
         const ack = mapEventToAck(evt.eventType)
 
-        await Chat.query()
-          .where('gupshup_gs_id', evt.gsId)
-          .update({
-            ack,
-          })
-
+        await Chat.query().where('gupshup_gs_id', evt.gsId).update({ ack })
         return
       }
 
@@ -142,7 +160,6 @@ function parseMessageEvent(payload: any): null | {
   const ts = Number(p?.payload?.ts || 0)
 
   if (!gsId || !eventType) return null
-
   return { gsId, eventType, destination, ts, raw: payload }
 }
 
@@ -150,7 +167,6 @@ function parseInbound(payload: any): MessageLike | null {
   if (payload?.type !== 'message') return null
 
   const p = payload?.payload || {}
-
   const from = p?.sender?.phone || p?.source
   if (!from) return null
 

@@ -29,6 +29,7 @@ export default class GupshupWebhookController {
 
     try {
       // ✅ DOWNLOAD DE ÁUDIO (mensagens inbound de áudio)
+      // ✅ NOVO COMPORTAMENTO: se vier SOMENTE áudio, cria um NOVO registro em Customchats com path_media
       if (payload?.type === 'message' && payload?.payload?.type === 'audio') {
         const audioPayload = payload.payload?.payload
         const url: string | undefined = audioPayload?.url
@@ -45,6 +46,7 @@ export default class GupshupWebhookController {
         const extension =
           contentType.includes('ogg') ? 'ogg' : contentType.includes('mpeg') ? 'mp3' : 'bin'
 
+        // ✅ sanitiza id para não salvar com "=" e caracteres ruins
         const messageId = String(payload.payload?.id || Date.now()).replace(/[^a-zA-Z0-9._-]/g, '_')
         const fileName = `${messageId}.${extension}`
 
@@ -87,25 +89,17 @@ export default class GupshupWebhookController {
         // No banco, só o nome do arquivo
         const relativeFileName = fileName
 
-        console.log('🔎 Tentando localizar Customchat com:', { appName, dialCode })
+        // ✅ cria um NOVO registro (não atualiza o último)
+        console.log('🟢 Criando novo Customchat só com áudio:', { appName, dialCode, relativeFileName })
 
-        const existing = await Customchat.query()
-          .where('cellphoneserialized', dialCode)
-          .andWhere('chatname', appName)
-          .whereNull('returned')
-          .orderBy('created_at', 'desc')
-          .first()
+        await Customchat.create({
+          chatname: appName,
+          cellphoneserialized: dialCode,
+          path_media: relativeFileName,
+          // demais campos ficam default/null conforme sua tabela
+        })
 
-        if (existing) {
-          console.log('✅ Customchat encontrado, id:', existing.id)
-          existing.merge({ path_media: relativeFileName })
-          await existing.save()
-          console.log('✅ path_media atualizado no Customchat.')
-        } else {
-          console.log(
-            '⚠️ Nenhum Customchat encontrado para esse dialCode/appName; só salvei o arquivo em disco.'
-          )
-        }
+        console.log('✅ Novo Customchat criado com path_media.')
 
         // ✅ não deixa cair no parseInbound/monitoring
         return
@@ -115,7 +109,6 @@ export default class GupshupWebhookController {
       const evt = parseMessageEvent(payload)
       if (evt) {
         const ack = mapEventToAck(evt.eventType)
-
         await Chat.query().where('gupshup_gs_id', evt.gsId).update({ ack })
         return
       }

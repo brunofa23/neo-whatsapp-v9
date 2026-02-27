@@ -10,7 +10,7 @@ export default class GupshupWebhookController {
   private monitoring = new GupshupMonitoring()
 
   public async handle({ request, response }: HttpContextContract) {
-    
+
     const payload = request.all()
 
     // ✅ responde 200 rápido
@@ -37,20 +37,20 @@ export default class GupshupWebhookController {
           })
 
         // loga só se não encontrou chat
-        if (!updated) {
-          await Log.create({
-            name: 'gupshup_message_event_unmatched',
-            message: JSON.stringify({
-              at: DateTime.now().toISO(),
-              gsId: evt.gsId,
-              eventType: evt.eventType,
-              ack,
-              destination: evt.destination,
-              ts: evt.ts,
-            }),
-            description: 'Evento de mensagem sem chat correspondente (gupshup_gs_id não encontrado)',
-          })
-        }
+        // if (!updated) {
+        //   await Log.create({
+        //     name: 'gupshup_message_event_unmatched',
+        //     message: JSON.stringify({
+        //       at: DateTime.now().toISO(),
+        //       gsId: evt.gsId,
+        //       eventType: evt.eventType,
+        //       ack,
+        //       destination: evt.destination,
+        //       ts: evt.ts,
+        //     }),
+        //     description: 'Evento de mensagem sem chat correspondente (gupshup_gs_id não encontrado)',
+        //   })
+        // }
 
         return
       }
@@ -61,11 +61,12 @@ export default class GupshupWebhookController {
 
       await this.monitoring.handleInbound(msg)
     } catch (error) {
-      await Log.create({
-        name: 'GupshupWebhookError',
-        message: error?.message || String(error),
-        description: error?.stack || 'Sem stack',
-      })
+      // await Log.create({
+      //   name: 'GupshupWebhookError',
+      //   message: error?.message || String(error),
+      //   description: error?.stack || 'Sem stack',
+      // })
+      console.log("código 155478:",error)
     }
   }
 }

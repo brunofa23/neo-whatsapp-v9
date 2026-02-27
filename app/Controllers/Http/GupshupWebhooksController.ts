@@ -45,7 +45,7 @@ export default class GupshupWebhookController {
         const extension =
           contentType.includes('ogg') ? 'ogg' : contentType.includes('mpeg') ? 'mp3' : 'bin'
 
-        const messageId = String(payload.payload?.id || Date.now())
+        const messageId = String(payload.payload?.id || Date.now()).replace(/[^a-zA-Z0-9._-]/g, '_')
         const fileName = `${messageId}.${extension}`
 
         // 🟢 salva em: <root>/Medias/Customchats/<fileName>

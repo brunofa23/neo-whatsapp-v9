@@ -9,15 +9,14 @@ import { DateTime } from 'luxon'
 import axios from 'axios'
 import Application from '@ioc:Adonis/Core/Application'
 import { promises as fs } from 'fs'
-import { join, dirname } from 'path'
+import { dirname } from 'path'   // ✅ usa só dirname
 import Customchat from 'App/Models/Customchat'
 
 export default class GupshupWebhookController {
   private monitoring = new GupshupMonitoring()
 
   public async handle({ request, response }: HttpContextContract) {
-
-    // 🔴 body cru exatamente como a Gupshup manda (igual webhook.site)
+    // body cru
     const rawBody = request.raw()
     console.log('=== GUPSHUP WEBHOOK RAW STRING ===')
     console.log(rawBody)
@@ -25,34 +24,33 @@ export default class GupshupWebhookController {
 
     const payload = request.all()
 
-    // ✅ responde 200 rápido
+    // responde rápido
     response.status(200).send({ ok: true })
 
     try {
-      // ✅ DOWNLOAD DE ÁUDIO (mensagens inbound de áudio)
       // ✅ DOWNLOAD DE ÁUDIO (mensagens inbound de áudio)
       if (payload?.type === 'message' && payload?.payload?.type === 'audio') {
         const audioPayload = payload.payload?.payload
         const url: string | undefined = audioPayload?.url
         const contentType: string = audioPayload?.contentType || ''
 
-        const appName: string = String(payload.app || '').trim()
-        const dialCode: string = String(payload.payload?.sender?.dial_code || '').trim()
+        const appName: string = String(payload.app || '').trim()                     // ex.: 'Digi3Sistemas6'
+        const dialCode: string = String(payload.payload?.sender?.dial_code || '').trim() // ex.: '3185228619'
 
         if (url) {
           const extension =
             contentType.includes('ogg') ? 'ogg'
-              : contentType.includes('mpeg') ? 'mp3'
-                : 'bin'
+            : contentType.includes('mpeg') ? 'mp3'
+            : 'bin'
 
           const messageId = String(payload.payload?.id || Date.now())
           const fileName = `${messageId}.${extension}`
 
-          // 🔴 PRESTA ATENÇÃO AQUI:
-          // Vai salvar em: <root-do-projeto>/Medias/Customchats/arquivo.ogg
+          // 🟢 salva em: <root>/Medias/Customchats/<fileName>
           const filePath = Application.makePath(`Medias/Customchats/${fileName}`)
 
-          await fs.mkdir(path.dirname(filePath), { recursive: true })
+          // 🔧 CORREÇÃO: usar dirname() importado, não path.dirname
+          await fs.mkdir(dirname(filePath), { recursive: true })
 
           const { data } = await axios.get<ArrayBuffer>(url, {
             responseType: 'arraybuffer',
@@ -62,8 +60,13 @@ export default class GupshupWebhookController {
 
           console.log('🎧 Áudio Gupshup salvo em:', filePath)
 
-          // NO BANCO, SÓ O NOME DO ARQUIVO:
+          // No banco, só o nome do arquivo
           const relativeFileName = fileName
+
+          console.log('🔎 Tentando localizar Customchat com:', {
+            appName,
+            dialCode,
+          })
 
           const existing = await Customchat.query()
             .where('cellphoneserialized', dialCode)
@@ -73,8 +76,14 @@ export default class GupshupWebhookController {
             .first()
 
           if (existing) {
+            console.log('✅ Customchat encontrado, id:', existing.id)
             existing.merge({ path_media: relativeFileName })
             await existing.save()
+            console.log('✅ path_media atualizado no Customchat.')
+          } else {
+            console.log(
+              '⚠️ Nenhum Customchat encontrado para esse dialCode/appName; só salvei o arquivo em disco.'
+            )
           }
         }
       }
@@ -84,30 +93,11 @@ export default class GupshupWebhookController {
       if (evt) {
         const ack = mapEventToAck(evt.eventType)
 
-        // salva ack no chat pelo gsId (que é o messageId do envio)
-        const updated = await Chat.query()
+        await Chat.query()
           .where('gupshup_gs_id', evt.gsId)
           .update({
             ack,
-            // opcional: se você tiver esses campos, descomente/ajuste
-            // ack_date: DateTime.fromSeconds(evt.ts || DateTime.now().toSeconds()).toFormat('yyyy-MM-dd HH:mm'),
           })
-
-        // se quiser logar quando não encontrar chat, reativa o bloco abaixo
-        // if (!updated) {
-        //   await Log.create({
-        //     name: 'gupshup_message_event_unmatched',
-        //     message: JSON.stringify({
-        //       at: DateTime.now().toISO(),
-        //       gsId: evt.gsId,
-        //       eventType: evt.eventType,
-        //       ack,
-        //       destination: evt.destination,
-        //       ts: evt.ts,
-        //     }),
-        //     description: 'Evento de mensagem sem chat correspondente (gupshup_gs_id não encontrado)',
-        //   })
-        // }
 
         return
       }
@@ -118,11 +108,6 @@ export default class GupshupWebhookController {
 
       await this.monitoring.handleInbound(msg)
     } catch (error) {
-      // await Log.create({
-      //   name: 'GupshupWebhookError',
-      //   message: error?.message || String(error),
-      //   description: error?.stack || 'Sem stack',
-      // })
       console.log('código 155478:', error)
     }
   }
@@ -131,32 +116,13 @@ export default class GupshupWebhookController {
 function mapEventToAck(eventTypeRaw: string): number {
   const t = String(eventTypeRaw || '').trim().toLowerCase()
 
-  // seu pedido:
-  // pendente=0, entregue=1, chegou no dispositivo=2, lida=3, played=4
-  //
-  // mapeamento prático com os nomes comuns da Gupshup:
   if (!t) return 0
-
-  // "read" -> lida
   if (t === 'read') return 3
-
-  // "played" -> played (áudio)
   if (t === 'played') return 4
-
-  // "delivered" -> entregue (whatsapp entregou)
   if (t === 'delivered') return 1
-
-  // "sent" -> não é "read", mas já saiu/chegou no dispositivo em muitos fluxos
-  // (melhor aproximação para o seu ack=2)
   if (t === 'sent') return 2
-
-  // estados pendentes
   if (t === 'submitted' || t === 'queued' || t === 'pending') return 0
-
-  // falha: mantém 0 (pendente/sem confirmação). Se você quiser, pode usar -1.
   if (t === 'failed' || t === 'error' || t === 'undelivered') return 0
-
-  // fallback: não reconhecido -> 0
   return 0
 }
 
@@ -180,7 +146,6 @@ function parseMessageEvent(payload: any): null | {
   return { gsId, eventType, destination, ts, raw: payload }
 }
 
-// ✅ seu parseInbound (com fallback extra)
 function parseInbound(payload: any): MessageLike | null {
   if (payload?.type !== 'message') return null
 

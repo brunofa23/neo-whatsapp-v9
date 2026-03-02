@@ -19,6 +19,8 @@ export default class GupshupWebhookController {
     // pega payload já parseado
     const payload = request.all()
 
+    //console.log("PAYLOAD", payload)
+
     // nome do app (ex: "Digi3Sistemas6")
     const appName: string = String(payload.app || '').trim()
 

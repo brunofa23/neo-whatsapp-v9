@@ -27,6 +27,7 @@ export default class Customchat extends BaseModel {
       'read',
       'viewed',
       'phonevalid',
+      'gupshup_gs_id',
       'ack',
       'path_media',
       'created_at'
@@ -69,10 +70,14 @@ export default class Customchat extends BaseModel {
   public viewed: boolean
   @column()
   public phonevalid: boolean
+
+  @column({ columnName: 'gupshup_gs_id' })
+  public gupshupGsId?: string
+
   @column()
-  public ack:number
+  public ack: number
   @column()
-  public path_media:string | null
+  public path_media: string | null
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime

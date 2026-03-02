@@ -197,216 +197,233 @@ export default class CustomchatsController {
   }
 
   public async sendMessage({ auth, request, response }: HttpContextContract) {
-    await auth.use('api').authenticate()
-    // Captura template_id (vem do front) e demais campos do Customchat
-    const { template_id } = request.only(['template_id'])
+  await auth.use('api').authenticate()
+  // Captura template_id (vem do front) e demais campos do Customchat
+  const { template_id } = request.only(['template_id'])
 
-    const rawBody = await request.validate(CustomchatValidator)
+  const rawBody = await request.validate(CustomchatValidator)
 
-    // Usa o template_id vindo do request (se existir)
-    if (template_id !== undefined && template_id !== null && template_id !== '') {
-      rawBody.template_id = Number(template_id)
-    } else {
-      rawBody.template_id = rawBody.template_id ?? null
+  // Usa o template_id vindo do request (se existir)
+  if (template_id !== undefined && template_id !== null && template_id !== '') {
+    rawBody.template_id = Number(template_id)
+  } else {
+    rawBody.template_id = rawBody.template_id ?? null
+  }
+
+  const createdAtRaw = rawBody.created_at
+
+  if (!rawBody.id || !rawBody.cellphoneserialized) {
+    return response.badRequest({
+      error: 'Campos obrigatórios ausentes (id ou cellphoneserialized).',
+    })
+  }
+
+  const formattedBody: any = {
+    ...rawBody,
+    cellphoneserialized: (await normalizePhoneKey(rawBody.cellphoneserialized)) || null,
+    messagesent: false,
+    chats_id: rawBody.id, // ✅ sempre vincula ao chat, igual texto
+  }
+
+  delete formattedBody.returned
+  delete formattedBody.created_at
+  delete formattedBody.id
+  delete formattedBody.response
+  delete formattedBody.template_id
+
+  try {
+    // 1) Agente padrão
+    const agent = await Agent.query().where('default_chat', true).firstOrFail()
+
+    // 2) Chat (paciente/campanha)
+    const chat = await Chat.findOrFail(formattedBody.chats_id)
+
+    // 3) Template (se houver)
+    let template: Template | null = null
+    let templateIdExternal: string | null = null
+
+    if (rawBody.template_id) {
+      template = await Template.findOrFail(rawBody.template_id)
+      templateIdExternal = template.id_external
+
+      if (!templateIdExternal) {
+        throw new Error(`Template ${template.id} sem id_external configurado`)
+      }
     }
 
-    const createdAtRaw = rawBody.created_at
+    // ✅ NOVO: controle do ID de mensagem Gupshup e ACK inicial
+    let gupshupGsId: string | null = null
+    let ackInitial = 0
 
-    if (!rawBody.id || !rawBody.cellphoneserialized) {
-      return response.badRequest({
-        error: 'Campos obrigatórios ausentes (id ou cellphoneserialized).',
+    // 4) Montar parâmetros dinamicamente
+    const templateParams: (string | number)[] =
+      template && rawBody.template_id
+        ? buildTemplateParams(template, chat, formattedBody)
+        : []
+
+    // 5) Verificar 23h desde último returned
+    let shouldSendTemplate = false
+
+    if (createdAtRaw && rawBody.template_id) {
+      const query = Customchat.query()
+        .where('chats_id', rawBody.id)
+        .where('returned', true)
+        .orderBy('created_at', 'desc')
+      const customChat = await query.first()
+      console.log(query.toQuery())
+      const createdAt = customChat?.createdAt
+
+      if (!createdAt) {
+        shouldSendTemplate = true
+        console.log('CREATED_AT NULO → shouldSendTemplate = true')
+      } else if (createdAt && createdAt.isValid) {
+        const diffHours = DateTime.now()
+          .setZone('America/Sao_Paulo')
+          .diff(createdAt, 'hours').hours
+
+        console.log('DIFF HOURS:', diffHours)
+        shouldSendTemplate = diffHours > 23
+      } else {
+        shouldSendTemplate = false
+      }
+    }
+
+    console.log('ÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇ FORMATED:', shouldSendTemplate)
+
+    // 6) Enviar TEMPLATE (se houver e regra permitir)
+    if (rawBody.template_id && templateIdExternal && shouldSendTemplate) {
+      const { status, messageId } = await SendMessageGupshup({
+        agent,
+        destination: formattedBody.cellphoneserialized,
+        templateId: templateIdExternal,
+        params: templateParams,
+        useDefaultApiKey: true,
       })
+      console.log('PASSO 1 - TEMPLATE ENVIADO....', { status, messageId })
+
+      if (messageId) {
+        gupshupGsId = String(messageId)
+        ackInitial = 1 // 1 = submetido/enqueued
+      }
+    } else if (rawBody.template_id && !shouldSendTemplate) {
+      console.log('Template NÃO enviado (menos de 23h desde created_at ou data inválida)')
     }
 
-    const formattedBody: any = {
-      ...rawBody,
-      cellphoneserialized: (await normalizePhoneKey(rawBody.cellphoneserialized)) || null,
-      messagesent: false,
-      chats_id: rawBody.id, // ✅ sempre vincula ao chat, igual texto
+    // 7) Enviar texto normal (se tiver message)
+    if (formattedBody.message && String(formattedBody.message).trim() !== '') {
+      const sendTextResult = await SendTextGupshup({
+        source: agent.gupshup_source,
+        destination: formattedBody.cellphoneserialized,
+        text: formattedBody.message,
+        useDefaultApiKey: true,
+      })
+      console.log('PASSO 2 - SEND TEXT....', sendTextResult)
+
+      // tenta extrair o id retornado (ajuste conforme o retorno real)
+      const maybeId =
+        (sendTextResult as any)?.messageId ??
+        (sendTextResult as any)?.id ??
+        (sendTextResult as any)?.gsId
+
+      if (maybeId) {
+        gupshupGsId = String(maybeId)
+        ackInitial = 1 // 1 = submetido/enqueued
+      }
+    } else {
+      console.log('Nenhum texto livre para enviar (message vazia).')
     }
 
-    delete formattedBody.returned
-    delete formattedBody.created_at
-    delete formattedBody.id
-    delete formattedBody.response
-    delete formattedBody.template_id
+    // 8) Montar mensagem para histórico
+    let mensagemParaHistorico = ''
+
+    if (template && (template as any).description) {
+      let descricao = String((template as any).description)
+
+      // tenta substituir placeholders do tipo {{chave}} com base no params_schema
+      if (template.params_schema) {
+        try {
+          const schema: string[] = JSON.parse(template.params_schema)
+          const paramsByKey: Record<string, string | number> = {}
+
+          schema.forEach((key, idx) => {
+            if (!key) return
+            paramsByKey[key] = templateParams[idx] ?? ''
+          })
+
+          descricao = descricao.replace(/\{\{(\w+)\}\}/g, (_match, key: string) => {
+            return String(paramsByKey[key] ?? '')
+          })
+        } catch (e) {
+          console.error('Erro ao montar mensagem a partir de description do template:', e)
+        }
+      }
+
+      mensagemParaHistorico = descricao
+    } else if (formattedBody.message && String(formattedBody.message).trim() !== '') {
+      mensagemParaHistorico = String(formattedBody.message)
+    } else if (formattedBody.path_media) {
+      // ✅ caso em que só foi enviada mídia (ex: áudio) via front
+      mensagemParaHistorico = '[Áudio / mídia enviada]'
+    } else if (templateIdExternal) {
+      mensagemParaHistorico =
+        `TEMPLATE ${templateIdExternal} | params: ${templateParams.join(' | ')}`
+    }
+
+    // garante que o que vai para o banco é a mensagem final
+    formattedBody.message = mensagemParaHistorico
+
+    // 9) Salvar no Customchat
+    let payLoad: Customchat | undefined
 
     try {
-      // 1) Agente padrão
-      const agent = await Agent.query().where('default_chat', true).firstOrFail()
-
-      // 2) Chat (paciente/campanha)
-      const chat = await Chat.findOrFail(formattedBody.chats_id)
-
-      // 3) Template (se houver)
-      let template: Template | null = null
-      let templateIdExternal: string | null = null
-
-      if (rawBody.template_id) {
-        template = await Template.findOrFail(rawBody.template_id)
-        templateIdExternal = template.id_external
-
-        if (!templateIdExternal) {
-          throw new Error(`Template ${template.id} sem id_external configurado`)
-        }
-      }
-
-      // 4) Montar parâmetros dinamicamente
-      const templateParams: (string | number)[] =
-        template && rawBody.template_id
-          ? buildTemplateParams(template, chat, formattedBody)
-          : []
-
-      // 5) Verificar 23h desde último returned
-      let shouldSendTemplate = false
-
-      if (createdAtRaw && rawBody.template_id) {
-        const query = Customchat.query()
-          .where('chats_id', rawBody.id)
-          .where('returned', true)
-          .orderBy('created_at', 'desc')
-        const customChat = await query.first()
-        console.log(query.toQuery())
-        const createdAt = customChat?.createdAt
-
-        if (!createdAt) {
-          shouldSendTemplate = true
-          console.log('CREATED_AT NULO → shouldSendTemplate = true')
-        } else if (createdAt && createdAt.isValid) {
-          const diffHours = DateTime.now()
-            .setZone('America/Sao_Paulo')
-            .diff(createdAt, 'hours').hours
-
-          console.log('DIFF HOURS:', diffHours)
-          shouldSendTemplate = diffHours > 23
-        } else {
-          shouldSendTemplate = false
-        }
-      }
-
-      console.log('ÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇ FORMATED:', shouldSendTemplate)
-
-      // 6) Enviar TEMPLATE (se houver e regra permitir)
-      if (rawBody.template_id && templateIdExternal && shouldSendTemplate) {
-        const { status, messageId } = await SendMessageGupshup({
-          agent,
-          destination: formattedBody.cellphoneserialized,
-          templateId: templateIdExternal,
-          params: templateParams,
-          useDefaultApiKey: true,
-        })
-        console.log('PASSO 1 - TEMPLATE ENVIADO....', { status, messageId })
-      } else if (rawBody.template_id && !shouldSendTemplate) {
-        console.log('Template NÃO enviado (menos de 23h desde created_at ou data inválida)')
-      }
-
-      // 7) Enviar texto normal (se tiver message)
-      if (formattedBody.message && String(formattedBody.message).trim() !== '') {
-        const sendText = await SendTextGupshup({
-          source: agent.gupshup_source,
-          destination: formattedBody.cellphoneserialized,
-          text: formattedBody.message,
-          useDefaultApiKey: true,
-        })
-        console.log('PASSO 2 - SEND TEXT....', sendText)
-      } else {
-        console.log('Nenhum texto livre para enviar (message vazia).')
-      }
-
-      // 8) Montar mensagem para histórico
-      //    - Preferência: description do template com placeholders preenchidos
-      //    - Depois: texto livre
-      //    - Depois: se só tiver mídia (path_media), registra como áudio/mídia
-      //    - Fallback: info do template_id
-      let mensagemParaHistorico = ''
-
-      if (template && (template as any).description) {
-        let descricao = String((template as any).description)
-
-        // tenta substituir placeholders do tipo {{chave}} com base no params_schema
-        if (template.params_schema) {
-          try {
-            const schema: string[] = JSON.parse(template.params_schema)
-            const paramsByKey: Record<string, string | number> = {}
-
-            schema.forEach((key, idx) => {
-              if (!key) return
-              paramsByKey[key] = templateParams[idx] ?? ''
-            })
-
-            descricao = descricao.replace(/\{\{(\w+)\}\}/g, (_match, key: string) => {
-              return String(paramsByKey[key] ?? '')
-            })
-          } catch (e) {
-            console.error('Erro ao montar mensagem a partir de description do template:', e)
-          }
-        }
-
-        mensagemParaHistorico = descricao
-      } else if (formattedBody.message && String(formattedBody.message).trim() !== '') {
-        mensagemParaHistorico = String(formattedBody.message)
-      } else if (formattedBody.path_media) {
-        // ✅ caso em que só foi enviada mídia (ex: áudio) via front
-        mensagemParaHistorico = '[Áudio / mídia enviada]'
-      } else if (templateIdExternal) {
-        mensagemParaHistorico =
-          `TEMPLATE ${templateIdExternal} | params: ${templateParams.join(' | ')}`
-      }
-
-      // garante que o que vai para o banco é a mensagem final
-      formattedBody.message = mensagemParaHistorico
-
-      // 9) Salvar no Customchat
-      let payLoad: Customchat | undefined
-
-      try {
-        payLoad = await Customchat.create({
-          ...formattedBody,
-          chatnumber: agent.gupshup_source,
-          chatname: agent?.name,
-          messagesent: true,
-          // template_id: rawBody.template_id || null,  // se quiser guardar, descomenta
-        })
-        console.log('RETORNO:', agent.name)
-      } catch (error) {
-        console.log('Erro ao salvar Customchat:', error)
-      }
-
-      // 10) Registrar na Talk
-      await Talk.create({
-        chat_id: formattedBody.chats_id,
-        reg: formattedBody.reg,
-        cellphone: formattedBody.cellphoneserialized,
-        message: mensagemParaHistorico,
+      payLoad = await Customchat.create({
+        ...formattedBody,
         chatnumber: agent.gupshup_source,
-        type: 'to',
+        chatname: agent?.name,
+        messagesent: true,
+        gupshup_gs_id: gupshupGsId,
+        ack: ackInitial,
       })
-
-      // 11) Atualizar last_response do Chat
-      await Chat.query()
-        .where('id', formattedBody.chats_id)
-        .update({ last_response: 1 })
-
-      // 12) Atualizar primeiro retorno de campanha
-      if (chat.shippingcampaigns_id) {
-        const shippingcampaign = await Shippingcampaign.find(chat.shippingcampaigns_id)
-
-        if (shippingcampaign && !shippingcampaign.date_first_return) {
-          shippingcampaign.date_first_return = DateTime.now().setZone('America/Sao_Paulo')
-          await shippingcampaign.save()
-        }
-      }
-
-      return response.status(201).send(payLoad || formattedBody)
+      console.log('RETORNO:', agent.name)
     } catch (error) {
-      console.log('ERRO GUPSHUP DATA >>>', (error as any).response?.data)
-      console.error('Erro ao enviar mensagem Gupshup:', error)
-
-      return response
-        .status(500)
-        .send({ error: `Falha ao enviar mensagem via Gupshup. ERRO: ${error}` })
+      console.log('Erro ao salvar Customchat:', error)
     }
+
+    // 10) Registrar na Talk
+    await Talk.create({
+      chat_id: formattedBody.chats_id,
+      reg: formattedBody.reg,
+      cellphone: formattedBody.cellphoneserialized,
+      message: mensagemParaHistorico,
+      chatnumber: agent.gupshup_source,
+      type: 'to',
+    })
+
+    // 11) Atualizar last_response do Chat
+    await Chat.query()
+      .where('id', formattedBody.chats_id)
+      .update({ last_response: 1 })
+
+    // 12) Atualizar primeiro retorno de campanha
+    if (chat.shippingcampaigns_id) {
+      const shippingcampaign = await Shippingcampaign.find(chat.shippingcampaigns_id)
+
+      if (shippingcampaign && !shippingcampaign.date_first_return) {
+        shippingcampaign.date_first_return = DateTime.now().setZone('America/Sao_Paulo')
+        await shippingcampaign.save()
+      }
+    }
+
+    return response.status(201).send(payLoad || formattedBody)
+  } catch (error) {
+    console.log('ERRO GUPSHUP DATA >>>', (error as any).response?.data)
+    console.error('Erro ao enviar mensagem Gupshup:', error)
+
+    return response
+      .status(500)
+      .send({ error: `Falha ao enviar mensagem via Gupshup. ERRO: ${error}` })
   }
+}
 
   public async viewedConfirmed({ auth, params, response }: HttpContextContract) {
     await auth.use('api').authenticate()

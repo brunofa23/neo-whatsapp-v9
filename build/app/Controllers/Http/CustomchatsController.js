@@ -197,16 +197,21 @@ class CustomchatsController {
             }
             console.log('ÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇ FORMATED:', shouldSendTemplate);
             if (rawBody.template_id && templateIdExternal && shouldSendTemplate) {
-                const { status, messageId } = await (0, SendMessageGupshup_1.default)({
+                const result = await (0, SendMessageGupshup_1.default)({
                     agent,
                     destination: formattedBody.cellphoneserialized,
                     templateId: templateIdExternal,
                     params: templateParams,
                     useDefaultApiKey: true,
                 });
-                console.log('PASSO 1 - TEMPLATE ENVIADO....', { status, messageId });
-                if (messageId) {
-                    gupshupGsId = String(messageId);
+                console.log('PASSO 1 - TEMPLATE ENVIADO....', result);
+                const id = result?.messageId ??
+                    result?.whatsappMessageId ??
+                    result?.payload?.whatsappMessageId ??
+                    result?.id ??
+                    result?.gsId;
+                if (id) {
+                    gupshupGsId = String(id);
                     ackInitial = 1;
                 }
             }
@@ -214,18 +219,20 @@ class CustomchatsController {
                 console.log('Template NÃO enviado (menos de 23h desde created_at ou data inválida)');
             }
             if (formattedBody.message && String(formattedBody.message).trim() !== '') {
-                const sendTextResult = await (0, SendTextGupshup_1.default)({
+                const result = await (0, SendTextGupshup_1.default)({
                     source: agent.gupshup_source,
                     destination: formattedBody.cellphoneserialized,
                     text: formattedBody.message,
                     useDefaultApiKey: true,
                 });
-                console.log('PASSO 2 - SEND TEXT....', sendTextResult);
-                const maybeId = sendTextResult?.messageId ??
-                    sendTextResult?.id ??
-                    sendTextResult?.gsId;
-                if (maybeId) {
-                    gupshupGsId = String(maybeId);
+                console.log('PASSO 2 - SEND TEXT....', result);
+                const id = result?.messageId ??
+                    result?.whatsappMessageId ??
+                    result?.payload?.whatsappMessageId ??
+                    result?.id ??
+                    result?.gsId;
+                if (id) {
+                    gupshupGsId = String(id);
                     ackInitial = 1;
                 }
             }
@@ -275,7 +282,7 @@ class CustomchatsController {
                     gupshup_gs_id: gupshupGsId,
                     ack: ackInitial,
                 });
-                console.log('RETORNO:', agent.name);
+                console.log('RETORNO:', agent.name, ' | gupshup_gs_id:', gupshupGsId);
             }
             catch (error) {
                 console.log('Erro ao salvar Customchat:', error);

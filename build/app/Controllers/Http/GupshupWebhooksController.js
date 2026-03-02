@@ -66,22 +66,41 @@ class GupshupWebhookController {
     async updateAckFromMessageEvent(appName, payload) {
         const eventType = payload.type;
         const innerPayload = payload.payload || {};
-        const whatsappMessageId = innerPayload.whatsappMessageId || payload.id;
-        if (!whatsappMessageId) {
-            console.warn('message-event sem whatsappMessageId/id, ignorando.');
+        const whatsappMessageIdFromEvent = innerPayload.whatsappMessageId;
+        const messageIdFromEvent = payload.id;
+        const gsIdFromEvent = payload.gsId || innerPayload.gsId;
+        const candidateIds = [
+            whatsappMessageIdFromEvent,
+            messageIdFromEvent,
+            gsIdFromEvent,
+        ].filter(Boolean);
+        if (candidateIds.length === 0) {
+            console.warn('message-event sem nenhum ID utilizável, ignorando.', {
+                appName,
+                payload,
+            });
             return;
         }
         console.log('📡 message-event recebido Gupshup (ACK):', {
             appName,
             eventType,
-            whatsappMessageId,
+            candidateIds,
         });
         const custom = await Customchat_1.default.query()
-            .where('gupshup_gs_id', whatsappMessageId)
+            .where((query) => {
+            candidateIds.forEach((id, idx) => {
+                if (idx === 0) {
+                    query.where('gupshup_gs_id', id);
+                }
+                else {
+                    query.orWhere('gupshup_gs_id', id);
+                }
+            });
+        })
             .orderBy('id', 'desc')
             .first();
         if (!custom) {
-            console.warn('Nenhum Customchat encontrado para gupshup_gs_id:', whatsappMessageId);
+            console.warn('Nenhum Customchat encontrado para gupshup_gs_id em:', candidateIds);
             return;
         }
         let ack = custom.ack ?? 0;
@@ -110,7 +129,7 @@ class GupshupWebhookController {
         await custom.save();
         console.log('✅ ACK atualizado via message-event:', {
             id: custom.id,
-            gupshup_gs_id: whatsappMessageId,
+            gupshup_gs_id: custom.gupshupGsId,
             eventType,
             ack,
         });

@@ -35,7 +35,6 @@ export default class GupshupWebhookController {
         cellphoneserialized,
         cellphone: cellphoneserialized,
         chatname: senderName || appName || 'WhatsApp',
-        // coloque aqui outros campos default se sua tabela exigir
       })
     }
 
@@ -52,54 +51,51 @@ export default class GupshupWebhookController {
     senderName?: string | null
     appName?: string | null
     message?: string
-    response?: string | null // caso queira passar explicitamente no futuro
+    response?: string | null
     pathMedia?: string | null
   }): Promise<Customchat> {
     const { chat, cellphoneserialized, senderName, appName, message, response, pathMedia } =
       options
 
-    // Prioriza o texto vindo de `response` (se um dia usar), senão usa `message`
     const rawText = (response ?? message) || ''
 
     const finalResponse =
       rawText.trim() !== ''
         ? rawText
         : pathMedia
-          ? '[Áudio / mídia recebida]'
-          : ''
+        ? '[Áudio / mídia recebida]'
+        : ''
 
     const custom = await Customchat.create({
-      chats_id: chat.id, // ✅ FK sempre preenchida
-      reg: chat.reg, // se sua tabela de chats tiver reg
+      chats_id: chat.id,
+      reg: chat.reg,
       cellphone: chat.cellphone || cellphoneserialized,
       cellphoneserialized,
       chatname: senderName || chat.chatname || appName || 'WhatsApp',
       chatnumber: chat.chatnumber || null,
 
-      // 🔁 AGORA ENTRANTE VAI PARA `response`
-      message: '', // opcional: deixa vazio para mensagens entrantes
+      message: '',
       response: finalResponse,
 
       path_media: pathMedia || null,
-      returned: true, // veio do cliente
-      messagesent: false, // não foi agente
+      returned: true,
+      messagesent: false,
     })
 
-    // opcional: registrar também na Talk para manter histórico unificado
     await Talk.create({
       chat_id: chat.id,
       reg: custom.reg,
       cellphone: cellphoneserialized,
-      message: finalResponse, // mantém histórico unificado na Talk
+      message: finalResponse,
       chatnumber: custom.chatnumber,
-      type: 'from', // mensagem vinda do cliente
+      type: 'from',
     })
 
     return custom
   }
 
   /**
-   * ✅ NOVO: Helper para atualizar o ACK de um Customchat a partir do message-event da Gupshup
+   * Helper: atualiza ACK de Customchat a partir de message-event
    */
   private async updateAckFromMessageEvent(
     appName: string | undefined,
@@ -108,54 +104,66 @@ export default class GupshupWebhookController {
     const eventType: string = payload.type // ex: enqueued, sent, delivered, read, failed...
     const innerPayload = payload.payload || {}
 
-    // Gupshup geralmente manda whatsappMessageId dentro de payload.payload
-    const whatsappMessageId: string | undefined =
-      innerPayload.whatsappMessageId || payload.id
+    const whatsappMessageIdFromEvent = innerPayload.whatsappMessageId
+    const messageIdFromEvent = payload.id
+    const gsIdFromEvent = payload.gsId || innerPayload.gsId
 
-    if (!whatsappMessageId) {
-      console.warn('message-event sem whatsappMessageId/id, ignorando.')
+    const candidateIds = [
+      whatsappMessageIdFromEvent,
+      messageIdFromEvent,
+      gsIdFromEvent,
+    ].filter(Boolean) as string[]
+
+    if (candidateIds.length === 0) {
+      console.warn('message-event sem nenhum ID utilizável, ignorando.', {
+        appName,
+        payload,
+      })
       return
     }
 
     console.log('📡 message-event recebido Gupshup (ACK):', {
       appName,
       eventType,
-      whatsappMessageId,
+      candidateIds,
     })
 
-    // procura o Customchat correspondente usando gupshup_gs_id
     const custom = await Customchat.query()
-      .where('gupshup_gs_id', whatsappMessageId)
+      .where((query) => {
+        candidateIds.forEach((id, idx) => {
+          if (idx === 0) {
+            query.where('gupshup_gs_id', id)
+          } else {
+            query.orWhere('gupshup_gs_id', id)
+          }
+        })
+      })
       .orderBy('id', 'desc')
       .first()
 
     if (!custom) {
-      console.warn(
-        'Nenhum Customchat encontrado para gupshup_gs_id:',
-        whatsappMessageId
-      )
+      console.warn('Nenhum Customchat encontrado para gupshup_gs_id em:', candidateIds)
       return
     }
 
-    // mapeia o tipo de evento para ACK
     let ack = custom.ack ?? 0
 
     switch (eventType) {
       case 'submitted':
       case 'enqueued':
-        ack = 1 // enviado p/ Gupshup
+        ack = 1
         break
       case 'sent':
-        ack = 2 // enviado ao WhatsApp
+        ack = 2
         break
       case 'delivered':
-        ack = 3 // entregue ao aparelho
+        ack = 3
         break
       case 'read':
-        ack = 4 // lido
+        ack = 4
         break
       case 'failed':
-        ack = 9 // erro
+        ack = 9
         break
       default:
         console.log('message-event com tipo não mapeado:', eventType)
@@ -167,15 +175,13 @@ export default class GupshupWebhookController {
 
     console.log('✅ ACK atualizado via message-event:', {
       id: custom.id,
-      gupshup_gs_id: whatsappMessageId,
+      gupshup_gs_id: custom.gupshupGsId,
       eventType,
       ack,
     })
   }
 
-  
   public async handle({ request, response }: HttpContextContract) {
-    // body cru para debug
     const rawBody = request.raw()
     const appName = request.input('app') as string | undefined
 
@@ -187,7 +193,6 @@ export default class GupshupWebhookController {
 
     const body = request.all()
 
-    // responde 200 rápido
     response.status(200).send({ ok: true })
 
     try {
@@ -199,50 +204,39 @@ export default class GupshupWebhookController {
         return
       }
 
-      // =====================================================
-      // 1) EVENTOS DE STATUS (message-event) -> atualiza ACK
-      // =====================================================
+      // 1) message-event -> ACK
       if (type === 'message-event') {
         await this.updateAckFromMessageEvent(appName, payload)
         return
       }
 
-      // =====================================================
-      // 2) EVENTOS DE MENSAGEM (ENTRANTES) -> texto/áudio
-      // =====================================================
-
-      // Opcional: mandar pro serviço de monitoramento se você já usa isso
+      // 2) Eventos de mensagem (entrantes)
       try {
         await this.monitoring.handle(payload as MessageLike)
       } catch (err) {
         console.warn('Erro no GupshupMonitoring.handle (ignorado):', err)
       }
 
-      // Garantimos que é um evento de mensagem ENTRANTE
       if (type !== 'message') {
         console.log('Webhook não é do tipo "message", type:', type)
         return
       }
 
       const messageType: string = payload.type // 'text', 'audio', etc.
-      const source: string = payload.source // ex: "553185228619"
+      const source: string = payload.source
       const sender = payload.sender || {}
-      const dialCode: string | undefined = sender.dial_code // "3185228619"
+      const dialCode: string | undefined = sender.dial_code
       const senderName: string | undefined = sender.name
 
-      // 1) Normaliza número igual no fluxo de texto
       const cellphoneserialized = await normalizePhoneKey(dialCode || source)
 
-      // 2) Encontra ou cria Chat
       const chat = await this.findOrCreateChatByNumber(
         cellphoneserialized,
         senderName,
         appName || null
       )
 
-      // --------------------------
       // TEXTO
-      // --------------------------
       if (messageType === 'text') {
         const text: string = payload.payload?.text || ''
 
@@ -257,20 +251,16 @@ export default class GupshupWebhookController {
           cellphoneserialized,
           senderName,
           appName,
-          // 🔁 Agora será gravado em `response`
           message: text,
           pathMedia: null,
         })
 
-        // se quiser, pode atualizar last_response aqui
         await Chat.query().where('id', chat.id).update({ last_response: 0 })
 
         return
       }
 
-      // --------------------------
       // ÁUDIO
-      // --------------------------
       if (messageType === 'audio') {
         const audioUrl: string | undefined = payload.payload?.url
         const contentType: string | undefined = payload.payload?.contentType
@@ -280,7 +270,6 @@ export default class GupshupWebhookController {
           return
         }
 
-        // 3) Monta o caminho do arquivo
         let ext = 'audio'
         if (contentType?.includes('ogg')) {
           ext = 'ogg'
@@ -288,13 +277,8 @@ export default class GupshupWebhookController {
           ext = 'mp3'
         }
 
-        // id original do WhatsApp (vem com caracteres especiais, inclusive '=')
         const rawId = String(payload.id)
-
-        // deixa o id "safe" para nome de arquivo: só letras, números, ponto, sublinhado e hífen
         const safeId = rawId.replace(/[^a-zA-Z0-9_.-]/g, '_')
-
-        // agora o arquivo salvo não terá '=' no nome
         const relativeFileName = `${safeId}.${ext}`
 
         const baseDir = Application.makePath('Medias', 'Customchats')
@@ -302,15 +286,12 @@ export default class GupshupWebhookController {
 
         await fs.mkdir(dirname(absolutePath), { recursive: true })
 
-        // 4) Download do áudio
         const audioResponse = await axios.get<ArrayBuffer>(audioUrl, {
           responseType: 'arraybuffer',
         })
         await fs.writeFile(absolutePath, Buffer.from(audioResponse.data))
 
-        console.log(
-          `🎧 Áudio Gupshup salvo em: ${absolutePath} CT: ${contentType}`
-        )
+        console.log(`🎧 Áudio Gupshup salvo em: ${absolutePath} CT: ${contentType}`)
         console.log('🟢 Criando novo Customchat só com áudio:', {
           appName,
           dialCode,
@@ -324,26 +305,19 @@ export default class GupshupWebhookController {
           cellphoneserialized,
           senderName,
           appName,
-          // 🔁 texto “placeholder” também vai em `response`
-          message: '[Áudio recebido]', // texto que aparece no histórico, mas salvo em `response`
-          pathMedia: relativeFileName, // arquivo real, já sem '='
+          message: '[Áudio recebido]',
+          pathMedia: relativeFileName,
         })
 
-        // se quiser, pode atualizar last_response aqui também
         await Chat.query().where('id', chat.id).update({ last_response: 0 })
 
         return
       }
 
-      // --------------------------
-      // OUTROS TIPOS (imagem, documento, etc.)
-      // --------------------------
       console.log('Tipo de mensagem não tratado explicitamente:', messageType)
-      // aqui você pode implementar outros tipos se quiser
     } catch (error) {
       console.error('Erro no processamento do webhook Gupshup:', error)
 
-      // Opcional: logar em tabela de logs
       try {
         await Log.create({
           type: 'gupshup_webhook_error',

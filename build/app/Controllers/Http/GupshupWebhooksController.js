@@ -63,6 +63,58 @@ class GupshupWebhookController {
         });
         return custom;
     }
+    async updateAckFromMessageEvent(appName, payload) {
+        const eventType = payload.type;
+        const innerPayload = payload.payload || {};
+        const whatsappMessageId = innerPayload.whatsappMessageId || payload.id;
+        if (!whatsappMessageId) {
+            console.warn('message-event sem whatsappMessageId/id, ignorando.');
+            return;
+        }
+        console.log('📡 message-event recebido Gupshup (ACK):', {
+            appName,
+            eventType,
+            whatsappMessageId,
+        });
+        const custom = await Customchat_1.default.query()
+            .where('gupshup_message_id', whatsappMessageId)
+            .orderBy('id', 'desc')
+            .first();
+        if (!custom) {
+            console.warn('Nenhum Customchat encontrado para gupshup_message_id:', whatsappMessageId);
+            return;
+        }
+        let ack = custom.ack ?? 0;
+        switch (eventType) {
+            case 'submitted':
+            case 'enqueued':
+                ack = 1;
+                break;
+            case 'sent':
+                ack = 2;
+                break;
+            case 'delivered':
+                ack = 3;
+                break;
+            case 'read':
+                ack = 4;
+                break;
+            case 'failed':
+                ack = 9;
+                break;
+            default:
+                console.log('message-event com tipo não mapeado:', eventType);
+                break;
+        }
+        custom.ack = ack;
+        await custom.save();
+        console.log('✅ ACK atualizado via message-event:', {
+            id: custom.id,
+            gupshup_message_id: whatsappMessageId,
+            eventType,
+            ack,
+        });
+    }
     async handle({ request, response }) {
         const rawBody = request.raw();
         const appName = request.input('app');
@@ -78,6 +130,10 @@ class GupshupWebhookController {
             const payload = body?.payload;
             if (!payload) {
                 console.log('Webhook sem payload, ignorando.');
+                return;
+            }
+            if (type === 'message-event') {
+                await this.updateAckFromMessageEvent(appName, payload);
                 return;
             }
             try {

@@ -285,6 +285,7 @@ export default class CustomchatsController {
       }
 
       console.log('ÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇ FORMATED:', shouldSendTemplate)
+
       // 6) Enviar TEMPLATE (se houver e regra permitir)
       if (rawBody.template_id && templateIdExternal && shouldSendTemplate) {
         const { status, messageId } = await SendMessageGupshup({
@@ -312,22 +313,47 @@ export default class CustomchatsController {
         console.log('Nenhum texto livre para enviar (message vazia).')
       }
 
-      // 8) Mensagem para histórico
-      const mensagemParaHistorico =
-        formattedBody.message ||
-        (templateIdExternal
-          ? `TEMPLATE ${templateIdExternal} | params: ${templateParams.join(' | ')}`
-          : '')
+      // 8) Montar mensagem para histórico
+      //    - Preferência: description do template com placeholders preenchidos
+      //    - Fallback: texto livre ou info do template_id
+      let mensagemParaHistorico = ''
 
+      if (template && (template as any).description) {
+        let descricao = String((template as any).description)
+
+        // tenta substituir placeholders do tipo {{chave}} com base no params_schema
+        if (template.params_schema) {
+          try {
+            const schema: string[] = JSON.parse(template.params_schema)
+            const paramsByKey: Record<string, string | number> = {}
+
+            schema.forEach((key, idx) => {
+              if (!key) return
+              paramsByKey[key] = templateParams[idx] ?? ''
+            })
+
+            descricao = descricao.replace(/\{\{(\w+)\}\}/g, (_match, key: string) => {
+              return String(paramsByKey[key] ?? '')
+            })
+          } catch (e) {
+            console.error('Erro ao montar mensagem a partir de description do template:', e)
+          }
+        }
+
+        mensagemParaHistorico = descricao
+      } else if (formattedBody.message && String(formattedBody.message).trim() !== '') {
+        mensagemParaHistorico = String(formattedBody.message)
+      } else if (templateIdExternal) {
+        mensagemParaHistorico = `TEMPLATE ${templateIdExternal} | params: ${templateParams.join(' | ')}`
+      }
+
+      // garante que o que vai para o banco é a mensagem final
       formattedBody.message = mensagemParaHistorico
 
       // 9) Salvar no Customchat
       let payLoad: Customchat | undefined
 
       try {
-
-        console.log("@@@@@@@@@@@@@@@@@@@@@@",formattedBody)
-
         payLoad = await Customchat.create({
           ...formattedBody,
           chatnumber: agent.gupshup_source,
@@ -339,9 +365,6 @@ export default class CustomchatsController {
       } catch (error) {
         console.log('Erro ao salvar Customchat:', error)
       }
-
-      console.log("ATE AQUI.........")
-      return
 
       // 10) Registrar na Talk
       await Talk.create({

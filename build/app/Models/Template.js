@@ -39,6 +39,10 @@ __decorate([
     __metadata("design:type", Boolean)
 ], Template.prototype, "inactive", void 0);
 __decorate([
+    (0, Orm_1.column)(),
+    __metadata("design:type", Object)
+], Template.prototype, "params_schema", void 0);
+__decorate([
     Orm_1.column.dateTime({ autoCreate: true, columnName: 'created_at' }),
     __metadata("design:type", luxon_1.DateTime)
 ], Template.prototype, "createdAt", void 0);

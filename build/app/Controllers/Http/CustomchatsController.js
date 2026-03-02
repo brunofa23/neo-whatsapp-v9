@@ -15,11 +15,72 @@ const SendMessageGupshup_1 = __importDefault(global[Symbol.for('ioc.use')]("App/
 const SendTextGupshup_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-gupshup/SendTextGupshup"));
 const CustomchatValidator_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Validators/CustomchatValidator"));
 const util_1 = global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/util");
+function buildTemplateParams(template, chat, formattedBody) {
+    if (!template.params_schema)
+        return [];
+    let schema;
+    try {
+        schema = JSON.parse(template.params_schema);
+    }
+    catch (e) {
+        console.error('params_schema inválido para template', template.id, template.params_schema);
+        return [];
+    }
+    const params = [];
+    const patientName = chat.patient_name ||
+        chat.name ||
+        chat.person_name ||
+        '';
+    const reg = chat.reg || formattedBody.reg || '';
+    const cellphone = formattedBody.cellphoneserialized ||
+        chat.cellphone ||
+        '';
+    const dataRegistro = chat.createdAt
+        ? chat.createdAt.toFormat('dd/MM/yyyy')
+        : '';
+    const doctorName = chat.doctor_name || '';
+    const companyName = chat.company_name || '';
+    for (const key of schema) {
+        if (!key) {
+            params.push('');
+            continue;
+        }
+        if (key.startsWith('literal:')) {
+            params.push(key.replace('literal:', ''));
+            continue;
+        }
+        switch (key) {
+            case 'patient_name':
+                params.push(patientName);
+                break;
+            case 'data_registro':
+                params.push(dataRegistro);
+                break;
+            case 'reg':
+                params.push(reg);
+                break;
+            case 'cellphone':
+                params.push(cellphone);
+                break;
+            case 'doctor_name':
+                params.push(doctorName);
+                break;
+            case 'company_name':
+                params.push(companyName);
+                break;
+            default:
+                console.warn(`Parâmetro de template desconhecido: ${key}`);
+                params.push('');
+                break;
+        }
+    }
+    return params;
+}
 class CustomchatsController {
     async show({ auth, params, response }) {
         await auth.use('api').authenticate();
         const query = Database_1.default.from('chats')
-            .select('id', 'reg', 'cellphone', 'cellphoneserialized', 'message', 'response', 'invalidresponse', 'returned', 'chatname', Database_1.default.raw('0 messagesent'), 'chatnumber', Database_1.default.raw('0  phonevalid'), Database_1.default.raw('0 `read`'), Database_1.default.raw('0 viewed'), Database_1.default.raw('0 ack'), Database_1.default.raw('0 path_media'), Database_1.default.raw('created_at'))
+            .select('id', 'reg', 'cellphone', 'cellphoneserialized', 'message', 'response', 'invalidresponse', 'returned', 'chatname', Database_1.default.raw('0 messagesent'), 'chatnumber', Database_1.default.raw('0  phonevalid'), Database_1.default.raw('0 `read`'), Database_1.default.raw('0 viewed'), Database_1.default.raw('0 ack'), Database_1.default.raw('0 path_media'), 'created_at')
             .where('id', params.id)
             .union((query) => {
             query
@@ -28,23 +89,58 @@ class CustomchatsController {
                 .where('chats_id', params.id);
         });
         const data = await query;
-        return response.status(200).send(data);
+        const now = luxon_1.DateTime.now();
+        let lastReturnedAt = null;
+        for (const row of data) {
+            const returnedValue = row.returned;
+            const isReturned = returnedValue === 1 ||
+                returnedValue === '1' ||
+                returnedValue === true;
+            if (!isReturned)
+                continue;
+            let createdAt = null;
+            if (row.created_at instanceof Date) {
+                createdAt = luxon_1.DateTime.fromJSDate(row.created_at);
+            }
+            else if (typeof row.created_at === 'string') {
+                createdAt = luxon_1.DateTime.fromISO(row.created_at, { setZone: false });
+            }
+            if (!createdAt?.isValid)
+                continue;
+            if (!lastReturnedAt || createdAt > lastReturnedAt) {
+                lastReturnedAt = createdAt;
+            }
+        }
+        let windowExpired24h = true;
+        let diffHours = null;
+        if (lastReturnedAt) {
+            diffHours = now.diff(lastReturnedAt, 'hours').hours;
+            windowExpired24h = diffHours > 24;
+        }
+        else {
+            windowExpired24h = true;
+        }
+        return response.status(200).send({
+            data,
+            lastReturnedAt: lastReturnedAt ? lastReturnedAt.toISO() : null,
+            diffHours,
+            windowExpired24h,
+        });
     }
     async sendMessage({ auth, request, response }) {
         await auth.use('api').authenticate();
-        console.log('PASSEI AQUI');
         const { template_id } = request.only(['template_id']);
         const rawBody = await request.validate(CustomchatValidator_1.default);
-        rawBody.template_id = 1;
+        if (template_id !== undefined && template_id !== null && template_id !== '') {
+            rawBody.template_id = Number(template_id);
+        }
+        else {
+            rawBody.template_id = rawBody.template_id ?? null;
+        }
         const createdAtRaw = rawBody.created_at;
         if (!rawBody.id || !rawBody.cellphoneserialized) {
             return response.badRequest({
                 error: 'Campos obrigatórios ausentes (id ou cellphoneserialized).',
-            });
-        }
-        if (!rawBody.template_id) {
-            return response.badRequest({
-                error: 'template_id é obrigatório para envio via Gupshup.',
             });
         }
         const formattedBody = {
@@ -61,29 +157,30 @@ class CustomchatsController {
         try {
             const agent = await Agent_1.default.query().where('default_chat', true).firstOrFail();
             const chat = await Chat_1.default.findOrFail(formattedBody.chats_id);
-            const patientName = chat.patient_name ||
-                chat.name ||
-                chat.person_name ||
-                '';
-            const template = await Template_1.default.findOrFail(rawBody.template_id);
-            const templateId = template.id_external;
-            if (!templateId) {
-                throw new Error(`Template ${template.id} sem id_external configurado`);
+            let template = null;
+            let templateIdExternal = null;
+            if (rawBody.template_id) {
+                template = await Template_1.default.findOrFail(rawBody.template_id);
+                templateIdExternal = template.id_external;
+                if (!templateIdExternal) {
+                    throw new Error(`Template ${template.id} sem id_external configurado`);
+                }
             }
-            const templateParams = [
-                patientName,
-            ];
+            const templateParams = template && rawBody.template_id
+                ? buildTemplateParams(template, chat, formattedBody)
+                : [];
             let shouldSendTemplate = false;
-            if (createdAtRaw) {
-                const customChat = await Customchat_1.default.query()
+            if (createdAtRaw && rawBody.template_id) {
+                const query = Customchat_1.default.query()
                     .where('chats_id', rawBody.id)
-                    .orderBy('created_at', 'desc')
-                    .first();
+                    .where('returned', true)
+                    .orderBy('created_at', 'desc');
+                const customChat = await query.first();
+                console.log(query.toQuery());
                 const createdAt = customChat?.createdAt;
-                console.log('CREATED_AT:', createdAt ? createdAt.toISO() : null);
                 if (!createdAt) {
                     shouldSendTemplate = true;
-                    console.log("CREATED ATTTTT NULOOOOO", shouldSendTemplate);
+                    console.log('CREATED_AT NULO → shouldSendTemplate = true');
                 }
                 else if (createdAt && createdAt.isValid) {
                     const diffHours = luxon_1.DateTime.now()
@@ -96,29 +193,64 @@ class CustomchatsController {
                     shouldSendTemplate = false;
                 }
             }
-            if (shouldSendTemplate) {
+            console.log('ÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇ FORMATED:', shouldSendTemplate);
+            if (rawBody.template_id && templateIdExternal && shouldSendTemplate) {
                 const { status, messageId } = await (0, SendMessageGupshup_1.default)({
                     agent,
                     destination: formattedBody.cellphoneserialized,
-                    templateId,
+                    templateId: templateIdExternal,
                     params: templateParams,
                     useDefaultApiKey: true,
                 });
                 console.log('PASSO 1 - TEMPLATE ENVIADO....', { status, messageId });
             }
-            else {
+            else if (rawBody.template_id && !shouldSendTemplate) {
                 console.log('Template NÃO enviado (menos de 23h desde created_at ou data inválida)');
             }
-            const sendText = await (0, SendTextGupshup_1.default)({
-                source: agent.gupshup_source,
-                destination: formattedBody.cellphoneserialized,
-                text: formattedBody.message,
-                useDefaultApiKey: true,
-            });
-            console.log('PASSO 2 - TEM QUE PASSAR POR AQUI....', sendText);
-            console.log('FFFFFFFFFFFFFFFFFFFFFFFF', shouldSendTemplate);
-            const mensagemParaHistorico = formattedBody.message ||
-                `TEMPLATE ${templateId} | params: ${templateParams.join(' | ')}`;
+            if (formattedBody.message && String(formattedBody.message).trim() !== '') {
+                const sendText = await (0, SendTextGupshup_1.default)({
+                    source: agent.gupshup_source,
+                    destination: formattedBody.cellphoneserialized,
+                    text: formattedBody.message,
+                    useDefaultApiKey: true,
+                });
+                console.log('PASSO 2 - SEND TEXT....', sendText);
+            }
+            else {
+                console.log('Nenhum texto livre para enviar (message vazia).');
+            }
+            let mensagemParaHistorico = '';
+            if (template && template.description) {
+                let descricao = String(template.description);
+                if (template.params_schema) {
+                    try {
+                        const schema = JSON.parse(template.params_schema);
+                        const paramsByKey = {};
+                        schema.forEach((key, idx) => {
+                            if (!key)
+                                return;
+                            paramsByKey[key] = templateParams[idx] ?? '';
+                        });
+                        descricao = descricao.replace(/\{\{(\w+)\}\}/g, (_match, key) => {
+                            return String(paramsByKey[key] ?? '');
+                        });
+                    }
+                    catch (e) {
+                        console.error('Erro ao montar mensagem a partir de description do template:', e);
+                    }
+                }
+                mensagemParaHistorico = descricao;
+            }
+            else if (formattedBody.message && String(formattedBody.message).trim() !== '') {
+                mensagemParaHistorico = String(formattedBody.message);
+            }
+            else if (formattedBody.path_media) {
+                mensagemParaHistorico = '[Áudio / mídia enviada]';
+            }
+            else if (templateIdExternal) {
+                mensagemParaHistorico =
+                    `TEMPLATE ${templateIdExternal} | params: ${templateParams.join(' | ')}`;
+            }
             formattedBody.message = mensagemParaHistorico;
             let payLoad;
             try {

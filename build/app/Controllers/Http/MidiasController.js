@@ -7,38 +7,27 @@ const Application_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core
 const fs_1 = require("fs");
 const fs = require('fs-extra');
 class MidiasController {
-    async midia({ request, response, params }) {
-        const fileName = params.filename;
-        const filePath = Application_1.default.makePath(`Medias/Customchats/${fileName}`);
-        console.log('MidiasController.midia fileName:', fileName);
+    async midia({ params, response }) {
+        const rawFileName = params.filename;
+        const fileName = decodeURIComponent(rawFileName);
+        console.log('MidiasController.midia rawFileName:', rawFileName);
+        console.log('MidiasController.midia decoded fileName:', fileName);
+        const filePath = Application_1.default.makePath('Medias', 'Customchats', fileName);
         console.log('MidiasController.midia filePath:', filePath);
-        if (!fs.existsSync(filePath)) {
-            return response.notFound({ error: 'Arquivo não encontrado', fileName, filePath });
+        try {
+            await fs.access(filePath);
         }
-        const stat = fs.statSync(filePath);
-        const range = request.header('range');
-        response.header('Content-Type', 'audio/ogg');
-        response.header('Accept-Ranges', 'bytes');
-        if (!range) {
-            response.header('Content-Length', stat.size);
-            return response.stream((0, fs_1.createReadStream)(filePath));
+        catch {
+            return response.status(404).send('Arquivo não encontrado');
         }
-        const parts = range.replace(/bytes=/, '').split('-');
-        const start = parseInt(parts[0], 10);
-        const end = parts[1] ? parseInt(parts[1], 10) : stat.size - 1;
-        if (Number.isNaN(start) || Number.isNaN(end) || start > end) {
-            response.header('Content-Length', stat.size);
-            return response.stream((0, fs_1.createReadStream)(filePath));
+        if (fileName.endsWith('.ogg')) {
+            response.header('Content-Type', 'audio/ogg');
         }
-        const chunkSize = end - start + 1;
-        response.status(206);
-        response.header('Content-Range', `bytes ${start}-${end}/${stat.size}`);
-        response.header('Content-Length', chunkSize);
-        return response.stream((0, fs_1.createReadStream)(filePath, { start, end }));
+        return response.stream((0, fs_1.createReadStream)(filePath));
     }
     async midiapath({ params }) {
         const fileName = params.filename;
-        return { url: `/api/midia/${fileName}` };
+        return { url: `/midia/${encodeURIComponent(fileName)}` };
     }
 }
 exports.default = MidiasController;

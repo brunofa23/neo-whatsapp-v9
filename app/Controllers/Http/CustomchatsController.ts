@@ -72,14 +72,12 @@ export default class CustomchatsController {
     console.log('PASSEI AQUI')
     // Captura apenas template_id e campos permitidos do Customchat
     const { template_id } = request.only(['template_id'])
-    const rawBody = await request.validate(CustomchatValidator)
 
+    const rawBody = await request.validate(CustomchatValidator)
     // Usa o template_id vindo do request (se quiser fixo em 1, troque de volta)
     rawBody.template_id = 1//template_id
-
     // Guarda o created_at original ANTES de mexer no formattedBody
     const createdAtRaw = rawBody.created_at
-
 
     if (!rawBody.id || !rawBody.cellphoneserialized) {
       return response.badRequest({
@@ -106,6 +104,8 @@ export default class CustomchatsController {
     delete formattedBody.id
     delete formattedBody.response
     delete formattedBody.template_id
+
+
 
     try {
       // === 1) Buscar agente padrão ===
@@ -164,6 +164,7 @@ export default class CustomchatsController {
             // Aqui vou deixar como false (não envia template).
             shouldSendTemplate = false
           }
+
       }
 
       // Envia o TEMPLATE via Gupshup somente se passou de 23 horas
@@ -189,9 +190,8 @@ export default class CustomchatsController {
         useDefaultApiKey: true,
       })
       console.log('PASSO 2 - TEM QUE PASSAR POR AQUI....', sendText)
-
       console.log('FFFFFFFFFFFFFFFFFFFFFFFF', shouldSendTemplate)
-            // Para salvar no histórico
+      // Para salvar no histórico
       const mensagemParaHistorico =
         formattedBody.message ||
         `TEMPLATE ${templateId} | params: ${templateParams.join(' | ')}`
@@ -205,7 +205,7 @@ export default class CustomchatsController {
         payLoad = await Customchat.create({
           ...formattedBody,
           chatnumber: agent.gupshup_source,
-          chatname:agent?.name,
+          chatname: agent?.name,
           messagesent: true,
         })
         console.log('RETORNO:', agent.name)

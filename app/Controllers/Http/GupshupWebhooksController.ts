@@ -16,13 +16,21 @@ export default class GupshupWebhookController {
   private monitoring = new GupshupMonitoring()
 
   public async handle({ request, response }: HttpContextContract) {
+    // pega payload já parseado
+    const payload = request.all()
+
+    // nome do app (ex: "Digi3Sistemas6")
+    const appName: string = String(payload.app || '').trim()
+
     // body cru
     const rawBody = request.raw()
-    console.log('=== GUPSHUP WEBHOOK RAW STRING ===')
-    console.log(rawBody)
-    console.log('=== FIM RAW STRING ===')
 
-    const payload = request.all()
+    // 🔍 LOGA O RAW APENAS QUANDO FOR Digi3Sistemas6
+    if (appName === 'Digi3Sistemas6') {
+      console.log('=== GUPSHUP WEBHOOK RAW STRING ===')
+      console.log(rawBody)
+      console.log('=== FIM RAW STRING ===')
+    }
 
     // responde rápido
     response.status(200).send({ ok: true })
@@ -35,7 +43,7 @@ export default class GupshupWebhookController {
         const url: string | undefined = audioPayload?.url
         const contentType: string = audioPayload?.contentType || ''
 
-        const appName: string = String(payload.app || '').trim()
+        // 👉 aqui reutiliza o appName já calculado lá em cima
         const dialCode: string = String(payload.payload?.sender?.dial_code || '').trim()
 
         if (!url) {

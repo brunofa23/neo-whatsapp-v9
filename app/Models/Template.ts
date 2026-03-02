@@ -23,6 +23,11 @@ export default class Template extends BaseModel {
   @column()
   public inactive: boolean
 
+  // 👇 NOVO: esquema de parâmetros em JSON
+  // Ex.: '["patient_name","data_registro"]'
+  @column()
+  public params_schema?: string | null
+
   @column.dateTime({ autoCreate: true, columnName: 'created_at' })
   public createdAt: DateTime
 

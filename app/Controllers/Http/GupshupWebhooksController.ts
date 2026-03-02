@@ -65,8 +65,8 @@ export default class GupshupWebhookController {
       rawText.trim() !== ''
         ? rawText
         : pathMedia
-        ? '[Áudio / mídia recebida]'
-        : ''
+          ? '[Áudio / mídia recebida]'
+          : ''
 
     const custom = await Customchat.create({
       chats_id: chat.id, // ✅ FK sempre preenchida
@@ -123,15 +123,15 @@ export default class GupshupWebhookController {
       whatsappMessageId,
     })
 
-    // procura o Customchat correspondente
+    // procura o Customchat correspondente usando gupshup_gs_id
     const custom = await Customchat.query()
-      .where('gupshup_message_id', whatsappMessageId)
+      .where('gupshup_gs_id', whatsappMessageId)
       .orderBy('id', 'desc')
       .first()
 
     if (!custom) {
       console.warn(
-        'Nenhum Customchat encontrado para gupshup_message_id:',
+        'Nenhum Customchat encontrado para gupshup_gs_id:',
         whatsappMessageId
       )
       return
@@ -167,12 +167,13 @@ export default class GupshupWebhookController {
 
     console.log('✅ ACK atualizado via message-event:', {
       id: custom.id,
-      gupshup_message_id: whatsappMessageId,
+      gupshup_gs_id: whatsappMessageId,
       eventType,
       ack,
     })
   }
 
+  
   public async handle({ request, response }: HttpContextContract) {
     // body cru para debug
     const rawBody = request.raw()

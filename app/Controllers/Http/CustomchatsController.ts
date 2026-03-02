@@ -209,7 +209,7 @@ export default class CustomchatsController {
     } else {
       rawBody.template_id = rawBody.template_id ?? null
     }
-    //console.log("TEMPLATE_ID>>>>", rawBody)
+
     const createdAtRaw = rawBody.created_at
 
     if (!rawBody.id || !rawBody.cellphoneserialized) {
@@ -222,7 +222,7 @@ export default class CustomchatsController {
       ...rawBody,
       cellphoneserialized: (await normalizePhoneKey(rawBody.cellphoneserialized)) || null,
       messagesent: false,
-      chats_id: rawBody.id,
+      chats_id: rawBody.id, // ✅ sempre vincula ao chat, igual texto
     }
 
     delete formattedBody.returned
@@ -315,7 +315,9 @@ export default class CustomchatsController {
 
       // 8) Montar mensagem para histórico
       //    - Preferência: description do template com placeholders preenchidos
-      //    - Fallback: texto livre ou info do template_id
+      //    - Depois: texto livre
+      //    - Depois: se só tiver mídia (path_media), registra como áudio/mídia
+      //    - Fallback: info do template_id
       let mensagemParaHistorico = ''
 
       if (template && (template as any).description) {
@@ -343,8 +345,12 @@ export default class CustomchatsController {
         mensagemParaHistorico = descricao
       } else if (formattedBody.message && String(formattedBody.message).trim() !== '') {
         mensagemParaHistorico = String(formattedBody.message)
+      } else if (formattedBody.path_media) {
+        // ✅ caso em que só foi enviada mídia (ex: áudio) via front
+        mensagemParaHistorico = '[Áudio / mídia enviada]'
       } else if (templateIdExternal) {
-        mensagemParaHistorico = `TEMPLATE ${templateIdExternal} | params: ${templateParams.join(' | ')}`
+        mensagemParaHistorico =
+          `TEMPLATE ${templateIdExternal} | params: ${templateParams.join(' | ')}`
       }
 
       // garante que o que vai para o banco é a mensagem final
@@ -359,7 +365,7 @@ export default class CustomchatsController {
           chatnumber: agent.gupshup_source,
           chatname: agent?.name,
           messagesent: true,
-          //template_id: rawBody.template_id || null,
+          // template_id: rawBody.template_id || null,  // se quiser guardar, descomenta
         })
         console.log('RETORNO:', agent.name)
       } catch (error) {

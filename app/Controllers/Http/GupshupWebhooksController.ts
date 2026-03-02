@@ -44,6 +44,7 @@ export default class GupshupWebhookController {
 
   /**
    * Helper: cria um Customchat de mensagem ENTRANTE (texto ou mídia)
+   * Agora grava o conteúdo em `response` (e não mais em `message`)
    */
   private async createInboundCustomchat(options: {
     chat: Chat
@@ -51,13 +52,18 @@ export default class GupshupWebhookController {
     senderName?: string | null
     appName?: string | null
     message?: string
+    response?: string | null // caso queira passar explicitamente no futuro
     pathMedia?: string | null
   }): Promise<Customchat> {
-    const { chat, cellphoneserialized, senderName, appName, message, pathMedia } = options
+    const { chat, cellphoneserialized, senderName, appName, message, response, pathMedia } =
+      options
 
-    const finalMessage =
-      message && message.trim() !== ''
-        ? message
+    // Prioriza o texto vindo de `response` (se um dia usar), senão usa `message`
+    const rawText = (response ?? message) || ''
+
+    const finalResponse =
+      rawText.trim() !== ''
+        ? rawText
         : pathMedia
         ? '[Áudio / mídia recebida]'
         : ''
@@ -69,7 +75,11 @@ export default class GupshupWebhookController {
       cellphoneserialized,
       chatname: senderName || chat.chatname || appName || 'WhatsApp',
       chatnumber: chat.chatnumber || null,
-      message: finalMessage,
+
+      // 🔁 AGORA ENTRANTE VAI PARA `response`
+      message: '', // opcional: deixa vazio para mensagens entrantes
+      response: finalResponse,
+
       path_media: pathMedia || null,
       returned: true, // veio do cliente
       messagesent: false, // não foi agente
@@ -80,7 +90,7 @@ export default class GupshupWebhookController {
       chat_id: chat.id,
       reg: custom.reg,
       cellphone: cellphoneserialized,
-      message: finalMessage,
+      message: finalResponse, // mantém histórico unificado na Talk
       chatnumber: custom.chatnumber,
       type: 'from', // mensagem vinda do cliente
     })
@@ -159,6 +169,7 @@ export default class GupshupWebhookController {
           cellphoneserialized,
           senderName,
           appName,
+          // 🔁 Agora será gravado em `response`
           message: text,
           pathMedia: null,
         })
@@ -225,7 +236,8 @@ export default class GupshupWebhookController {
           cellphoneserialized,
           senderName,
           appName,
-          message: '[Áudio recebido]', // texto que aparece no histórico
+          // 🔁 texto “placeholder” também vai em `response`
+          message: '[Áudio recebido]', // texto que aparece no histórico, mas salvo em `response`
           pathMedia: relativeFileName, // arquivo real, já sem '='
         })
 

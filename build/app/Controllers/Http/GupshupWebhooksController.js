@@ -33,9 +33,10 @@ class GupshupWebhookController {
         return chat;
     }
     async createInboundCustomchat(options) {
-        const { chat, cellphoneserialized, senderName, appName, message, pathMedia } = options;
-        const finalMessage = message && message.trim() !== ''
-            ? message
+        const { chat, cellphoneserialized, senderName, appName, message, response, pathMedia } = options;
+        const rawText = (response ?? message) || '';
+        const finalResponse = rawText.trim() !== ''
+            ? rawText
             : pathMedia
                 ? '[Áudio / mídia recebida]'
                 : '';
@@ -46,7 +47,8 @@ class GupshupWebhookController {
             cellphoneserialized,
             chatname: senderName || chat.chatname || appName || 'WhatsApp',
             chatnumber: chat.chatnumber || null,
-            message: finalMessage,
+            message: '',
+            response: finalResponse,
             path_media: pathMedia || null,
             returned: true,
             messagesent: false,
@@ -55,7 +57,7 @@ class GupshupWebhookController {
             chat_id: chat.id,
             reg: custom.reg,
             cellphone: cellphoneserialized,
-            message: finalMessage,
+            message: finalResponse,
             chatnumber: custom.chatnumber,
             type: 'from',
         });

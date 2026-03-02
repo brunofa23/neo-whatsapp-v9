@@ -98,6 +98,81 @@ export default class GupshupWebhookController {
     return custom
   }
 
+  /**
+   * ✅ NOVO: Helper para atualizar o ACK de um Customchat a partir do message-event da Gupshup
+   */
+  private async updateAckFromMessageEvent(
+    appName: string | undefined,
+    payload: any
+  ): Promise<void> {
+    const eventType: string = payload.type // ex: enqueued, sent, delivered, read, failed...
+    const innerPayload = payload.payload || {}
+
+    // Gupshup geralmente manda whatsappMessageId dentro de payload.payload
+    const whatsappMessageId: string | undefined =
+      innerPayload.whatsappMessageId || payload.id
+
+    if (!whatsappMessageId) {
+      console.warn('message-event sem whatsappMessageId/id, ignorando.')
+      return
+    }
+
+    console.log('📡 message-event recebido Gupshup (ACK):', {
+      appName,
+      eventType,
+      whatsappMessageId,
+    })
+
+    // procura o Customchat correspondente
+    const custom = await Customchat.query()
+      .where('gupshup_message_id', whatsappMessageId)
+      .orderBy('id', 'desc')
+      .first()
+
+    if (!custom) {
+      console.warn(
+        'Nenhum Customchat encontrado para gupshup_message_id:',
+        whatsappMessageId
+      )
+      return
+    }
+
+    // mapeia o tipo de evento para ACK
+    let ack = custom.ack ?? 0
+
+    switch (eventType) {
+      case 'submitted':
+      case 'enqueued':
+        ack = 1 // enviado p/ Gupshup
+        break
+      case 'sent':
+        ack = 2 // enviado ao WhatsApp
+        break
+      case 'delivered':
+        ack = 3 // entregue ao aparelho
+        break
+      case 'read':
+        ack = 4 // lido
+        break
+      case 'failed':
+        ack = 9 // erro
+        break
+      default:
+        console.log('message-event com tipo não mapeado:', eventType)
+        break
+    }
+
+    custom.ack = ack
+    await custom.save()
+
+    console.log('✅ ACK atualizado via message-event:', {
+      id: custom.id,
+      gupshup_message_id: whatsappMessageId,
+      eventType,
+      ack,
+    })
+  }
+
   public async handle({ request, response }: HttpContextContract) {
     // body cru para debug
     const rawBody = request.raw()
@@ -123,6 +198,18 @@ export default class GupshupWebhookController {
         return
       }
 
+      // =====================================================
+      // 1) EVENTOS DE STATUS (message-event) -> atualiza ACK
+      // =====================================================
+      if (type === 'message-event') {
+        await this.updateAckFromMessageEvent(appName, payload)
+        return
+      }
+
+      // =====================================================
+      // 2) EVENTOS DE MENSAGEM (ENTRANTES) -> texto/áudio
+      // =====================================================
+
       // Opcional: mandar pro serviço de monitoramento se você já usa isso
       try {
         await this.monitoring.handle(payload as MessageLike)
@@ -130,7 +217,7 @@ export default class GupshupWebhookController {
         console.warn('Erro no GupshupMonitoring.handle (ignorado):', err)
       }
 
-      // Garantimos que é um evento de mensagem
+      // Garantimos que é um evento de mensagem ENTRANTE
       if (type !== 'message') {
         console.log('Webhook não é do tipo "message", type:', type)
         return

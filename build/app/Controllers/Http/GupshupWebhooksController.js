@@ -15,18 +15,20 @@ class GupshupWebhookController {
         this.monitoring = new GupshupMonitoring_1.default();
     }
     async handle({ request, response }) {
-        const rawBody = request.raw();
-        console.log('=== GUPSHUP WEBHOOK RAW STRING ===');
-        console.log(rawBody);
-        console.log('=== FIM RAW STRING ===');
         const payload = request.all();
+        const appName = String(payload.app || '').trim();
+        const rawBody = request.raw();
+        if (appName === 'Digi3Sistemas6') {
+            console.log('=== GUPSHUP WEBHOOK RAW STRING ===');
+            console.log(rawBody);
+            console.log('=== FIM RAW STRING ===');
+        }
         response.status(200).send({ ok: true });
         try {
             if (payload?.type === 'message' && payload?.payload?.type === 'audio') {
                 const audioPayload = payload.payload?.payload;
                 const url = audioPayload?.url;
                 const contentType = audioPayload?.contentType || '';
-                const appName = String(payload.app || '').trim();
                 const dialCode = String(payload.payload?.sender?.dial_code || '').trim();
                 if (!url) {
                     console.log('⚠️ Áudio recebido mas sem URL no payload.');

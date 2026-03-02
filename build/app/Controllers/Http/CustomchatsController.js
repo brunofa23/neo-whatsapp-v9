@@ -166,6 +166,8 @@ class CustomchatsController {
                     throw new Error(`Template ${template.id} sem id_external configurado`);
                 }
             }
+            let gupshupGsId = null;
+            let ackInitial = 0;
             const templateParams = template && rawBody.template_id
                 ? buildTemplateParams(template, chat, formattedBody)
                 : [];
@@ -203,18 +205,29 @@ class CustomchatsController {
                     useDefaultApiKey: true,
                 });
                 console.log('PASSO 1 - TEMPLATE ENVIADO....', { status, messageId });
+                if (messageId) {
+                    gupshupGsId = String(messageId);
+                    ackInitial = 1;
+                }
             }
             else if (rawBody.template_id && !shouldSendTemplate) {
                 console.log('Template NÃO enviado (menos de 23h desde created_at ou data inválida)');
             }
             if (formattedBody.message && String(formattedBody.message).trim() !== '') {
-                const sendText = await (0, SendTextGupshup_1.default)({
+                const sendTextResult = await (0, SendTextGupshup_1.default)({
                     source: agent.gupshup_source,
                     destination: formattedBody.cellphoneserialized,
                     text: formattedBody.message,
                     useDefaultApiKey: true,
                 });
-                console.log('PASSO 2 - SEND TEXT....', sendText);
+                console.log('PASSO 2 - SEND TEXT....', sendTextResult);
+                const maybeId = sendTextResult?.messageId ??
+                    sendTextResult?.id ??
+                    sendTextResult?.gsId;
+                if (maybeId) {
+                    gupshupGsId = String(maybeId);
+                    ackInitial = 1;
+                }
             }
             else {
                 console.log('Nenhum texto livre para enviar (message vazia).');
@@ -259,6 +272,8 @@ class CustomchatsController {
                     chatnumber: agent.gupshup_source,
                     chatname: agent?.name,
                     messagesent: true,
+                    gupshup_gs_id: gupshupGsId,
+                    ack: ackInitial,
                 });
                 console.log('RETORNO:', agent.name);
             }

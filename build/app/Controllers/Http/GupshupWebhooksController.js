@@ -77,11 +77,11 @@ class GupshupWebhookController {
             whatsappMessageId,
         });
         const custom = await Customchat_1.default.query()
-            .where('gupshup_message_id', whatsappMessageId)
+            .where('gupshup_gs_id', whatsappMessageId)
             .orderBy('id', 'desc')
             .first();
         if (!custom) {
-            console.warn('Nenhum Customchat encontrado para gupshup_message_id:', whatsappMessageId);
+            console.warn('Nenhum Customchat encontrado para gupshup_gs_id:', whatsappMessageId);
             return;
         }
         let ack = custom.ack ?? 0;
@@ -110,7 +110,7 @@ class GupshupWebhookController {
         await custom.save();
         console.log('✅ ACK atualizado via message-event:', {
             id: custom.id,
-            gupshup_message_id: whatsappMessageId,
+            gupshup_gs_id: whatsappMessageId,
             eventType,
             ack,
         });

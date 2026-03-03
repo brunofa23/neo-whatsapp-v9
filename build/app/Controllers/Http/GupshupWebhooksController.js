@@ -77,6 +77,10 @@ class GupshupWebhookController {
             if (evt) {
                 const ack = mapEventToAck(evt.eventType);
                 await Chat_1.default.query().where('gupshup_gs_id', evt.gsId).update({ ack });
+                const updated = await Customchat_1.default.query()
+                    .where('gupshup_gs_id', evt.gsId)
+                    .update({ ack });
+                console.log('✅ ACK Customchat atualizado:', { gsId: evt.gsId, eventType: evt.eventType, ack, updated });
                 return;
             }
             const msg = parseInbound(body);
@@ -126,7 +130,7 @@ function parseMessageEvent(payload) {
     if (payload?.type !== 'message-event')
         return null;
     const p = payload?.payload || {};
-    const gsId = String(p?.gsId || '').trim();
+    const gsId = String(p?.gsId || p?.id || '').trim();
     const eventType = String(p?.type || '').trim();
     const destination = String(p?.destination || '').trim();
     const ts = Number(p?.payload?.ts || 0);

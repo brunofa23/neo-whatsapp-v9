@@ -5,235 +5,84 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const GupshupMonitoring_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-gupshup-monitoring/GupshupMonitoring"));
 const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
-const Customchat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Customchat"));
 const Log_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Log"));
-const Talk_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Talk"));
 const luxon_1 = require("luxon");
 const axios_1 = __importDefault(require("axios"));
 const Application_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Application"));
 const fs_1 = require("fs");
 const path_1 = require("path");
-const util_1 = global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/util");
+const Customchat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Customchat"));
 class GupshupWebhookController {
     constructor() {
         this.monitoring = new GupshupMonitoring_1.default();
     }
-    async findOrCreateChatByNumber(cellphoneserialized, senderName, appName) {
-        let chat = await Chat_1.default.query()
-            .where('cellphoneserialized', cellphoneserialized)
-            .orderBy('id', 'desc')
-            .first();
-        if (!chat) {
-            chat = await Chat_1.default.create({
-                cellphoneserialized,
-                cellphone: cellphoneserialized,
-                chatname: senderName || appName || 'WhatsApp',
-            });
-        }
-        return chat;
-    }
-    async createInboundCustomchat(options) {
-        const { chat, cellphoneserialized, senderName, appName, message, response, pathMedia } = options;
-        const rawText = (response ?? message) || '';
-        const finalResponse = rawText.trim() !== ''
-            ? rawText
-            : pathMedia
-                ? '[Áudio / mídia recebida]'
-                : '';
-        const custom = await Customchat_1.default.create({
-            chats_id: chat.id,
-            reg: chat.reg,
-            cellphone: chat.cellphone || cellphoneserialized,
-            cellphoneserialized,
-            chatname: senderName || chat.chatname || appName || 'WhatsApp',
-            chatnumber: chat.chatnumber || null,
-            message: '',
-            response: finalResponse,
-            path_media: pathMedia || null,
-            returned: true,
-            messagesent: false,
-        });
-        await Talk_1.default.create({
-            chat_id: chat.id,
-            reg: custom.reg,
-            cellphone: cellphoneserialized,
-            message: finalResponse,
-            chatnumber: custom.chatnumber,
-            type: 'from',
-        });
-        return custom;
-    }
-    async updateAckFromMessageEvent(appName, payload) {
-        const eventType = payload.type;
-        const innerPayload = payload.payload || {};
-        const whatsappMessageIdFromEvent = innerPayload.whatsappMessageId;
-        const messageIdFromEvent = payload.id;
-        const gsIdFromEvent = payload.gsId || innerPayload.gsId;
-        const candidateIds = [
-            whatsappMessageIdFromEvent,
-            messageIdFromEvent,
-            gsIdFromEvent,
-        ].filter(Boolean);
-        if (candidateIds.length === 0) {
-            console.warn('message-event sem nenhum ID utilizável, ignorando.', {
-                appName,
-                payload,
-            });
-            return;
-        }
-        console.log('📡 message-event recebido Gupshup (ACK):', {
-            appName,
-            eventType,
-            candidateIds,
-        });
-        const custom = await Customchat_1.default.query()
-            .where((query) => {
-            candidateIds.forEach((id, idx) => {
-                if (idx === 0) {
-                    query.where('gupshup_gs_id', id);
-                }
-                else {
-                    query.orWhere('gupshup_gs_id', id);
-                }
-            });
-        })
-            .orderBy('id', 'desc')
-            .first();
-        if (!custom) {
-            console.warn('Nenhum Customchat encontrado para gupshup_gs_id em:', candidateIds);
-            return;
-        }
-        let ack = custom.ack ?? 0;
-        switch (eventType) {
-            case 'submitted':
-            case 'enqueued':
-                ack = 1;
-                break;
-            case 'sent':
-                ack = 2;
-                break;
-            case 'delivered':
-                ack = 3;
-                break;
-            case 'read':
-                ack = 4;
-                break;
-            case 'failed':
-                ack = 9;
-                break;
-            default:
-                console.log('message-event com tipo não mapeado:', eventType);
-                break;
-        }
-        custom.ack = ack;
-        await custom.save();
-        console.log('✅ ACK atualizado via message-event:', {
-            id: custom.id,
-            gupshup_gs_id: custom.gupshupGsId,
-            eventType,
-            ack,
-        });
-    }
     async handle({ request, response }) {
         const rawBody = request.raw();
         const appName = request.input('app');
-        if (appName === 'Digi3Sistemas6') {
-            console.log('=== GUPSHUP WEBHOOK RAW STRING ===');
-            console.log(rawBody);
-            console.log('=== FIM RAW STRING ===');
-        }
+        console.log('=== GUPSHUP WEBHOOK RAW STRING ===');
+        console.log(rawBody);
+        console.log('=== FIM RAW STRING ===');
         const body = request.all();
         response.status(200).send({ ok: true });
         try {
-            const type = body?.type;
-            const payload = body?.payload;
-            if (!payload) {
-                console.log('Webhook sem payload, ignorando.');
-                return;
-            }
-            if (type === 'message-event') {
-                await this.updateAckFromMessageEvent(appName, payload);
-                return;
-            }
-            try {
-                await this.monitoring.handle(payload);
-            }
-            catch (err) {
-                console.warn('Erro no GupshupMonitoring.handle (ignorado):', err);
-            }
-            if (type !== 'message') {
-                console.log('Webhook não é do tipo "message", type:', type);
-                return;
-            }
-            const messageType = payload.type;
-            const source = payload.source;
-            const sender = payload.sender || {};
-            const dialCode = sender.dial_code;
-            const senderName = sender.name;
-            const cellphoneserialized = await (0, util_1.normalizePhoneKey)(dialCode || source);
-            const chat = await this.findOrCreateChatByNumber(cellphoneserialized, senderName, appName || null);
-            if (messageType === 'text') {
-                const text = payload.payload?.text || '';
-                console.log('📩 Texto recebido Gupshup:', {
-                    appName,
-                    cellphoneserialized,
-                    text,
-                });
-                await this.createInboundCustomchat({
-                    chat,
-                    cellphoneserialized,
-                    senderName,
-                    appName,
-                    message: text,
-                    pathMedia: null,
-                });
-                await Chat_1.default.query().where('id', chat.id).update({ last_response: 0 });
-                return;
-            }
-            if (messageType === 'audio') {
-                const audioUrl = payload.payload?.url;
-                const contentType = payload.payload?.contentType;
-                if (!audioUrl) {
-                    console.warn('Payload de áudio sem URL, ignorando.');
+            if (body?.type === 'message' && body?.payload?.type === 'audio') {
+                const audioPayload = body.payload?.payload;
+                const url = audioPayload?.url;
+                const contentType = audioPayload?.contentType || '';
+                const dialCode = String(body.payload?.sender?.dial_code || '').trim();
+                if (!url) {
+                    console.log('⚠️ Áudio recebido mas sem URL no payload.');
                     return;
                 }
-                let ext = 'audio';
-                if (contentType?.includes('ogg')) {
-                    ext = 'ogg';
-                }
-                else if (contentType?.includes('mpeg') || contentType?.includes('mp3')) {
-                    ext = 'mp3';
-                }
-                const rawId = String(payload.id);
-                const safeId = rawId.replace(/[^a-zA-Z0-9_.-]/g, '_');
-                const relativeFileName = `${safeId}.${ext}`;
-                const baseDir = Application_1.default.makePath('Medias', 'Customchats');
-                const absolutePath = `${baseDir}/${relativeFileName}`;
-                await fs_1.promises.mkdir((0, path_1.dirname)(absolutePath), { recursive: true });
-                const audioResponse = await axios_1.default.get(audioUrl, {
+                const extension = contentType.includes('ogg') ? 'ogg' : contentType.includes('mpeg') ? 'mp3' : 'bin';
+                const messageId = String(body.payload?.id || Date.now()).replace(/[^a-zA-Z0-9._-]/g, '_');
+                const fileName = `${messageId}.${extension}`;
+                const filePath = Application_1.default.makePath(`Medias/Customchats/${fileName}`);
+                await fs_1.promises.mkdir((0, path_1.dirname)(filePath), { recursive: true });
+                const res = await axios_1.default.get(url, {
                     responseType: 'arraybuffer',
+                    validateStatus: () => true,
+                    timeout: 30000,
                 });
-                await fs_1.promises.writeFile(absolutePath, Buffer.from(audioResponse.data));
-                console.log(`🎧 Áudio Gupshup salvo em: ${absolutePath} CT: ${contentType}`);
-                console.log('🟢 Criando novo Customchat só com áudio:', {
-                    appName,
-                    dialCode,
-                    cellphoneserialized,
-                    relativeFileName,
-                    chats_id: chat.id,
+                const ct = String(res.headers?.['content-type'] || '');
+                if (res.status !== 200) {
+                    console.log('❌ Download do áudio falhou (status != 200)', { status: res.status, ct });
+                    return;
+                }
+                if (!ct.startsWith('audio/')) {
+                    console.log('❌ Download retornou conteúdo que NÃO é áudio', { status: res.status, ct });
+                    return;
+                }
+                const buf = Buffer.from(res.data);
+                if (extension === 'ogg') {
+                    const magic = buf.slice(0, 4).toString('ascii');
+                    if (magic !== 'OggS') {
+                        console.log('❌ Conteúdo baixado não parece OGG (header inválido)', { magic, ct });
+                        return;
+                    }
+                }
+                await fs_1.promises.writeFile(filePath, buf);
+                console.log('🎧 Áudio Gupshup salvo em:', filePath, 'CT:', ct);
+                const relativeFileName = fileName;
+                console.log('🟢 Criando novo Customchat só com áudio:', { appName, dialCode, relativeFileName });
+                await Customchat_1.default.create({
+                    chatname: String(appName || '').trim(),
+                    cellphoneserialized: dialCode,
+                    path_media: relativeFileName,
                 });
-                await this.createInboundCustomchat({
-                    chat,
-                    cellphoneserialized,
-                    senderName,
-                    appName,
-                    message: '[Áudio recebido]',
-                    pathMedia: relativeFileName,
-                });
-                await Chat_1.default.query().where('id', chat.id).update({ last_response: 0 });
+                console.log('✅ Novo Customchat criado com path_media.');
                 return;
             }
-            console.log('Tipo de mensagem não tratado explicitamente:', messageType);
+            const evt = parseMessageEvent(body);
+            if (evt) {
+                const ack = mapEventToAck(evt.eventType);
+                await Chat_1.default.query().where('gupshup_gs_id', evt.gsId).update({ ack });
+                return;
+            }
+            const msg = parseInbound(body);
+            if (!msg)
+                return;
+            await this.monitoring.handleInbound(msg);
         }
         catch (error) {
             console.error('Erro no processamento do webhook Gupshup:', error);
@@ -255,4 +104,59 @@ class GupshupWebhookController {
     }
 }
 exports.default = GupshupWebhookController;
+function mapEventToAck(eventTypeRaw) {
+    const t = String(eventTypeRaw || '').trim().toLowerCase();
+    if (!t)
+        return 0;
+    if (t === 'read')
+        return 3;
+    if (t === 'played')
+        return 4;
+    if (t === 'delivered')
+        return 1;
+    if (t === 'sent')
+        return 2;
+    if (t === 'submitted' || t === 'queued' || t === 'pending')
+        return 0;
+    if (t === 'failed' || t === 'error' || t === 'undelivered')
+        return 0;
+    return 0;
+}
+function parseMessageEvent(payload) {
+    if (payload?.type !== 'message-event')
+        return null;
+    const p = payload?.payload || {};
+    const gsId = String(p?.gsId || '').trim();
+    const eventType = String(p?.type || '').trim();
+    const destination = String(p?.destination || '').trim();
+    const ts = Number(p?.payload?.ts || 0);
+    if (!gsId || !eventType)
+        return null;
+    return { gsId, eventType, destination, ts, raw: payload };
+}
+function parseInbound(payload) {
+    if (payload?.type !== 'message')
+        return null;
+    const p = payload?.payload || {};
+    const from = p?.sender?.phone || p?.source;
+    if (!from)
+        return null;
+    const text = p?.payload?.postbackText ||
+        p?.payload?.text ||
+        p?.payload?.payload?.text ||
+        p?.text ||
+        '';
+    const inboundType = String(p?.type || 'text');
+    const hasMedia = inboundType !== 'text' && inboundType !== 'quick_reply';
+    const gsId = p?.context?.gsId || null;
+    const to = p?.destination || p?.to || '';
+    return {
+        from: String(from),
+        to: String(to),
+        body: String(text),
+        hasMedia,
+        context: gsId ? { gsId: String(gsId) } : undefined,
+        raw: payload,
+    };
+}
 //# sourceMappingURL=GupshupWebhooksController.js.map

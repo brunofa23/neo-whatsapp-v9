@@ -100,9 +100,20 @@ export default class GupshupWebhookController {
         // ✅ cria um NOVO registro (não atualiza o último) - igual ao antigo
         console.log('🟢 Criando novo Customchat só com áudio:', { appName, dialCode, relativeFileName })
 
+        // ✅ FIX 1: garante chats_id preenchido (obrigatório no banco)
+        const chatname = String(appName || '').trim()
+        const cellphoneserialized = dialCode
+        const cellphone = String(body.payload?.sender?.phone || body.payload?.source || '').trim()
+
+        const chat = await Chat.firstOrCreate(
+          { chatname, cellphoneserialized },
+          { cellphone }
+        )
+
         await Customchat.create({
-          chatname: String(appName || '').trim(),
-          cellphoneserialized: dialCode,
+          chats_id: chat.id,
+          chatname,
+          cellphoneserialized,
           path_media: relativeFileName,
         })
 
@@ -152,19 +163,19 @@ export default class GupshupWebhookController {
       console.error('Erro no processamento do webhook Gupshup:', error)
 
       // tenta salvar log, sem quebrar o processo
-      try {
-        await Log.create({
-          type: 'gupshup_webhook_error',
-          description: 'Erro ao processar webhook Gupshup',
-          log: JSON.stringify({
-            error: String(error),
-            stack: (error as any)?.stack,
-          }),
-          createdAt: DateTime.now(),
-        })
-      } catch (e) {
-        console.error('Erro ao salvar Log de webhook Gupshup:', e)
-      }
+      // try {
+      //   // ✅ FIX 2: remove "type" (não existe como property no model Log)
+      //   await Log.create({
+      //     description: 'Erro ao processar webhook Gupshup',
+      //     log: JSON.stringify({
+      //       error: String(error),
+      //       stack: (error as any)?.stack,
+      //     }),
+      //     createdAt: DateTime.now(),
+      //   })
+      // } catch (e) {
+      //   console.error('Erro ao salvar Log de webhook Gupshup:', e)
+      // }
     }
   }
 }

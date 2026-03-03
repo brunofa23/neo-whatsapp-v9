@@ -101,6 +101,7 @@ export default class CustomchatsController {
   public async show({ auth, params, response }: HttpContextContract) {
     await auth.use('api').authenticate()
 
+    
     const query = Database.from('chats')
       .select(
         'id',

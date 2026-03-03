@@ -198,7 +198,7 @@ export default class ShippingcampaignsController {
     const dateStart = await DateFormat("yyyy-MM-dd 00:00:00", DateTime.local())
     const dateEnd = await DateFormat("yyyy-MM-dd 23:59:00", DateTime.local())
     const chatName = agent.name
-    const countMessage =await Chat.query()
+    const countMessage = await Chat.query()
       .countDistinct('shippingcampaigns_id as tot')
       .where('chatname', chatName)
       .whereBetween('created_at', [dateStart, dateEnd]).first()
@@ -377,7 +377,7 @@ export default class ShippingcampaignsController {
   }
 
   public async serviceEvaluationDashboard({ request, response }: HttpContextContract) {
-    
+    console.log("passei aqui...................")
     const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name, attendant, doctor, unit, excluded, cellphone, chat_finished, type_service, closed, report, date_return, last_response }
       = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp',
         'interactions', 'returned', 'reg', 'name', 'attendant', 'doctor', 'unit', 'excluded', 'cellphone',
@@ -544,6 +544,7 @@ export default class ShippingcampaignsController {
       queryResult.where('shippingcampaigns.interaction_id', 2)
       queryResult.whereRaw(query)
 
+      console.log(queryResult.toQuery())
       const result = await queryResult
 
       const resultAcumulated = await Database.from('chats')
@@ -713,9 +714,9 @@ export default class ShippingcampaignsController {
     const agentCompany = await Agent.query().where('id', agent.id).first()
     const yesterday = DateTime.local().toFormat('yyyy-MM-dd 00:00')
     const query = Shippingcampaign.query()
-    .where('phonevalid',1)
-    .andWhere('messagesent', 0)
-    .andWhere('created_at', '>', yesterday)
+      .where('phonevalid', 1)
+      .andWhere('messagesent', 0)
+      .andWhere('created_at', '>', yesterday)
 
 
     if (agentCompany?.company_id) {

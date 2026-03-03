@@ -22,9 +22,9 @@ export default class GupshupWebhookController {
 
     // ✅ log cru só para o app desejado (evita volume)
     // if (appName === 'Digi3Sistemas6') {
-      console.log('=== GUPSHUP WEBHOOK RAW STRING ===')
-      console.log(rawBody)
-      console.log('=== FIM RAW STRING ===')
+    console.log('=== GUPSHUP WEBHOOK RAW STRING ===')
+    console.log(rawBody)
+    console.log('=== FIM RAW STRING ===')
     // }
 
     const body = request.all()
@@ -118,9 +118,23 @@ export default class GupshupWebhookController {
        * - atualiza Chat.ack onde Chat.gupshup_gs_id = evt.gsId
        */
       const evt = parseMessageEvent(body)
+      // if (evt) {
+      //   const ack = mapEventToAck(evt.eventType)
+      //   await Chat.query().where('gupshup_gs_id', evt.gsId).update({ ack })
+      //   return
+      // }
       if (evt) {
         const ack = mapEventToAck(evt.eventType)
+
+        // mantém o comportamento antigo
         await Chat.query().where('gupshup_gs_id', evt.gsId).update({ ack })
+
+        // ✅ novo: atualiza também customchats
+        const updated = await Customchat.query()
+          .where('gupshup_gs_id', evt.gsId)
+          .update({ ack })
+
+        console.log('✅ ACK Customchat atualizado:', { gsId: evt.gsId, eventType: evt.eventType, ack, updated })
         return
       }
 
@@ -178,7 +192,8 @@ function parseMessageEvent(payload: any): null | {
   if (payload?.type !== 'message-event') return null
 
   const p = payload?.payload || {}
-  const gsId = String(p?.gsId || '').trim()
+  //const gsId = String(p?.gsId || '').trim()
+  const gsId = String(p?.gsId || p?.id || '').trim()
   const eventType = String(p?.type || '').trim()
   const destination = String(p?.destination || '').trim()
   const ts = Number(p?.payload?.ts || 0)

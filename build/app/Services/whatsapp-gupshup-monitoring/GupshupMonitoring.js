@@ -71,6 +71,7 @@ class GupshupMonitoring {
         const toKey = (0, util_1.normalizePhoneKey)(message?.to);
         const body = String(message?.body || '');
         const hasMedia = !!message?.hasMedia;
+        const inboundPathMedia = String(message?.raw?.path_media || '').trim();
         const inboundGsId = String(message?.context?.gsId || '').trim();
         const appName = String(message?.appName ||
             message?.app ||
@@ -86,17 +87,28 @@ class GupshupMonitoring {
                 .first();
         }
         if (defaultAgent) {
-            console.log("ENTREI NO DEFAULT...");
-            console.log(".....", appName);
+            console.log('ENTREI NO DEFAULT...');
+            console.log('.....', appName);
             const query = Customchat_1.default.query()
                 .where('cellphoneserialized', fromKey)
                 .andWhere('chatname', appName)
                 .andWhereNull('returned')
                 .orderBy('created_at', 'desc');
             const openCustom = await query.first();
-            console.log(">>>>>>>>>111111>", query.toQuery());
+            console.log('>>>>>>>>>111111>', query.toQuery());
+            if (!openCustom?.chats_id) {
+                console.log('❌ DEFAULT_CHAT: não encontrei openCustom com chats_id. Não vou criar Chat. Abortando.', {
+                    appName,
+                    fromKey,
+                    fromDigits,
+                    toDigits,
+                    hasMedia,
+                    inboundPathMedia: inboundPathMedia || null,
+                });
+                return;
+            }
             await Customchat_1.default.create({
-                chats_id: openCustom?.chats_id || null,
+                chats_id: openCustom.chats_id,
                 reg: openCustom?.reg || null,
                 cellphone: openCustom?.cellphone || fromDigits,
                 cellphoneserialized: fromKey,
@@ -104,8 +116,8 @@ class GupshupMonitoring {
                 chatname: appName || null,
                 returned: true,
                 viewed: false,
-                response: body.slice(0, 999),
-                path_media: null,
+                response: body ? body.slice(0, 999) : '',
+                path_media: hasMedia && inboundPathMedia ? inboundPathMedia : null,
             });
             return;
         }

@@ -5,8 +5,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const GupshupMonitoring_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-gupshup-monitoring/GupshupMonitoring"));
 const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
-const Log_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Log"));
-const luxon_1 = require("luxon");
 const axios_1 = __importDefault(require("axios"));
 const Application_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Application"));
 const fs_1 = require("fs");
@@ -64,22 +62,26 @@ class GupshupWebhookController {
                 await fs_1.promises.writeFile(filePath, buf);
                 console.log('🎧 Áudio Gupshup salvo em:', filePath, 'CT:', ct);
                 const relativeFileName = fileName;
-                console.log('🟢 Criando novo Customchat só com áudio:', { appName, dialCode, relativeFileName });
-                await Customchat_1.default.create({
-                    chatname: String(appName || '').trim(),
-                    cellphoneserialized: dialCode,
-                    path_media: relativeFileName,
-                });
-                console.log('✅ Novo Customchat criado com path_media.');
+                const from = String(body?.payload?.sender?.phone || body?.payload?.source || '').trim();
+                const to = String(body?.payload?.destination || body?.payload?.to || '').trim();
+                const msgForMonitoring = {
+                    from,
+                    to,
+                    body: '',
+                    hasMedia: true,
+                    raw: {
+                        ...body,
+                        path_media: relativeFileName,
+                    },
+                };
+                await this.monitoring.handleInbound(msgForMonitoring);
                 return;
             }
             const evt = parseMessageEvent(body);
             if (evt) {
                 const ack = mapEventToAck(evt.eventType);
                 await Chat_1.default.query().where('gupshup_gs_id', evt.gsId).update({ ack });
-                const updated = await Customchat_1.default.query()
-                    .where('gupshup_gs_id', evt.gsId)
-                    .update({ ack });
+                const updated = await Customchat_1.default.query().where('gupshup_gs_id', evt.gsId).update({ ack });
                 console.log('✅ ACK Customchat atualizado:', { gsId: evt.gsId, eventType: evt.eventType, ack, updated });
                 return;
             }
@@ -90,20 +92,6 @@ class GupshupWebhookController {
         }
         catch (error) {
             console.error('Erro no processamento do webhook Gupshup:', error);
-            try {
-                await Log_1.default.create({
-                    type: 'gupshup_webhook_error',
-                    description: 'Erro ao processar webhook Gupshup',
-                    log: JSON.stringify({
-                        error: String(error),
-                        stack: error?.stack,
-                    }),
-                    createdAt: luxon_1.DateTime.now(),
-                });
-            }
-            catch (e) {
-                console.error('Erro ao salvar Log de webhook Gupshup:', e);
-            }
         }
     }
 }

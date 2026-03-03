@@ -20,24 +20,22 @@ export default class GupshupWebhookController {
     const rawBody = request.raw()
     const appName = request.input('app') as string | undefined
 
-    // ✅ log cru só para o app desejado (evita volume)
-    // if (appName === 'Digi3Sistemas6') {
     console.log('=== GUPSHUP WEBHOOK RAW STRING ===')
     console.log(rawBody)
     console.log('=== FIM RAW STRING ===')
-    // }
 
     const body = request.all()
 
-    // ✅ responde rápido
     response.status(200).send({ ok: true })
 
     try {
       /**
        * ✅ DOWNLOAD DE ÁUDIO (mensagens inbound de áudio)
-       * ✅ comportamento igual ao arquivo antigo (funcionando) + validações
-       * - Se vier SOMENTE áudio, cria um NOVO registro em Customchats com path_media
-       * - Não cai no parseInbound/monitoring (mantém compatibilidade do fluxo antigo)
+       * ✅ padronizado com o texto:
+       * - baixa e salva o arquivo
+       * - NÃO cria Chat
+       * - NÃO cria Customchat aqui
+       * - chama Monitoring para salvar como texto (default_chat)
        */
       if (body?.type === 'message' && body?.payload?.type === 'audio') {
         const audioPayload = body.payload?.payload
@@ -54,15 +52,12 @@ export default class GupshupWebhookController {
         const extension =
           contentType.includes('ogg') ? 'ogg' : contentType.includes('mpeg') ? 'mp3' : 'bin'
 
-        // ✅ sanitiza id para não salvar com "=" e caracteres ruins
         const messageId = String(body.payload?.id || Date.now()).replace(/[^a-zA-Z0-9._-]/g, '_')
         const fileName = `${messageId}.${extension}`
 
-        // 🟢 salva em: <root>/Medias/Customchats/<fileName>
         const filePath = Application.makePath(`Medias/Customchats/${fileName}`)
         await fs.mkdir(dirname(filePath), { recursive: true })
 
-        // ✅ baixa o binário e valida resposta (não salva lixo como .ogg)
         const res = await axios.get<ArrayBuffer>(url, {
           responseType: 'arraybuffer',
           validateStatus: () => true,
@@ -82,7 +77,6 @@ export default class GupshupWebhookController {
 
         const buf = Buffer.from(res.data)
 
-        // ✅ se for ogg, valida header "OggS"
         if (extension === 'ogg') {
           const magic = buf.slice(0, 4).toString('ascii')
           if (magic !== 'OggS') {
@@ -94,77 +88,45 @@ export default class GupshupWebhookController {
         await fs.writeFile(filePath, buf)
         console.log('🎧 Áudio Gupshup salvo em:', filePath, 'CT:', ct)
 
-        // No banco, só o nome do arquivo
         const relativeFileName = fileName
 
-        // ✅ cria um NOVO registro (não atualiza o último) - igual ao antigo
-        console.log('🟢 Criando novo Customchat só com áudio:', { appName, dialCode, relativeFileName })
+        // ✅ chama Monitoring para gravar como texto (default_chat), mas com path_media
+        const from = String(body?.payload?.sender?.phone || body?.payload?.source || '').trim()
+        const to = String(body?.payload?.destination || body?.payload?.to || '').trim()
 
-        await Customchat.create({
-          chatname: String(appName || '').trim(),
-          cellphoneserialized: dialCode,
-          path_media: relativeFileName,
-        })
+        const msgForMonitoring: any = {
+          from,
+          to,
+          body: '',
+          hasMedia: true,
+          raw: {
+            ...body,
+            path_media: relativeFileName,
+          },
+        }
 
-        console.log('✅ Novo Customchat criado com path_media.')
-
-        // ✅ não deixa cair no parseInbound/monitoring
+        await this.monitoring.handleInbound(msgForMonitoring)
         return
       }
 
-      /**
-       * ✅ 1) Eventos de status/ack (read/delivered/sent/played/failed...)
-       * ✅ comportamento do arquivo antigo (funcionando):
-       * - atualiza Chat.ack onde Chat.gupshup_gs_id = evt.gsId
-       */
       const evt = parseMessageEvent(body)
-      // if (evt) {
-      //   const ack = mapEventToAck(evt.eventType)
-      //   await Chat.query().where('gupshup_gs_id', evt.gsId).update({ ack })
-      //   return
-      // }
       if (evt) {
         const ack = mapEventToAck(evt.eventType)
 
-        // mantém o comportamento antigo
         await Chat.query().where('gupshup_gs_id', evt.gsId).update({ ack })
 
-        // ✅ novo: atualiza também customchats
-        const updated = await Customchat.query()
-          .where('gupshup_gs_id', evt.gsId)
-          .update({ ack })
+        const updated = await Customchat.query().where('gupshup_gs_id', evt.gsId).update({ ack })
 
         console.log('✅ ACK Customchat atualizado:', { gsId: evt.gsId, eventType: evt.eventType, ack, updated })
         return
       }
 
-      /**
-       * ✅ 2) Mensagens inbound (texto / quick_reply / media)
-       * ✅ comportamento do arquivo antigo (funcionando):
-       * - normaliza para MessageLike
-       * - chama handleInbound (método correto)
-       */
       const msg: MessageLike | null = parseInbound(body)
       if (!msg) return
 
       await this.monitoring.handleInbound(msg)
     } catch (error) {
       console.error('Erro no processamento do webhook Gupshup:', error)
-
-      // tenta salvar log, sem quebrar o processo
-      try {
-        await Log.create({
-          type: 'gupshup_webhook_error',
-          description: 'Erro ao processar webhook Gupshup',
-          log: JSON.stringify({
-            error: String(error),
-            stack: (error as any)?.stack,
-          }),
-          createdAt: DateTime.now(),
-        })
-      } catch (e) {
-        console.error('Erro ao salvar Log de webhook Gupshup:', e)
-      }
     }
   }
 }
@@ -192,7 +154,6 @@ function parseMessageEvent(payload: any): null | {
   if (payload?.type !== 'message-event') return null
 
   const p = payload?.payload || {}
-  //const gsId = String(p?.gsId || '').trim()
   const gsId = String(p?.gsId || p?.id || '').trim()
   const eventType = String(p?.type || '').trim()
   const destination = String(p?.destination || '').trim()

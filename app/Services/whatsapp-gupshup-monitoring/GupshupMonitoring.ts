@@ -59,11 +59,7 @@ async function getChatByGsId(gsId: string) {
  *
  * interactionId (opcional): se informado, filtra por interaction_id.
  */
-async function getChatByPhone(
-  cellphone: string,
-  agentPhone: string,
-  interactionId?: number
-) {
+async function getChatByPhone(cellphone: string, agentPhone: string, interactionId?: number) {
   const phoneClientKey = normalizePhoneKey(cellphone)
   const phoneAgentKey = normalizePhoneKey(agentPhone)
 
@@ -110,11 +106,7 @@ export default class GupshupMonitoring {
     console.log('PASSO 1 1544')
 
     const truncated = raw.length > MAX_LOG_LEN
-    // await Log.create({
-    //   name: 'webhook', // tudo que chegar aqui vai com name=webhook
-    //   message: truncated ? raw.slice(0, MAX_LOG_LEN) : raw,
-    //   description: truncated ? 'GUPSHUP WEBHOOK RAW (TRUNCATED)' : 'GUPSHUP WEBHOOK RAW',
-    // })
+    // await Log.create({ ... })
 
     // -------------------------
     // fluxo normal
@@ -129,12 +121,14 @@ export default class GupshupMonitoring {
     const body = String(message?.body || '')
     const hasMedia = !!message?.hasMedia
 
+    // ✅ (áudio padronizado) controller injeta em raw.path_media
+    const inboundPathMedia = String(message?.raw?.path_media || '').trim()
+
     // pega gsId do contexto (vem no webhook: payload.context.gsId quando é botão)
     const inboundGsId = String(message?.context?.gsId || '').trim()
 
     // ==========================================================
     // 🔹 NOVO: pegar nome do app vindo da Gupshup
-    //    Ajuste se o campo real for diferente
     // ==========================================================
     const appName = String(
       message?.appName ||
@@ -147,8 +141,6 @@ export default class GupshupMonitoring {
 
     // ==========================================================
     // 🔹 NOVO: checar se este app é "default_chat" em Agents
-    //    agents.gupshup_src_name == appName
-    //    agents.default_chat == true
     // ==========================================================
     let defaultAgent: Agent | null = null
     if (appName) {
@@ -162,59 +154,47 @@ export default class GupshupMonitoring {
     // CASO ESPECIAL: app marcado como default_chat → CUSTOMCHAT
     // ==========================================================
     if (defaultAgent) {
-      console.log("ENTREI NO DEFAULT...")
-      // await Log.create({
-      //   name: 'gupshup_customchat_inbound',
-      //   message: JSON.stringify(
-      //     {
-      //       at: DateTime.now().toISO(),
-      //       appName,
-      //       agentId: defaultAgent.id,
-      //       from: fromDigits,
-      //       fromKey,
-      //       to: toDigits || null,
-      //       toKey: toKey || null,
-      //       body: body.slice(0, 200),
-      //       hasMedia,
-      //     },
-      //     null,
-      //     2
-      //   ),
-      //   description: 'INBOUND VIA APP DEFAULT_CHAT → CUSTOMCHATS',
-      // })
+      console.log('ENTREI NO DEFAULT...')
+      console.log('.....', appName)
 
-      console.log(".....", appName)
-
-      // 🔹 tenta localizar um customchat aberto para esse cliente + número
-      //    (equivalente ao getCustomChat do Monitoring antigo)
       const query = Customchat.query()
         .where('cellphoneserialized', fromKey)
         //.andWhere('chatnumber', toDigits)
-        .andWhere('chatname',appName)
+        .andWhere('chatname', appName)
         .andWhereNull('returned')
         .orderBy('created_at', 'desc')
 
-        const openCustom = await query.first()
+      const openCustom = await query.first()
 
-        console.log(">>>>>>>>>111111>", query.toQuery())
+      console.log('>>>>>>>>>111111>', query.toQuery())
 
+      // ✅ FIX (somente para áudio padronizado e NÃO quebrar): chats_id é obrigatório
+      // Se não tiver chat aberto pra amarrar, não grava (não cria Chat)
+      if (!openCustom?.chats_id) {
+        console.log('❌ DEFAULT_CHAT: não encontrei openCustom com chats_id. Não vou criar Chat. Abortando.', {
+          appName,
+          fromKey,
+          fromDigits,
+          toDigits,
+          hasMedia,
+          inboundPathMedia: inboundPathMedia || null,
+        })
+        return
+      }
 
-      // 🔹 cria o registro em customchats no padrão antigo:
-      //    chats_id, reg, cellphone, cellphoneserialized, chatnumber, returned, viewed, response, path_media
       await Customchat.create({
-        chats_id: openCustom?.chats_id || null,
+        chats_id: openCustom.chats_id,
         reg: openCustom?.reg || null,
         cellphone: openCustom?.cellphone || fromDigits,
         cellphoneserialized: fromKey,
         chatnumber: toDigits || null,
-        chatname:appName||null,
-        returned: true, // é um retorno/resposta do cliente
+        chatname: appName || null,
+        returned: true,
         viewed: false,
-        response: body.slice(0, 999),
-        path_media: null, // se quiser tratar mídia depois, você adapta aqui
+        response: body ? body.slice(0, 999) : '',
+        path_media: hasMedia && inboundPathMedia ? inboundPathMedia : null, // ✅ áudio igual texto, mas com path_media
       })
 
-      // ❗ Importante: não cai no fluxo normal (Talk/Chat/ConfirmSchedule/etc.)
       return
     }
 
@@ -222,49 +202,21 @@ export default class GupshupMonitoring {
     // Se NÃO for app default_chat → segue fluxo normal
     // ==========================================================
 
-    // ✅ log rápido pra depuração
-    // await Log.create({
-    //   name: 'gupshup_inbound',
-    //   message: JSON.stringify({
-    //     at: DateTime.now().toISO(),
-    //     from: fromDigits,
-    //     fromKey,
-    //     to: toDigits || null,
-    //     toKey: toKey || null,
-    //     gsId: inboundGsId || null,
-    //     body: body.slice(0, 200),
-    //     hasMedia,
-    //     appName: appName || null,
-    //   }),
-    //   description: 'GUPSHUP WEBHOOK INBOUND',
-    // })
-
-    // ✅ registra inbound no talk (mantém o formato que você já usava)
     await Talk.create({
-      cellphone: fromDigits, // ex: 5531985228619
+      cellphone: fromDigits,
       cellphoneserialized: fromKey,
-      chatnumber: toDigits, // ex: 553185228619 ou vazio
+      chatnumber: toDigits,
       message: body.slice(0, 999),
       type: 'from',
     })
 
-    // =======================================================
-    // 1) tenta localizar chat pendente pelo gsId (botões)
-    // =======================================================
     let chat: any = null
     if (inboundGsId) {
       chat = await getChatByGsId(inboundGsId)
     }
 
-    // =======================================================
-    // 2) Fallback SEM gsId: preferir interaction_id = 2
-    //    (fluxo de avaliação) e, se não achar, pegar genérico
-    // =======================================================
     if (!chat) {
-      // mensagem SEM gsId → tenta primeiro campanha de avaliação (interaction_id = 2)
       const evaluationChat = await getChatByPhone(fromDigits, toDigits, 2)
-
-      // se não houver campanha de avaliação pendente, cai pro genérico
       chat = evaluationChat || (await getChatByPhone(fromDigits, toDigits))
     }
 
@@ -286,23 +238,14 @@ export default class GupshupMonitoring {
     )
 
     if (!chat) {
-      // aqui você define:
-      // 1) ignorar
-      // 2) responder "não encontrei campanha ativa"
-      // 3) cair no fluxo de IA (no futuro)
       return
     }
 
-    // =======================================================
-    // FLUXOS POR interaction_id
-    // =======================================================
-
-    // ✅ fluxo 1 (Confirmação de agenda)
     if (chat.interaction_id === 1) {
       await ConfirmScheduleGupshup(
         {
           from: fromDigits,
-          to: toDigits, // pode ser vazio; ConfirmSchedule pode ignorar
+          to: toDigits,
           body,
           hasMedia,
           context: inboundGsId ? { gsId: inboundGsId } : undefined,
@@ -312,7 +255,6 @@ export default class GupshupMonitoring {
       return
     }
 
-    // ✅ fluxo 2 (Avaliação de serviço)
     if (chat.interaction_id === 2) {
       await ServiceEvaluationGupshup(
         {
@@ -326,8 +268,5 @@ export default class GupshupMonitoring {
       )
       return
     }
-
-    // ✅ preparado para próximos fluxos (3, 4, etc.)
-    // if (chat.interaction_id === 3) { ... }
   }
 }

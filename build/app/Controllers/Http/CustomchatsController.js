@@ -178,7 +178,6 @@ class CustomchatsController {
                     .where('returned', true)
                     .orderBy('created_at', 'desc');
                 const customChat = await query.first();
-                console.log(query.toQuery());
                 const createdAt = customChat?.createdAt;
                 if (!createdAt) {
                     shouldSendTemplate = true;

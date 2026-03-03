@@ -275,9 +275,29 @@ class ShippingcampaignsController {
         }
     }
     async serviceEvaluationDashboard({ request, response }) {
-        const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name, attendant, doctor, unit, excluded, cellphone, chat_finished, type_service, closed, report, date_return, last_response } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp',
-            'interactions', 'returned', 'reg', 'name', 'attendant', 'doctor', 'unit', 'excluded', 'cellphone',
-            'chat_finished', 'type_service', 'closed', 'report', 'date_return', 'last_response']);
+        const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name, attendant, doctor, unit, excluded, cellphone, chat_finished, type_service, closed, report, date_return, last_response, viewed, } = request.only([
+            'initialdate',
+            'finaldate',
+            'phonevalid',
+            'invalidresponse',
+            'absoluteresp',
+            'interactions',
+            'returned',
+            'reg',
+            'name',
+            'attendant',
+            'doctor',
+            'unit',
+            'excluded',
+            'cellphone',
+            'chat_finished',
+            'type_service',
+            'closed',
+            'report',
+            'date_return',
+            'last_response',
+            'viewed',
+        ]);
         let query = "1=1";
         if (returned)
             query += ` and chats.id in (select chats_id from customchats) `;
@@ -318,6 +338,19 @@ class ShippingcampaignsController {
                 query += ` and last_response=1 `;
             else if (last_response == "2")
                 query += ` and last_response=2 `;
+        }
+        if (viewed === 'false' ||
+            viewed === false ||
+            viewed === 0 ||
+            viewed === '0') {
+            query += `
+      and exists (
+        select 1
+        from customchats cc
+        where cc.chats_id = chats.id
+          and cc.viewed = 0
+      )
+    `;
         }
         if (!luxon_1.DateTime.fromISO(initialdate).isValid || !luxon_1.DateTime.fromISO(finaldate).isValid) {
             throw new Error("Datas inválidas.");
@@ -420,7 +453,14 @@ class ShippingcampaignsController {
                 passivo: parseInt(result.passivo, 10),
                 promotor: parseInt(result.promotor, 10)
             }));
-            return response.status(201).send({ result, resultAcumulatedList, resultByStation, resultByMedic, resultByAttendant, npsResult });
+            return response.status(201).send({
+                result,
+                resultAcumulatedList,
+                resultByStation,
+                resultByMedic,
+                resultByAttendant,
+                npsResult
+            });
         }
         catch (error) {
             throw new Error(error);
@@ -498,7 +538,6 @@ class ShippingcampaignsController {
         return shippingCampaign;
     }
     async searchSchedulePatients({ auth, request, response }) {
-        console.log("INICIANDO A BUSCA COM WEBHOOK");
         const payload = await validateParams(request);
         const params = new URLSearchParams();
         if (payload.date)
@@ -508,7 +547,6 @@ class ShippingcampaignsController {
         if (payload.unit_cod)
             params.append('unit_cod', payload.unit_cod);
         const url = `${process.env.SERVER_EASYTALK}/executeschedulepatients?${params.toString()}`;
-        console.log("url", url);
         try {
             const response = await axios_1.default.get(url, (0, header_1.getHeaders)());
             if (response.status === 200) {
@@ -521,10 +559,8 @@ class ShippingcampaignsController {
         }
     }
     async executeSchedulePatients({ auth, request, response }) {
-        console.log("INICIANDO A BUSCA COM WEBHOOK");
         const params = await validateParams(request);
         const result = await (0, PersistShippingcampaign_1.default)(params.date, false, params.interaction_id, params?.unit_cod);
-        console.timeEnd('Rodei a busca manual');
         return response.status(200).send(result);
     }
     async dashboardGeneral({ auth, request, response }) {

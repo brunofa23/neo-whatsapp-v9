@@ -376,47 +376,361 @@ export default class ShippingcampaignsController {
 
   }
 
+  // public async serviceEvaluationDashboard({ request, response }: HttpContextContract) {
+  //   console.log("passei aqui...................")
+  //   const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name, attendant, doctor, unit, excluded, cellphone, chat_finished, type_service, closed, report, date_return, last_response }
+  //     = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp',
+  //       'interactions', 'returned', 'reg', 'name', 'attendant', 'doctor', 'unit', 'excluded', 'cellphone',
+  //       'chat_finished', 'type_service', 'closed', 'report', 'date_return', 'last_response'])
+
+  //   let query = "1=1"
+  //   if (returned)//clientes que enviaram mensagem dentro do sistema
+  //     query += ` and chats.id in (select chats_id from customchats) `
+  //   if (reg)
+  //     query += ` and shippingcampaigns.reg=${reg} `
+  //   if (name)
+  //     query += ` and shippingcampaigns.name like '%${name}%' `
+  //   if (phonevalid && phonevalid !== undefined) {
+  //     query += ` and phonevalid=${phonevalid == 1 ? 1 : 0}`
+  //   }
+  //   if (interactions)
+  //     query += ` and response is not null `
+  //   if (cellphone)
+  //     query += ` and shippingcampaigns.cellphone like '%${cellphone}%' `
+  //   if (absoluteresp == 1)
+  //     query += ` and absoluteresp < 7 `
+  //   else if (absoluteresp == 2)
+  //     query += ` and absoluteresp >= 7 and absoluteresp <9 `
+  //   else if (absoluteresp == 3)
+  //     query += ` and absoluteresp >= 9 `
+  //   if (attendant)
+  //     query += ` and attendant ='${attendant}'`
+  //   if (doctor) {
+
+  //     query += ` and doctor ='${doctor}' `
+  //   }
+  //   if (unit)
+  //     query += ` and unit='${unit}'`
+  //   if (excluded)
+  //     query += ` and shippingcampaigns.excluded=1 `
+  //   else query += ` and (shippingcampaigns.excluded not in (1) or shippingcampaigns.excluded is null) `
+  //   if (chat_finished)
+  //     query += ` and chat_finished=1 `
+  //   //else query += ` and (chat_finished not in (1) or chat_finished is null) `
+  //   if (type_service)
+  //     query += ` and type_service = '${type_service}'`
+
+  //   if (last_response) {
+  //     if (last_response == "1")
+  //       query += ` and last_response=1 `
+  //     else if (last_response == "2")
+  //       query += ` and last_response=2 `
+  //   }
+
+  //   if (!DateTime.fromISO(initialdate).isValid || !DateTime.fromISO(finaldate).isValid) {
+  //     throw new Error("Datas inválidas.")
+  //   }
+
+  //   try {
+  //     const queryResult = Database.connection(Env.get('DB_CONNECTION_MAIN')).query()
+  //       .from('shippingcampaigns')
+  //     if (!closed) {
+  //       queryResult.select(
+  //         'shippingcampaigns.id as idShipp',
+  //         'shippingcampaigns.interaction_id',
+  //         'shippingcampaigns.reg',
+  //         'shippingcampaigns.name',
+  //         'shippingcampaigns.cellphone',
+  //         'shippingcampaigns.cellphoneserialized',
+  //         'chats.id',
+  //         'otherfields',
+  //         'phonevalid',
+  //         'messagesent',
+  //         'chats.created_at',
+  //         'chats.date_return',
+  //         'response',
+  //         'returned',
+  //         'invalidresponse',
+  //         'chatname',
+  //         'chatnumber',
+  //         'absoluteresp',
+  //         'prioritysend',
+  //         'shippingcampaigns.excluded',
+  //         'doctor',
+  //         'unit',
+  //         'attendant',
+  //         Database.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed'),
+  //         'chat_finished',
+  //         'last_response',
+  //         'date_first_return',
+  //         'justify_excluded'
+  //       )
+  //       if (report)
+  //         queryResult.select('main_subject', 'responsible',
+  //           'main_subject',
+  //           'report',
+  //           'employee_involved',
+  //           'medic_einvolved',
+  //           'date_limit',
+  //           'responsible_response',
+  //           'root_cause',
+  //           'action',
+  //           'date_limit_action',
+  //           'date_limit_manifest',
+  //           'obs',
+  //           'status',
+  //         )
+
+  //     }
+  //     if (closed) {
+  //       queryResult.select(
+  //         'shippingcampaigns.id as idShipp',
+  //         'shippingcampaigns.interaction_id',
+  //         'shippingcampaigns.reg',
+  //         'shippingcampaigns.name',
+  //         'shippingcampaigns.cellphone',
+  //         'chats.id',
+  //         'otherfields',
+  //         'phonevalid',
+  //         'messagesent',
+  //         'chats.created_at',
+  //         'chats.date_return',
+  //         'response',
+  //         'returned',
+  //         'invalidresponse',
+  //         'chatname',
+  //         Database.raw('CASE WHEN closed = 0 THEN NULL ELSE absoluteresp END AS absoluteresp'),
+  //         'prioritysend',
+  //         'shippingcampaigns.excluded',
+  //         'doctor',
+  //         'unit',
+  //         'attendant',
+  //         Database.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed'),
+  //         'chat_finished',
+  //         'last_response',
+  //         'date_first_return',
+  //         'justify_excluded'
+
+  //       )
+  //       if (report)
+  //         queryResult.select('main_subject', 'responsible',
+  //           'main_subject',
+  //           'report',
+  //           'employee_involved',
+  //           'medic_einvolved',
+  //           'date_limit',
+  //           'responsible_response',
+  //           'root_cause',
+  //           'action',
+  //           'date_limit_action',
+  //           'date_limit_manifest',
+  //           'obs',
+  //           'status',
+  //         )
+  //     }
+
+  //     queryResult.leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
+  //     if (!date_return) {
+  //       queryResult.whereBetween('chats.created_at', [initialdate, finaldate])
+  //     }
+  //     if (date_return == "true") {
+  //       queryResult.whereBetween('chats.date_return', [initialdate, finaldate])
+  //     }
+
+  //     if (report)
+  //       queryResult.leftJoin('manifests', 'chats.id', 'manifests.chat_id')
+  //     //     //.whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
+
+  //     queryResult.where('shippingcampaigns.interaction_id', 2)
+  //     queryResult.whereRaw(query)
+
+  //     console.log(queryResult.toQuery())
+  //     const result = await queryResult
+
+  //     const resultAcumulated = await Database.from('chats')
+  //       .innerJoin('shippingcampaigns', 'chats.shippingcampaigns_id', 'shippingcampaigns.id')
+  //       .sumDistinct('absoluteresp as note')
+  //       .count('* as total')
+  //       .where('chats.interaction_id', 2)
+  //       .andWhereBetween('absoluteresp', [0, 10000])
+  //       //.andWhere('absoluteresp','>=','9')
+  //       .whereBetween('chats.created_at', [initialdate, finaldate])
+  //       .whereRaw(query)
+  //       .groupBy('absoluteresp')
+
+  //     let resultAcumulatedList = resultAcumulated
+  //     let totalEvaluations = 0
+  //     let totalDetractors = 0
+  //     let totalPromoters = 0
+
+  //     for (const result of resultAcumulated) {
+  //       totalEvaluations = totalEvaluations + result.total
+  //       if (result.note <= 6)
+  //         totalDetractors = totalDetractors + result.total
+  //       if (result.note >= 9 && result.note <= 10)
+  //         totalPromoters = totalPromoters + result.total
+  //     }
+  //     //calcula o percentual do NPS
+  //     const nps = ((totalPromoters * 100) / totalEvaluations) - ((totalDetractors * 100) / totalEvaluations)
+  //     const npsResult = nps < 0 ? 0 : nps
+  //     //UNIDADES****************************************************************** */
+  //     const unitResult = await Database
+  //       .from('chats')
+  //       .innerJoin('shippingcampaigns', 'chats.shippingcampaigns_id', 'shippingcampaigns.id')
+  //       .where('chats.interaction_id', 2)
+  //       .whereBetween('chats.created_at', [initialdate, finaldate])
+  //       .andWhereRaw('(shippingcampaigns.excluded not in (1) or shippingcampaigns.excluded is null)')
+  //       .select('unit as station')
+  //       .sum(Database.raw(`CASE WHEN absoluteresp < 7 THEN 1 ELSE 0 END`), 'detrator')
+  //       .sum(Database.raw(`CASE WHEN absoluteresp BETWEEN 7 AND 8 THEN 1 ELSE 0 END`), 'passivo')
+  //       .sum(Database.raw(`CASE WHEN absoluteresp >= 9 THEN 1 ELSE 0 END`), 'promotor')
+  //       .groupBy('unit')
+  //     const resultByStation = unitResult.map(result => ({
+  //       station: result.station,
+  //       detrator: parseInt(result.detrator, 10),
+  //       passivo: parseInt(result.passivo, 10),
+  //       promotor: parseInt(result.promotor, 10)
+  //     }))
+  //     //MEDICO****************************************************************** */
+  //     const doctorResult = await Database
+  //       .from('chats')
+  //       .innerJoin('shippingcampaigns', 'chats.shippingcampaigns_id', 'shippingcampaigns.id')
+  //       .where('chats.interaction_id', 2)
+  //       .whereBetween('chats.created_at', [initialdate, finaldate])
+  //       .andWhereRaw('(shippingcampaigns.excluded not in (1) or shippingcampaigns.excluded is null)')
+  //       .select('doctor as medic')
+  //       .sum(Database.raw(`CASE WHEN absoluteresp < 7 THEN 1 ELSE 0 END`), 'detrator')
+  //       .sum(Database.raw(`CASE WHEN absoluteresp BETWEEN 7 AND 8 THEN 1 ELSE 0 END`), 'passivo')
+  //       .sum(Database.raw(`CASE WHEN absoluteresp >= 9 THEN 1 ELSE 0 END`), 'promotor')
+  //       .groupBy('doctor')
+  //     const resultByMedic = doctorResult.map(result => ({
+  //       medic: result.medic,
+  //       detrator: parseInt(result.detrator, 10),
+  //       passivo: parseInt(result.passivo, 10),
+  //       promotor: parseInt(result.promotor, 10)
+  //     }))
+
+  //     //ATENDENTE****************************************************************** */
+  //     const attendantResult = await Database
+  //       .from('chats')
+  //       .innerJoin('shippingcampaigns', 'chats.shippingcampaigns_id', 'shippingcampaigns.id')
+  //       .where('chats.interaction_id', 2)
+  //       .whereBetween('chats.created_at', [initialdate, finaldate])
+  //       .andWhereRaw('(shippingcampaigns.excluded not in (1) or shippingcampaigns.excluded is null)')
+  //       .select('attendant')
+  //       .sum(Database.raw(`CASE WHEN absoluteresp < 7 THEN 1 ELSE 0 END`), 'detrator')
+  //       .sum(Database.raw(`CASE WHEN absoluteresp BETWEEN 7 AND 8 THEN 1 ELSE 0 END`), 'passivo')
+  //       .sum(Database.raw(`CASE WHEN absoluteresp >= 9 THEN 1 ELSE 0 END`), 'promotor')
+  //       .groupBy('attendant')
+  //     const resultByAttendant = attendantResult.map(result => ({
+  //       attendant: result.attendant,
+  //       detrator: parseInt(result.detrator, 10),
+  //       passivo: parseInt(result.passivo, 10),
+  //       promotor: parseInt(result.promotor, 10)
+  //     }))
+  //     //******************************************************************* */
+
+  //     return response.status(201).send({ result, resultAcumulatedList, resultByStation, resultByMedic, resultByAttendant, npsResult })
+  //   } catch (error) {
+  //     throw new Error(error)
+  //   }
+
+  // }
   public async serviceEvaluationDashboard({ request, response }: HttpContextContract) {
-    console.log("passei aqui...................")
-    const { initialdate, finaldate, phonevalid, absoluteresp, interactions, returned, reg, name, attendant, doctor, unit, excluded, cellphone, chat_finished, type_service, closed, report, date_return, last_response }
-      = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp',
-        'interactions', 'returned', 'reg', 'name', 'attendant', 'doctor', 'unit', 'excluded', 'cellphone',
-        'chat_finished', 'type_service', 'closed', 'report', 'date_return', 'last_response'])
+
+    const {
+      initialdate,
+      finaldate,
+      phonevalid,
+      absoluteresp,
+      interactions,
+      returned,
+      reg,
+      name,
+      attendant,
+      doctor,
+      unit,
+      excluded,
+      cellphone,
+      chat_finished,
+      type_service,
+      closed,
+      report,
+      date_return,
+      last_response,
+      // 🔹 novo parâmetro vindo do front
+      viewed,
+    } = request.only([
+      'initialdate',
+      'finaldate',
+      'phonevalid',
+      'invalidresponse',
+      'absoluteresp',
+      'interactions',
+      'returned',
+      'reg',
+      'name',
+      'attendant',
+      'doctor',
+      'unit',
+      'excluded',
+      'cellphone',
+      'chat_finished',
+      'type_service',
+      'closed',
+      'report',
+      'date_return',
+      'last_response',
+      // 🔹 lembrar de incluir aqui
+      'viewed',
+    ])
 
     let query = "1=1"
-    if (returned)//clientes que enviaram mensagem dentro do sistema
+
+    if (returned) //clientes que enviaram mensagem dentro do sistema
       query += ` and chats.id in (select chats_id from customchats) `
+
     if (reg)
       query += ` and shippingcampaigns.reg=${reg} `
+
     if (name)
       query += ` and shippingcampaigns.name like '%${name}%' `
+
     if (phonevalid && phonevalid !== undefined) {
       query += ` and phonevalid=${phonevalid == 1 ? 1 : 0}`
     }
+
     if (interactions)
       query += ` and response is not null `
+
     if (cellphone)
       query += ` and shippingcampaigns.cellphone like '%${cellphone}%' `
+
     if (absoluteresp == 1)
       query += ` and absoluteresp < 7 `
     else if (absoluteresp == 2)
       query += ` and absoluteresp >= 7 and absoluteresp <9 `
     else if (absoluteresp == 3)
       query += ` and absoluteresp >= 9 `
+
     if (attendant)
       query += ` and attendant ='${attendant}'`
-    if (doctor) {
 
+    if (doctor) {
       query += ` and doctor ='${doctor}' `
     }
+
     if (unit)
       query += ` and unit='${unit}'`
+
     if (excluded)
       query += ` and shippingcampaigns.excluded=1 `
-    else query += ` and (shippingcampaigns.excluded not in (1) or shippingcampaigns.excluded is null) `
+    else
+      query += ` and (shippingcampaigns.excluded not in (1) or shippingcampaigns.excluded is null) `
+
     if (chat_finished)
       query += ` and chat_finished=1 `
-    //else query += ` and (chat_finished not in (1) or chat_finished is null) `
+
     if (type_service)
       query += ` and type_service = '${type_service}'`
 
@@ -427,6 +741,24 @@ export default class ShippingcampaignsController {
         query += ` and last_response=2 `
     }
 
+    // 🔹 novo filtro para mensagens NÃO visualizadas
+    // front está mandando viewed=false → queremos chats que tenham ao menos um customchats.viewed = 0
+    if (
+      viewed === 'false' ||
+      viewed === false ||
+      viewed === 0 ||
+      viewed === '0'
+    ) {
+      query += `
+      and exists (
+        select 1
+        from customchats cc
+        where cc.chats_id = chats.id
+          and cc.viewed = 0
+      )
+    `
+    }
+
     if (!DateTime.fromISO(initialdate).isValid || !DateTime.fromISO(finaldate).isValid) {
       throw new Error("Datas inválidas.")
     }
@@ -434,6 +766,7 @@ export default class ShippingcampaignsController {
     try {
       const queryResult = Database.connection(Env.get('DB_CONNECTION_MAIN')).query()
         .from('shippingcampaigns')
+
       if (!closed) {
         queryResult.select(
           'shippingcampaigns.id as idShipp',
@@ -459,14 +792,18 @@ export default class ShippingcampaignsController {
           'doctor',
           'unit',
           'attendant',
+          // 🔹 contador de mensagens não visualizadas
           Database.raw('(select count(*) from customchats inner join chats ch on customchats.chats_id=ch.id where ch.id=chats.id and viewed=false) as viewed'),
           'chat_finished',
           'last_response',
           'date_first_return',
           'justify_excluded'
         )
+
         if (report)
-          queryResult.select('main_subject', 'responsible',
+          queryResult.select(
+            'main_subject',
+            'responsible',
             'main_subject',
             'report',
             'employee_involved',
@@ -480,8 +817,8 @@ export default class ShippingcampaignsController {
             'obs',
             'status',
           )
-
       }
+
       if (closed) {
         queryResult.select(
           'shippingcampaigns.id as idShipp',
@@ -510,10 +847,12 @@ export default class ShippingcampaignsController {
           'last_response',
           'date_first_return',
           'justify_excluded'
-
         )
+
         if (report)
-          queryResult.select('main_subject', 'responsible',
+          queryResult.select(
+            'main_subject',
+            'responsible',
             'main_subject',
             'report',
             'employee_involved',
@@ -530,21 +869,22 @@ export default class ShippingcampaignsController {
       }
 
       queryResult.leftJoin('chats', 'shippingcampaigns.id', 'chats.shippingcampaigns_id')
+
       if (!date_return) {
         queryResult.whereBetween('chats.created_at', [initialdate, finaldate])
       }
+
       if (date_return == "true") {
         queryResult.whereBetween('chats.date_return', [initialdate, finaldate])
       }
 
       if (report)
         queryResult.leftJoin('manifests', 'chats.id', 'manifests.chat_id')
-      //     //.whereBetween('shippingcampaigns.created_at', [initialdate, finaldate])
 
       queryResult.where('shippingcampaigns.interaction_id', 2)
       queryResult.whereRaw(query)
 
-      console.log(queryResult.toQuery())
+
       const result = await queryResult
 
       const resultAcumulated = await Database.from('chats')
@@ -553,8 +893,8 @@ export default class ShippingcampaignsController {
         .count('* as total')
         .where('chats.interaction_id', 2)
         .andWhereBetween('absoluteresp', [0, 10000])
-        //.andWhere('absoluteresp','>=','9')
         .whereBetween('chats.created_at', [initialdate, finaldate])
+        // 🔹 aqui o filtro de viewed também entra, porque reaproveita `query`
         .whereRaw(query)
         .groupBy('absoluteresp')
 
@@ -570,10 +910,11 @@ export default class ShippingcampaignsController {
         if (result.note >= 9 && result.note <= 10)
           totalPromoters = totalPromoters + result.total
       }
-      //calcula o percentual do NPS
+
       const nps = ((totalPromoters * 100) / totalEvaluations) - ((totalDetractors * 100) / totalEvaluations)
       const npsResult = nps < 0 ? 0 : nps
-      //UNIDADES****************************************************************** */
+
+      // UNIDADES ******************************************************************
       const unitResult = await Database
         .from('chats')
         .innerJoin('shippingcampaigns', 'chats.shippingcampaigns_id', 'shippingcampaigns.id')
@@ -585,13 +926,15 @@ export default class ShippingcampaignsController {
         .sum(Database.raw(`CASE WHEN absoluteresp BETWEEN 7 AND 8 THEN 1 ELSE 0 END`), 'passivo')
         .sum(Database.raw(`CASE WHEN absoluteresp >= 9 THEN 1 ELSE 0 END`), 'promotor')
         .groupBy('unit')
+
       const resultByStation = unitResult.map(result => ({
         station: result.station,
         detrator: parseInt(result.detrator, 10),
         passivo: parseInt(result.passivo, 10),
         promotor: parseInt(result.promotor, 10)
       }))
-      //MEDICO****************************************************************** */
+
+      // MÉDICO ******************************************************************
       const doctorResult = await Database
         .from('chats')
         .innerJoin('shippingcampaigns', 'chats.shippingcampaigns_id', 'shippingcampaigns.id')
@@ -603,6 +946,7 @@ export default class ShippingcampaignsController {
         .sum(Database.raw(`CASE WHEN absoluteresp BETWEEN 7 AND 8 THEN 1 ELSE 0 END`), 'passivo')
         .sum(Database.raw(`CASE WHEN absoluteresp >= 9 THEN 1 ELSE 0 END`), 'promotor')
         .groupBy('doctor')
+
       const resultByMedic = doctorResult.map(result => ({
         medic: result.medic,
         detrator: parseInt(result.detrator, 10),
@@ -610,7 +954,7 @@ export default class ShippingcampaignsController {
         promotor: parseInt(result.promotor, 10)
       }))
 
-      //ATENDENTE****************************************************************** */
+      // ATENDENTE ******************************************************************
       const attendantResult = await Database
         .from('chats')
         .innerJoin('shippingcampaigns', 'chats.shippingcampaigns_id', 'shippingcampaigns.id')
@@ -622,19 +966,25 @@ export default class ShippingcampaignsController {
         .sum(Database.raw(`CASE WHEN absoluteresp BETWEEN 7 AND 8 THEN 1 ELSE 0 END`), 'passivo')
         .sum(Database.raw(`CASE WHEN absoluteresp >= 9 THEN 1 ELSE 0 END`), 'promotor')
         .groupBy('attendant')
+
       const resultByAttendant = attendantResult.map(result => ({
         attendant: result.attendant,
         detrator: parseInt(result.detrator, 10),
         passivo: parseInt(result.passivo, 10),
         promotor: parseInt(result.promotor, 10)
       }))
-      //******************************************************************* */
 
-      return response.status(201).send({ result, resultAcumulatedList, resultByStation, resultByMedic, resultByAttendant, npsResult })
+      return response.status(201).send({
+        result,
+        resultAcumulatedList,
+        resultByStation,
+        resultByMedic,
+        resultByAttendant,
+        npsResult
+      })
     } catch (error) {
       throw new Error(error)
     }
-
   }
 
 
@@ -747,7 +1097,6 @@ export default class ShippingcampaignsController {
   //CHAMA OUTRO ENDPOINT PARA EXECUTAR A BUSCA DOS PACIENTES
   public async searchSchedulePatients({ auth, request, response }) {
     //await auth.use('api').authenticate()
-    console.log("INICIANDO A BUSCA COM WEBHOOK")
     //vai buscar os pacientes que estão no smart
     //WEBHOOK
     const payload = await validateParams(request)
@@ -760,7 +1109,6 @@ export default class ShippingcampaignsController {
       params.append('unit_cod', payload.unit_cod)
 
     const url = `${process.env.SERVER_EASYTALK}/executeschedulepatients?${params.toString()}`
-    console.log("url", url)
     try {
       const response = await axios.get(url, getHeaders())
       //console.log("RESPONSE:", process.env.SERVER_EASYTALK)
@@ -776,12 +1124,9 @@ export default class ShippingcampaignsController {
 
 
   public async executeSchedulePatients({ auth, request, response }) {
-    console.log("INICIANDO A BUSCA COM WEBHOOK")
     //const {date, interaction_id, unit} = request
     const params = await validateParams(request)
     const result = await PersistShippingcampaign(params.date, false, params.interaction_id, params?.unit_cod)
-    console.timeEnd('Rodei a busca manual');
-
     return response.status(200).send(result)
 
   }

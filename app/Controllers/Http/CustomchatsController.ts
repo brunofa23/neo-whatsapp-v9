@@ -101,7 +101,7 @@ export default class CustomchatsController {
   public async show({ auth, params, response }: HttpContextContract) {
     await auth.use('api').authenticate()
 
-    
+
     const query = Database.from('chats')
       .select(
         'id',
@@ -273,7 +273,7 @@ export default class CustomchatsController {
           .where('returned', true)
           .orderBy('created_at', 'desc')
         const customChat = await query.first()
-        console.log(query.toQuery())
+        
         const createdAt = customChat?.createdAt
 
         if (!createdAt) {

@@ -101,7 +101,6 @@ export default class CustomchatsController {
   public async show({ auth, params, response }: HttpContextContract) {
     await auth.use('api').authenticate()
 
-
     const query = Database.from('chats')
       .select(
         'id',
@@ -150,6 +149,15 @@ export default class CustomchatsController {
 
     const data = await query
 
+    // ✅ NOVO: existe algum histórico em customchats?
+    const customchatCountRow = await Database.from('customchats')
+      .where('chats_id', params.id)
+      .count('* as total')
+      .first()
+
+    const hasCustomchat = Number(customchatCountRow?.total || 0) > 0
+    const requireTemplateFirstSend = !hasCustomchat
+
     // 🕒 Cálculo da última mensagem com returned = 1
     const now = DateTime.now()
 
@@ -195,6 +203,8 @@ export default class CustomchatsController {
       lastReturnedAt: lastReturnedAt ? lastReturnedAt.toISO() : null,
       diffHours,
       windowExpired24h,
+      hasCustomchat,
+      requireTemplateFirstSend,
     })
   }
 
@@ -212,8 +222,6 @@ export default class CustomchatsController {
     } else {
       rawBody.template_id = rawBody.template_id ?? null
     }
-
-    const createdAtRaw = rawBody.created_at
 
     if (!rawBody.id || !rawBody.cellphoneserialized) {
       return response.badRequest({
@@ -235,6 +243,20 @@ export default class CustomchatsController {
     delete formattedBody.template_id
 
     try {
+      // ✅ NOVO: se for o primeiro envio (sem nenhum customchat ainda), exige template
+      const countRow = await Database.from('customchats')
+        .where('chats_id', formattedBody.chats_id)
+        .count('* as total')
+        .first()
+
+      const hasAnyCustomchat = Number(countRow?.total || 0) > 0
+
+      if (!hasAnyCustomchat && (!rawBody.template_id || Number(rawBody.template_id) <= 0)) {
+        return response.badRequest({
+          error: 'Primeiro envio: é obrigatório enviar via TEMPLATE (template_id).',
+        })
+      }
+
       // 1) Agente padrão
       const agent = await Agent.query().where('default_chat', true).firstOrFail()
 
@@ -254,7 +276,7 @@ export default class CustomchatsController {
         }
       }
 
-      // ✅ NOVO: controle do ID de mensagem Gupshup e ACK inicial
+      // ✅ controle do ID de mensagem Gupshup e ACK inicial
       let gupshupGsId: string | null = null
       let ackInitial = 0
 
@@ -264,34 +286,38 @@ export default class CustomchatsController {
           ? buildTemplateParams(template, chat, formattedBody)
           : []
 
-      // 5) Verificar 23h desde último returned
+      // 5) ✅ REGRA CORRIGIDA: primeiro envio SEMPRE manda template.
+      //    Caso tenha histórico: usa último returned e janela de 23h.
       let shouldSendTemplate = false
 
-      if (createdAtRaw && rawBody.template_id) {
-        const query = Customchat.query()
-          .where('chats_id', rawBody.id)
-          .where('returned', true)
-          .orderBy('created_at', 'desc')
-        const customChat = await query.first()
-        
-        const createdAt = customChat?.createdAt
-
-        if (!createdAt) {
+      if (rawBody.template_id) {
+        if (!hasAnyCustomchat) {
           shouldSendTemplate = true
-          console.log('CREATED_AT NULO → shouldSendTemplate = true')
-        } else if (createdAt && createdAt.isValid) {
-          const diffHours = DateTime.now()
-            .setZone('America/Sao_Paulo')
-            .diff(createdAt, 'hours').hours
-
-          console.log('DIFF HOURS:', diffHours)
-          shouldSendTemplate = diffHours > 23
+          console.log('PRIMEIRO ENVIO (sem customchat) → shouldSendTemplate = true')
         } else {
-          shouldSendTemplate = false
+          const lastReturned = await Customchat.query()
+            .where('chats_id', formattedBody.chats_id)
+            .where('returned', true)
+            .orderBy('created_at', 'desc')
+            .first()
+
+          const createdAt = lastReturned?.createdAt
+
+          if (!createdAt || !createdAt.isValid) {
+            shouldSendTemplate = true
+            console.log('SEM returned válido → shouldSendTemplate = true')
+          } else {
+            const diffHours = DateTime.now()
+              .setZone('America/Sao_Paulo')
+              .diff(createdAt, 'hours').hours
+
+            console.log('DIFF HOURS (último returned):', diffHours)
+            shouldSendTemplate = diffHours > 23
+          }
         }
       }
 
-      console.log('ÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇ FORMATED:', shouldSendTemplate)
+      console.log('shouldSendTemplate:', shouldSendTemplate)
 
       // 6) Enviar TEMPLATE (se houver e regra permitir)
       if (rawBody.template_id && templateIdExternal && shouldSendTemplate) {
@@ -316,7 +342,7 @@ export default class CustomchatsController {
           ackInitial = 1 // 1 = submetido/enqueued
         }
       } else if (rawBody.template_id && !shouldSendTemplate) {
-        console.log('Template NÃO enviado (menos de 23h desde created_at ou data inválida)')
+        console.log('Template NÃO enviado (menos de 23h desde o último returned ou data inválida)')
       }
 
       // 7) Enviar texto normal (se tiver message)

@@ -89,6 +89,12 @@ class CustomchatsController {
                 .where('chats_id', params.id);
         });
         const data = await query;
+        const customchatCountRow = await Database_1.default.from('customchats')
+            .where('chats_id', params.id)
+            .count('* as total')
+            .first();
+        const hasCustomchat = Number(customchatCountRow?.total || 0) > 0;
+        const requireTemplateFirstSend = !hasCustomchat;
         const now = luxon_1.DateTime.now();
         let lastReturnedAt = null;
         for (const row of data) {
@@ -125,6 +131,8 @@ class CustomchatsController {
             lastReturnedAt: lastReturnedAt ? lastReturnedAt.toISO() : null,
             diffHours,
             windowExpired24h,
+            hasCustomchat,
+            requireTemplateFirstSend,
         });
     }
     async sendMessage({ auth, request, response }) {
@@ -137,7 +145,6 @@ class CustomchatsController {
         else {
             rawBody.template_id = rawBody.template_id ?? null;
         }
-        const createdAtRaw = rawBody.created_at;
         if (!rawBody.id || !rawBody.cellphoneserialized) {
             return response.badRequest({
                 error: 'Campos obrigatórios ausentes (id ou cellphoneserialized).',
@@ -155,6 +162,16 @@ class CustomchatsController {
         delete formattedBody.response;
         delete formattedBody.template_id;
         try {
+            const countRow = await Database_1.default.from('customchats')
+                .where('chats_id', formattedBody.chats_id)
+                .count('* as total')
+                .first();
+            const hasAnyCustomchat = Number(countRow?.total || 0) > 0;
+            if (!hasAnyCustomchat && (!rawBody.template_id || Number(rawBody.template_id) <= 0)) {
+                return response.badRequest({
+                    error: 'Primeiro envio: é obrigatório enviar via TEMPLATE (template_id).',
+                });
+            }
             const agent = await Agent_1.default.query().where('default_chat', true).firstOrFail();
             const chat = await Chat_1.default.findOrFail(formattedBody.chats_id);
             let template = null;
@@ -172,29 +189,32 @@ class CustomchatsController {
                 ? buildTemplateParams(template, chat, formattedBody)
                 : [];
             let shouldSendTemplate = false;
-            if (createdAtRaw && rawBody.template_id) {
-                const query = Customchat_1.default.query()
-                    .where('chats_id', rawBody.id)
-                    .where('returned', true)
-                    .orderBy('created_at', 'desc');
-                const customChat = await query.first();
-                const createdAt = customChat?.createdAt;
-                if (!createdAt) {
+            if (rawBody.template_id) {
+                if (!hasAnyCustomchat) {
                     shouldSendTemplate = true;
-                    console.log('CREATED_AT NULO → shouldSendTemplate = true');
-                }
-                else if (createdAt && createdAt.isValid) {
-                    const diffHours = luxon_1.DateTime.now()
-                        .setZone('America/Sao_Paulo')
-                        .diff(createdAt, 'hours').hours;
-                    console.log('DIFF HOURS:', diffHours);
-                    shouldSendTemplate = diffHours > 23;
+                    console.log('PRIMEIRO ENVIO (sem customchat) → shouldSendTemplate = true');
                 }
                 else {
-                    shouldSendTemplate = false;
+                    const lastReturned = await Customchat_1.default.query()
+                        .where('chats_id', formattedBody.chats_id)
+                        .where('returned', true)
+                        .orderBy('created_at', 'desc')
+                        .first();
+                    const createdAt = lastReturned?.createdAt;
+                    if (!createdAt || !createdAt.isValid) {
+                        shouldSendTemplate = true;
+                        console.log('SEM returned válido → shouldSendTemplate = true');
+                    }
+                    else {
+                        const diffHours = luxon_1.DateTime.now()
+                            .setZone('America/Sao_Paulo')
+                            .diff(createdAt, 'hours').hours;
+                        console.log('DIFF HOURS (último returned):', diffHours);
+                        shouldSendTemplate = diffHours > 23;
+                    }
                 }
             }
-            console.log('ÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇÇ FORMATED:', shouldSendTemplate);
+            console.log('shouldSendTemplate:', shouldSendTemplate);
             if (rawBody.template_id && templateIdExternal && shouldSendTemplate) {
                 const result = await (0, SendMessageGupshup_1.default)({
                     agent,
@@ -215,7 +235,7 @@ class CustomchatsController {
                 }
             }
             else if (rawBody.template_id && !shouldSendTemplate) {
-                console.log('Template NÃO enviado (menos de 23h desde created_at ou data inválida)');
+                console.log('Template NÃO enviado (menos de 23h desde o último returned ou data inválida)');
             }
             if (formattedBody.message && String(formattedBody.message).trim() !== '') {
                 const result = await (0, SendTextGupshup_1.default)({

@@ -34,6 +34,7 @@ export default class DatasourcesController {
       }
 
       if (interaction_id === 3) {
+        console.log("PASSEI INTERACTION 333333")
         return await this.generalMessagePatient(date, unit_cod);
       }
 

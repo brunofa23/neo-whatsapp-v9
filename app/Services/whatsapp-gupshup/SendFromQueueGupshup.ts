@@ -21,6 +21,13 @@ function onlyDigits(v: string) {
 }
 
 async function verifyClientSend(chatnumberKey: string, cellphone: string) {
+  const query =Chat.query()
+    .where('cellphone', cellphone)
+    .andWhere('created_at', '>', dayBefore5)
+    .andWhere('chatnumber', chatnumberKey)
+  console.log(query.toQuery())
+
+
   return Chat.query()
     .where('cellphone', cellphone)
     .andWhere('created_at', '>', dayBefore5)
@@ -29,7 +36,7 @@ async function verifyClientSend(chatnumberKey: string, cellphone: string) {
 }
 
 async function verifyChatAlreadySaved(shippingCampaign: any) {
-  return Chat.query()
+   return Chat.query()
     .where('interaction_id', shippingCampaign?.interaction_id)
     .andWhere('interaction_seq', shippingCampaign?.interaction_seq)
     .andWhere('shippingcampaigns_id', shippingCampaign?.id)
@@ -78,6 +85,7 @@ async function countCampaignSentToday(interactionId: number): Promise<number> {
 
 
 export default async function SendFromQueueGupshup(agent: Agent) {
+ 
   try {
     // horário permitido
     if ((await TimeSchedule()) === false) return
@@ -99,6 +107,7 @@ export default async function SendFromQueueGupshup(agent: Agent) {
       return
     }
 
+    console.log('PASSO 1')
     // =====================================================
     // 🔹 LIMITE DIÁRIO POR AGENTE
     // =====================================================
@@ -131,6 +140,7 @@ export default async function SendFromQueueGupshup(agent: Agent) {
       return
     }
 
+    console.log('PASSO 2')
     const templateId = interaction.idTemplatesGupshup
     if (!templateId) {
       // await Log.create({
@@ -157,14 +167,17 @@ export default async function SendFromQueueGupshup(agent: Agent) {
       }
     }
 
+    console.log('PASSO 3')
     // evita enviar repetido pro mesmo paciente em 5 dias (quando não é prioridade)
-    if (!shippingCampaign.prioritysend) {
-      const already = await verifyClientSend(chatnumberKey, shippingCampaign.cellphone)
-      if (already) return
-    }
+    // if (!shippingCampaign.prioritysend) {
+    //   const already = await verifyClientSend(chatnumberKey, shippingCampaign.cellphone)
+    //   console.log('PASSO 4')
+    //   if (already) return
+    // }
 
     // não duplicar se já existe chat salvo pra esse shippingcampaign
     const chatExists = await verifyChatAlreadySaved(shippingCampaign)
+    console.log('PASSO 5')
     if (chatExists) return
 
     // =====================================================
@@ -173,8 +186,8 @@ export default async function SendFromQueueGupshup(agent: Agent) {
     // =====================================================
 
     // usamos o valor como está cadastrado (normalizePhoneKey já limpa dígitos por dentro)
-    const phoneKey = normalizePhoneKey(shippingCampaign.cellphone)
 
+    const phoneKey = normalizePhoneKey(shippingCampaign.cellphone)
     if (!phoneKey) {
       // await Log.create({
       //   name: 'GupshupPhoneKeyError',
@@ -214,6 +227,8 @@ export default async function SendFromQueueGupshup(agent: Agent) {
     }
 
     // ✅ envia template via gupshup (pegando messageId)
+    console.log('CHEGUEI AQUI 122@@@@@')
+    //*******************************
     const { status, messageId } = await SendMessageGupshup({
       agent,
       destination,

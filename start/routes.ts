@@ -148,8 +148,11 @@ Route.group(() => {
   Route.post("/sendmailmanifest/:id", "ManifestsController.sendMailManifest")
 
   //MIDIAS
-  Route.get('/midia/:filename', 'MidiasController.midia')
   Route.get('/midiapath/:filename', 'MidiasController.midiapath')
+  Route.get('/midia/:filename', 'MidiasController.midia')
+
+  Route.get('/filetosend/:filename', 'MidiasController.filetosend')
+  Route.get('/filetosendpath/:filename', 'MidiasController.filetosendpath')
 
   //DATECLOSED
   Route.resource('/datecloseds', 'DateclosedsController').apiOnly()

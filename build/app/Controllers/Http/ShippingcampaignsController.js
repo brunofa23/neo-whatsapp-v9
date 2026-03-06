@@ -329,8 +329,18 @@ class ShippingcampaignsController {
             query += ` and shippingcampaigns.excluded=1 `;
         else
             query += ` and (shippingcampaigns.excluded not in (1) or shippingcampaigns.excluded is null) `;
-        if (chat_finished)
+        if (chat_finished === 'true' ||
+            chat_finished === true ||
+            chat_finished === 1 ||
+            chat_finished === '1') {
             query += ` and chat_finished=1 `;
+        }
+        else if (chat_finished === 'false' ||
+            chat_finished === false ||
+            chat_finished === 0 ||
+            chat_finished === '0') {
+            query += ` and chat_finished is null `;
+        }
         if (type_service)
             query += ` and type_service = '${type_service}'`;
         if (last_response) {
@@ -379,6 +389,7 @@ class ShippingcampaignsController {
                 queryResult.leftJoin('manifests', 'chats.id', 'manifests.chat_id');
             queryResult.where('shippingcampaigns.interaction_id', 2);
             queryResult.whereRaw(query);
+            console.log(queryResult.toQuery());
             const result = await queryResult;
             const resultAcumulated = await Database_1.default.from('chats')
                 .innerJoin('shippingcampaigns', 'chats.shippingcampaigns_id', 'shippingcampaigns.id')

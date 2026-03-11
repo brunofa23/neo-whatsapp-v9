@@ -6,8 +6,15 @@ type SendGupshupTemplateArgs = {
   agent: Agent
   destination: string
   templateId: string
-  params?: (string | number)[]  // 🔹 opcional
-  useDefaultApiKey?: boolean    // 🔹 boolean opcional, não "false"
+  params?: (string | number)[]
+  useDefaultApiKey?: boolean
+  message?: {
+    type: string
+    document?: {
+      link: string
+      filename: string
+    }
+  }
 }
 
 function onlyDigits(v: string) {
@@ -19,9 +26,9 @@ export default async function SendMessageGupshup({
   destination,
   templateId,
   params,
-  useDefaultApiKey = false, // 🔹 default = false aqui
+  useDefaultApiKey = false,
+  message,
 }: SendGupshupTemplateArgs): Promise<{ status: string; messageId: string }> {
-
   const apiKey = Env.get(
     useDefaultApiKey ? 'GUPSHUP_API_KEY_DEFAULT' : 'GUPSHUP_API_KEY'
   )
@@ -49,12 +56,16 @@ export default async function SendMessageGupshup({
     })
   )
 
+  // ✅ adiciona documento quando existir file_path no shippingCampaign
+  if (message) {
+    data.append('message', JSON.stringify(message))
+  }
 
-  // 👇 AQUI: antes do axios.post
   console.log('DEBUG GUPSHUP ENVIANDO >>>', {
     templateId,
     params,
-    body: data.toString(),   // opcional, pra ver o payload inteiro
+    message,
+    body: data.toString(),
   })
 
   const res = await axios.post(url, data, {
@@ -65,8 +76,7 @@ export default async function SendMessageGupshup({
     timeout: 30000,
   })
 
-  console.log('RESPOSTA GUPSHUP >>>', res.data) // 👈 adiciona isso
-
+  console.log('RESPOSTA GUPSHUP >>>', res.data)
 
   const { status, messageId } = res.data || {}
 

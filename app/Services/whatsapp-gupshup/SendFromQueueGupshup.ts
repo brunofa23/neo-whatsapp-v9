@@ -5,6 +5,7 @@ import Talk from 'App/Models/Talk'
 import Log from 'App/Models/Log'
 import Interaction from 'App/Models/Interaction'
 import Shippingcampaign from 'App/Models/Shippingcampaign'
+import Env from '@ioc:Adonis/Core/Env'
 import { DateTime } from 'luxon'
 
 // ✅ tudo do util em um único import
@@ -26,7 +27,6 @@ async function verifyClientSend(chatnumberKey: string, cellphone: string) {
     .andWhere('created_at', '>', dayBefore5)
     .andWhere('chatnumber', chatnumberKey)
   console.log(query.toQuery())
-
 
   return Chat.query()
     .where('cellphone', cellphone)
@@ -56,10 +56,6 @@ function safeParseParams(jsonText: string): string[] {
 
 /**
  * 🔹 Conta quantas mensagens já foram enviadas HOJE para uma determinada interaction
- *    usando Shippingcampaign (messagesent = true) filtrando por updated_at (momento do envio).
- */
-/**
- * 🔹 Conta quantas mensagens já foram enviadas HOJE para uma determinada interaction
  *    usando Shippingcampaign (messagesent = true)
  *    filtrando por created_at (data de criação do registro)
  */
@@ -83,9 +79,7 @@ async function countCampaignSentToday(interactionId: number): Promise<number> {
   return total
 }
 
-
 export default async function SendFromQueueGupshup(agent: Agent) {
-
   try {
     // horário permitido
     if ((await TimeSchedule()) === false) return
@@ -99,11 +93,6 @@ export default async function SendFromQueueGupshup(agent: Agent) {
     // chave do canal (equivalente ao wid.user do wwebjs)
     const chatnumberKey = onlyDigits(agent.gupshup_source || '')
     if (!chatnumberKey) {
-      // await Log.create({
-      //   name: 'Gupshup',
-      //   message: 'Agent sem gupshup_source',
-      //   description: `SendFromQueueGupshup AgentId=${agent.id}`,
-      // })
       return
     }
 
@@ -132,22 +121,12 @@ export default async function SendFromQueueGupshup(agent: Agent) {
       .first()
 
     if (!interaction) {
-      // await Log.create({
-      //   name: 'InteractionMissing',
-      //   message: `interaction_id=${shippingCampaign.interaction_id} não encontrada`,
-      //   description: `shippingcampaign_id=${shippingCampaign.id}`,
-      // })
       return
     }
 
     console.log('PASSO 2')
     const templateId = interaction.idTemplatesGupshup
     if (!templateId) {
-      // await Log.create({
-      //   name: 'GupshupTemplateMissing',
-      //   message: `interaction_id=${interaction.id} sem id_templates_gupshup`,
-      //   description: `shippingcampaign_id=${shippingCampaign.id}`,
-      // })
       return
     }
 
@@ -185,25 +164,21 @@ export default async function SendFromQueueGupshup(agent: Agent) {
     // e JÁ gera a chave técnica para correlação (cellphoneserialized)
     // =====================================================
 
-    // usamos o valor como está cadastrado (normalizePhoneKey já limpa dígitos por dentro)
-
     const phoneKey = normalizePhoneKey(shippingCampaign.cellphone)
-    console.log("passo 6", phoneKey)
+    console.log('PASSO 6', phoneKey)
+
     if (!phoneKey) {
-      // marca como inválido e sai
       shippingCampaign.phonevalid = false
       shippingCampaign.cellphoneserialized = null
       await shippingCampaign.save()
       return
     }
 
-    // validação de telefone para envio (E.164) – ValidatePhone já remove não-dígitos
+    // validação de telefone para envio (E.164)
     const normalized = await ValidatePhone(shippingCampaign.cellphone)
 
     if (!normalized) {
-      // número não é celular válido → marca como inválido e sai
       shippingCampaign.phonevalid = false
-      // ainda assim gravamos a chave pra rastrear
       shippingCampaign.cellphoneserialized = phoneKey
       await shippingCampaign.save()
       return
@@ -217,32 +192,38 @@ export default async function SendFromQueueGupshup(agent: Agent) {
       return
     }
 
-    console.log("passo 7", params)
-    // ✅ monta URL pública do arquivo a partir do file_path
+    // ✅ monta documento opcional a partir do file_path
     const fileName = String(shippingCampaign.file_path || '').trim()
-    let fileUrl = ''
+    let message: any = undefined
 
     if (fileName) {
-      fileUrl = `${process.env.APP_URL}/filetosend/${encodeURIComponent(fileName)}`
+      const appUrl = Env.get('APP_URL')
+      const fileUrl = `${appUrl}/filetosend/${encodeURIComponent(fileName)}`
+
+      console.log('fileName:', fileName)
+      console.log('fileUrl:', fileUrl)
+
+      message = {
+        type: 'document',
+        document: {
+          link: fileUrl,
+          filename: fileName,
+        },
+      }
     }
 
-    console.log('fileName:', fileName)
-    console.log('fileUrl:', fileUrl)
-
     // ✅ envia template via gupshup (pegando messageId)
-    console.log('CHEGUEI AQUI 122@@@@@')
-    //*******************************
     const { status, messageId } = await SendMessageGupshup({
       agent,
       destination,
       templateId,
       params,
+      message,
     })
 
     // ✅ grava status e histórico
     shippingCampaign.messagesent = true
     shippingCampaign.phonevalid = true
-    // ✅ grava também a chave técnica (normalizada com normalizePhoneKey)
     shippingCampaign.cellphoneserialized = phoneKey
     await shippingCampaign.save()
 
@@ -254,7 +235,6 @@ export default async function SendFromQueueGupshup(agent: Agent) {
       name: shippingCampaign.name,
 
       cellphone: shippingCampaign.cellphone,
-      // ✅ chave para encontrar o chat pelo webhook (from -> normalizePhoneKey)
       cellphoneserialized: phoneKey,
 
       message: shippingCampaign.message,
@@ -262,14 +242,13 @@ export default async function SendFromQueueGupshup(agent: Agent) {
       chatname: agent.name,
       chatnumber: chatnumberKey,
 
-      // id da mensagem enviada (gsId) pra bater com webhook de "message-event" ou context.gsId
       gupshup_gs_id: messageId,
     }
 
     const chat = await Chat.create(bodyChat)
 
     await Talk.create({
-      cellphone: destination, // destino efetivamente usado na API
+      cellphone: destination,
       cellphoneserialized: phoneKey,
       chatnumber: chatnumberKey,
       reg: shippingCampaign.reg,
@@ -290,7 +269,6 @@ export default async function SendFromQueueGupshup(agent: Agent) {
       messageId
     )
 
-    // status informativo
     if (agent.statusconnected === false || agent.status !== 'GUPSHUP') {
       await Agent.query().where('id', agent.id).update({ statusconnected: true, status: 'GUPSHUP' })
     }

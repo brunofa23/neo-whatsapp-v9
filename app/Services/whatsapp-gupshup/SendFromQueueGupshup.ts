@@ -21,7 +21,7 @@ function onlyDigits(v: string) {
 }
 
 async function verifyClientSend(chatnumberKey: string, cellphone: string) {
-  const query =Chat.query()
+  const query = Chat.query()
     .where('cellphone', cellphone)
     .andWhere('created_at', '>', dayBefore5)
     .andWhere('chatnumber', chatnumberKey)
@@ -36,7 +36,7 @@ async function verifyClientSend(chatnumberKey: string, cellphone: string) {
 }
 
 async function verifyChatAlreadySaved(shippingCampaign: any) {
-   return Chat.query()
+  return Chat.query()
     .where('interaction_id', shippingCampaign?.interaction_id)
     .andWhere('interaction_seq', shippingCampaign?.interaction_seq)
     .andWhere('shippingcampaigns_id', shippingCampaign?.id)
@@ -85,7 +85,7 @@ async function countCampaignSentToday(interactionId: number): Promise<number> {
 
 
 export default async function SendFromQueueGupshup(agent: Agent) {
- 
+
   try {
     // horário permitido
     if ((await TimeSchedule()) === false) return
@@ -188,12 +188,8 @@ export default async function SendFromQueueGupshup(agent: Agent) {
     // usamos o valor como está cadastrado (normalizePhoneKey já limpa dígitos por dentro)
 
     const phoneKey = normalizePhoneKey(shippingCampaign.cellphone)
+    console.log("passo 6", phoneKey)
     if (!phoneKey) {
-      // await Log.create({
-      //   name: 'GupshupPhoneKeyError',
-      //   message: `Não foi possível gerar cellphoneserialized para "${shippingCampaign.cellphone}"`,
-      //   description: `shippingcampaign_id=${shippingCampaign.id}`,
-      // })
       // marca como inválido e sai
       shippingCampaign.phonevalid = false
       shippingCampaign.cellphoneserialized = null
@@ -218,13 +214,20 @@ export default async function SendFromQueueGupshup(agent: Agent) {
     // ✅ params prontos no banco (JSON string)
     const params = safeParseParams(shippingCampaign.gupshupParams)
     if (params.length === 0) {
-      // await Log.create({
-      //   name: 'GupshupParamsMissing',
-      //   message: `shippingcampaign sem gupshup_params válido`,
-      //   description: `shippingcampaign_id=${shippingCampaign.id}`,
-      // })
       return
     }
+
+    console.log("passo 7", params)
+    // ✅ monta URL pública do arquivo a partir do file_path
+    const fileName = String(shippingCampaign.file_path || '').trim()
+    let fileUrl = ''
+
+    if (fileName) {
+      fileUrl = `${process.env.APP_URL}/filetosend/${encodeURIComponent(fileName)}`
+    }
+
+    console.log('fileName:', fileName)
+    console.log('fileUrl:', fileUrl)
 
     // ✅ envia template via gupshup (pegando messageId)
     console.log('CHEGUEI AQUI 122@@@@@')

@@ -156,7 +156,7 @@ async function sendRepeatedMessage() {
 
 
         // ✅ interação 2 não depende de data: roda 1x por ciclo
-        console.log(`Buscando dados no Smart(Server) [interaction=2]`);
+        console.log(`Buscando dados no Smart(Server) [interaction=3]`);
         await PersistShippingcampaign(
           DateTime.now().setZone("America/Sao_Paulo").toFormat("yyyy-MM-dd"),
           false,

@@ -3,7 +3,6 @@ import Shippingcampaign from 'App/Models/Shippingcampaign'
 import { ValidatePhone } from './util'
 import { DateTime } from 'luxon'
 import { normalizePhoneKey } from 'App/Services/whatsapp-web/util'
-import Log from 'App/Models/Log' // ⬅️ IMPORT DO LOG
 
 function isIterable(obj) {
   try {
@@ -51,6 +50,7 @@ export default async (
 
   for (const data of dataSourceList) {
     try {
+      //console.log("DATA>>>>>>>>>>>>>>>>>>>>>>>>>", data)
       // 🔍 DEBUG 1: gupshupParams vindo do banco legado
       // try {
       //   await Log.create({
@@ -128,22 +128,8 @@ export default async (
       shipping.type_service = data.type_service
       shipping.prioritysend = !!prioritysend
       shipping.file_path = data.file_path ?? null
-      shipping.gupshupParams = data.gupshupParams ?? null
-
-      // 🔍 DEBUG 3: gupshupParams na instância shipping
-      // try {
-      //   await Log.create({
-      //     name: 'PersistShippingcampaign',
-      //     description: JSON.stringify({
-      //       source: 'shipping-built',
-      //       reg: shipping.reg,
-      //       interaction_id: shipping.interaction_id,
-      //     }),
-      //     message: toMessageValue(shipping.gupshupParams),
-      //   })
-      // } catch (logError) {
-      //   console.log('Erro ao gravar log PersistShippingcampaign (shipping-built)', logError)
-      // }
+      //shipping.gupshupParams = data.gupshupParams ?? null
+      shipping.gupshupParams = data.gupshup_params ?? data.gupshupParams ?? null
 
       const verifyExist = await Shippingcampaign.query()
         .where('reg', data.reg)
@@ -152,25 +138,6 @@ export default async (
         .first()
 
       const phoneKey = phone ? normalizePhoneKey(phone) : null
-
-      // 🔍 DEBUG 4: gupshupParams do registro existente (se houver) + novo
-      // try {
-      //   await Log.create({
-      //     name: 'PersistShippingcampaign',
-      //     description: JSON.stringify({
-      //       source: 'verify-exist',
-      //       reg: data.reg,
-      //       interaction_id: data.interaction_id,
-      //       found: !!verifyExist,
-      //     }),
-      //     message: toMessageValue(
-      //       shipping.gupshupParams ??
-      //         (verifyExist ? verifyExist.gupshupParams : null)
-      //     ),
-      //   })
-      // } catch (logError) {
-      //   console.log('Erro ao gravar log PersistShippingcampaign (verify-exist)', logError)
-      // }
 
       // 🔹 BLOCO 1: atualizar phonevalid e cellphoneserialized SEMPRE que já existir registro
       if (verifyExist) {
@@ -190,24 +157,6 @@ export default async (
           await Shippingcampaign.query()
             .where('id', verifyExist.id)
             .update(updatePhonePayload)
-
-          // 🔍 DEBUG 5: update de phone (só registra gupshupParams em message)
-          // try {
-          //   await Log.create({
-          //     name: 'PersistShippingcampaign',
-          //     description: JSON.stringify({
-          //       source: 'update-phone',
-          //       reg: data.reg,
-          //       interaction_id: data.interaction_id,
-          //     }),
-          //     message: toMessageValue(
-          //       shipping.gupshupParams ??
-          //         verifyExist.gupshupParams
-          //     ),
-          //   })
-          // } catch (logError) {
-          //   console.log('Erro ao gravar log PersistShippingcampaign (update-phone)', logError)
-          // }
         }
       }
 
@@ -243,21 +192,6 @@ export default async (
       if (!verifyExist) {
         const created = await Shippingcampaign.create(shipping)
         patientList.push({ reg: created.reg, name: created.name, unit: created.unit })
-
-        // 🔍 DEBUG 7: criação de novo registro – só gupshupParams do criado
-        // try {
-        //   await Log.create({
-        //     name: 'PersistShippingcampaign',
-        //     description: JSON.stringify({
-        //       source: 'create-shipping',
-        //       reg: created.reg,
-        //       interaction_id: created.interaction_id,
-        //     }),
-        //     message: toMessageValue(created.gupshupParams),
-        //   })
-        // } catch (logError) {
-        //   console.log('Erro ao gravar log PersistShippingcampaign (create-shipping)', logError)
-        // }
       }
     } catch (error) {
       console.log('Erro ao criar Shippingcampaign', { reg: data?.reg, interaction_id: data?.interaction_id }, error)
@@ -282,17 +216,3 @@ export default async (
 
   return patientList
 }
-
-
-
-//############################################################################################################################
-// Como usar esses logs pra achar o “maldito problema”
-// Na tabela logs:
-// Filtra por: name = 'PersistShippingcampaign'
-// Depois olha por step dentro do JSON (raw-data, shipping-built, verify-exist, update-gupshupParams, create-shipping, etc.)
-// Pra focar no problema do gupshupParams:
-// Procura registros onde step = 'raw-data' e vê se data.gupshupParams está vindo preenchido.
-// Compara com os shipping-built e com os create-shipping / update-gupshupParams.
-// Se em raw-data veio certo mas em shipping-built ou create-shipping está null, o bug está na transformação.
-// Se nem em raw-data veio algo, o problema está na query do SQL Server mesmo.
-// Se quiser, depois que você rodar isso e pegar um exemplo real (copia um log de raw-data + shipping-built + create-shipping) e me manda, que eu te ajudo a fechar o diagnóstico em cima de um caso re

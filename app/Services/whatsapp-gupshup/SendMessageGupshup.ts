@@ -62,6 +62,7 @@ export default async function SendMessageGupshup({
   }
 
   console.log('DEBUG GUPSHUP ENVIANDO >>>', {
+    agent: agent.gupshup_src_name,
     templateId,
     params,
     message,

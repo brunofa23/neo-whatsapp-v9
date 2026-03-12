@@ -10,14 +10,9 @@ import {
   GenerateRandomTime,
   TimeSchedule,
 } from "../app/Services/whatsapp-web/util";
-//import { startAgentChat } from "../app/Services/whatsapp-web/whatsapp"
-//import { startAgent } from "../app/Services/whatsapp-web/whatsappConnection"
 import "../app/Services/plugins/axios";
 import Log from "App/Models/Log";
 import { startGupshupLoop } from "../app/Services/whatsapp-gupshup/gupshupConnection";
-
-// import Chat from "App/Models/Chat";
-// import Database from "@ioc:Adonis/Lucid/Database";
 
 // =========================
 // LOG CLEANUP (manter 15 dias)
@@ -157,6 +152,15 @@ async function sendRepeatedMessage() {
           DateTime.now().setZone("America/Sao_Paulo").toFormat("yyyy-MM-dd"),
           false,
           2
+        );
+
+
+        // ✅ interação 2 não depende de data: roda 1x por ciclo
+        console.log(`Buscando dados no Smart(Server) [interaction=3]`);
+        await PersistShippingcampaign(
+          DateTime.now().setZone("America/Sao_Paulo").toFormat("yyyy-MM-dd"),
+          false,
+          3
         );
 
         const datasourcesController = new DatasourcesController();

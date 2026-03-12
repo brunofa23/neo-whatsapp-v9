@@ -1251,7 +1251,7 @@ export default class ShippingcampaignsController {
       queryResult.where('shippingcampaigns.interaction_id', 2)
       queryResult.whereRaw(query)
 
-      console.log(queryResult.toQuery())
+      //console.log(queryResult.toQuery())
       const result = await queryResult
 
       const resultAcumulated = await Database.from('chats')

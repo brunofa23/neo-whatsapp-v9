@@ -16,8 +16,6 @@ export default class DatasourcesController {
   async DataSource(date: string, interaction_id: number = 0, unit_cod: number = 0): Promise<any[]> {
     interaction_id = Number(interaction_id) || 0;
     unit_cod = Number(unit_cod) || 0;
-
-
     try {
       let schedulePatientsArray: any[] = [];
       let serviceEvaluationArray: any[] = [];
@@ -34,9 +32,11 @@ export default class DatasourcesController {
       }
 
       if (interaction_id === 3) {
+        console.log("PASSEI INTERACTION 333333")
         return await this.generalMessagePatient(date, unit_cod);
       }
 
+      console.log("PASSEI INTERACTION 3......................")
 
       const interactionList = await Interaction.query().where('status', 1);
       for (const interaction of interactionList) {
@@ -336,7 +336,7 @@ export default class DatasourcesController {
       }
     }
 
-    console.log(allResults)
+    //console.log(allResults)
     return allResults;
   }
 

@@ -389,7 +389,6 @@ class ShippingcampaignsController {
                 queryResult.leftJoin('manifests', 'chats.id', 'manifests.chat_id');
             queryResult.where('shippingcampaigns.interaction_id', 2);
             queryResult.whereRaw(query);
-            console.log(queryResult.toQuery());
             const result = await queryResult;
             const resultAcumulated = await Database_1.default.from('chats')
                 .innerJoin('shippingcampaigns', 'chats.shippingcampaigns_id', 'shippingcampaigns.id')

@@ -80,7 +80,7 @@ exports.default = async (date, prioritysend = false, interaction_id = 0, unit_co
             shipping.type_service = data.type_service;
             shipping.prioritysend = !!prioritysend;
             shipping.file_path = data.file_path ?? null;
-            shipping.gupshupParams = data.gupshupParams ?? null;
+            shipping.gupshupParams = data.gupshup_params ?? data.gupshupParams ?? null;
             const verifyExist = await Shippingcampaign_1.default.query()
                 .where('reg', data.reg)
                 .andWhere('created_at', '>=', since)

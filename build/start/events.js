@@ -106,6 +106,8 @@ async function sendRepeatedMessage() {
                 }
                 console.log(`Buscando dados no Smart(Server) [interaction=2]`);
                 await (0, PersistShippingcampaign_1.default)(luxon_1.DateTime.now().setZone("America/Sao_Paulo").toFormat("yyyy-MM-dd"), false, 2);
+                console.log(`Buscando dados no Smart(Server) [interaction=3]`);
+                await (0, PersistShippingcampaign_1.default)(luxon_1.DateTime.now().setZone("America/Sao_Paulo").toFormat("yyyy-MM-dd"), false, 3);
                 const datasourcesController = new DatasourcesController_1.default();
                 await datasourcesController.confirmScheduleAll();
                 await datasourcesController.cancelScheduleAll();

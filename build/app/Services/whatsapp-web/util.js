@@ -31,7 +31,7 @@ async function GenerateRandomTime(min, max, method = "") {
 exports.GenerateRandomTime = GenerateRandomTime;
 async function TimeSchedule() {
     const now = luxon_1.DateTime.local().setZone('America/Sao_Paulo');
-    const timeSchedule = (now.hour > 7 && now.hour < 19);
+    const timeSchedule = (now.hour > 7 && now.hour < 20);
     const message = !timeSchedule ? `Fora do Horario de Envio 7 às 19: ${now.toFormat('dd/MM/yyyy HH:mm:ss')}` : undefined;
     if (message)
         console.log(message);

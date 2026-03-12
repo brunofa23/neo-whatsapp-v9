@@ -8,7 +8,7 @@ const Env_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Env"));
 function onlyDigits(v) {
     return String(v || '').replace(/\D/g, '');
 }
-async function SendMessageGupshup({ agent, destination, templateId, params, useDefaultApiKey = false, }) {
+async function SendMessageGupshup({ agent, destination, templateId, params, useDefaultApiKey = false, message, }) {
     const apiKey = Env_1.default.get(useDefaultApiKey ? 'GUPSHUP_API_KEY_DEFAULT' : 'GUPSHUP_API_KEY');
     const url = 'https://api.gupshup.io/wa/api/v1/template/msg';
     if (!apiKey)
@@ -30,9 +30,14 @@ async function SendMessageGupshup({ agent, destination, templateId, params, useD
         id: templateId,
         params: (params || []).map((p) => String(p)),
     }));
+    if (message) {
+        data.append('message', JSON.stringify(message));
+    }
     console.log('DEBUG GUPSHUP ENVIANDO >>>', {
+        agent: agent.gupshup_src_name,
         templateId,
         params,
+        message,
         body: data.toString(),
     });
     const res = await axios_1.default.post(url, data, {

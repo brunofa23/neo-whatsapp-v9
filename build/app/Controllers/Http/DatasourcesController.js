@@ -27,8 +27,10 @@ class DatasourcesController {
                 return await this.serviceEvaluation();
             }
             if (interaction_id === 3) {
+                console.log("PASSEI INTERACTION 333333");
                 return await this.generalMessagePatient(date, unit_cod);
             }
+            console.log("PASSEI INTERACTION 3......................");
             const interactionList = await Interaction_1.default.query().where('status', 1);
             for (const interaction of interactionList) {
                 switch (interaction.id) {
@@ -283,7 +285,6 @@ class DatasourcesController {
                 continue;
             }
         }
-        console.log(allResults);
         return allResults;
     }
     async resetCellphone() {

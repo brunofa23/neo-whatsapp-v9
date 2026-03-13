@@ -32,11 +32,9 @@ export default class DatasourcesController {
       }
 
       if (interaction_id === 3) {
-        console.log("PASSEI INTERACTION 333333")
         return await this.generalMessagePatient(date, unit_cod);
       }
 
-      console.log("PASSEI INTERACTION 3......................")
 
       const interactionList = await Interaction.query().where('status', 1);
       for (const interaction of interactionList) {
@@ -285,6 +283,8 @@ export default class DatasourcesController {
 
     const dateStart = date.startOf('day').toFormat('yyyy-MM-dd HH:mm');
     const dateEnd = date.endOf('day').toFormat('yyyy-MM-dd HH:mm');
+
+    console.log("DATE START:",dateStart,"DATE END:", dateEnd)
 
     // Função auxiliar para tratar mensagens
     const greeting = async (message: string): Promise<string> => {

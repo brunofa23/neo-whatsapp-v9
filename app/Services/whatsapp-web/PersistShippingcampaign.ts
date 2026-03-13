@@ -34,6 +34,7 @@ export default async (
   const asText = (v: any) => (v == null ? '' : String(v)).trim()
   const onlyDigits = (v: any) => asText(v).replace(/\D+/g, '')
 
+
   const dataSourceList = await new DatasourcesController().DataSource(date, interaction_id, unit_cod)
   const patientList: { reg: any; name: string; unit: string }[] = []
 
@@ -49,6 +50,7 @@ export default async (
     .toJSDate()
 
   for (const data of dataSourceList) {
+
     try {
       //console.log("DATA>>>>>>>>>>>>>>>>>>>>>>>>>", data)
       // 🔍 DEBUG 1: gupshupParams vindo do banco legado

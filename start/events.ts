@@ -147,7 +147,7 @@ async function sendRepeatedMessage() {
         }
 
         // ✅ interação 2 não depende de data: roda 1x por ciclo
-        console.log(`Buscando dados no Smart(Server) [interaction=2]`);
+        console.log(`Buscando dados no Smart(Server) [interaction=2]:${DateTime.now().setZone("America/Sao_Paulo").toFormat("yyyy-MM-dd")}`);
         await PersistShippingcampaign(
           DateTime.now().setZone("America/Sao_Paulo").toFormat("yyyy-MM-dd"),
           false,
@@ -155,14 +155,20 @@ async function sendRepeatedMessage() {
         );
 
 
-        // ✅ interação 2 não depende de data: roda 1x por ciclo
-        console.log(`Buscando dados no Smart(Server) [interaction=3]`);
-        await PersistShippingcampaign(
-          DateTime.now().setZone("America/Sao_Paulo").toFormat("yyyy-MM-dd"),
-          false,
-          3
-        );
-
+        // ✅ interação 3 não depende de data: roda 1x por ciclo
+        for (const date of targetDates) {
+          const formatted = date.toFormat("yyyy-MM-dd");
+          console.log(
+            `Buscando dados no Smart(Server) [interaction=3]: ${formatted}`
+          );
+          await PersistShippingcampaign(formatted, false, 3);
+        }
+        // console.log(`Buscando dados no Smart(Server) [interaction=3]:${targetDates}`);
+        // await PersistShippingcampaign(
+        //   DateTime.now().setZone("America/Sao_Paulo").toFormat("yyyy-MM-dd"),
+        //   false,
+        //   3
+        // );
         const datasourcesController = new DatasourcesController();
         await datasourcesController.confirmScheduleAll();
         await datasourcesController.cancelScheduleAll();

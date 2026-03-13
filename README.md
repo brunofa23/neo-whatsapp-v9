@@ -137,3 +137,10 @@ gupshup_src_name=neo_iris
 
 
 
+## VERIFICAR LOGS DO PM2 NA VPS
+grep -n -C 1 "85228619" ~/.pm2/logs/neoofticial-out.log ******
+grep -n -C 1 "69c8c537-892c-47db-a302-52b272ce6b4b" ~/.pm2/logs/neoofticial-out.log
+
+
+grep -Rn "5531" ~/.pm2/logs BUSCA PELO NUMERO DE TELEFONE
+grep -n " GUPSHUP WEBHOOK RAW STRING" ~/.pm2/logs/neoofticial-out.log

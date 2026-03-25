@@ -100,18 +100,18 @@ function mapEventToAck(eventTypeRaw) {
     const t = String(eventTypeRaw || '').trim().toLowerCase();
     if (!t)
         return 0;
+    if (t === 'submitted' || t === 'queued' || t === 'pending')
+        return 0;
+    if (t === 'sent')
+        return 1;
+    if (t === 'delivered')
+        return 2;
     if (t === 'read')
         return 3;
     if (t === 'played')
         return 4;
-    if (t === 'delivered')
-        return 1;
-    if (t === 'sent')
-        return 2;
-    if (t === 'submitted' || t === 'queued' || t === 'pending')
-        return 0;
     if (t === 'failed' || t === 'error' || t === 'undelivered')
-        return 0;
+        return 9;
     return 0;
 }
 function parseMessageEvent(payload) {

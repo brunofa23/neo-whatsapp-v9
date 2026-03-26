@@ -40,6 +40,9 @@ function buildTemplateParams(template, chat, formattedBody) {
         : '';
     const doctorName = chat.doctor_name || '';
     const companyName = chat.company_name || '';
+    const reason = formattedBody.reason ||
+        chat.reason ||
+        '';
     for (const key of schema) {
         if (!key) {
             params.push('');
@@ -67,6 +70,9 @@ function buildTemplateParams(template, chat, formattedBody) {
                 break;
             case 'company_name':
                 params.push(companyName);
+                break;
+            case 'reason':
+                params.push(reason);
                 break;
             default:
                 console.warn(`Parâmetro de template desconhecido: ${key}`);
@@ -137,13 +143,19 @@ class CustomchatsController {
     }
     async sendMessage({ auth, request, response }) {
         await auth.use('api').authenticate();
-        const { template_id } = request.only(['template_id']);
+        const { template_id, reason } = request.only(['template_id', 'reason']);
         const rawBody = await request.validate(CustomchatValidator_1.default);
         if (template_id !== undefined && template_id !== null && template_id !== '') {
             rawBody.template_id = Number(template_id);
         }
         else {
             rawBody.template_id = rawBody.template_id ?? null;
+        }
+        if (reason !== undefined && reason !== null) {
+            rawBody.reason = String(reason).trim();
+        }
+        else {
+            rawBody.reason = rawBody.reason ?? '';
         }
         if (!rawBody.id || !rawBody.cellphoneserialized) {
             return response.badRequest({
@@ -152,6 +164,7 @@ class CustomchatsController {
         }
         const formattedBody = {
             ...rawBody,
+            reason: rawBody.reason || '',
             cellphoneserialized: (await (0, util_1.normalizePhoneKey)(rawBody.cellphoneserialized)) || null,
             messagesent: false,
             chats_id: rawBody.id,
@@ -161,6 +174,7 @@ class CustomchatsController {
         delete formattedBody.id;
         delete formattedBody.response;
         delete formattedBody.template_id;
+        delete formattedBody.reason;
         try {
             const countRow = await Database_1.default.from('customchats')
                 .where('chats_id', formattedBody.chats_id)
@@ -215,6 +229,8 @@ class CustomchatsController {
                 }
             }
             console.log('shouldSendTemplate:', shouldSendTemplate);
+            console.log('reason recebido do front:', formattedBody.reason);
+            console.log('templateParams:', templateParams);
             if (rawBody.template_id && templateIdExternal && shouldSendTemplate) {
                 const result = await (0, SendMessageGupshup_1.default)({
                     agent,

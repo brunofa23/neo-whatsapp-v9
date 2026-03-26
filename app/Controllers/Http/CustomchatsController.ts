@@ -17,7 +17,7 @@ import { normalizePhoneKey } from 'App/Services/whatsapp-web/util'
 function buildTemplateParams(
   template: Template,
   chat: Chat,
-  formattedBody: any
+  templateData: any
 ): (string | number)[] {
   if (!template.params_schema) return []
 
@@ -37,10 +37,10 @@ function buildTemplateParams(
     (chat as any).person_name ||
     ''
 
-  const reg = (chat as any).reg || formattedBody.reg || ''
+  const reg = (chat as any).reg || templateData.reg || ''
 
   const cellphone =
-    formattedBody.cellphoneserialized ||
+    templateData.cellphoneserialized ||
     (chat as any).cellphone ||
     ''
 
@@ -53,7 +53,7 @@ function buildTemplateParams(
 
   // ✅ reason vindo prioritariamente do front
   const reason =
-    formattedBody.reason ||
+    templateData.reason ||
     (chat as any).reason ||
     ''
 
@@ -68,13 +68,6 @@ function buildTemplateParams(
       continue
     }
 
-    // { { patient_name } }
-    // { { data_registro } }
-    // { { reg } }
-    // { { cellphone } }
-    // { { doctor_name } }
-    // { { company_name } }
-    // { { reason } }
     switch (key) {
       case 'patient_name':
         params.push(patientName)
@@ -253,9 +246,12 @@ export default class CustomchatsController {
       })
     }
 
+    // ✅ Guarda o reason separadamente para usar no template,
+    // mas sem persistir no model Customchat
+    const reasonValue = rawBody.reason || ''
+
     const formattedBody: any = {
       ...rawBody,
-      reason: rawBody.reason || '',
       cellphoneserialized: (await normalizePhoneKey(rawBody.cellphoneserialized)) || null,
       messagesent: false,
       chats_id: rawBody.id, // ✅ sempre vincula ao chat, igual texto
@@ -309,7 +305,10 @@ export default class CustomchatsController {
       // 4) Montar parâmetros dinamicamente
       const templateParams: (string | number)[] =
         template && rawBody.template_id
-          ? buildTemplateParams(template, chat, formattedBody)
+          ? buildTemplateParams(template, chat, {
+              ...formattedBody,
+              reason: reasonValue,
+            })
           : []
 
       // 5) ✅ REGRA CORRIGIDA: primeiro envio SEMPRE manda template.
@@ -344,7 +343,7 @@ export default class CustomchatsController {
       }
 
       console.log('shouldSendTemplate:', shouldSendTemplate)
-      console.log('reason recebido do front:', formattedBody.reason)
+      console.log('reason recebido do front:', rawBody.reason)
       console.log('templateParams:', templateParams)
 
       // 6) Enviar TEMPLATE (se houver e regra permitir)
@@ -356,7 +355,7 @@ export default class CustomchatsController {
           params: templateParams,
           useDefaultApiKey: true,
         })
-        console.log('PASSO 1 - TEMPLATE ENVIADO....', result)
+        console.log('PASSO 1 - TEMPLATE ENVIADO.', result)
 
         const id =
           (result as any)?.messageId ??
@@ -381,7 +380,7 @@ export default class CustomchatsController {
           text: formattedBody.message,
           useDefaultApiKey: true,
         })
-        console.log('PASSO 2 - SEND TEXT....', result)
+        console.log('PASSO 2 - SEND TEXT.', result)
 
         const id =
           (result as any)?.messageId ??
@@ -404,7 +403,6 @@ export default class CustomchatsController {
       if (template && (template as any).description) {
         let descricao = String((template as any).description)
 
-        // tenta substituir placeholders do tipo {{chave}} com base no params_schema
         if (template.params_schema) {
           try {
             const schema: string[] = JSON.parse(template.params_schema)
@@ -427,7 +425,6 @@ export default class CustomchatsController {
       } else if (formattedBody.message && String(formattedBody.message).trim() !== '') {
         mensagemParaHistorico = String(formattedBody.message)
       } else if (formattedBody.path_media) {
-        // ✅ caso em que só foi enviada mídia (ex: áudio) via front
         mensagemParaHistorico = '[Áudio / mídia enviada]'
       } else if (templateIdExternal) {
         mensagemParaHistorico =

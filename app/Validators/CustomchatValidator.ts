@@ -1,6 +1,6 @@
 // app/Validators/CustomchatValidator.ts
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-import { schema } from '@ioc:Adonis/Core/Validator'
+import { schema, rules } from '@ioc:Adonis/Core/Validator'
 
 export default class CustomchatValidator {
   constructor(protected ctx: HttpContextContract) { }
@@ -12,12 +12,16 @@ export default class CustomchatValidator {
     chats_id: schema.number.optional(),
     idexternal: schema.number.optional(),
     reg: schema.number.optional(),
+    template_id: schema.number.optional(),
 
     cellphone: schema.string.optional({ trim: true }),
     cellphoneserialized: schema.string.optional({ trim: true }),
 
     message: schema.string.optional({ trim: true }),
     response: schema.string.optional({ trim: true }),
+    reason: schema.string.optional({ trim: true }, [
+      rules.maxLength(60),
+    ]),
 
     returned: schema.boolean.optional(),
 
@@ -45,12 +49,15 @@ export default class CustomchatValidator {
     'chats_id.number': 'O campo "chats_id" deve ser um número.',
     'idexternal.number': 'O campo "idexternal" deve ser um número.',
     'reg.number': 'O campo "reg" deve ser um número.',
+    'template_id.number': 'O campo "template_id" deve ser um número.',
 
     'cellphone.string': 'O campo "celular" deve ser um texto.',
     'cellphoneserialized.string': 'O campo "celular serializado" deve ser um texto.',
 
     'message.string': 'A mensagem deve ser um texto.',
     'response.string': 'A resposta deve ser um texto.',
+    'reason.string': 'O campo "reason" deve ser um texto.',
+    'reason.maxLength': 'O campo "reason" deve ter no máximo 60 caracteres.',
 
     'returned.boolean': 'O campo "returned" deve ser verdadeiro ou falso.',
     'messagesent.boolean': 'O campo "messagesent" deve ser verdadeiro ou falso.',

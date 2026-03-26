@@ -15,7 +15,7 @@ const SendMessageGupshup_1 = __importDefault(global[Symbol.for('ioc.use')]("App/
 const SendTextGupshup_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-gupshup/SendTextGupshup"));
 const CustomchatValidator_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Validators/CustomchatValidator"));
 const util_1 = global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/util");
-function buildTemplateParams(template, chat, formattedBody) {
+function buildTemplateParams(template, chat, templateData) {
     if (!template.params_schema)
         return [];
     let schema;
@@ -31,8 +31,8 @@ function buildTemplateParams(template, chat, formattedBody) {
         chat.name ||
         chat.person_name ||
         '';
-    const reg = chat.reg || formattedBody.reg || '';
-    const cellphone = formattedBody.cellphoneserialized ||
+    const reg = chat.reg || templateData.reg || '';
+    const cellphone = templateData.cellphoneserialized ||
         chat.cellphone ||
         '';
     const dataRegistro = chat.createdAt
@@ -40,7 +40,7 @@ function buildTemplateParams(template, chat, formattedBody) {
         : '';
     const doctorName = chat.doctor_name || '';
     const companyName = chat.company_name || '';
-    const reason = formattedBody.reason ||
+    const reason = templateData.reason ||
         chat.reason ||
         '';
     for (const key of schema) {
@@ -162,9 +162,9 @@ class CustomchatsController {
                 error: 'Campos obrigatórios ausentes (id ou cellphoneserialized).',
             });
         }
+        const reasonValue = rawBody.reason || '';
         const formattedBody = {
             ...rawBody,
-            reason: rawBody.reason || '',
             cellphoneserialized: (await (0, util_1.normalizePhoneKey)(rawBody.cellphoneserialized)) || null,
             messagesent: false,
             chats_id: rawBody.id,
@@ -200,7 +200,10 @@ class CustomchatsController {
             let gupshupGsId = null;
             let ackInitial = 0;
             const templateParams = template && rawBody.template_id
-                ? buildTemplateParams(template, chat, formattedBody)
+                ? buildTemplateParams(template, chat, {
+                    ...formattedBody,
+                    reason: reasonValue,
+                })
                 : [];
             let shouldSendTemplate = false;
             if (rawBody.template_id) {
@@ -229,7 +232,7 @@ class CustomchatsController {
                 }
             }
             console.log('shouldSendTemplate:', shouldSendTemplate);
-            console.log('reason recebido do front:', formattedBody.reason);
+            console.log('reason recebido do front:', rawBody.reason);
             console.log('templateParams:', templateParams);
             if (rawBody.template_id && templateIdExternal && shouldSendTemplate) {
                 const result = await (0, SendMessageGupshup_1.default)({
@@ -239,7 +242,7 @@ class CustomchatsController {
                     params: templateParams,
                     useDefaultApiKey: true,
                 });
-                console.log('PASSO 1 - TEMPLATE ENVIADO....', result);
+                console.log('PASSO 1 - TEMPLATE ENVIADO.', result);
                 const id = result?.messageId ??
                     result?.whatsappMessageId ??
                     result?.payload?.whatsappMessageId ??
@@ -260,7 +263,7 @@ class CustomchatsController {
                     text: formattedBody.message,
                     useDefaultApiKey: true,
                 });
-                console.log('PASSO 2 - SEND TEXT....', result);
+                console.log('PASSO 2 - SEND TEXT.', result);
                 const id = result?.messageId ??
                     result?.whatsappMessageId ??
                     result?.payload?.whatsappMessageId ??

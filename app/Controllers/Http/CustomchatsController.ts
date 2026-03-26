@@ -51,6 +51,12 @@ function buildTemplateParams(
   const doctorName = (chat as any).doctor_name || ''
   const companyName = (chat as any).company_name || ''
 
+  // ✅ reason vindo prioritariamente do front
+  const reason =
+    formattedBody.reason ||
+    (chat as any).reason ||
+    ''
+
   for (const key of schema) {
     if (!key) {
       params.push('')
@@ -62,6 +68,13 @@ function buildTemplateParams(
       continue
     }
 
+    // { { patient_name } }
+    // { { data_registro } }
+    // { { reg } }
+    // { { cellphone } }
+    // { { doctor_name } }
+    // { { company_name } }
+    // { { reason } }
     switch (key) {
       case 'patient_name':
         params.push(patientName)
@@ -85,6 +98,10 @@ function buildTemplateParams(
 
       case 'company_name':
         params.push(companyName)
+        break
+
+      case 'reason':
+        params.push(reason)
         break
 
       default:
@@ -211,8 +228,8 @@ export default class CustomchatsController {
   public async sendMessage({ auth, request, response }: HttpContextContract) {
     await auth.use('api').authenticate()
 
-    // Captura template_id (vem do front) e demais campos do Customchat
-    const { template_id } = request.only(['template_id'])
+    // ✅ Captura template_id e reason vindos do front
+    const { template_id, reason } = request.only(['template_id', 'reason'])
 
     const rawBody = await request.validate(CustomchatValidator)
 
@@ -223,6 +240,13 @@ export default class CustomchatsController {
       rawBody.template_id = rawBody.template_id ?? null
     }
 
+    // ✅ Injeta o reason vindo do front no rawBody
+    if (reason !== undefined && reason !== null) {
+      rawBody.reason = String(reason).trim()
+    } else {
+      rawBody.reason = rawBody.reason ?? ''
+    }
+
     if (!rawBody.id || !rawBody.cellphoneserialized) {
       return response.badRequest({
         error: 'Campos obrigatórios ausentes (id ou cellphoneserialized).',
@@ -231,6 +255,7 @@ export default class CustomchatsController {
 
     const formattedBody: any = {
       ...rawBody,
+      reason: rawBody.reason || '',
       cellphoneserialized: (await normalizePhoneKey(rawBody.cellphoneserialized)) || null,
       messagesent: false,
       chats_id: rawBody.id, // ✅ sempre vincula ao chat, igual texto
@@ -241,6 +266,7 @@ export default class CustomchatsController {
     delete formattedBody.id
     delete formattedBody.response
     delete formattedBody.template_id
+    delete formattedBody.reason
 
     try {
       // ✅ NOVO: se for o primeiro envio (sem nenhum customchat ainda), exige template
@@ -318,6 +344,8 @@ export default class CustomchatsController {
       }
 
       console.log('shouldSendTemplate:', shouldSendTemplate)
+      console.log('reason recebido do front:', formattedBody.reason)
+      console.log('templateParams:', templateParams)
 
       // 6) Enviar TEMPLATE (se houver e regra permitir)
       if (rawBody.template_id && templateIdExternal && shouldSendTemplate) {

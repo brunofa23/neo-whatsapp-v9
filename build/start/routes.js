@@ -7,7 +7,7 @@ const Route_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Route
 const PersistShippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/PersistShippingcampaign"));
 const events_1 = require("./events");
 const luxon_1 = require("luxon");
-console.log("***CHAT BOT V-126***16/05/2025", process.env.SERVER);
+console.log("***CHAT BOT V-127***16/05/2025", process.env.SERVER);
 function operacaoAssincrona(callback) {
     console.log("ENTREI PASSO 1", process.env.SERVER);
     if (process.env.SERVER === 'true') {

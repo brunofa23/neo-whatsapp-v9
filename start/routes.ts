@@ -4,7 +4,7 @@ import PersistShippingcampaign from "App/Services/whatsapp-web/PersistShippingca
 import { connectionAll, destroyFullAgents, resendMessage, resetStatusConnected, sendRepeatedMessage, sendRepeatedMessageKlingo } from './events'
 import { DateTime } from 'luxon'
 
-console.log("***CHAT BOT V-126***16/05/2025", process.env.SERVER)
+console.log("***CHAT BOT V-127***16/05/2025", process.env.SERVER)
 function operacaoAssincrona(callback) {
   console.log("ENTREI PASSO 1", process.env.SERVER)
   if (process.env.SERVER === 'true') {

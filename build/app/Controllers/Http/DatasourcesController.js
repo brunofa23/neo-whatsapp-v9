@@ -244,6 +244,7 @@ class DatasourcesController {
         }
         const dateStart = date.startOf('day').toFormat('yyyy-MM-dd HH:mm');
         const dateEnd = date.endOf('day').toFormat('yyyy-MM-dd HH:mm');
+        console.log("DATE START:", dateStart, "DATE END:", dateEnd);
         const greeting = async (message) => {
             const responseList = new ResponsesController_1.default();
             const greetings = await responseList.index({ local: 'greeting' });
@@ -283,7 +284,6 @@ class DatasourcesController {
                 continue;
             }
         }
-        console.log(allResults);
         return allResults;
     }
     async resetCellphone() {

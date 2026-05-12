@@ -27,9 +27,15 @@ async function SendDispatcher({ agent, client }) {
                 console.log('[GUPSHUP_TEST] destination vazio. Defina GUPSHUP_TEST_DESTINATION no .env');
                 return;
             }
+            const templateId = String(Env_1.default.get('GUPSHUP_TEMPLATE', '')).trim();
+            if (!templateId) {
+                console.log('[GUPSHUP_TEST] template vazio. Defina GUPSHUP_TEMPLATE no .env');
+                return;
+            }
             await (0, SendMessageGupshup_1.default)({
                 agent,
                 destination,
+                templateId,
                 params: ['Bruno Favato', '26/12/2025 14:30', 'Unidade Centro', 'Dr. João Silva'],
             });
             return;

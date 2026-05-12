@@ -7,7 +7,7 @@ const Route_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Route
 const PersistShippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/PersistShippingcampaign"));
 const events_1 = require("./events");
 const luxon_1 = require("luxon");
-console.log("***CHAT BOT V-126***16/05/2025", process.env.SERVER);
+console.log("***CHAT BOT V-127***16/05/2025", process.env.SERVER);
 function operacaoAssincrona(callback) {
     console.log("ENTREI PASSO 1", process.env.SERVER);
     if (process.env.SERVER === 'true') {
@@ -17,7 +17,6 @@ function operacaoAssincrona(callback) {
     }
     if (process.env.SERVER?.toLowerCase() === 'false') {
         console.log("INICIALIZANDO EASYTALK SMART");
-        (0, events_1.destroyFullAgents)();
         (0, events_1.resetStatusConnected)();
         (0, events_1.connectionAll)();
         (0, events_1.resendMessage)();
@@ -25,7 +24,6 @@ function operacaoAssincrona(callback) {
     }
     if (process.env.SERVER?.toLowerCase() === "klingo") {
         console.log("INICIALIZANDO EASYTALK KLINGO....");
-        (0, events_1.destroyFullAgents)();
         (0, events_1.sendRepeatedMessageKlingo)();
         (0, events_1.resetStatusConnected)();
         (0, events_1.connectionAll)();
@@ -113,12 +111,19 @@ Route_1.default.group(() => {
     Route_1.default.post('/closed', 'ChatsController.closed');
     Route_1.default.resource("/manifests", "ManifestsController").apiOnly();
     Route_1.default.post("/sendmailmanifest/:id", "ManifestsController.sendMailManifest");
-    Route_1.default.get('/midia/:filename', 'MidiasController.midia');
     Route_1.default.get('/midiapath/:filename', 'MidiasController.midiapath');
+    Route_1.default.get('/midia/:filename', 'MidiasController.midia');
+    Route_1.default.get('/filetosend/:filename', 'MidiasController.filetosend');
+    Route_1.default.get('/filetosendpath/:filename', 'MidiasController.filetosendpath');
     Route_1.default.resource('/datecloseds', 'DateclosedsController').apiOnly();
     Route_1.default.get('/getschedules', 'DatasourceApisController.getSchedules');
     Route_1.default.post('/confirmorcancelscheduleapi', 'DatasourceApisController.confirmOrCancelSchedule');
     Route_1.default.resource('/mainsubjects', 'MainsubjectsController').apiOnly();
     Route_1.default.post('/webhooks/gupshup', 'GupshupWebhooksController.handle');
+    Route_1.default.get('/templates', 'TemplatesController.index');
+    Route_1.default.get('/templates/:id', 'TemplatesController.show');
+    Route_1.default.post('/templates', 'TemplatesController.store');
+    Route_1.default.put('/templates/:id', 'TemplatesController.update');
+    Route_1.default.delete('/templates/:id', 'TemplatesController.destroy');
 }).prefix('/api');
 //# sourceMappingURL=routes.js.map

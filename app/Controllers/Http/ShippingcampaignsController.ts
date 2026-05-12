@@ -826,6 +826,11 @@ export default class ShippingcampaignsController {
       .andWhere('messagesent', 0)
       .andWhere('created_at', '>', yesterday)
 
+    query.whereExists((subquery) => {
+      subquery.select('*').from('interactions')
+        .whereRaw('shippingcampaigns.interaction_id = interactions.id')
+        .andWhere('interactions.status', true)
+    })
 
     if (agentCompany?.company_id) {
       query.andWhere('company_id', agentCompany?.company_id)
@@ -977,7 +982,6 @@ export default class ShippingcampaignsController {
 
 
 }
-
 
 
 

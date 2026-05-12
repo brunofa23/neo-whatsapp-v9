@@ -5,7 +5,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Shippingcampaign"));
 const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
-const Log_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Log"));
 const Unit_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Unit"));
 const request_1 = global[Symbol.for('ioc.use')]("App/Services/requestExternal/request");
 const util_1 = global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/util");
@@ -40,20 +39,35 @@ async function otherFields(schedule) {
     return null;
 }
 function prepareSchedules(records) {
-    records = records.filter(item => item.status_confirmacao_id == null);
-    const groupedByPatient = records.reduce((acc, record) => {
-        const key = record.id_paciente.toString();
-        acc[key] = acc[key] || [];
-        acc[key].push(record);
+    if (!Array.isArray(records)) {
+        console.log('[prepareSchedules] records inválido (não é array):', records);
+        return [];
+    }
+    const filtered = records.filter((item) => {
+        if (!item || typeof item !== 'object')
+            return false;
+        const it = item;
+        return it.status_confirmacao_id == null && it.id_paciente != null && it.datahora != null;
+    });
+    if (filtered.length === 0)
+        return [];
+    const groupedByPatient = filtered.reduce((acc, record) => {
+        const key = String(record.id_paciente);
+        (acc[key] ?? (acc[key] = [])).push(record);
         return acc;
     }, {});
     const oldestRecords = Object.values(groupedByPatient).map((group) => {
-        const allIds = group.map(item => item.id_marcacao);
+        const allIds = group.map((item) => item.id_marcacao);
         const oldest = group.reduce((oldest, current) => {
-            return new Date(current.datahora) < new Date(oldest.datahora) ? current : oldest;
+            const tOld = Date.parse(String(oldest.datahora));
+            const tCur = Date.parse(String(current.datahora));
+            if (!Number.isFinite(tCur))
+                return oldest;
+            if (!Number.isFinite(tOld))
+                return current;
+            return tCur < tOld ? current : oldest;
         });
-        oldest.idexternal_array = allIds;
-        return oldest;
+        return { ...oldest, idexternal_array: allIds };
     });
     return oldestRecords;
 }
@@ -70,31 +84,59 @@ async function returnIdExternal(chatObject) {
 }
 class DatasourceApisController {
     async getSchedulesInternal(date) {
+        const formatKlingoDate = (datahora) => {
+            const raw = String(datahora ?? "").trim();
+            if (!raw)
+                return "";
+            const iso = luxon_1.DateTime.fromISO(raw, { zone: "America/Sao_Paulo" });
+            if (iso.isValid)
+                return iso.toFormat("dd/LL/yyyy HH:mm");
+            const fmt1 = luxon_1.DateTime.fromFormat(raw, "yyyy-MM-dd HH:mm", { zone: "America/Sao_Paulo" });
+            if (fmt1.isValid)
+                return fmt1.toFormat("dd/LL/yyyy HH:mm");
+            const fmt2 = luxon_1.DateTime.fromFormat(raw, "yyyy-MM-dd HH:mm:ss", { zone: "America/Sao_Paulo" });
+            if (fmt2.isValid)
+                return fmt2.toFormat("dd/LL/yyyy HH:mm");
+            return raw;
+        };
         const schedule_list = await prepareSchedules(await (0, request_1.getSchedulesApi)(date));
-        const date_start = luxon_1.DateTime.now().startOf('day').toFormat("yyyy-MM-dd HH:mm");
+        const date_start = luxon_1.DateTime.now().setZone("America/Sao_Paulo").startOf("day").toSQL({ includeOffset: false });
         for (const data of schedule_list) {
             try {
-                const reg = String(data.id_paciente).replace(/[^0-9.-]/g, "");
+                const regStr = String(data.id_paciente ?? "").replace(/[^0-9]/g, "");
+                if (!regStr)
+                    continue;
+                const firstName = String(data.nome ?? "").trim().split(/\s+/)[0] || "";
+                const firstNameDoctor = String(data.medico ?? "").trim().split(/\s+/)[0] || "";
                 const shipping = new Shippingcampaign_1.default();
                 shipping.interaction_id = 1;
                 shipping.interaction_seq = 1;
-                shipping.reg = parseInt(reg);
+                shipping.reg = parseInt(regStr, 10);
                 shipping.dateshedule = data.datahora;
                 shipping.idexternal = data.id_marcacao;
-                shipping.name = String(data.nome).trim();
-                shipping.cellphone = String(data.celular).replace(/[^0-9]+/g, '');
-                if (!await (0, util_1.ValidatePhone)(shipping.cellphone))
-                    shipping.phonevalid = false;
+                shipping.name = String(data.nome ?? "").trim();
+                shipping.cellphone = String(data.celular ?? "").replace(/[^0-9]+/g, "");
+                const normalizedPhone = await (0, util_1.ValidatePhone)(shipping.cellphone);
+                shipping.phonevalid = normalizedPhone ? true : null;
                 shipping.messagesent = false;
                 shipping.message = await greeting(String(`{greeting} {presentation} {askschedule}`), data);
                 shipping.otherfields = String(await otherFields(data));
-                shipping.doctor = String(data.medico).trim();
-                shipping.unit = String(data.unidade).trim();
-                shipping.covenant = '';
-                shipping.idexternal_array = String(data.idexternal_array);
-                const verifyExist = await Shippingcampaign_1.default.query().where('reg', reg)
-                    .andWhere('dateshedule', data.datahora)
-                    .andWhere('created_at', '>=', date_start).first();
+                shipping.doctor = String(data.medico ?? "").trim();
+                shipping.unit = String(data.unidade ?? "").trim();
+                shipping.covenant = "";
+                shipping.idexternal_array = String(data.idexternal_array ?? "");
+                const gupParamsArr = [
+                    firstName,
+                    formatKlingoDate(data.datahora),
+                    shipping.unit,
+                    firstNameDoctor,
+                ];
+                shipping.gupshupParams = JSON.stringify(gupParamsArr);
+                const verifyExist = await Shippingcampaign_1.default.query()
+                    .where("reg", shipping.reg)
+                    .andWhere("dateshedule", data.datahora)
+                    .andWhere("created_at", ">=", date_start)
+                    .first();
                 if (!verifyExist) {
                     await Shippingcampaign_1.default.create(shipping);
                 }
@@ -140,7 +182,6 @@ class DatasourceApisController {
                     await processSchedule(idExternal, 'N', 'Não Confirmada pelo EasyTalk');
                 }
                 else {
-                    await Log_1.default.create({ name: 'DataSourceApiController', message: error, description: `Resposta absoluta inválida para o registro:${data.id}` });
                 }
                 await Chat_1.default.query().where("id", data.id).update({ externalstatus: 'B' });
             }

@@ -9,6 +9,7 @@ const Talk_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Talk"))
 const SendTextGupshup_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-gupshup/SendTextGupshup"));
 const IdentifyAnswer_1 = global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/IdentifyAnswer");
 const luxon_1 = require("luxon");
+const util_1 = global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/util");
 function safeJsonParse(v, fallback) {
     try {
         if (v == null)
@@ -41,22 +42,45 @@ async function sendTextAndLog(params) {
         destination: destinationPhone,
         text,
     });
+    const phoneKey = (0, util_1.normalizePhoneKey)(fromDigits);
     await Talk_1.default.create({
         chat_id: chatId ?? null,
         reg: reg ?? null,
         cellphone: fromDigits,
+        cellphoneserialized: phoneKey,
         chatnumber: toDigits,
         message: text.slice(0, 999),
         type: 'to',
     });
 }
 async function ConfirmScheduleGupshup(inbound, chat) {
-    console.log("PASSO 1 CONFIRM SCHEDULE");
+    console.log('PASSO 1 CONFIRM SCHEDULE');
     const fromDigits = String(inbound.from || '').replace(/\D/g, '');
-    const toDigits = String(inbound.to || '').replace(/\D/g, '');
-    const body = String(inbound.body || '');
+    const toDigits = String(inbound.to || '').replace(/\D/g, '') ||
+        String(chat?.chatnumber || '').replace(/\D/g, '');
+    let body = String(inbound.body || '').trim();
+    const normalized = body.toLowerCase().replace(/\s+/g, ' ').trim();
+    if (normalized === 'confirmar' || normalized === 'confirmado' || normalized === 'sim' || normalized === 's') {
+        body = '1';
+    }
+    else if (normalized === 'cancelar' ||
+        normalized === 'cancelado' ||
+        normalized === 'nao' ||
+        normalized === 'não' ||
+        normalized === 'n' ||
+        normalized === '2') {
+        body = '2';
+    }
+    else if (normalized === '1') {
+        body = '1';
+    }
+    else {
+        body = normalized;
+    }
     if (inbound.hasMedia) {
-        const msg = 'Por favor não envie áudio, imagens ou vídeos, apenas digite \n*1* para Confirmar o agendamento. \n*2* para Reagendamento ou Cancelamento.';
+        const msg = 'Por favor não envie áudio, imagens ou vídeos.\n' +
+            'Use o menu e selecione uma opção:\n' +
+            '*Confirmar* ou *Cancelar*.';
         await sendTextAndLog({
             sourcePhone: toDigits,
             destinationPhone: fromDigits,
@@ -74,6 +98,21 @@ async function ConfirmScheduleGupshup(inbound, chat) {
     const otherfieldsRaw = chat.shippingcampaign?.otherfields;
     const chatOtherFields = safeJsonParse(otherfieldsRaw, {});
     const answer = await (0, IdentifyAnswer_1.interpretAnswer)(body);
+    if (answer?.code !== 1 && answer?.code !== 2) {
+        const msg = 'Não consegui identificar sua resposta.\n' +
+            'Por favor selecione uma opção no menu:\n' +
+            '*Confirmar* ou *Cancelar*.';
+        await sendTextAndLog({
+            sourcePhone: toDigits,
+            destinationPhone: fromDigits,
+            fromDigits,
+            toDigits,
+            chatId: chat.id,
+            reg: chat.reg,
+            text: msg,
+        });
+        return;
+    }
     if (answer?.code === 1) {
         const response1schedule = await Response_1.default.query()
             .select('message')
@@ -107,7 +146,7 @@ async function ConfirmScheduleGupshup(inbound, chat) {
     }
     if (answer?.code === 2) {
         Object.assign(chat, {
-            response: body,
+            response: body.slice(0, 500),
             absoluteresp: 2,
             externalstatus: 'A',
             company_id: chat.shippingcampaign?.company_id,
@@ -178,29 +217,6 @@ async function ConfirmScheduleGupshup(inbound, chat) {
         await Chat_1.default.create(chat2);
         return;
     }
-    if (answer?.code === 3) {
-        const defaultMessage = `Desculpe pelo engano, vou pedir para corrigir nosso cadastro.`;
-        await sendTextAndLog({
-            sourcePhone: toDigits,
-            destinationPhone: fromDigits,
-            fromDigits,
-            toDigits,
-            chatId: chat.id,
-            reg: chat.reg,
-            text: defaultMessage,
-        });
-        return;
-    }
-    const invalid = 'Oi, desculpe mas não consegui identificar uma resposta, por favor responda \n*1* para Confirmar o agendamento. \n*2* para Reagendamento ou Cancelamento.';
-    await sendTextAndLog({
-        sourcePhone: toDigits,
-        destinationPhone: fromDigits,
-        fromDigits,
-        toDigits,
-        chatId: chat.id,
-        reg: chat.reg,
-        text: invalid,
-    });
 }
 exports.default = ConfirmScheduleGupshup;
 //# sourceMappingURL=ConfirmScheduleGupshup.js.map

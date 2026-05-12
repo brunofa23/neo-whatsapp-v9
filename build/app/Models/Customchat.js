@@ -36,6 +36,7 @@ class Customchat extends Orm_1.BaseModel {
             'read',
             'viewed',
             'phonevalid',
+            'gupshup_gs_id',
             'ack',
             'path_media',
             'created_at'
@@ -110,12 +111,16 @@ __decorate([
     __metadata("design:type", Boolean)
 ], Customchat.prototype, "phonevalid", void 0);
 __decorate([
+    (0, Orm_1.column)({ columnName: 'gupshup_gs_id' }),
+    __metadata("design:type", String)
+], Customchat.prototype, "gupshupGsId", void 0);
+__decorate([
     (0, Orm_1.column)(),
     __metadata("design:type", Number)
 ], Customchat.prototype, "ack", void 0);
 __decorate([
     (0, Orm_1.column)(),
-    __metadata("design:type", String)
+    __metadata("design:type", Object)
 ], Customchat.prototype, "path_media", void 0);
 __decorate([
     Orm_1.column.dateTime({ autoCreate: true }),

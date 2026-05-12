@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.checkExistFile = exports.extractCellphone = exports.chunckPhone = exports.validAgent = exports.RandomResponse = exports.ValidatePhone = exports.ClearFolder = exports.NegativeResponse = exports.PositiveResponse = exports.TimeSchedule = exports.GenerateRandomTime = exports.DateFormat = exports.stateTyping = exports.getTargetDates = exports.sendMessageWarning = void 0;
+exports.checkExistFile = exports.extractCellphone = exports.chunckPhone = exports.validAgent = exports.RandomResponse = exports.normalizePhoneKey = exports.ValidatePhone = exports.ClearFolder = exports.NegativeResponse = exports.PositiveResponse = exports.TimeSchedule = exports.GenerateRandomTime = exports.DateFormat = exports.stateTyping = exports.getTargetDates = exports.sendMessageWarning = void 0;
 const Agent_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Agent"));
 const luxon_1 = require("luxon");
 const WhatsAppClientManager_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/WhatsAppClientManager"));
@@ -31,7 +31,7 @@ async function GenerateRandomTime(min, max, method = "") {
 exports.GenerateRandomTime = GenerateRandomTime;
 async function TimeSchedule() {
     const now = luxon_1.DateTime.local().setZone('America/Sao_Paulo');
-    const timeSchedule = (now.hour > 5 && now.hour < 21);
+    const timeSchedule = (now.hour > 7 && now.hour < 20);
     const message = !timeSchedule ? `Fora do Horario de Envio 7 às 19: ${now.toFormat('dd/MM/yyyy HH:mm:ss')}` : undefined;
     if (message)
         console.log(message);
@@ -105,6 +105,29 @@ async function ValidatePhone(cellphone) {
     return normalized;
 }
 exports.ValidatePhone = ValidatePhone;
+function normalizePhoneKey(v) {
+    function onlyDigits(v) {
+        return String(v ?? '').replace(/\D/g, '');
+    }
+    const digits = onlyDigits(v);
+    if (!digits)
+        return '';
+    let phone = digits;
+    if (phone.startsWith('55') && phone.length >= 12) {
+        phone = phone.slice(2);
+    }
+    if (phone.length === 11) {
+        return phone.slice(0, 2) + phone.slice(3);
+    }
+    if (phone.length === 10) {
+        return phone;
+    }
+    if (phone.length > 10) {
+        return phone.slice(-10);
+    }
+    return phone;
+}
+exports.normalizePhoneKey = normalizePhoneKey;
 async function validAgent(agent) {
     console.log("Rodando valid agent...");
     await Agent_1.default.query()

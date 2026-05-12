@@ -85,10 +85,12 @@ async function SendFromQueueGupshup(agent) {
             return;
         }
         const interaction = await Interaction_1.default.query()
-            .select('id', 'id_templates_gupshup', 'maxsendlimit')
+            .select('id', 'id_templates_gupshup', 'maxsendlimit', 'status')
             .where('id', shippingCampaign.interaction_id)
+            .andWhere('status', true)
             .first();
         if (!interaction) {
+            console.log(`INTERACTION INATIVA OU NAO ENCONTRADA (GUPSHUP / interaction_id=${shippingCampaign.interaction_id})`);
             return;
         }
         console.log('PASSO 2');

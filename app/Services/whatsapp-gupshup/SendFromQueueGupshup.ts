@@ -116,11 +116,15 @@ export default async function SendFromQueueGupshup(agent: Agent) {
     //    e pega template + maxsendlimit (limite diário da campanha)
     // =====================================================
     const interaction = await Interaction.query()
-      .select('id', 'id_templates_gupshup', 'maxsendlimit')
+      .select('id', 'id_templates_gupshup', 'maxsendlimit', 'status')
       .where('id', shippingCampaign.interaction_id)
+      .andWhere('status', true)
       .first()
 
     if (!interaction) {
+      console.log(
+        `INTERACTION INATIVA OU NAO ENCONTRADA (GUPSHUP / interaction_id=${shippingCampaign.interaction_id})`
+      )
       return
     }
 

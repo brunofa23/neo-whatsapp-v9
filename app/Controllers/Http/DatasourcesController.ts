@@ -284,7 +284,7 @@ export default class DatasourcesController {
     const dateStart = date.startOf('day').toFormat('yyyy-MM-dd HH:mm');
     const dateEnd = date.endOf('day').toFormat('yyyy-MM-dd HH:mm');
 
-    console.log("DATE START:",dateStart,"DATE END:", dateEnd)
+    console.log("DATE START:", dateStart, "DATE END:", dateEnd)
 
     // Função auxiliar para tratar mensagens
     const greeting = async (message: string): Promise<string> => {
@@ -583,7 +583,30 @@ export default class DatasourcesController {
   }
 
 
+  public async getPatientId() {
+    //QUERY PARA BUSCAR O PACIENTE E CONVÊNIO
+    //     SELECT
+    //     P.pac_reg,
+    //       P.pac_nome,
+    //       P.pac_nasc,
+    //       P.pac_fone,
+    //       P.pac_cnv,
+    //       C.CNV_COD AS convenio_id,
+    //         C.CNV_NOME AS convenio_descricao,
+    //           CASE
+    //         WHEN P.PAC_NASC IS NULL THEN NULL
+    //         WHEN DATEDIFF(YEAR, P.PAC_NASC, GETDATE()) < 18 THEN 'menor'
+    //         ELSE 'adulto'
+    //     END AS faixa_etaria
+    // FROM dbo.PAC P
+    // LEFT JOIN dbo.CNV C
+    //     ON C.CNV_COD = P.PAC_CNV
+    // WHERE P.PAC_REG = '217640';
 
+    
+
+
+  }
 
 
 

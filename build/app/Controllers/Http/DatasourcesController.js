@@ -384,6 +384,8 @@ class DatasourcesController {
         });
         return response.send(result);
     }
+    async getPatientId() {
+    }
 }
 exports.default = DatasourcesController;
 //# sourceMappingURL=DatasourcesController.js.map

@@ -384,7 +384,146 @@ class DatasourcesController {
         });
         return response.send(result);
     }
-    async getPatientId() {
+    async medicosPorConvenio({ auth, params, response }) {
+        const pacReg = String(params.paciente_id || '').trim();
+        if (!pacReg) {
+            return response.badRequest({
+                message: 'Paciente não informado',
+            });
+        }
+        const medicosPermitidos = [
+            21725,
+            19744,
+            32782,
+            32768,
+            27684,
+            28909,
+            44616,
+            24701,
+            51257,
+            23648,
+            33072,
+        ];
+        const pacienteResult = await Database_1.default.connection('mssql').rawQuery(`
+    SELECT
+      P.PAC_REG,
+      P.PAC_NOME,
+      P.PAC_NASC,
+      P.PAC_FONE,
+      P.PAC_CNV,
+      C.CNV_COD AS convenio_id,
+      C.CNV_NOME AS convenio_descricao,
+      CASE
+        WHEN P.PAC_NASC IS NULL THEN NULL
+        WHEN DATEDIFF(YEAR, P.PAC_NASC, GETDATE()) < 18 THEN 'infantil'
+        ELSE 'adulto'
+      END AS faixa_etaria
+    FROM dbo.PAC P
+    LEFT JOIN dbo.CNV C
+      ON C.CNV_COD = P.PAC_CNV
+    WHERE P.PAC_REG = ?
+    `, [pacReg]);
+        const pacienteRows = this.getRows(pacienteResult);
+        if (!pacienteRows.length) {
+            return response.notFound({
+                message: 'Paciente não encontrado',
+            });
+        }
+        const paciente = pacienteRows[0];
+        const pacienteId = String(paciente.PAC_REG).trim();
+        const faixaEtaria = this.trimValue(paciente.faixa_etaria);
+        const convenioId = this.trimValue(paciente.convenio_id);
+        const convenioDescricao = this.trimValue(paciente.convenio_descricao);
+        if (!convenioId) {
+            return response.ok({
+                paciente_id: pacienteId,
+                faixa_etaria: faixaEtaria,
+                convenio_id: null,
+                convenio_descricao: null,
+                medicos: [],
+            });
+        }
+        const placeholdersMedicos = medicosPermitidos.map(() => '?').join(', ');
+        const filtroContratoInfantil = faixaEtaria === 'infantil'
+            ? ` AND CAT.CAT_CONTRATO = 'INFANTIL' `
+            : '';
+        const medicosResult = await Database_1.default.connection('mssql').rawQuery(`
+    SELECT
+      CAT.CAT_CNV_COD,
+      CAT.CAT_CONTRATO,
+      PSV.PSV_COD,
+      PSV.PSV_NOME,
+      PSV.PSV_CONSELHO,
+      PSV.PSV_CRM,
+      PSV.PSV_UF,
+      ESM.ESM_ESP,
+      ESP.ESP_NOME
+    FROM CAT
+    INNER JOIN PSV
+      ON CAT.CAT_PSV_COD = PSV.PSV_COD
+    INNER JOIN ESM
+      ON PSV.PSV_COD = ESM.ESM_MED
+    INNER JOIN ESP
+      ON ESM.ESM_ESP = ESP.ESP_COD
+    WHERE CAT.CAT_CNV_COD = ?
+      ${filtroContratoInfantil}
+      AND CAT.CAT_PSV_COD IN (${placeholdersMedicos})
+    ORDER BY PSV.PSV_NOME, ESP.ESP_NOME
+    `, [convenioId, ...medicosPermitidos]);
+        const medicosRows = this.getRows(medicosResult);
+        const medicosMap = new Map();
+        for (const row of medicosRows) {
+            const medicoId = String(row.PSV_COD).trim();
+            if (!medicosMap.has(medicoId)) {
+                medicosMap.set(medicoId, {
+                    medico_id: medicoId,
+                    nome: this.trimValue(row.PSV_NOME),
+                    especialidades: [],
+                    conselho_tipo: this.trimValue(row.PSV_CONSELHO),
+                    conselho_numero: row.PSV_CRM ? String(row.PSV_CRM).trim() : null,
+                    conselho_uf: this.trimValue(row.PSV_UF),
+                });
+            }
+            const medico = medicosMap.get(medicoId);
+            const especialidade = this.trimValue(row.ESP_NOME);
+            if (especialidade &&
+                !medico.especialidades.includes(especialidade)) {
+                medico.especialidades.push(especialidade);
+            }
+        }
+        return response.ok({
+            paciente_id: pacienteId,
+            faixa_etaria: faixaEtaria,
+            convenio_id: convenioId,
+            convenio_descricao: convenioDescricao,
+            medicos: Array.from(medicosMap.values()),
+        });
+    }
+    getRows(result) {
+        if (!result) {
+            return [];
+        }
+        if (Array.isArray(result)) {
+            return result;
+        }
+        if (result?.recordset && Array.isArray(result.recordset)) {
+            return result.recordset;
+        }
+        if (result?.recordsets &&
+            Array.isArray(result.recordsets) &&
+            result.recordsets.length) {
+            return result.recordsets[0];
+        }
+        if (result?.rows && Array.isArray(result.rows)) {
+            return result.rows;
+        }
+        return [];
+    }
+    trimValue(value) {
+        if (typeof value === 'string') {
+            return value.trim();
+        }
+        return value;
     }
 }
 exports.default = DatasourcesController;

@@ -583,37 +583,39 @@ export default class DatasourcesController {
   }
 
 
-  public async medicosPorConvenio({ params, response }: HttpContextContract) {
-  const pacReg = String(params.paciente_id || '').trim()
+  public async medicosPorConvenio({ auth, params, response }: HttpContextContract) {
+    //await auth.use('api').authenticate()
 
-  if (!pacReg) {
-    return response.badRequest({
-      message: 'Paciente não informado',
-    })
-  }
+    const pacReg = String(params.paciente_id || '').trim()
 
-  /**
-   * Médicos permitidos na regra
-   */
-  const medicosPermitidos = [
-    21725,
-    19744,
-    32782,
-    32768,
-    27684,
-    28909,
-    44616,
-    24701,
-    51257,
-    23648,
-    33072,
-  ]
+    if (!pacReg) {
+      return response.badRequest({
+        message: 'Paciente não informado',
+      })
+    }
 
-  /**
-   * 1) Busca os dados do paciente e do convênio
-   */
-  const pacienteResult = await Database.rawQuery(
-    `
+    /**
+     * Médicos permitidos na regra
+     */
+    const medicosPermitidos = [
+      21725,
+      19744,
+      32782,
+      32768,
+      27684,
+      28909,
+      44616,
+      24701,
+      51257,
+      23648,
+      33072,
+    ]
+
+    /**
+     * 1) Busca os dados do paciente e do convênio
+     */
+    const pacienteResult = await Database.connection('mssql').rawQuery(
+      `
     SELECT
       P.PAC_REG,
       P.PAC_NOME,
@@ -632,50 +634,50 @@ export default class DatasourcesController {
       ON C.CNV_COD = P.PAC_CNV
     WHERE P.PAC_REG = ?
     `,
-    [pacReg]
-  )
+      [pacReg]
+    )
 
-  const pacienteRows = this.getRows(pacienteResult)
+    const pacienteRows = this.getRows(pacienteResult)
 
-  if (!pacienteRows.length) {
-    return response.notFound({
-      message: 'Paciente não encontrado',
-    })
-  }
+    if (!pacienteRows.length) {
+      return response.notFound({
+        message: 'Paciente não encontrado',
+      })
+    }
 
-  const paciente = pacienteRows[0]
+    const paciente = pacienteRows[0]
 
-  const pacienteId = String(paciente.PAC_REG).trim()
-  const faixaEtaria = this.trimValue(paciente.faixa_etaria)
-  const convenioId = this.trimValue(paciente.convenio_id)
-  const convenioDescricao = this.trimValue(paciente.convenio_descricao)
+    const pacienteId = String(paciente.PAC_REG).trim()
+    const faixaEtaria = this.trimValue(paciente.faixa_etaria)
+    const convenioId = this.trimValue(paciente.convenio_id)
+    const convenioDescricao = this.trimValue(paciente.convenio_descricao)
 
-  if (!convenioId) {
-    return response.ok({
-      paciente_id: pacienteId,
-      faixa_etaria: faixaEtaria,
-      convenio_id: null,
-      convenio_descricao: null,
-      medicos: [],
-    })
-  }
+    if (!convenioId) {
+      return response.ok({
+        paciente_id: pacienteId,
+        faixa_etaria: faixaEtaria,
+        convenio_id: null,
+        convenio_descricao: null,
+        medicos: [],
+      })
+    }
 
-  /**
-   * 2) Busca os médicos pelo convênio retornado na primeira consulta
-   */
-  const placeholdersMedicos = medicosPermitidos.map(() => '?').join(', ')
+    /**
+     * 2) Busca os médicos pelo convênio retornado na primeira consulta
+     */
+    const placeholdersMedicos = medicosPermitidos.map(() => '?').join(', ')
 
-  /**
-   * Se o paciente for infantil, aplica filtro adicional:
-   * AND CAT.CAT_CONTRATO = 'INFANTIL'
-   */
-  const filtroContratoInfantil =
-    faixaEtaria === 'infantil'
-      ? ` AND CAT.CAT_CONTRATO = 'INFANTIL' `
-      : ''
+    /**
+     * Se o paciente for infantil, aplica filtro adicional:
+     * AND CAT.CAT_CONTRATO = 'INFANTIL'
+     */
+    const filtroContratoInfantil =
+      faixaEtaria === 'infantil'
+        ? ` AND CAT.CAT_CONTRATO = 'INFANTIL' `
+        : ''
 
-  const medicosResult = await Database.rawQuery(
-    `
+    const medicosResult = await Database.connection('mssql').rawQuery(
+      `
     SELECT
       CAT.CAT_CNV_COD,
       CAT.CAT_CONTRATO,
@@ -698,89 +700,89 @@ export default class DatasourcesController {
       AND CAT.CAT_PSV_COD IN (${placeholdersMedicos})
     ORDER BY PSV.PSV_NOME, ESP.ESP_NOME
     `,
-    [convenioId, ...medicosPermitidos]
-  )
+      [convenioId, ...medicosPermitidos]
+    )
 
-  const medicosRows = this.getRows(medicosResult)
+    const medicosRows = this.getRows(medicosResult)
 
-  /**
-   * 3) Agrupa especialidades por médico
-   */
-  const medicosMap = new Map<string, any>()
+    /**
+     * 3) Agrupa especialidades por médico
+     */
+    const medicosMap = new Map<string, any>()
 
-  for (const row of medicosRows) {
-    const medicoId = String(row.PSV_COD).trim()
+    for (const row of medicosRows) {
+      const medicoId = String(row.PSV_COD).trim()
 
-    if (!medicosMap.has(medicoId)) {
-      medicosMap.set(medicoId, {
-        medico_id: medicoId,
-        nome: this.trimValue(row.PSV_NOME),
-        especialidades: [],
-        conselho_tipo: this.trimValue(row.PSV_CONSELHO),
-        conselho_numero: row.PSV_CRM ? String(row.PSV_CRM).trim() : null,
-        conselho_uf: this.trimValue(row.PSV_UF),
-      })
+      if (!medicosMap.has(medicoId)) {
+        medicosMap.set(medicoId, {
+          medico_id: medicoId,
+          nome: this.trimValue(row.PSV_NOME),
+          especialidades: [],
+          conselho_tipo: this.trimValue(row.PSV_CONSELHO),
+          conselho_numero: row.PSV_CRM ? String(row.PSV_CRM).trim() : null,
+          conselho_uf: this.trimValue(row.PSV_UF),
+        })
+      }
+
+      const medico = medicosMap.get(medicoId)
+
+      const especialidade = this.trimValue(row.ESP_NOME)
+
+      if (
+        especialidade &&
+        !medico.especialidades.includes(especialidade)
+      ) {
+        medico.especialidades.push(especialidade)
+      }
     }
 
-    const medico = medicosMap.get(medicoId)
-
-    const especialidade = this.trimValue(row.ESP_NOME)
-
-    if (
-      especialidade &&
-      !medico.especialidades.includes(especialidade)
-    ) {
-      medico.especialidades.push(especialidade)
-    }
+    /**
+     * 4) Monta retorno final
+     */
+    return response.ok({
+      paciente_id: pacienteId,
+      faixa_etaria: faixaEtaria,
+      convenio_id: convenioId,
+      convenio_descricao: convenioDescricao,
+      medicos: Array.from(medicosMap.values()),
+    })
   }
 
-  /**
-   * 4) Monta retorno final
-   */
-  return response.ok({
-    paciente_id: pacienteId,
-    faixa_etaria: faixaEtaria,
-    convenio_id: convenioId,
-    convenio_descricao: convenioDescricao,
-    medicos: Array.from(medicosMap.values()),
-  })
-}
+  private getRows(result: any): any[] {
+    if (!result) {
+      return []
+    }
 
-private getRows(result: any): any[] {
-  if (!result) {
+    if (Array.isArray(result)) {
+      return result
+    }
+
+    if (result?.recordset && Array.isArray(result.recordset)) {
+      return result.recordset
+    }
+
+    if (
+      result?.recordsets &&
+      Array.isArray(result.recordsets) &&
+      result.recordsets.length
+    ) {
+      return result.recordsets[0]
+    }
+
+    if (result?.rows && Array.isArray(result.rows)) {
+      return result.rows
+    }
+
     return []
   }
 
-  if (Array.isArray(result)) {
-    return result
+  private trimValue(value: any): any {
+    if (typeof value === 'string') {
+      return value.trim()
+    }
+
+    return value
   }
-
-  if (result?.recordset && Array.isArray(result.recordset)) {
-    return result.recordset
-  }
-
-  if (
-    result?.recordsets &&
-    Array.isArray(result.recordsets) &&
-    result.recordsets.length
-  ) {
-    return result.recordsets[0]
-  }
-
-  if (result?.rows && Array.isArray(result.rows)) {
-    return result.rows
-  }
-
-  return []
-}
-
-private trimValue(value: any): any {
-  if (typeof value === 'string') {
-    return value.trim()
-  }
-
-  return value
-}
 
 
 

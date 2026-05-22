@@ -110,6 +110,9 @@ Route.group(() => {
   Route.get('/patientsbyprocedures', "DatasourcesController.patientsByProcedures")
   Route.get('/patientsbyschedules', "DatasourcesController.patientsBySchedules")
 
+  //ENDPOINT PARA VILA DA SERRA
+  Route.get('/pacientes/:paciente_id/medicos-convenio', "DatasourcesController.medicosPorConvenio")
+  
 
   Route.post('/logout', 'ShippingcampaignsController.logout')
   Route.post('/chat', 'ShippingcampaignsController.chat')

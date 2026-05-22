@@ -144,3 +144,16 @@ grep -n -C 1 "69c8c537-892c-47db-a302-52b272ce6b4b" ~/.pm2/logs/neoofticial-out.
 
 grep -Rn "5531" ~/.pm2/logs BUSCA PELO NUMERO DE TELEFONE
 grep -n " GUPSHUP WEBHOOK RAW STRING" ~/.pm2/logs/neoofticial-out.log
+
+
+
+
+   "username": "neoviladaserra",
+    "name": "Neo Vila da Serra",
+    "email": "viladaserra@neooftalmo.com.br",
+    "remember_me_token": "Neooftalmo@54321",
+    "superuser": false,
+    "level": 1,
+    "created_at": "2026-05-22T15:57:54.459-03:00",
+    "updated_at": "2026-05-22T15:57:54.459-03:00",
+    "id": 24

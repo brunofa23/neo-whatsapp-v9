@@ -641,11 +641,21 @@ class DatasourcesController {
                 medico.especialidades.push(especialidade);
             }
         }
-        const agendaResponse = await axios_1.default.post('http://192.140.15.170:8081/agendasmart/api/Agenda', agendaBody, {
+        const agendaUrl = 'http://192.168.0.7:8081/agendasmart/api/Agenda';
+        console.log('AGENDA REQUEST', {
+            url: agendaUrl,
+            body: agendaBody,
+        });
+        const agendaResponse = await axios_1.default.post(agendaUrl, agendaBody, {
             headers: {
                 'x-auth-token': '{69158BA5-ED36-4439-A53D-C6D52C228E07}',
                 'Content-Type': 'application/json',
             },
+        });
+        console.log('AGENDA RESPONSE', {
+            status: agendaResponse.status,
+            totalItens: Array.isArray(agendaResponse.data) ? agendaResponse.data.length : null,
+            data: agendaResponse.data,
         });
         return response.ok({
             paciente_id: pacienteId,

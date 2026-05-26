@@ -1,5 +1,4 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-import { Env } from '@ioc:Adonis/Core/Env';
 import Database from '@ioc:Adonis/Lucid/Database'
 import Chat from 'App/Models/Chat';
 import Interaction from 'App/Models/Interaction';
@@ -943,8 +942,15 @@ export default class DatasourcesController {
       }
     }
 
+    const agendaUrl = 'http://192.168.0.7:8081/agendasmart/api/Agenda'
+
+    console.log('AGENDA REQUEST', {
+      url: agendaUrl,
+      body: agendaBody,
+    })
+
     const agendaResponse = await axios.post(
-      'http://192.140.15.170:8081/agendasmart/api/Agenda',
+      agendaUrl,
       agendaBody,
       {
         headers: {
@@ -954,7 +960,11 @@ export default class DatasourcesController {
       }
     )
 
-    console.log("XXXXXXX",agendaResponse)
+    console.log('AGENDA RESPONSE', {
+      status: agendaResponse.status,
+      totalItens: Array.isArray(agendaResponse.data) ? agendaResponse.data.length : null,
+      data: agendaResponse.data,
+    })
     /**
      * 4) Monta retorno final
      */

@@ -8,6 +8,7 @@ const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"))
 const Interaction_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Interaction"));
 const luxon_1 = require("luxon");
 const moment_1 = __importDefault(require("moment"));
+const axios_1 = __importDefault(require("axios"));
 const request_1 = require("../../Services/requestExternal/request");
 const util_1 = require("../../Services/whatsapp-web/util");
 const ResponsesController_1 = __importDefault(require("./ResponsesController"));
@@ -383,6 +384,303 @@ class DatasourcesController {
             return { agm: { ...agm, pac } };
         });
         return response.send(result);
+    }
+    async medicosPorConvenio({ auth, params, response }) {
+        const pacReg = String(params.paciente_id || '').trim();
+        if (!pacReg) {
+            return response.badRequest({
+                erro: 'paciente_nao_encontrado',
+                mensagem: 'Nenhum registro de paciente encontrado para o paciente_id informado.'
+            });
+        }
+        const medicosPermitidos = [
+            21725,
+            19744,
+            32782,
+            32768,
+            27684,
+            28909,
+            44616,
+            24701,
+            51257,
+            23648,
+            33072,
+        ];
+        const pacienteResult = await Database_1.default.connection('mssql').rawQuery(`
+    SELECT
+      P.PAC_REG,
+      P.PAC_NOME,
+      P.PAC_NASC,
+      P.PAC_FONE,
+      P.PAC_CNV,
+      C.CNV_COD AS convenio_id,
+      C.CNV_NOME AS convenio_descricao,
+      CASE
+        WHEN P.PAC_NASC IS NULL THEN NULL
+        WHEN DATEDIFF(YEAR, P.PAC_NASC, GETDATE()) < 18 THEN 'infantil'
+        ELSE 'adulto'
+      END AS faixa_etaria
+    FROM dbo.PAC P
+    LEFT JOIN dbo.CNV C
+      ON C.CNV_COD = P.PAC_CNV
+    WHERE P.PAC_REG = ?
+    `, [pacReg]);
+        const pacienteRows = this.getRows(pacienteResult);
+        console.log(pacienteRows);
+        if (!pacienteRows.length) {
+            return response.notFound({
+                erro: 'paciente_nao_encontrado',
+                mensagem: 'Nenhum registro de paciente encontrado para o paciente_id informado.'
+            });
+        }
+        const paciente = pacienteRows[0];
+        if (!paciente.PAC_NASC) {
+            return response.badRequest({
+                erro: 'data_nascimento_ausente',
+                mensagem: 'O registro do paciente nao possui data de nascimento valida. A filtragem por faixa etaria nao pode ser aplicada.'
+            });
+        }
+        const pacienteId = String(paciente.PAC_REG).trim();
+        const faixaEtaria = this.trimValue(paciente.faixa_etaria);
+        const convenioId = this.trimValue(paciente.convenio_id);
+        const convenioDescricao = this.trimValue(paciente.convenio_descricao);
+        if (!convenioId) {
+            return response.ok({
+                paciente_id: pacienteId,
+                faixa_etaria: faixaEtaria,
+                convenio_id: null,
+                convenio_descricao: null,
+                medicos: [],
+            });
+        }
+        const placeholdersMedicos = medicosPermitidos.map(() => '?').join(', ');
+        const filtroContratoInfantil = faixaEtaria === 'infantil'
+            ? ` AND CAT.CAT_CONTRATO = 'INFANTIL' `
+            : '';
+        const medicosResult = await Database_1.default.connection('mssql').rawQuery(`
+    SELECT
+      CAT.CAT_CNV_COD,
+      CAT.CAT_CONTRATO,
+      PSV.PSV_COD,
+      PSV.PSV_NOME,
+      PSV.PSV_CONSELHO,
+      PSV.PSV_CRM,
+      PSV.PSV_UF,
+      ESM.ESM_ESP,
+      ESP.ESP_NOME
+    FROM CAT
+    INNER JOIN PSV
+      ON CAT.CAT_PSV_COD = PSV.PSV_COD
+    INNER JOIN ESM
+      ON PSV.PSV_COD = ESM.ESM_MED
+    INNER JOIN ESP
+      ON ESM.ESM_ESP = ESP.ESP_COD
+    WHERE CAT.CAT_CNV_COD = ?
+      ${filtroContratoInfantil}
+      AND CAT.CAT_PSV_COD IN (${placeholdersMedicos})
+    ORDER BY PSV.PSV_NOME, ESP.ESP_NOME
+    `, [convenioId, ...medicosPermitidos]);
+        const medicosRows = this.getRows(medicosResult);
+        const medicosMap = new Map();
+        for (const row of medicosRows) {
+            const medicoId = String(row.PSV_COD).trim();
+            if (!medicosMap.has(medicoId)) {
+                medicosMap.set(medicoId, {
+                    medico_id: medicoId,
+                    nome: this.trimValue(row.PSV_NOME),
+                    especialidades: [],
+                    conselho_tipo: this.trimValue(row.PSV_CONSELHO),
+                    conselho_numero: row.PSV_CRM ? String(row.PSV_CRM).trim() : null,
+                    conselho_uf: this.trimValue(row.PSV_UF),
+                });
+            }
+            const medico = medicosMap.get(medicoId);
+            const especialidade = this.trimValue(row.ESP_NOME);
+            if (especialidade &&
+                !medico.especialidades.includes(especialidade)) {
+                medico.especialidades.push(especialidade);
+            }
+        }
+        return response.ok({
+            paciente_id: pacienteId,
+            faixa_etaria: faixaEtaria,
+            convenio_id: convenioId,
+            convenio_descricao: convenioDescricao,
+            medicos: Array.from(medicosMap.values()),
+        });
+    }
+    async medicosPorConvenioHorario({ auth, params, response }) {
+        const pacReg = String(params.paciente_id || '').trim();
+        const profissionalExecutanteId = String(params.profissional_executante_id || '').trim();
+        if (!pacReg) {
+            return response.badRequest({
+                erro: 'paciente_nao_encontrado',
+                mensagem: 'Nenhum registro de paciente encontrado para o paciente_id informado.'
+            });
+        }
+        const medicosPermitidos = [
+            21725,
+            19744,
+            32782,
+            32768,
+            27684,
+            28909,
+            44616,
+            24701,
+            51257,
+            23648,
+            33072,
+        ];
+        const pacienteResult = await Database_1.default.connection('mssql').rawQuery(`
+    SELECT
+      P.PAC_REG,
+      P.PAC_NOME,
+      P.PAC_NASC,
+      P.PAC_FONE,
+      P.PAC_CNV,
+      C.CNV_COD AS convenio_id,
+      C.CNV_NOME AS convenio_descricao,
+      CASE
+        WHEN P.PAC_NASC IS NULL THEN NULL
+        WHEN DATEDIFF(YEAR, P.PAC_NASC, GETDATE()) < 18 THEN 'infantil'
+        ELSE 'adulto'
+      END AS faixa_etaria
+    FROM dbo.PAC P
+    LEFT JOIN dbo.CNV C
+      ON C.CNV_COD = P.PAC_CNV
+    WHERE P.PAC_REG = ?
+    `, [pacReg]);
+        const pacienteRows = this.getRows(pacienteResult);
+        if (!pacienteRows.length) {
+            return response.notFound({
+                erro: 'paciente_nao_encontrado',
+                mensagem: 'Nenhum registro de paciente encontrado para o paciente_id informado.'
+            });
+        }
+        const paciente = pacienteRows[0];
+        if (!paciente.PAC_NASC) {
+            return response.badRequest({
+                erro: 'data_nascimento_ausente',
+                mensagem: 'O registro do paciente nao possui data de nascimento valida. A filtragem por faixa etaria nao pode ser aplicada.'
+            });
+        }
+        const pacienteId = String(paciente.PAC_REG).trim();
+        const faixaEtaria = this.trimValue(paciente.faixa_etaria);
+        const convenioId = this.trimValue(paciente.convenio_id);
+        const convenioDescricao = this.trimValue(paciente.convenio_descricao);
+        if (!convenioId) {
+            return response.ok({
+                paciente_id: pacienteId,
+                faixa_etaria: faixaEtaria,
+                convenio_id: null,
+                convenio_descricao: null,
+                medicos: [],
+            });
+        }
+        const dataIni = luxon_1.DateTime.local().toUTC().toISO({ suppressMilliseconds: true });
+        const dataFim = luxon_1.DateTime.local().plus({ days: 10 }).toUTC().toISO({ suppressMilliseconds: true });
+        const procedimentoAgenda = {
+            ProcedimentoId: '00010014',
+            ConvenioId: convenioId,
+            UnidadeId: '14',
+        };
+        if (profissionalExecutanteId) {
+            procedimentoAgenda.ProfissionalExecutanteId = profissionalExecutanteId;
+        }
+        const agendaBody = {
+            DataIni: dataIni,
+            DataFim: dataFim,
+            Especialidade: 'OFT',
+            ListaProcedimento: [procedimentoAgenda],
+        };
+        const placeholdersMedicos = medicosPermitidos.map(() => '?').join(', ');
+        const filtroContratoInfantil = faixaEtaria === 'infantil'
+            ? ` AND CAT.CAT_CONTRATO = 'INFANTIL' `
+            : '';
+        const medicosResult = await Database_1.default.connection('mssql').rawQuery(`
+    SELECT
+      CAT.CAT_CNV_COD,
+      CAT.CAT_CONTRATO,
+      PSV.PSV_COD,
+      PSV.PSV_NOME,
+      PSV.PSV_CONSELHO,
+      PSV.PSV_CRM,
+      PSV.PSV_UF,
+      ESM.ESM_ESP,
+      ESP.ESP_NOME
+    FROM CAT
+    INNER JOIN PSV
+      ON CAT.CAT_PSV_COD = PSV.PSV_COD
+    INNER JOIN ESM
+      ON PSV.PSV_COD = ESM.ESM_MED
+    INNER JOIN ESP
+      ON ESM.ESM_ESP = ESP.ESP_COD
+    WHERE CAT.CAT_CNV_COD = ?
+      ${filtroContratoInfantil}
+      AND CAT.CAT_PSV_COD IN (${placeholdersMedicos})
+    ORDER BY PSV.PSV_NOME, ESP.ESP_NOME
+    `, [convenioId, ...medicosPermitidos]);
+        const medicosRows = this.getRows(medicosResult);
+        const medicosMap = new Map();
+        for (const row of medicosRows) {
+            const medicoId = String(row.PSV_COD).trim();
+            if (!medicosMap.has(medicoId)) {
+                medicosMap.set(medicoId, {
+                    medico_id: medicoId,
+                    nome: this.trimValue(row.PSV_NOME),
+                    especialidades: [],
+                    conselho_tipo: this.trimValue(row.PSV_CONSELHO),
+                    conselho_numero: row.PSV_CRM ? String(row.PSV_CRM).trim() : null,
+                    conselho_uf: this.trimValue(row.PSV_UF),
+                });
+            }
+            const medico = medicosMap.get(medicoId);
+            const especialidade = this.trimValue(row.ESP_NOME);
+            if (especialidade &&
+                !medico.especialidades.includes(especialidade)) {
+                medico.especialidades.push(especialidade);
+            }
+        }
+        const agendaResponse = await axios_1.default.post('http://192.140.15.170:8081/agendasmart/api/Agenda', agendaBody, {
+            headers: {
+                'x-auth-token': '{69158BA5-ED36-4439-A53D-C6D52C228E07}',
+                'Content-Type': 'application/json',
+            },
+        });
+        return response.ok({
+            paciente_id: pacienteId,
+            faixa_etaria: faixaEtaria,
+            convenio_id: convenioId,
+            convenio_descricao: convenioDescricao,
+            medicos: Array.from(medicosMap.values()),
+            horarios: agendaResponse.data,
+        });
+    }
+    getRows(result) {
+        if (!result) {
+            return [];
+        }
+        if (Array.isArray(result)) {
+            return result;
+        }
+        if (result?.recordset && Array.isArray(result.recordset)) {
+            return result.recordset;
+        }
+        if (result?.recordsets &&
+            Array.isArray(result.recordsets) &&
+            result.recordsets.length) {
+            return result.recordsets[0];
+        }
+        if (result?.rows && Array.isArray(result.rows)) {
+            return result.rows;
+        }
+        return [];
+    }
+    trimValue(value) {
+        if (typeof value === 'string') {
+            return value.trim();
+        }
+        return value;
     }
 }
 exports.default = DatasourcesController;

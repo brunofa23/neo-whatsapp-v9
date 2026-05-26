@@ -84,6 +84,8 @@ Route_1.default.group(() => {
     Route_1.default.get("/confirmscheduleall", "DatasourcesController.confirmScheduleAll");
     Route_1.default.get('/patientsbyprocedures', "DatasourcesController.patientsByProcedures");
     Route_1.default.get('/patientsbyschedules', "DatasourcesController.patientsBySchedules");
+    Route_1.default.get('/pacientes/:paciente_id/medicos-convenio', "DatasourcesController.medicosPorConvenio");
+    Route_1.default.get('/pacientes/:paciente_id/medicos-convenio-horario/:profissional_executante_id?', "DatasourcesController.medicosPorConvenioHorario");
     Route_1.default.post('/logout', 'ShippingcampaignsController.logout');
     Route_1.default.post('/chat', 'ShippingcampaignsController.chat');
     Route_1.default.get('/maxlimitsendmessage', 'ShippingcampaignsController.maxLimitSendMessage');

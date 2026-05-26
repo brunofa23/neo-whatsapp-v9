@@ -1,11 +1,11 @@
-import { Env } from '@ioc:Adonis/Core/Env';
+import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Database from '@ioc:Adonis/Lucid/Database'
 import Chat from 'App/Models/Chat';
 import Interaction from 'App/Models/Interaction';
 import Response from 'App/Models/Response';
 import { DateTime } from 'luxon';
 import moment from 'moment';
-import { cancelSchedule, session } from '../../Services/requestExternal/request'
+import { cancelSchedule, agendaResponse as requestAgendaResponse } from '../../Services/requestExternal/request'
 import { DateFormat } from '../../Services/whatsapp-web/util'
 import ResponsesController from './ResponsesController';
 import Shippingcampaign from 'App/Models/Shippingcampaign';
@@ -590,7 +590,8 @@ export default class DatasourcesController {
 
     if (!pacReg) {
       return response.badRequest({
-        message: 'Paciente não informado',
+        erro: 'paciente_nao_encontrado',
+        mensagem: 'Nenhum registro de paciente encontrado para o paciente_id informado.'
       })
     }
 
@@ -639,13 +640,23 @@ export default class DatasourcesController {
 
     const pacienteRows = this.getRows(pacienteResult)
 
+    console.log(pacienteRows)
+
     if (!pacienteRows.length) {
       return response.notFound({
-        message: 'Paciente não encontrado',
+        erro: 'paciente_nao_encontrado',
+        mensagem: 'Nenhum registro de paciente encontrado para o paciente_id informado.'
       })
     }
 
     const paciente = pacienteRows[0]
+
+    if (!paciente.PAC_NASC) {
+      return response.badRequest({
+        erro: 'data_nascimento_ausente',
+        mensagem: 'O registro do paciente nao possui data de nascimento valida. A filtragem por faixa etaria nao pode ser aplicada.'
+      })
+    }
 
     const pacienteId = String(paciente.PAC_REG).trim()
     const faixaEtaria = this.trimValue(paciente.faixa_etaria)
@@ -745,6 +756,215 @@ export default class DatasourcesController {
       convenio_id: convenioId,
       convenio_descricao: convenioDescricao,
       medicos: Array.from(medicosMap.values()),
+    })
+  }
+
+  public async medicosPorConvenioHorario({ auth, params, response }: HttpContextContract) {
+    //await auth.use('api').authenticate()
+
+    const pacReg = String(params.paciente_id || '').trim()
+    const profissionalExecutanteId = String(params.profissional_executante_id || '').trim()
+
+    if (!pacReg) {
+      return response.badRequest({
+        erro: 'paciente_nao_encontrado',
+        mensagem: 'Nenhum registro de paciente encontrado para o paciente_id informado.'
+      })
+    }
+
+    /**
+     * Médicos permitidos na regra
+     */
+    const medicosPermitidos = [
+      21725,
+      19744,
+      32782,
+      32768,
+      27684,
+      28909,
+      44616,
+      24701,
+      51257,
+      23648,
+      33072,
+    ]
+
+    /**
+     * 1) Busca os dados do paciente e do convênio
+     */
+    const pacienteResult = await Database.connection('mssql').rawQuery(
+      `
+    SELECT
+      P.PAC_REG,
+      P.PAC_NOME,
+      P.PAC_NASC,
+      P.PAC_FONE,
+      P.PAC_CNV,
+      C.CNV_COD AS convenio_id,
+      C.CNV_NOME AS convenio_descricao,
+      CASE
+        WHEN P.PAC_NASC IS NULL THEN NULL
+        WHEN DATEDIFF(YEAR, P.PAC_NASC, GETDATE()) < 18 THEN 'infantil'
+        ELSE 'adulto'
+      END AS faixa_etaria
+    FROM dbo.PAC P
+    LEFT JOIN dbo.CNV C
+      ON C.CNV_COD = P.PAC_CNV
+    WHERE P.PAC_REG = ?
+    `,
+      [pacReg]
+    )
+
+    const pacienteRows = this.getRows(pacienteResult)
+
+    if (!pacienteRows.length) {
+      return response.notFound({
+        erro: 'paciente_nao_encontrado',
+        mensagem: 'Nenhum registro de paciente encontrado para o paciente_id informado.'
+      })
+    }
+
+    const paciente = pacienteRows[0]
+
+    if (!paciente.PAC_NASC) {
+      return response.badRequest({
+        erro: 'data_nascimento_ausente',
+        mensagem: 'O registro do paciente nao possui data de nascimento valida. A filtragem por faixa etaria nao pode ser aplicada.'
+      })
+    }
+
+    const pacienteId = String(paciente.PAC_REG).trim()
+    const faixaEtaria = this.trimValue(paciente.faixa_etaria)
+    const convenioId = this.trimValue(paciente.convenio_id)
+    const convenioDescricao = this.trimValue(paciente.convenio_descricao)
+
+    if (!convenioId) {
+      return response.ok({
+        paciente_id: pacienteId,
+        faixa_etaria: faixaEtaria,
+        convenio_id: null,
+        convenio_descricao: null,
+        medicos: [],
+      })
+    }
+
+    const dataIni = DateTime.local().toUTC().toISO({ suppressMilliseconds: true })
+    const dataFim = DateTime.local().plus({ days: 10 }).toUTC().toISO({ suppressMilliseconds: true })
+    const procedimentoAgenda: any = {
+      ProcedimentoId: '00010014',
+      ConvenioId: convenioId,
+      UnidadeId: '14',
+    }
+
+    if (profissionalExecutanteId) {
+      procedimentoAgenda.ProfissionalExecutanteId = profissionalExecutanteId
+    }
+
+    const agendaBody = {
+      DataIni: dataIni,
+      DataFim: dataFim,
+      Especialidade: 'OFT',
+      ListaProcedimento: [procedimentoAgenda],
+    }
+
+    /**
+     * 2) Busca os médicos pelo convênio retornado na primeira consulta
+     */
+    const placeholdersMedicos = medicosPermitidos.map(() => '?').join(', ')
+
+    /**
+     * Se o paciente for infantil, aplica filtro adicional:
+     * AND CAT.CAT_CONTRATO = 'INFANTIL'
+     */
+    const filtroContratoInfantil =
+      faixaEtaria === 'infantil'
+        ? ` AND CAT.CAT_CONTRATO = 'INFANTIL' `
+        : ''
+
+    const medicosResult = await Database.connection('mssql').rawQuery(
+      `
+    SELECT
+      CAT.CAT_CNV_COD,
+      CAT.CAT_CONTRATO,
+      PSV.PSV_COD,
+      PSV.PSV_NOME,
+      PSV.PSV_CONSELHO,
+      PSV.PSV_CRM,
+      PSV.PSV_UF,
+      ESM.ESM_ESP,
+      ESP.ESP_NOME
+    FROM CAT
+    INNER JOIN PSV
+      ON CAT.CAT_PSV_COD = PSV.PSV_COD
+    INNER JOIN ESM
+      ON PSV.PSV_COD = ESM.ESM_MED
+    INNER JOIN ESP
+      ON ESM.ESM_ESP = ESP.ESP_COD
+    WHERE CAT.CAT_CNV_COD = ?
+      ${filtroContratoInfantil}
+      AND CAT.CAT_PSV_COD IN (${placeholdersMedicos})
+    ORDER BY PSV.PSV_NOME, ESP.ESP_NOME
+    `,
+      [convenioId, ...medicosPermitidos]
+    )
+
+    const medicosRows = this.getRows(medicosResult)
+
+    /**
+     * 3) Agrupa especialidades por médico
+     */
+    const medicosMap = new Map<string, any>()
+
+    for (const row of medicosRows) {
+      const medicoId = String(row.PSV_COD).trim()
+
+      if (!medicosMap.has(medicoId)) {
+        medicosMap.set(medicoId, {
+          medico_id: medicoId,
+          nome: this.trimValue(row.PSV_NOME),
+          especialidades: [],
+          conselho_tipo: this.trimValue(row.PSV_CONSELHO),
+          conselho_numero: row.PSV_CRM ? String(row.PSV_CRM).trim() : null,
+          conselho_uf: this.trimValue(row.PSV_UF),
+        })
+      }
+
+      const medico = medicosMap.get(medicoId)
+
+      const especialidade = this.trimValue(row.ESP_NOME)
+
+      if (
+        especialidade &&
+        !medico.especialidades.includes(especialidade)
+      ) {
+        medico.especialidades.push(especialidade)
+      }
+    }
+
+    const agendaUrl = `${process.env.SERVER_URL_API_NEO}/Agenda`
+    console.log("SERVER>>>>>>>>>>>>>", agendaUrl)
+    console.log('AGENDA REQUEST', {
+      url: agendaUrl,
+      body: agendaBody,
+    })
+
+    const agendaResponse = await requestAgendaResponse(agendaBody)
+
+    console.log('AGENDA RESPONSE', {
+      status: agendaResponse.status,
+      totalItens: Array.isArray(agendaResponse.data) ? agendaResponse.data.length : null,
+      data: agendaResponse.data,
+    })
+    /**
+     * 4) Monta retorno final
+     */
+    return response.ok({
+      paciente_id: pacienteId,
+      faixa_etaria: faixaEtaria,
+      convenio_id: convenioId,
+      convenio_descricao: convenioDescricao,
+      medicos: Array.from(medicosMap.values()),
+      horarios: agendaResponse.data,
     })
   }
 

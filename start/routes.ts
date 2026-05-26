@@ -112,6 +112,7 @@ Route.group(() => {
 
   //ENDPOINT PARA VILA DA SERRA
   Route.get('/pacientes/:paciente_id/medicos-convenio', "DatasourcesController.medicosPorConvenio")
+  Route.get('/pacientes/:paciente_id/medicos-convenio-horario/:profissional_executante_id?', "DatasourcesController.medicosPorConvenioHorario")
   
 
   Route.post('/logout', 'ShippingcampaignsController.logout')
@@ -181,7 +182,6 @@ Route.group(() => {
 
 
 }).prefix('/api')
-
 
 
 

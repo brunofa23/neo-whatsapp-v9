@@ -8,7 +8,6 @@ const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"))
 const Interaction_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Interaction"));
 const luxon_1 = require("luxon");
 const moment_1 = __importDefault(require("moment"));
-const axios_1 = __importDefault(require("axios"));
 const request_1 = require("../../Services/requestExternal/request");
 const util_1 = require("../../Services/whatsapp-web/util");
 const ResponsesController_1 = __importDefault(require("./ResponsesController"));
@@ -641,17 +640,13 @@ class DatasourcesController {
                 medico.especialidades.push(especialidade);
             }
         }
-        const agendaUrl = 'http://192.168.0.7:8081/agendasmart/api/Agenda';
+        const agendaUrl = `${process.env.SERVER_URL_API_NEO}/Agenda`;
+        console.log("SERVER>>>>>>>>>>>>>", agendaUrl);
         console.log('AGENDA REQUEST', {
             url: agendaUrl,
             body: agendaBody,
         });
-        const agendaResponse = await axios_1.default.post(agendaUrl, agendaBody, {
-            headers: {
-                'x-auth-token': '{69158BA5-ED36-4439-A53D-C6D52C228E07}',
-                'Content-Type': 'application/json',
-            },
-        });
+        const agendaResponse = await (0, request_1.agendaResponse)(agendaBody);
         console.log('AGENDA RESPONSE', {
             status: agendaResponse.status,
             totalItens: Array.isArray(agendaResponse.data) ? agendaResponse.data.length : null,

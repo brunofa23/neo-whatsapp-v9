@@ -5,8 +5,7 @@ import Interaction from 'App/Models/Interaction';
 import Response from 'App/Models/Response';
 import { DateTime } from 'luxon';
 import moment from 'moment';
-import axios from 'axios'
-import { cancelSchedule, session } from '../../Services/requestExternal/request'
+import { cancelSchedule, agendaResponse as requestAgendaResponse } from '../../Services/requestExternal/request'
 import { DateFormat } from '../../Services/whatsapp-web/util'
 import ResponsesController from './ResponsesController';
 import Shippingcampaign from 'App/Models/Shippingcampaign';
@@ -942,23 +941,14 @@ export default class DatasourcesController {
       }
     }
 
-    const agendaUrl = 'http://192.168.0.7:8081/agendasmart/api/Agenda'
-
+    const agendaUrl = `${process.env.SERVER_URL_API_NEO}/Agenda`
+    console.log("SERVER>>>>>>>>>>>>>", agendaUrl)
     console.log('AGENDA REQUEST', {
       url: agendaUrl,
       body: agendaBody,
     })
 
-    const agendaResponse = await axios.post(
-      agendaUrl,
-      agendaBody,
-      {
-        headers: {
-          'x-auth-token': '{69158BA5-ED36-4439-A53D-C6D52C228E07}',
-          'Content-Type': 'application/json',
-        },
-      }
-    )
+    const agendaResponse = await requestAgendaResponse(agendaBody)
 
     console.log('AGENDA RESPONSE', {
       status: agendaResponse.status,

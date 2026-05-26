@@ -590,7 +590,8 @@ export default class DatasourcesController {
 
     if (!pacReg) {
       return response.badRequest({
-        message: 'Paciente não informado',
+        erro: 'paciente_nao_encontrado',
+        mensagem: 'Nenhum registro de paciente encontrado para o paciente_id informado.'
       })
     }
 
@@ -639,13 +640,23 @@ export default class DatasourcesController {
 
     const pacienteRows = this.getRows(pacienteResult)
 
+    console.log(pacienteRows)
+
     if (!pacienteRows.length) {
       return response.notFound({
-        message: 'Paciente não encontrado',
+        erro: 'paciente_nao_encontrado',
+        mensagem: 'Nenhum registro de paciente encontrado para o paciente_id informado.'
       })
     }
 
     const paciente = pacienteRows[0]
+
+    if (!paciente.PAC_NASC) {
+      return response.badRequest({
+        erro: 'data_nascimento_ausente',
+        mensagem: 'O registro do paciente nao possui data de nascimento valida. A filtragem por faixa etaria nao pode ser aplicada.'
+      })
+    }
 
     const pacienteId = String(paciente.PAC_REG).trim()
     const faixaEtaria = this.trimValue(paciente.faixa_etaria)

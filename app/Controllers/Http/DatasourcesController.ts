@@ -676,19 +676,59 @@ export default class DatasourcesController {
     /**
      * 2) Busca os médicos pelo convênio retornado na primeira consulta
      */
-    const placeholdersMedicos = medicosPermitidos.map(() => '?').join(', ')
-
-    /**
-     * Se o paciente for infantil, aplica filtro adicional:
-     * AND CAT.CAT_CONTRATO = 'INFANTIL'
-     */
-    const filtroContratoInfantil =
+    const conveniosInfantisPermitidos = [
+      '1L',
+      '3P',
+      '27',
+      'NEF',
+      '2U',
+      'NAB',
+      'BCB',
+      '2V',
+      'NSX',
+      'NAM',
+      'BVA',
+      'OVA',
+      'NPM',
+      '2Z',
+      'NFF',
+      '3X',
+      'AMG',
+      'VFP',
+    ]
+    const medicosInfantisPermitidos = [24701, 51257]
+    const medicosConsulta =
       faixaEtaria === 'infantil'
-        ? ` AND CAT.CAT_CONTRATO = 'INFANTIL' `
-        : ''
+        ? conveniosInfantisPermitidos.includes(String(convenioId).trim())
+          ? medicosInfantisPermitidos
+          : []
+        : medicosPermitidos
 
-    const medicosResult = await Database.connection('mssql').rawQuery(
-      `
+    const placeholdersMedicos = medicosConsulta.map(() => '?').join(', ')
+
+    const medicosResult = medicosConsulta.length
+      ? await Database.connection('mssql').rawQuery(
+        faixaEtaria === 'infantil'
+          ? `
+    SELECT
+      ? AS CAT_CNV_COD,
+      'INFANTIL' AS CAT_CONTRATO,
+      PSV.PSV_COD,
+      PSV.PSV_NOME,
+      PSV.PSV_CONSELHO,
+      PSV.PSV_CRM,
+      PSV.PSV_UF,
+      ESM.ESM_ESP,
+      ESP.ESP_NOME
+    FROM PSV
+    INNER JOIN ESM
+      ON PSV.PSV_COD = ESM.ESM_MED
+    INNER JOIN ESP
+      ON ESM.ESM_ESP = ESP.ESP_COD
+    WHERE PSV.PSV_COD IN (${placeholdersMedicos})
+    ORDER BY PSV.PSV_NOME, ESP.ESP_NOME
+    `
+          : `
     SELECT
       CAT.CAT_CNV_COD,
       CAT.CAT_CONTRATO,
@@ -707,12 +747,12 @@ export default class DatasourcesController {
     INNER JOIN ESP
       ON ESM.ESM_ESP = ESP.ESP_COD
     WHERE CAT.CAT_CNV_COD = ?
-      ${filtroContratoInfantil}
       AND CAT.CAT_PSV_COD IN (${placeholdersMedicos})
     ORDER BY PSV.PSV_NOME, ESP.ESP_NOME
     `,
-      [convenioId, ...medicosPermitidos]
-    )
+        [convenioId, ...medicosConsulta]
+      )
+      : []
 
     const medicosRows = this.getRows(medicosResult)
 
@@ -870,19 +910,59 @@ export default class DatasourcesController {
     /**
      * 2) Busca os médicos pelo convênio retornado na primeira consulta
      */
-    const placeholdersMedicos = medicosPermitidos.map(() => '?').join(', ')
-
-    /**
-     * Se o paciente for infantil, aplica filtro adicional:
-     * AND CAT.CAT_CONTRATO = 'INFANTIL'
-     */
-    const filtroContratoInfantil =
+    const conveniosInfantisPermitidos = [
+      '1L',
+      '3P',
+      '27',
+      'NEF',
+      '2U',
+      'NAB',
+      'BCB',
+      '2V',
+      'NSX',
+      'NAM',
+      'BVA',
+      'OVA',
+      'NPM',
+      '2Z',
+      'NFF',
+      '3X',
+      'AMG',
+      'VFP',
+    ]
+    const medicosInfantisPermitidos = [24701, 51257]
+    const medicosConsulta =
       faixaEtaria === 'infantil'
-        ? ` AND CAT.CAT_CONTRATO = 'INFANTIL' `
-        : ''
+        ? conveniosInfantisPermitidos.includes(String(convenioId).trim())
+          ? medicosInfantisPermitidos
+          : []
+        : medicosPermitidos
 
-    const medicosResult = await Database.connection('mssql').rawQuery(
-      `
+    const placeholdersMedicos = medicosConsulta.map(() => '?').join(', ')
+
+    const medicosResult = medicosConsulta.length
+      ? await Database.connection('mssql').rawQuery(
+        faixaEtaria === 'infantil'
+          ? `
+    SELECT
+      ? AS CAT_CNV_COD,
+      'INFANTIL' AS CAT_CONTRATO,
+      PSV.PSV_COD,
+      PSV.PSV_NOME,
+      PSV.PSV_CONSELHO,
+      PSV.PSV_CRM,
+      PSV.PSV_UF,
+      ESM.ESM_ESP,
+      ESP.ESP_NOME
+    FROM PSV
+    INNER JOIN ESM
+      ON PSV.PSV_COD = ESM.ESM_MED
+    INNER JOIN ESP
+      ON ESM.ESM_ESP = ESP.ESP_COD
+    WHERE PSV.PSV_COD IN (${placeholdersMedicos})
+    ORDER BY PSV.PSV_NOME, ESP.ESP_NOME
+    `
+          : `
     SELECT
       CAT.CAT_CNV_COD,
       CAT.CAT_CONTRATO,
@@ -901,12 +981,12 @@ export default class DatasourcesController {
     INNER JOIN ESP
       ON ESM.ESM_ESP = ESP.ESP_COD
     WHERE CAT.CAT_CNV_COD = ?
-      ${filtroContratoInfantil}
       AND CAT.CAT_PSV_COD IN (${placeholdersMedicos})
     ORDER BY PSV.PSV_NOME, ESP.ESP_NOME
     `,
-      [convenioId, ...medicosPermitidos]
-    )
+        [convenioId, ...medicosConsulta]
+      )
+      : []
 
     const medicosRows = this.getRows(medicosResult)
 

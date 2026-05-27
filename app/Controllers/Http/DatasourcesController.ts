@@ -695,6 +695,7 @@ export default class DatasourcesController {
       '3X',
       'AMG',
       'VFP',
+      'NCO'
     ]
     const medicosInfantisPermitidos = [24701, 51257]
     const medicosConsulta =
@@ -929,6 +930,7 @@ export default class DatasourcesController {
       '3X',
       'AMG',
       'VFP',
+      'NCO'
     ]
     const medicosInfantisPermitidos = [24701, 51257]
     const medicosConsulta =

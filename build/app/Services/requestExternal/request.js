@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.confirmOrCancelScheduleApi = exports.getSchedulesApi = exports.agendaResponse = exports.session = exports.cancelSchedule = void 0;
+exports.confirmOrCancelScheduleApi = exports.getSchedulesApi = exports.confirmarAgendaResponse = exports.agendaResponse = exports.session = exports.cancelSchedule = void 0;
 const axios_1 = __importDefault(require("axios"));
 async function session() {
     try {
@@ -58,6 +58,25 @@ async function agendaResponse(body) {
     return response;
 }
 exports.agendaResponse = agendaResponse;
+async function confirmarAgendaResponse(body) {
+    let token;
+    const responseSession = await session();
+    if (responseSession?.status == 200) {
+        token =
+            responseSession.data?.Token ||
+                responseSession.data?.token ||
+                responseSession.data?.['x-auth-token'] ||
+                responseSession.headers?.['x-auth-token'];
+    }
+    const headers = {
+        'x-auth-token': token,
+        'Content-Type': 'application/json',
+    };
+    const url = "/Agenda/confirmar";
+    const response = await axios_1.default.post(url, body, { headers });
+    return response;
+}
+exports.confirmarAgendaResponse = confirmarAgendaResponse;
 async function getSchedulesApi(date) {
     try {
         console.log("API KLINGO!!");

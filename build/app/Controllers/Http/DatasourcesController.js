@@ -452,11 +452,56 @@ class DatasourcesController {
                 medicos: [],
             });
         }
-        const placeholdersMedicos = medicosPermitidos.map(() => '?').join(', ');
-        const filtroContratoInfantil = faixaEtaria === 'infantil'
-            ? ` AND CAT.CAT_CONTRATO = 'INFANTIL' `
-            : '';
-        const medicosResult = await Database_1.default.connection('mssql').rawQuery(`
+        const conveniosInfantisPermitidos = [
+            '1L',
+            '3P',
+            '27',
+            'NEF',
+            '2U',
+            'NAB',
+            'BCB',
+            '2V',
+            'NSX',
+            'NAM',
+            'BVA',
+            'OVA',
+            'NPM',
+            '2Z',
+            'NFF',
+            '3X',
+            'AMG',
+            'VFP',
+            'NCO'
+        ];
+        const medicosInfantisPermitidos = [24701, 51257];
+        const medicosConsulta = faixaEtaria === 'infantil'
+            ? conveniosInfantisPermitidos.includes(String(convenioId).trim())
+                ? medicosInfantisPermitidos
+                : []
+            : medicosPermitidos;
+        const placeholdersMedicos = medicosConsulta.map(() => '?').join(', ');
+        const medicosResult = medicosConsulta.length
+            ? await Database_1.default.connection('mssql').rawQuery(faixaEtaria === 'infantil'
+                ? `
+    SELECT
+      ? AS CAT_CNV_COD,
+      'INFANTIL' AS CAT_CONTRATO,
+      PSV.PSV_COD,
+      PSV.PSV_NOME,
+      PSV.PSV_CONSELHO,
+      PSV.PSV_CRM,
+      PSV.PSV_UF,
+      ESM.ESM_ESP,
+      ESP.ESP_NOME
+    FROM PSV
+    INNER JOIN ESM
+      ON PSV.PSV_COD = ESM.ESM_MED
+    INNER JOIN ESP
+      ON ESM.ESM_ESP = ESP.ESP_COD
+    WHERE PSV.PSV_COD IN (${placeholdersMedicos})
+    ORDER BY PSV.PSV_NOME, ESP.ESP_NOME
+    `
+                : `
     SELECT
       CAT.CAT_CNV_COD,
       CAT.CAT_CONTRATO,
@@ -475,10 +520,10 @@ class DatasourcesController {
     INNER JOIN ESP
       ON ESM.ESM_ESP = ESP.ESP_COD
     WHERE CAT.CAT_CNV_COD = ?
-      ${filtroContratoInfantil}
       AND CAT.CAT_PSV_COD IN (${placeholdersMedicos})
     ORDER BY PSV.PSV_NOME, ESP.ESP_NOME
-    `, [convenioId, ...medicosPermitidos]);
+    `, [convenioId, ...medicosConsulta])
+            : [];
         const medicosRows = this.getRows(medicosResult);
         const medicosMap = new Map();
         for (const row of medicosRows) {
@@ -592,11 +637,56 @@ class DatasourcesController {
             Especialidade: 'OFT',
             ListaProcedimento: [procedimentoAgenda],
         };
-        const placeholdersMedicos = medicosPermitidos.map(() => '?').join(', ');
-        const filtroContratoInfantil = faixaEtaria === 'infantil'
-            ? ` AND CAT.CAT_CONTRATO = 'INFANTIL' `
-            : '';
-        const medicosResult = await Database_1.default.connection('mssql').rawQuery(`
+        const conveniosInfantisPermitidos = [
+            '1L',
+            '3P',
+            '27',
+            'NEF',
+            '2U',
+            'NAB',
+            'BCB',
+            '2V',
+            'NSX',
+            'NAM',
+            'BVA',
+            'OVA',
+            'NPM',
+            '2Z',
+            'NFF',
+            '3X',
+            'AMG',
+            'VFP',
+            'NCO'
+        ];
+        const medicosInfantisPermitidos = [24701, 51257];
+        const medicosConsulta = faixaEtaria === 'infantil'
+            ? conveniosInfantisPermitidos.includes(String(convenioId).trim())
+                ? medicosInfantisPermitidos
+                : []
+            : medicosPermitidos;
+        const placeholdersMedicos = medicosConsulta.map(() => '?').join(', ');
+        const medicosResult = medicosConsulta.length
+            ? await Database_1.default.connection('mssql').rawQuery(faixaEtaria === 'infantil'
+                ? `
+    SELECT
+      ? AS CAT_CNV_COD,
+      'INFANTIL' AS CAT_CONTRATO,
+      PSV.PSV_COD,
+      PSV.PSV_NOME,
+      PSV.PSV_CONSELHO,
+      PSV.PSV_CRM,
+      PSV.PSV_UF,
+      ESM.ESM_ESP,
+      ESP.ESP_NOME
+    FROM PSV
+    INNER JOIN ESM
+      ON PSV.PSV_COD = ESM.ESM_MED
+    INNER JOIN ESP
+      ON ESM.ESM_ESP = ESP.ESP_COD
+    WHERE PSV.PSV_COD IN (${placeholdersMedicos})
+    ORDER BY PSV.PSV_NOME, ESP.ESP_NOME
+    `
+                : `
     SELECT
       CAT.CAT_CNV_COD,
       CAT.CAT_CONTRATO,
@@ -615,10 +705,10 @@ class DatasourcesController {
     INNER JOIN ESP
       ON ESM.ESM_ESP = ESP.ESP_COD
     WHERE CAT.CAT_CNV_COD = ?
-      ${filtroContratoInfantil}
       AND CAT.CAT_PSV_COD IN (${placeholdersMedicos})
     ORDER BY PSV.PSV_NOME, ESP.ESP_NOME
-    `, [convenioId, ...medicosPermitidos]);
+    `, [convenioId, ...medicosConsulta])
+            : [];
         const medicosRows = this.getRows(medicosResult);
         const medicosMap = new Map();
         for (const row of medicosRows) {
@@ -686,6 +776,75 @@ class DatasourcesController {
             return value.trim();
         }
         return value;
+    }
+    async confirmarAgenda({ request, response }) {
+        const body = request.only([
+            'ConvenioId',
+            'PlanoId',
+            'DtmarcacaoIni',
+            'DtmarcacaoFim',
+            'UnidadeId',
+            'ProcedimentoId',
+            'ProfissionalExecutanteId',
+            'PacienteId',
+        ]);
+        const requiredFields = [
+            'ConvenioId',
+            'DtmarcacaoIni',
+            'DtmarcacaoFim',
+            'UnidadeId',
+            'ProcedimentoId',
+            'ProfissionalExecutanteId',
+            'PacienteId',
+        ];
+        const missingFields = requiredFields.filter((field) => {
+            const value = body[field];
+            return value === undefined || value === null || String(value).trim() === '';
+        });
+        if (missingFields.length) {
+            return response.badRequest({
+                erro: 'parametros_obrigatorios_ausentes',
+                mensagem: 'Informe todos os parametros obrigatorios para confirmar a agenda.',
+                campos: missingFields,
+            });
+        }
+        const confirmarBody = {
+            ConvenioId: String(body.ConvenioId).trim(),
+            PlanoId: body.PlanoId ? String(body.PlanoId).trim() : '',
+            DtmarcacaoIni: String(body.DtmarcacaoIni).trim(),
+            DtmarcacaoFim: String(body.DtmarcacaoFim).trim(),
+            UnidadeId: String(body.UnidadeId).trim(),
+            ProcedimentoId: String(body.ProcedimentoId).trim(),
+            ProfissionalExecutanteId: String(body.ProfissionalExecutanteId).trim(),
+            PacienteId: body.PacienteId,
+        };
+        const agendaUrl = `${process.env.SERVER_URL_API_NEO}/Agenda/confirmar`;
+        console.log('CONFIRMAR AGENDA REQUEST', {
+            url: agendaUrl,
+            body: confirmarBody,
+        });
+        try {
+            const confirmarAgendaResponse = await (0, request_1.confirmarAgendaResponse)(confirmarBody);
+            console.log('CONFIRMAR AGENDA RESPONSE', {
+                status: confirmarAgendaResponse.status,
+                data: confirmarAgendaResponse.data,
+            });
+            return response.status(confirmarAgendaResponse.status).send(confirmarAgendaResponse.data);
+        }
+        catch (error) {
+            const requestError = error;
+            const status = requestError?.response?.status || 500;
+            const data = requestError?.response?.data || {
+                erro: 'erro_confirmar_agenda',
+                mensagem: 'Nao foi possivel confirmar a agenda na API externa.',
+            };
+            console.error('ERRO CONFIRMAR AGENDA', {
+                status,
+                data,
+                message: requestError?.message,
+            });
+            return response.status(status).send(data);
+        }
     }
 }
 exports.default = DatasourcesController;

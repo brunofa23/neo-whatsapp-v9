@@ -55,6 +55,25 @@ async function agendaResponse(body) {
   return response
 }
 
+async function confirmarAgendaResponse(body) {
+  let token
+  const responseSession: any = await session()
+  if (responseSession?.status == 200) {
+    token =
+      responseSession.data?.Token ||
+      responseSession.data?.token ||
+      responseSession.data?.['x-auth-token'] ||
+      responseSession.headers?.['x-auth-token']
+  }
+  const headers = {
+    'x-auth-token': token,
+    'Content-Type': 'application/json',
+  }
+  const url = "/Agenda/confirmar"
+  const response = await axios.post(url, body, { headers })
+  return response
+}
+
 
 //BUSCA PACIENTES AGENDADOS NO KLINGO
 async function getSchedulesApi(date: string) {
@@ -92,4 +111,4 @@ async function confirmOrCancelScheduleApi(id_marcacao: number, status: string, o
   }
 }
 
-export { cancelSchedule, session, agendaResponse, getSchedulesApi, confirmOrCancelScheduleApi }
+export { cancelSchedule, session, agendaResponse, confirmarAgendaResponse, getSchedulesApi, confirmOrCancelScheduleApi }

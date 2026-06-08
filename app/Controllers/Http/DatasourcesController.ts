@@ -5,7 +5,7 @@ import Interaction from 'App/Models/Interaction';
 import Response from 'App/Models/Response';
 import { DateTime } from 'luxon';
 import moment from 'moment';
-import { cancelSchedule, agendaResponse as requestAgendaResponse } from '../../Services/requestExternal/request'
+import { cancelSchedule, agendaResponse as requestAgendaResponse, confirmarAgendaResponse as requestConfirmarAgendaResponse } from '../../Services/requestExternal/request'
 import { DateFormat } from '../../Services/whatsapp-web/util'
 import ResponsesController from './ResponsesController';
 import Shippingcampaign from 'App/Models/Shippingcampaign';
@@ -584,7 +584,7 @@ export default class DatasourcesController {
 
 
   public async medicosPorConvenio({ auth, params, response }: HttpContextContract) {
-    //await auth.use('api').authenticate()
+    await auth.use('api').authenticate()
 
     const pacReg = String(params.paciente_id || '').trim()
 
@@ -801,7 +801,7 @@ export default class DatasourcesController {
   }
 
   public async medicosPorConvenioHorario({ auth, params, response }: HttpContextContract) {
-    //await auth.use('api').authenticate()
+    await auth.use('api').authenticate()
 
     const pacReg = String(params.paciente_id || '').trim()
     const profissionalExecutanteId = String(params.profissional_executante_id || '').trim()
@@ -1084,6 +1084,88 @@ export default class DatasourcesController {
     }
 
     return value
+  }
+
+
+  public async confirmarAgenda({auth, request, response }: HttpContextContract) {
+    await auth.use('api').authenticate()
+    
+    const body = request.only([
+      'ConvenioId',
+      'PlanoId',
+      'DtmarcacaoIni',
+      'DtmarcacaoFim',
+      'UnidadeId',
+      'ProcedimentoId',
+      'ProfissionalExecutanteId',
+      'PacienteId',
+    ])
+
+    const requiredFields = [
+      'ConvenioId',
+      'DtmarcacaoIni',
+      'DtmarcacaoFim',
+      'UnidadeId',
+      'ProcedimentoId',
+      'ProfissionalExecutanteId',
+      'PacienteId',
+    ]
+
+    const missingFields = requiredFields.filter((field) => {
+      const value = body[field]
+      return value === undefined || value === null || String(value).trim() === ''
+    })
+
+    if (missingFields.length) {
+      return response.badRequest({
+        erro: 'parametros_obrigatorios_ausentes',
+        mensagem: 'Informe todos os parametros obrigatorios para confirmar a agenda.',
+        campos: missingFields,
+      })
+    }
+
+    const confirmarBody = {
+      ConvenioId: String(body.ConvenioId).trim(),
+      PlanoId: body.PlanoId ? String(body.PlanoId).trim() : '',
+      DtmarcacaoIni: String(body.DtmarcacaoIni).trim(),
+      DtmarcacaoFim: String(body.DtmarcacaoFim).trim(),
+      UnidadeId: String(body.UnidadeId).trim(),
+      ProcedimentoId: String(body.ProcedimentoId).trim(),
+      ProfissionalExecutanteId: String(body.ProfissionalExecutanteId).trim(),
+      PacienteId: body.PacienteId,
+    }
+
+    const agendaUrl = `${process.env.SERVER_URL_API_NEO}/Agenda/confirmar`
+    console.log('CONFIRMAR AGENDA REQUEST', {
+      url: agendaUrl,
+      body: confirmarBody,
+    })
+
+    try {
+      const confirmarAgendaResponse = await requestConfirmarAgendaResponse(confirmarBody)
+
+      console.log('CONFIRMAR AGENDA RESPONSE', {
+        status: confirmarAgendaResponse.status,
+        data: confirmarAgendaResponse.data,
+      })
+
+      return response.status(confirmarAgendaResponse.status).send(confirmarAgendaResponse.data)
+    } catch (error) {
+      const requestError: any = error
+      const status = requestError?.response?.status || 500
+      const data = requestError?.response?.data || {
+        erro: 'erro_confirmar_agenda',
+        mensagem: 'Nao foi possivel confirmar a agenda na API externa.',
+      }
+
+      console.error('ERRO CONFIRMAR AGENDA', {
+        status,
+        data,
+        message: requestError?.message,
+      })
+
+      return response.status(status).send(data)
+    }
   }
 
 

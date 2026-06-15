@@ -3,6 +3,7 @@ import Shippingcampaign from 'App/Models/Shippingcampaign'
 import Chat from 'App/Models/Chat'
 import Log from 'App/Models/Log'
 import Unit from 'App/Models/Unit'
+import Interaction from 'App/Models/Interaction'
 import { getSchedulesApi, confirmOrCancelScheduleApi } from 'App/Services/requestExternal/request'
 import { ValidatePhone } from 'App/Services/whatsapp-web/util'
 import ResponsesController from './ResponsesController'
@@ -158,6 +159,17 @@ export default class DatasourceApisController {
       // 4) fallback: mantém como veio
       return raw
     }
+
+    const activeInteraction = await Interaction.query()
+      .where("id", 1)
+      .andWhere("status", true)
+      .first()
+
+    if (!activeInteraction) {
+      console.log("Interaction 1 inativa. Registros de confirmação não serão criados.")
+      return true
+    }
+
     const schedule_list = await prepareSchedules(await getSchedulesApi(date))
     const date_start = DateTime.now().setZone("America/Sao_Paulo").startOf("day").toSQL({ includeOffset: false }) // "YYYY-MM-DD HH:mm:ss"
 
@@ -297,5 +309,4 @@ export default class DatasourceApisController {
 
   }
 }
-
 

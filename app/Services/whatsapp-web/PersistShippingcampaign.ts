@@ -1,5 +1,6 @@
 import DatasourcesController from 'App/Controllers/Http/DatasourcesController'
 import Shippingcampaign from 'App/Models/Shippingcampaign'
+import Interaction from 'App/Models/Interaction'
 import { ValidatePhone } from './util'
 import { DateTime } from 'luxon'
 import { normalizePhoneKey } from 'App/Services/whatsapp-web/util'
@@ -42,6 +43,9 @@ export default async (
     console.log('Algum erro ocorrido, não é iterable', typeof dataSourceList)
     return []
   }
+
+  const activeInteractions = await Interaction.query().select('id').where('status', true)
+  const activeInteractionIds = activeInteractions.map((interaction) => Number(interaction.id))
 
   const since = DateTime.now()
     .setZone('America/Sao_Paulo')
@@ -87,6 +91,10 @@ export default async (
         // } catch (logError) {
         //   console.log('Erro ao gravar log PersistShippingcampaign (skip-invalid)', logError)
         // }
+        continue
+      }
+
+      if (!activeInteractionIds.includes(Number(data.interaction_id))) {
         continue
       }
 

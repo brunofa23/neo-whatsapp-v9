@@ -108,6 +108,19 @@ async function ServiceEvaluationGupshup(inbound, chat) {
         }
         if (chat.interaction_seq == 2) {
             console.log('PASSO 2.1 5555');
+            const isExcellentEvaluation = Number(chat.absoluteresp) === 9 || Number(chat.absoluteresp) === 10;
+            const patientName = String(chat.name || '').trim() || 'paciente';
+            const googleReviewText = `Olá ${patientName}, 
+
+Obrigado pela sua nota excelente ao nos avaliar! Ficamos muito felizes com sua satisfação.
+
+Como valorizamos seu feedback, gostaríamos de pedir um favor: poderia compartilhar sua experiência no Google? Sua avaliação ajuda outros pacientes a conhecerem nosso atendimento.
+
+Aqui está o link: https://g.page/r/Cen7HWNEOsLKEAE/review
+
+Muito obrigado pela colaboração!
+
+NEO - Núcleo de Excelência em Oftalmologia`;
             if (body.trim() === '9') {
                 const text = 'Tudo bem, vamos finalizar nossa conversa.🙏Obrigado!';
                 await sendText(source, fromDigits, text);
@@ -121,6 +134,19 @@ async function ServiceEvaluationGupshup(inbound, chat) {
                     message: text,
                     type: 'to',
                 });
+                if (isExcellentEvaluation) {
+                    await sendText(source, fromDigits, googleReviewText);
+                    await Talk_1.default.create({
+                        chat_id: chat.id,
+                        reg: chat.reg,
+                        cellphone: fromDigits,
+                        cellphoneserialized: cellphoneserialized || null,
+                        chatnumber: source,
+                        message_ack: 0,
+                        message: googleReviewText,
+                        type: 'to',
+                    });
+                }
                 return;
             }
             ;
@@ -141,6 +167,19 @@ async function ServiceEvaluationGupshup(inbound, chat) {
                 message: text,
                 type: 'to',
             });
+            if (isExcellentEvaluation) {
+                await sendText(source, fromDigits, googleReviewText);
+                await Talk_1.default.create({
+                    chat_id: chat.id,
+                    reg: chat.reg,
+                    cellphone: fromDigits,
+                    cellphoneserialized: cellphoneserialized || null,
+                    chatnumber: source,
+                    message_ack: 0,
+                    message: googleReviewText,
+                    type: 'to',
+                });
+            }
             return;
         }
     }

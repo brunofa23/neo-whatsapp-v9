@@ -173,6 +173,20 @@ export default async function ServiceEvaluationGupshup(inbound: InboundGupshup, 
     // ==========================================================
     if ((chat as any).interaction_seq == 2) {
       console.log('PASSO 2.1 5555')
+      const isExcellentEvaluation =
+        Number((chat as any).absoluteresp) === 9 || Number((chat as any).absoluteresp) === 10
+      const patientName = String((chat as any).name || '').trim() || 'paciente'
+      const googleReviewText = `Olá ${patientName}, 
+
+Obrigado pela sua nota excelente ao nos avaliar! Ficamos muito felizes com sua satisfação.
+
+Como valorizamos seu feedback, gostaríamos de pedir um favor: poderia compartilhar sua experiência no Google? Sua avaliação ajuda outros pacientes a conhecerem nosso atendimento.
+
+Aqui está o link: https://g.page/r/Cen7HWNEOsLKEAE/review
+
+Muito obrigado pela colaboração!
+
+NEO - Núcleo de Excelência em Oftalmologia`
 
       if (body.trim() === '9') {
         const text = 'Tudo bem, vamos finalizar nossa conversa.🙏Obrigado!'
@@ -188,6 +202,21 @@ export default async function ServiceEvaluationGupshup(inbound: InboundGupshup, 
           message: text,
           type: 'to',
         } as any)
+
+        if (isExcellentEvaluation) {
+          await sendText(source, fromDigits, googleReviewText)
+
+          await Talk.create({
+            chat_id: (chat as any).id,
+            reg: (chat as any).reg,
+            cellphone: fromDigits,
+            cellphoneserialized: cellphoneserialized || null,
+            chatnumber: source,
+            message_ack: 0,
+            message: googleReviewText,
+            type: 'to',
+          } as any)
+        }
 
         return
       }
@@ -212,6 +241,21 @@ export default async function ServiceEvaluationGupshup(inbound: InboundGupshup, 
         message: text,
         type: 'to',
       } as any)
+
+      if (isExcellentEvaluation) {
+        await sendText(source, fromDigits, googleReviewText)
+
+        await Talk.create({
+          chat_id: (chat as any).id,
+          reg: (chat as any).reg,
+          cellphone: fromDigits,
+          cellphoneserialized: cellphoneserialized || null,
+          chatnumber: source,
+          message_ack: 0,
+          message: googleReviewText,
+          type: 'to',
+        } as any)
+      }
 
       return
     }

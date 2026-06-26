@@ -748,8 +748,8 @@ export default class ShippingcampaignsController {
 
   public async scheduleConfirmationDashboard({ request, response }: HttpContextContract) {
 
-    const { initialdate, finaldate, phonevalid, absoluteresp, interactions, messagesent, invalidresponse, reg, name, unit } =
-      request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp', 'interactions', 'messagesent', 'reg', 'name', 'unit'])
+    const { initialdate, finaldate, phonevalid, absoluteresp, interactions, messagesent, invalidresponse, reg, name, cellphone, unit } =
+      request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp', 'interactions', 'messagesent', 'reg', 'name', 'cellphone', 'unit'])
     let query = "1=1"
     if (phonevalid) {
       query += ` and phonevalid=${phonevalid}`
@@ -771,6 +771,8 @@ export default class ShippingcampaignsController {
 
     if (name)
       query += ` and  shippingcampaigns.name like '%${name}%' `
+    if (cellphone)
+      query += ` and  shippingcampaigns.cellphone like '%${cellphone}%' `
     if (unit)
       query += ` and unit_cod = ${unit}`
 
@@ -982,7 +984,6 @@ export default class ShippingcampaignsController {
 
 
 }
-
 
 
 

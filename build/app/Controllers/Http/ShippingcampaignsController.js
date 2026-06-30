@@ -477,7 +477,7 @@ class ShippingcampaignsController {
         }
     }
     async scheduleConfirmationDashboard({ request, response }) {
-        const { initialdate, finaldate, phonevalid, absoluteresp, interactions, messagesent, invalidresponse, reg, name, unit } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp', 'interactions', 'messagesent', 'reg', 'name', 'unit']);
+        const { initialdate, finaldate, phonevalid, absoluteresp, interactions, messagesent, invalidresponse, reg, name, cellphone, unit } = request.only(['initialdate', 'finaldate', 'phonevalid', 'invalidresponse', 'absoluteresp', 'interactions', 'messagesent', 'reg', 'name', 'cellphone', 'unit']);
         let query = "1=1";
         if (phonevalid) {
             query += ` and phonevalid=${phonevalid}`;
@@ -495,6 +495,8 @@ class ShippingcampaignsController {
             query += ` and  shippingcampaigns.reg=${reg}`;
         if (name)
             query += ` and  shippingcampaigns.name like '%${name}%' `;
+        if (cellphone)
+            query += ` and  shippingcampaigns.cellphone like '%${cellphone}%' `;
         if (unit)
             query += ` and unit_cod = ${unit}`;
         const initial = luxon_1.DateTime.fromISO(initialdate, { zone: 'America/Sao_Paulo' }).startOf('day');

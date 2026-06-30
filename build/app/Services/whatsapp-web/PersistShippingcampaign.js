@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const DatasourcesController_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Controllers/Http/DatasourcesController"));
 const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Shippingcampaign"));
+const Interaction_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Interaction"));
 const util_1 = require("./util");
 const luxon_1 = require("luxon");
 const util_2 = global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/util");
@@ -39,6 +40,8 @@ exports.default = async (date, prioritysend = false, interaction_id = 0, unit_co
         console.log('Algum erro ocorrido, não é iterable', typeof dataSourceList);
         return [];
     }
+    const activeInteractions = await Interaction_1.default.query().select('id').where('status', true);
+    const activeInteractionIds = activeInteractions.map((interaction) => Number(interaction.id));
     const since = luxon_1.DateTime.now()
         .setZone('America/Sao_Paulo')
         .minus({ days: 5 })
@@ -47,6 +50,9 @@ exports.default = async (date, prioritysend = false, interaction_id = 0, unit_co
     for (const data of dataSourceList) {
         try {
             if (!data?.reg || !data?.interaction_id) {
+                continue;
+            }
+            if (!activeInteractionIds.includes(Number(data.interaction_id))) {
                 continue;
             }
             const shipping = new Shippingcampaign_1.default();

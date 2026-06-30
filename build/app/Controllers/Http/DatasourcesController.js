@@ -385,6 +385,7 @@ class DatasourcesController {
         return response.send(result);
     }
     async medicosPorConvenio({ auth, params, response }) {
+        await auth.use('api').authenticate();
         const pacReg = String(params.paciente_id || '').trim();
         if (!pacReg) {
             return response.badRequest({
@@ -554,6 +555,7 @@ class DatasourcesController {
         });
     }
     async medicosPorConvenioHorario({ auth, params, response }) {
+        await auth.use('api').authenticate();
         const pacReg = String(params.paciente_id || '').trim();
         const profissionalExecutanteId = String(params.profissional_executante_id || '').trim();
         if (!pacReg) {
@@ -586,7 +588,7 @@ class DatasourcesController {
       C.CNV_NOME AS convenio_descricao,
       CASE
         WHEN P.PAC_NASC IS NULL THEN NULL
-        WHEN DATEDIFF(YEAR, P.PAC_NASC, GETDATE()) < 18 THEN 'infantil'
+        WHEN DATEDIFF(YEAR, P.PAC_NASC, GETDATE()) < 12 THEN 'infantil'
         ELSE 'adulto'
       END AS faixa_etaria
     FROM dbo.PAC P
@@ -621,49 +623,17 @@ class DatasourcesController {
                 medicos: [],
             });
         }
-        const dataIni = luxon_1.DateTime.local().toUTC().toISO({ suppressMilliseconds: true });
-        const dataFim = luxon_1.DateTime.local().plus({ days: 10 }).toUTC().toISO({ suppressMilliseconds: true });
-        const procedimentoAgenda = {
-            ProcedimentoId: '00010014',
-            ConvenioId: convenioId,
-            UnidadeId: '14',
-        };
-        if (profissionalExecutanteId) {
-            procedimentoAgenda.ProfissionalExecutanteId = profissionalExecutanteId;
-        }
-        const agendaBody = {
-            DataIni: dataIni,
-            DataFim: dataFim,
-            Especialidade: 'OFT',
-            ListaProcedimento: [procedimentoAgenda],
-        };
-        const conveniosInfantisPermitidos = [
-            '1L',
-            '3P',
-            '27',
-            'NEF',
-            '2U',
-            'NAB',
-            'BCB',
-            '2V',
-            'NSX',
-            'NAM',
-            'BVA',
-            'OVA',
-            'NPM',
-            '2Z',
-            'NFF',
-            '3X',
-            'AMG',
-            'VFP',
-            'NCO'
+        const medicosInfantisDados = [
+            { medico_id: '24701', nome: 'SERGIO EDUARDO MARCIANO DE SOUZA' },
+            { medico_id: '51257', nome: 'ERIKA YUMI TOMIOKA UMBELINO' },
         ];
-        const medicosInfantisPermitidos = [24701, 51257];
-        const medicosConsulta = faixaEtaria === 'infantil'
-            ? conveniosInfantisPermitidos.includes(String(convenioId).trim())
-                ? medicosInfantisPermitidos
-                : []
+        const medicosInfantisPermitidos = medicosInfantisDados.map((medico) => medico.medico_id);
+        const medicosConsultaBase = faixaEtaria === 'infantil'
+            ? medicosInfantisPermitidos
             : medicosPermitidos;
+        const medicosConsulta = profissionalExecutanteId
+            ? medicosConsultaBase.filter((medicoId) => String(medicoId).trim() === profissionalExecutanteId)
+            : medicosConsultaBase;
         const placeholdersMedicos = medicosConsulta.map(() => '?').join(', ');
         const medicosResult = medicosConsulta.length
             ? await Database_1.default.connection('mssql').rawQuery(faixaEtaria === 'infantil'
@@ -671,6 +641,7 @@ class DatasourcesController {
     SELECT
       ? AS CAT_CNV_COD,
       'INFANTIL' AS CAT_CONTRATO,
+      PSV.PSV_CRM AS MEDICO_ID_RETORNO,
       PSV.PSV_COD,
       PSV.PSV_NOME,
       PSV.PSV_CONSELHO,
@@ -683,13 +654,14 @@ class DatasourcesController {
       ON PSV.PSV_COD = ESM.ESM_MED
     INNER JOIN ESP
       ON ESM.ESM_ESP = ESP.ESP_COD
-    WHERE PSV.PSV_COD IN (${placeholdersMedicos})
+    WHERE PSV.PSV_CRM IN (${placeholdersMedicos})
     ORDER BY PSV.PSV_NOME, ESP.ESP_NOME
     `
                 : `
     SELECT
       CAT.CAT_CNV_COD,
       CAT.CAT_CONTRATO,
+      PSV.PSV_COD AS MEDICO_ID_RETORNO,
       PSV.PSV_COD,
       PSV.PSV_NOME,
       PSV.PSV_CONSELHO,
@@ -712,7 +684,7 @@ class DatasourcesController {
         const medicosRows = this.getRows(medicosResult);
         const medicosMap = new Map();
         for (const row of medicosRows) {
-            const medicoId = String(row.PSV_COD).trim();
+            const medicoId = String(row.MEDICO_ID_RETORNO ?? row.PSV_COD).trim();
             if (!medicosMap.has(medicoId)) {
                 medicosMap.set(medicoId, {
                     medico_id: medicoId,
@@ -730,25 +702,95 @@ class DatasourcesController {
                 medico.especialidades.push(especialidade);
             }
         }
-        const agendaUrl = `${process.env.SERVER_URL_API_NEO}/Agenda`;
-        console.log("SERVER>>>>>>>>>>>>>", agendaUrl);
-        console.log('AGENDA REQUEST', {
-            url: agendaUrl,
-            body: agendaBody,
-        });
-        const agendaResponse = await (0, request_1.agendaResponse)(agendaBody);
-        console.log('AGENDA RESPONSE', {
-            status: agendaResponse.status,
-            totalItens: Array.isArray(agendaResponse.data) ? agendaResponse.data.length : null,
-            data: agendaResponse.data,
-        });
+        if (faixaEtaria === 'infantil') {
+            for (const medicoInfantil of medicosInfantisDados.filter((medico) => medicosConsulta.includes(medico.medico_id))) {
+                if (!medicosMap.has(medicoInfantil.medico_id)) {
+                    medicosMap.set(medicoInfantil.medico_id, {
+                        medico_id: medicoInfantil.medico_id,
+                        nome: medicoInfantil.nome,
+                        especialidades: [],
+                        conselho_tipo: null,
+                        conselho_numero: medicoInfantil.medico_id,
+                        conselho_uf: null,
+                    });
+                }
+            }
+        }
+        const medicosRetornoIds = Array.from(medicosMap.keys());
+        const medicosAgendaIds = faixaEtaria === 'infantil'
+            ? medicosConsulta.map((medicoId) => String(medicoId).trim())
+            : medicosRetornoIds;
+        let horarios = [];
+        if (medicosAgendaIds.length) {
+            const dataIni = luxon_1.DateTime.local().toUTC().toISO({ suppressMilliseconds: true });
+            const dataFim = luxon_1.DateTime.local().plus({ days: 10 }).toUTC().toISO({ suppressMilliseconds: true });
+            const agendaBody = {
+                DataIni: dataIni,
+                DataFim: dataFim,
+                Especialidade: 'OFT',
+                ListaProcedimento: medicosAgendaIds.map((medicoId) => ({
+                    ProcedimentoId: '00010014',
+                    ConvenioId: convenioId,
+                    UnidadeId: '14',
+                    ProfissionalExecutanteId: medicoId,
+                })),
+            };
+            const agendaUrl = `${process.env.SERVER_URL_API_NEO}/Agenda`;
+            console.log("SERVER>>>>>>>>>>>>>", agendaUrl);
+            console.log('AGENDA REQUEST', {
+                url: agendaUrl,
+                body: agendaBody,
+            });
+            const agendaResponse = await (0, request_1.agendaResponse)(agendaBody);
+            const medicosHorarios = new Set(medicosAgendaIds);
+            const filtrarHorarioPorMedico = (horario) => {
+                const profissionalHorario = this.trimValue(horario?.ProfissionalExecutanteId ??
+                    horario?.ProfissionalExecutanteCrm ??
+                    horario?.profissionalExecutanteId ??
+                    horario?.profissionalExecutanteCrm ??
+                    horario?.profissional_executante_id ??
+                    horario?.profissional_executante_crm ??
+                    horario?.MedicoId ??
+                    horario?.medicoId ??
+                    horario?.medico_id ??
+                    horario?.CRM ??
+                    horario?.crm);
+                return profissionalHorario
+                    ? medicosHorarios.has(String(profissionalHorario).trim())
+                    : false;
+            };
+            horarios = Array.isArray(agendaResponse.data)
+                ? agendaResponse.data
+                    .map((horario) => {
+                    if (Array.isArray(horario?.HorariosLivre)) {
+                        return {
+                            ...horario,
+                            HorariosLivre: horario.HorariosLivre.filter(filtrarHorarioPorMedico),
+                        };
+                    }
+                    return filtrarHorarioPorMedico(horario) ? horario : null;
+                })
+                    .filter((horario) => {
+                    if (!horario)
+                        return false;
+                    if (Array.isArray(horario?.HorariosLivre))
+                        return horario.HorariosLivre.length;
+                    return true;
+                })
+                : agendaResponse.data;
+            console.log('AGENDA RESPONSE', {
+                status: agendaResponse.status,
+                totalItens: Array.isArray(horarios) ? horarios.length : null,
+                data: horarios,
+            });
+        }
         return response.ok({
             paciente_id: pacienteId,
             faixa_etaria: faixaEtaria,
             convenio_id: convenioId,
             convenio_descricao: convenioDescricao,
             medicos: Array.from(medicosMap.values()),
-            horarios: agendaResponse.data,
+            horarios,
         });
     }
     getRows(result) {
@@ -777,7 +819,8 @@ class DatasourcesController {
         }
         return value;
     }
-    async confirmarAgenda({ request, response }) {
+    async confirmarAgenda({ auth, request, response }) {
+        await auth.use('api').authenticate();
         const body = request.only([
             'ConvenioId',
             'PlanoId',

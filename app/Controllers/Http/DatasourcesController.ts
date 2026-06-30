@@ -845,7 +845,7 @@ export default class DatasourcesController {
       C.CNV_NOME AS convenio_descricao,
       CASE
         WHEN P.PAC_NASC IS NULL THEN NULL
-        WHEN DATEDIFF(YEAR, P.PAC_NASC, GETDATE()) < 18 THEN 'infantil'
+        WHEN DATEDIFF(YEAR, P.PAC_NASC, GETDATE()) < 12 THEN 'infantil'
         ELSE 'adulto'
       END AS faixa_etaria
     FROM dbo.PAC P
@@ -889,56 +889,21 @@ export default class DatasourcesController {
       })
     }
 
-    const dataIni = DateTime.local().toUTC().toISO({ suppressMilliseconds: true })
-    const dataFim = DateTime.local().plus({ days: 10 }).toUTC().toISO({ suppressMilliseconds: true })
-    const procedimentoAgenda: any = {
-      ProcedimentoId: '00010014',
-      ConvenioId: convenioId,
-      UnidadeId: '14',
-    }
-
-    if (profissionalExecutanteId) {
-      procedimentoAgenda.ProfissionalExecutanteId = profissionalExecutanteId
-    }
-
-    const agendaBody = {
-      DataIni: dataIni,
-      DataFim: dataFim,
-      Especialidade: 'OFT',
-      ListaProcedimento: [procedimentoAgenda],
-    }
-
     /**
      * 2) Busca os médicos pelo convênio retornado na primeira consulta
      */
-    const conveniosInfantisPermitidos = [
-      '1L',
-      '3P',
-      '27',
-      'NEF',
-      '2U',
-      'NAB',
-      'BCB',
-      '2V',
-      'NSX',
-      'NAM',
-      'BVA',
-      'OVA',
-      'NPM',
-      '2Z',
-      'NFF',
-      '3X',
-      'AMG',
-      'VFP',
-      'NCO'
+    const medicosInfantisDados = [
+      { medico_id: '24701', nome: 'SERGIO EDUARDO MARCIANO DE SOUZA' },
+      { medico_id: '51257', nome: 'ERIKA YUMI TOMIOKA UMBELINO' },
     ]
-    const medicosInfantisPermitidos = [24701, 51257]
-    const medicosConsulta =
+    const medicosInfantisPermitidos = medicosInfantisDados.map((medico) => medico.medico_id)
+    const medicosConsultaBase =
       faixaEtaria === 'infantil'
-        ? conveniosInfantisPermitidos.includes(String(convenioId).trim())
-          ? medicosInfantisPermitidos
-          : []
+        ? medicosInfantisPermitidos
         : medicosPermitidos
+    const medicosConsulta = profissionalExecutanteId
+      ? medicosConsultaBase.filter((medicoId) => String(medicoId).trim() === profissionalExecutanteId)
+      : medicosConsultaBase
 
     const placeholdersMedicos = medicosConsulta.map(() => '?').join(', ')
 
@@ -949,6 +914,7 @@ export default class DatasourcesController {
     SELECT
       ? AS CAT_CNV_COD,
       'INFANTIL' AS CAT_CONTRATO,
+      PSV.PSV_CRM AS MEDICO_ID_RETORNO,
       PSV.PSV_COD,
       PSV.PSV_NOME,
       PSV.PSV_CONSELHO,
@@ -961,13 +927,14 @@ export default class DatasourcesController {
       ON PSV.PSV_COD = ESM.ESM_MED
     INNER JOIN ESP
       ON ESM.ESM_ESP = ESP.ESP_COD
-    WHERE PSV.PSV_COD IN (${placeholdersMedicos})
+    WHERE PSV.PSV_CRM IN (${placeholdersMedicos})
     ORDER BY PSV.PSV_NOME, ESP.ESP_NOME
     `
           : `
     SELECT
       CAT.CAT_CNV_COD,
       CAT.CAT_CONTRATO,
+      PSV.PSV_COD AS MEDICO_ID_RETORNO,
       PSV.PSV_COD,
       PSV.PSV_NOME,
       PSV.PSV_CONSELHO,
@@ -998,7 +965,7 @@ export default class DatasourcesController {
     const medicosMap = new Map<string, any>()
 
     for (const row of medicosRows) {
-      const medicoId = String(row.PSV_COD).trim()
+      const medicoId = String(row.MEDICO_ID_RETORNO ?? row.PSV_COD).trim()
 
       if (!medicosMap.has(medicoId)) {
         medicosMap.set(medicoId, {
@@ -1023,20 +990,96 @@ export default class DatasourcesController {
       }
     }
 
-    const agendaUrl = `${process.env.SERVER_URL_API_NEO}/Agenda`
-    console.log("SERVER>>>>>>>>>>>>>", agendaUrl)
-    console.log('AGENDA REQUEST', {
-      url: agendaUrl,
-      body: agendaBody,
-    })
+    if (faixaEtaria === 'infantil') {
+      for (const medicoInfantil of medicosInfantisDados.filter((medico) => medicosConsulta.includes(medico.medico_id))) {
+        if (!medicosMap.has(medicoInfantil.medico_id)) {
+          medicosMap.set(medicoInfantil.medico_id, {
+            medico_id: medicoInfantil.medico_id,
+            nome: medicoInfantil.nome,
+            especialidades: [],
+            conselho_tipo: null,
+            conselho_numero: medicoInfantil.medico_id,
+            conselho_uf: null,
+          })
+        }
+      }
+    }
 
-    const agendaResponse = await requestAgendaResponse(agendaBody)
+    const medicosRetornoIds = Array.from(medicosMap.keys())
+    const medicosAgendaIds = faixaEtaria === 'infantil'
+      ? medicosConsulta.map((medicoId) => String(medicoId).trim())
+      : medicosRetornoIds
+    let horarios: any[] = []
 
-    console.log('AGENDA RESPONSE', {
-      status: agendaResponse.status,
-      totalItens: Array.isArray(agendaResponse.data) ? agendaResponse.data.length : null,
-      data: agendaResponse.data,
-    })
+    if (medicosAgendaIds.length) {
+      const dataIni = DateTime.local().toUTC().toISO({ suppressMilliseconds: true })
+      const dataFim = DateTime.local().plus({ days: 10 }).toUTC().toISO({ suppressMilliseconds: true })
+      const agendaBody = {
+        DataIni: dataIni,
+        DataFim: dataFim,
+        Especialidade: 'OFT',
+        ListaProcedimento: medicosAgendaIds.map((medicoId) => ({
+          ProcedimentoId: '00010014',
+          ConvenioId: convenioId,
+          UnidadeId: '14',
+          ProfissionalExecutanteId: medicoId,
+        })),
+      }
+
+      const agendaUrl = `${process.env.SERVER_URL_API_NEO}/Agenda`
+      console.log("SERVER>>>>>>>>>>>>>", agendaUrl)
+      console.log('AGENDA REQUEST', {
+        url: agendaUrl,
+        body: agendaBody,
+      })
+
+      const agendaResponse = await requestAgendaResponse(agendaBody)
+      const medicosHorarios = new Set(medicosAgendaIds)
+      const filtrarHorarioPorMedico = (horario: any) => {
+        const profissionalHorario = this.trimValue(
+          horario?.ProfissionalExecutanteId ??
+          horario?.ProfissionalExecutanteCrm ??
+          horario?.profissionalExecutanteId ??
+          horario?.profissionalExecutanteCrm ??
+          horario?.profissional_executante_id ??
+          horario?.profissional_executante_crm ??
+          horario?.MedicoId ??
+          horario?.medicoId ??
+          horario?.medico_id ??
+          horario?.CRM ??
+          horario?.crm
+        )
+
+        return profissionalHorario
+          ? medicosHorarios.has(String(profissionalHorario).trim())
+          : false
+      }
+
+      horarios = Array.isArray(agendaResponse.data)
+        ? agendaResponse.data
+          .map((horario) => {
+            if (Array.isArray(horario?.HorariosLivre)) {
+              return {
+                ...horario,
+                HorariosLivre: horario.HorariosLivre.filter(filtrarHorarioPorMedico),
+              }
+            }
+
+            return filtrarHorarioPorMedico(horario) ? horario : null
+          })
+          .filter((horario) => {
+            if (!horario) return false
+            if (Array.isArray(horario?.HorariosLivre)) return horario.HorariosLivre.length
+            return true
+          })
+        : agendaResponse.data
+
+      console.log('AGENDA RESPONSE', {
+        status: agendaResponse.status,
+        totalItens: Array.isArray(horarios) ? horarios.length : null,
+        data: horarios,
+      })
+    }
     /**
      * 4) Monta retorno final
      */
@@ -1046,7 +1089,7 @@ export default class DatasourcesController {
       convenio_id: convenioId,
       convenio_descricao: convenioDescricao,
       medicos: Array.from(medicosMap.values()),
-      horarios: agendaResponse.data,
+      horarios,
     })
   }
 

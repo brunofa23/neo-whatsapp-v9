@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Shippingcampaign"));
 const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
 const Unit_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Unit"));
+const Interaction_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Interaction"));
 const request_1 = global[Symbol.for('ioc.use')]("App/Services/requestExternal/request");
 const util_1 = global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/util");
 const ResponsesController_1 = __importDefault(require("./ResponsesController"));
@@ -99,6 +100,14 @@ class DatasourceApisController {
                 return fmt2.toFormat("dd/LL/yyyy HH:mm");
             return raw;
         };
+        const activeInteraction = await Interaction_1.default.query()
+            .where("id", 1)
+            .andWhere("status", true)
+            .first();
+        if (!activeInteraction) {
+            console.log("Interaction 1 inativa. Registros de confirmação não serão criados.");
+            return true;
+        }
         const schedule_list = await prepareSchedules(await (0, request_1.getSchedulesApi)(date));
         const date_start = luxon_1.DateTime.now().setZone("America/Sao_Paulo").startOf("day").toSQL({ includeOffset: false });
         for (const data of schedule_list) {

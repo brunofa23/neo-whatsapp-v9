@@ -627,6 +627,19 @@ class DatasourcesController {
             { medico_id: '24701', nome: 'SERGIO EDUARDO MARCIANO DE SOUZA' },
             { medico_id: '51257', nome: 'ERIKA YUMI TOMIOKA UMBELINO' },
         ];
+        const especialidadesPorMedico = {
+            '21725': ['Córnea', 'Ceratocone', 'Lente de Contato', 'Oftalmologia Geral'],
+            '44616': ['Plástica Ocular', 'Oftalmologia Geral'],
+            '28909': ['Glaucoma', 'Oftalmologia Geral'],
+            '33072': ['Oftalmologia Geral', 'Uveíte e Retina'],
+            '51257': ['Glaucoma Clínico e Cirúrgico', 'Oftalmologia Pediátrica', 'Oftalmologia Geral'],
+            '32768': ['Córnea', 'Lente de Contato', 'Cirurgia Refrativa', 'Oftalmologia Geral'],
+            '32782': ['Catarata', 'Presbiopia', 'Transplante de Córnea', 'Ceratocone'],
+            '23648': ['Retina'],
+            '19744': ['Córnea', 'Ceratocone', 'Cirurgia Refrativa', 'Oftalmologia Geral'],
+            '27684': ['Córnea', 'Catarata', 'Glaucoma', 'Oftalmologia Geral'],
+            '24701': ['Oftalmologia Pediátrica', 'Estrabismo', 'Oftalmologia Geral'],
+        };
         const medicosInfantisPermitidos = medicosInfantisDados.map((medico) => medico.medico_id);
         const medicosConsultaBase = faixaEtaria === 'infantil'
             ? medicosInfantisPermitidos
@@ -685,21 +698,19 @@ class DatasourcesController {
         const medicosMap = new Map();
         for (const row of medicosRows) {
             const medicoId = String(row.MEDICO_ID_RETORNO ?? row.PSV_COD).trim();
+            const crm = row.PSV_CRM ? String(row.PSV_CRM).trim() : null;
             if (!medicosMap.has(medicoId)) {
+                const especialidades = especialidadesPorMedico[medicoId] ||
+                    (crm ? especialidadesPorMedico[crm] : []) ||
+                    [];
                 medicosMap.set(medicoId, {
                     medico_id: medicoId,
                     nome: this.trimValue(row.PSV_NOME),
-                    especialidades: [],
+                    especialidades: [...especialidades],
                     conselho_tipo: this.trimValue(row.PSV_CONSELHO),
-                    conselho_numero: row.PSV_CRM ? String(row.PSV_CRM).trim() : null,
+                    conselho_numero: crm,
                     conselho_uf: this.trimValue(row.PSV_UF),
                 });
-            }
-            const medico = medicosMap.get(medicoId);
-            const especialidade = this.trimValue(row.ESP_NOME);
-            if (especialidade &&
-                !medico.especialidades.includes(especialidade)) {
-                medico.especialidades.push(especialidade);
             }
         }
         if (faixaEtaria === 'infantil') {
@@ -708,7 +719,7 @@ class DatasourcesController {
                     medicosMap.set(medicoInfantil.medico_id, {
                         medico_id: medicoInfantil.medico_id,
                         nome: medicoInfantil.nome,
-                        especialidades: [],
+                        especialidades: [...(especialidadesPorMedico[medicoInfantil.medico_id] || [])],
                         conselho_tipo: null,
                         conselho_numero: medicoInfantil.medico_id,
                         conselho_uf: null,

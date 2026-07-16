@@ -3,6 +3,8 @@ import Chat from 'App/Models/Chat'
 import Talk from 'App/Models/Talk'
 import Log from 'App/Models/Log'
 import Response from 'App/Models/Response'
+import Env from '@ioc:Adonis/Core/Env'
+import axios from 'axios'
 import { DateTime } from 'luxon'
 
 // ✅ novos imports para o fluxo de customchat via Gupshup
@@ -24,6 +26,7 @@ const WAITING_TIME_RESPONSE_LOCAL = 'waiting_time_keyword'
 const WAITING_TIME_KEYWORDS = ['tempo de espera', 'pontualidade', 'atraso']
 const WAITING_TIME_DEFAULT_MESSAGE =
   'Olá! Agradecemos o seu contato. A sua satisfação é muito importante para nós. No momento do agendamento, informamos que o tempo estimado de permanência no NEO é de cerca de duas horas, informação que também é reforçada na confirmação enviada por WhatsApp. O horário agendado corresponde ao início do atendimento, que pode variar conforme a necessidade de exames e da dilatação da pupila.'
+const WAITING_TIME_CLASSIFIER_DEFAULT_MODEL = 'llama-3.1-8b-instant'
 
 function onlyDigits(v: any) {
   return String(v ?? '').replace(/\D/g, '')
@@ -40,6 +43,17 @@ function hasWaitingTimeKeyword(body: string) {
   const normalizedBody = normalizeText(body)
 
   return WAITING_TIME_KEYWORDS.some((keyword) => normalizedBody.includes(normalizeText(keyword)))
+}
+
+function envBoolean(key: string, defaultValue: boolean) {
+  const value = String(Env.get(key, defaultValue ? 'true' : 'false')).trim().toLowerCase()
+  return ['1', 'true', 'yes', 'sim', 'on'].includes(value)
+}
+
+function getClassifierThreshold() {
+  const threshold = Number(Env.get('WAITING_TIME_INTENT_THRESHOLD', 0.8))
+  if (!Number.isFinite(threshold) || threshold <= 0 || threshold > 1) return 0.8
+  return threshold
 }
 
 async function getWaitingTimeResponseMessage() {
@@ -62,6 +76,208 @@ async function getGupshupAgentByAppName(appName: string) {
     .where('active', true)
     .where((query) => query.whereNull('deleted').orWhere('deleted', false))
     .first()
+}
+
+async function getRecentTalkContext(fromKey: string | null, fromDigits: string, chatnumber: string) {
+  try {
+    const query = Talk.query()
+      .select(['message', 'type', 'chatnumber', 'created_at'])
+      .orderBy('created_at', 'desc')
+      .limit(8)
+
+    if (fromKey) {
+      query.where('cellphoneserialized', fromKey)
+    } else {
+      query.where('cellphone', fromDigits)
+    }
+
+    if (chatnumber) {
+      query.andWhere('chatnumber', chatnumber)
+    }
+
+    const rows = await query
+
+    return rows
+      .reverse()
+      .map((talk) => ({
+        type: talk.type,
+        chatnumber: talk.chatnumber,
+        message: String(talk.message || '').slice(0, 500),
+        created_at: (talk as any).createdAt?.toISO?.() || null,
+      }))
+  } catch (error) {
+    await Log.create({
+      name: 'GupshupWaitingTimeContextError',
+      message: error?.message || String(error),
+      description: error?.stack || 'Erro ao buscar contexto em talks',
+    })
+    return []
+  }
+}
+
+function parseClassifierJson(raw: string) {
+  const text = String(raw || '').trim()
+  const cleaned = text
+    .replace(/^```json\s*/i, '')
+    .replace(/^```\s*/i, '')
+    .replace(/```$/i, '')
+    .trim()
+
+  const jsonStart = cleaned.indexOf('{')
+  const jsonEnd = cleaned.lastIndexOf('}')
+  if (jsonStart === -1 || jsonEnd === -1 || jsonEnd <= jsonStart) return null
+
+  try {
+    return JSON.parse(cleaned.slice(jsonStart, jsonEnd + 1))
+  } catch {
+    return null
+  }
+}
+
+async function classifyWaitingTimeIntent(params: {
+  body: string
+  appName: string
+  fromDigits: string
+  fromKey: string | null
+  source: string
+  chat?: any
+}) {
+  const apiKey = Env.get('GROQ_API_KEY')
+  if (!apiKey) return null
+
+  const context = await getRecentTalkContext(params.fromKey, params.fromDigits, params.source)
+  const threshold = getClassifierThreshold()
+
+  const payload = {
+    currentMessage: params.body,
+    appName: params.appName || null,
+    chat: params.chat
+      ? {
+          id: params.chat.id ?? null,
+          interaction_id: params.chat.interaction_id ?? null,
+          interaction_seq: params.chat.interaction_seq ?? null,
+          returned: params.chat.returned ?? null,
+          absoluteresp: params.chat.absoluteresp ?? null,
+          response: params.chat.response ?? null,
+        }
+      : null,
+    recentConversation: context,
+  }
+
+  const messages = [
+    {
+      role: 'system',
+      content:
+        'Você é um classificador de intenção para mensagens de pacientes de uma clínica oftalmológica. ' +
+        'Responda somente JSON válido. Não escreva explicações fora do JSON.',
+    },
+    {
+      role: 'user',
+      content: `Classifique se a mensagem atual deve receber uma resposta automática sobre tempo de espera/pontualidade/atraso no atendimento.
+
+Retorne exatamente este formato JSON:
+{
+  "intent": "WAIT_TIME_COMPLAINT" | "PATIENT_IS_LATE" | "EVALUATION_OBSERVATION" | "SCHEDULE_REPLY" | "OTHER",
+  "confidence": 0.0,
+  "shouldAutoReply": false,
+  "reason": "curto"
+}
+
+Marque shouldAutoReply=true somente se o paciente estiver reclamando ou perguntando claramente sobre demora no atendimento, tempo de permanência na clínica, pontualidade do atendimento ou atraso do atendimento.
+
+Não responda automático quando:
+- o paciente diz que ele mesmo está atrasado ou pergunta se pode chegar atrasado;
+- o texto é uma observação dentro de avaliação de atendimento;
+- a mensagem é confirmação, cancelamento, reagendamento ou nota;
+- a confiança for menor que ${threshold}.
+
+Dados:
+${JSON.stringify(payload, null, 2)}`,
+    },
+  ]
+
+  try {
+    const response = await axios.post(
+      'https://api.groq.com/openai/v1/chat/completions',
+      {
+        model: String(Env.get('WAITING_TIME_INTENT_MODEL', WAITING_TIME_CLASSIFIER_DEFAULT_MODEL)),
+        messages,
+        temperature: 0,
+        max_tokens: 180,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        timeout: 15000,
+      }
+    )
+
+    const content = response.data?.choices?.[0]?.message?.content || ''
+    const parsed = parseClassifierJson(content)
+    if (!parsed) throw new Error(`JSON inválido do classificador: ${content}`)
+
+    const confidence = Number(parsed.confidence || 0)
+    const shouldAutoReply =
+      parsed.shouldAutoReply === true &&
+      parsed.intent === 'WAIT_TIME_COMPLAINT' &&
+      confidence >= threshold
+
+    return {
+      intent: String(parsed.intent || 'OTHER'),
+      confidence,
+      shouldAutoReply,
+      reason: String(parsed.reason || ''),
+      threshold,
+    }
+  } catch (error) {
+    await Log.create({
+      name: 'GupshupWaitingTimeClassifierError',
+      message: error?.message || String(error),
+      description: error?.stack || 'Erro ao classificar intenção de tempo de espera',
+    })
+    return null
+  }
+}
+
+async function shouldSendWaitingTimeResponse(params: {
+  body: string
+  appName: string
+  fromDigits: string
+  fromKey: string | null
+  source: string
+  chat?: any
+}) {
+  const classifierEnabled = envBoolean('WAITING_TIME_INTENT_CLASSIFIER_ENABLED', true)
+  const fallbackToKeyword = envBoolean('WAITING_TIME_INTENT_FALLBACK_TO_KEYWORD', true)
+
+  if (!classifierEnabled) {
+    return fallbackToKeyword
+  }
+
+  const decision = await classifyWaitingTimeIntent(params)
+
+  if (!decision) {
+    return fallbackToKeyword
+  }
+
+  if (!decision.shouldAutoReply) {
+    await Log.create({
+      name: 'GupshupWaitingTimeClassifierBlocked',
+      message: JSON.stringify({
+        body: params.body,
+        appName: params.appName || null,
+        chat_id: params.chat?.id ?? null,
+        interaction_id: params.chat?.interaction_id ?? null,
+        interaction_seq: params.chat?.interaction_seq ?? null,
+        decision,
+      }),
+      description: 'Classificador não autorizou resposta automática sobre tempo de espera',
+    })
+  }
+
+  return decision.shouldAutoReply
 }
 
 /**
@@ -291,11 +507,32 @@ export default class GupshupMonitoring {
     const gupshupAgent = await getGupshupAgentByAppName(appName)
     const sourceFallback = onlyDigits(gupshupAgent?.gupshup_source || '')
     const defaultAgent = gupshupAgent?.default_chat ? gupshupAgent : null
+    let chat: any = null
 
     if (body && hasWaitingTimeKeyword(body)) {
-      await saveInboundTalk(fromDigits, fromKey, sourceFallback || toDigits, body)
-      await sendWaitingTimeKeywordResponse(null, fromDigits, toDigits, sourceFallback)
-      return
+      if (inboundGsId) {
+        chat = await getChatByGsId(inboundGsId)
+      }
+
+      if (!chat) {
+        const evaluationChat = await getChatByPhone(fromDigits, toDigits, 2)
+        chat = evaluationChat || (await getChatByPhone(fromDigits, toDigits))
+      }
+
+      const shouldAutoReply = await shouldSendWaitingTimeResponse({
+        body,
+        appName,
+        fromDigits,
+        fromKey,
+        source: sourceFallback || toDigits || onlyDigits(chat?.chatnumber || ''),
+        chat,
+      })
+
+      if (shouldAutoReply) {
+        await saveInboundTalk(fromDigits, fromKey, sourceFallback || toDigits || onlyDigits(chat?.chatnumber || ''), body)
+        await sendWaitingTimeKeywordResponse(chat, fromDigits, toDigits, sourceFallback)
+        return
+      }
     }
 
     // ==========================================================
@@ -352,7 +589,6 @@ export default class GupshupMonitoring {
 
     await saveInboundTalk(fromDigits, fromKey, toDigits, body)
 
-    let chat: any = null
     if (inboundGsId) {
       chat = await getChatByGsId(inboundGsId)
     }

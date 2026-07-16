@@ -6,6 +6,7 @@
     "dev": "node ace serve --watch",
     "build": "node ace build --production --ignore-ts-errors",
     "postbuild": "node scripts/copyMedias.js",
+    "mcp:mysql": "node mcp/mysql-server.js",
     "start": "node server.js",
     "test": "node ace test"
   },

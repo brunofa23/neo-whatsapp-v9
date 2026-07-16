@@ -19,7 +19,18 @@ const util_1 = global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/util");
 const EVALUATION_RESPONSE_LIMIT_HOURS = 72;
 const EVALUATION_EXPIRED_MESSAGE = 'Olá! O prazo para responder esta mensagem expirou. As respostas são aceitas em até 72 horas após o envio. Obrigado.';
 const WAITING_TIME_RESPONSE_LOCAL = 'waiting_time_keyword';
-const WAITING_TIME_KEYWORDS = ['tempo de espera', 'pontualidade', 'atraso'];
+const WAITING_TIME_KEYWORDS = [
+    'tempo de espera',
+    'pontualidade',
+    'atraso',
+    'demora no atendimento',
+    'demora atendimento',
+    'atendimento demorado',
+    'muita demora',
+    'muito demorado',
+    'demorou muito',
+    'demorando muito',
+];
 const WAITING_TIME_DEFAULT_MESSAGE = 'Olá! Agradecemos o seu contato. A sua satisfação é muito importante para nós. No momento do agendamento, informamos que o tempo estimado de permanência no NEO é de cerca de duas horas, informação que também é reforçada na confirmação enviada por WhatsApp. O horário agendado corresponde ao início do atendimento, que pode variar conforme a necessidade de exames e da dilatação da pupila.';
 const WAITING_TIME_CLASSIFIER_DEFAULT_MODEL = 'llama-3.1-8b-instant';
 function onlyDigits(v) {

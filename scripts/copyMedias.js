@@ -24,6 +24,16 @@ function copyDir(src, dest) {
   }
 }
 
+function removeBuildTimestamp(root) {
+  const adonisrcPath = path.join(root, "build", ".adonisrc.json");
+
+  if (!fs.existsSync(adonisrcPath)) return;
+
+  const adonisrc = JSON.parse(fs.readFileSync(adonisrcPath, "utf8"));
+  delete adonisrc.lastCompiledAt;
+  fs.writeFileSync(adonisrcPath, `${JSON.stringify(adonisrc, null, 2)}\n`);
+}
+
 const root = process.cwd();
 
 // ✅ NOVO PADRÃO: Medias na raiz do projeto
@@ -34,4 +44,5 @@ console.log("[copyMedias] src:", src);
 console.log("[copyMedias] dest:", dest);
 
 copyDir(src, dest);
+removeBuildTimestamp(root);
 console.log("[copyMedias] OK");

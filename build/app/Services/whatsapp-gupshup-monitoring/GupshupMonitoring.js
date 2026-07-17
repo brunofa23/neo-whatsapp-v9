@@ -61,6 +61,7 @@ const WAITING_TIME_SIGNAL_GROUPS = [
 ];
 const WAITING_TIME_DEFAULT_MESSAGE = 'Olá! Agradecemos o seu contato. A sua satisfação é muito importante para nós. No momento do agendamento, informamos que o tempo estimado de permanência no NEO é de cerca de duas horas, informação que também é reforçada na confirmação enviada por WhatsApp. O horário agendado corresponde ao início do atendimento, que pode variar conforme a necessidade de exames e da dilatação da pupila.';
 const WAITING_TIME_CLASSIFIER_DEFAULT_MODEL = 'llama-3.1-8b-instant';
+let lastAiAlertSentAt = null;
 function onlyDigits(v) {
     return String(v ?? '').replace(/\D/g, '');
 }
@@ -86,6 +87,71 @@ function getClassifierThreshold() {
     if (!Number.isFinite(threshold) || threshold <= 0 || threshold > 1)
         return 0.8;
     return threshold;
+}
+function getAiAlertCooldownMinutes() {
+    const minutes = Number(Env_1.default.get('AI_ALERT_COOLDOWN_MINUTES', 30));
+    if (!Number.isFinite(minutes) || minutes < 1)
+        return 30;
+    return minutes;
+}
+function shouldSendAiAlert() {
+    if (!envBoolean('AI_ALERT_WHATSAPP_ENABLED', false))
+        return false;
+    const now = luxon_1.DateTime.now();
+    const cooldownMinutes = getAiAlertCooldownMinutes();
+    if (lastAiAlertSentAt && lastAiAlertSentAt.plus({ minutes: cooldownMinutes }) > now) {
+        return false;
+    }
+    lastAiAlertSentAt = now;
+    return true;
+}
+function getGroqErrorMessage(error) {
+    const status = error?.response?.status;
+    const statusText = error?.response?.statusText;
+    const apiError = error?.response?.data?.error?.message || error?.response?.data?.message;
+    return [status, statusText, apiError || error?.message || String(error)].filter(Boolean).join(' - ');
+}
+async function notifyAiClassifierFailure(params) {
+    if (!shouldSendAiAlert())
+        return;
+    const destination = onlyDigits(Env_1.default.get('AI_ALERT_WHATSAPP_PHONE', ''));
+    const source = onlyDigits(Env_1.default.get('AI_ALERT_WHATSAPP_SOURCE', params.source));
+    if (!destination || !source) {
+        await Log_1.default.create({
+            name: 'GupshupAiAlertConfigError',
+            message: JSON.stringify({ destination, source }),
+            description: 'AI_ALERT_WHATSAPP_PHONE ou AI_ALERT_WHATSAPP_SOURCE não configurado',
+        });
+        return;
+    }
+    const text = [
+        'Falha na IA Groq',
+        `App: ${params.appName || '-'}`,
+        `Paciente: ${params.fromDigits || '-'}`,
+        `Chat: ${params.chat?.id ?? '-'}`,
+        `Erro: ${getGroqErrorMessage(params.error).slice(0, 500)}`,
+        `Mensagem: ${String(params.body || '').slice(0, 300)}`,
+        `Momento: ${luxon_1.DateTime.now().toFormat('dd/MM/yyyy HH:mm:ss')}`,
+    ].join('\n');
+    try {
+        await (0, SendTextGupshup_1.default)({
+            source,
+            destination,
+            text,
+        });
+        await Log_1.default.create({
+            name: 'GupshupAiAlertSent',
+            message: JSON.stringify({ destination, source, patient: params.fromDigits || null }),
+            description: getGroqErrorMessage(params.error).slice(0, 1000),
+        });
+    }
+    catch (alertError) {
+        await Log_1.default.create({
+            name: 'GupshupAiAlertSendError',
+            message: alertError?.message || String(alertError),
+            description: alertError?.stack || 'Erro ao enviar alerta de falha da IA',
+        });
+    }
 }
 async function getWaitingTimeResponseMessage() {
     const response = await Response_1.default.query()
@@ -160,8 +226,22 @@ function parseClassifierJson(raw) {
 }
 async function classifyWaitingTimeIntent(params) {
     const apiKey = Env_1.default.get('GROQ_API_KEY');
-    if (!apiKey)
+    if (!apiKey) {
+        await Log_1.default.create({
+            name: 'GupshupWaitingTimeClassifierError',
+            message: 'GROQ_API_KEY não configurada',
+            description: 'Não foi possível classificar intenção de tempo de espera sem GROQ_API_KEY',
+        });
+        await notifyAiClassifierFailure({
+            error: new Error('GROQ_API_KEY não configurada'),
+            body: params.body,
+            appName: params.appName,
+            fromDigits: params.fromDigits,
+            source: params.source,
+            chat: params.chat,
+        });
         return null;
+    }
     const context = await getRecentTalkContext(params.fromKey, params.fromDigits, params.source);
     const threshold = getClassifierThreshold();
     const payload = {
@@ -243,6 +323,14 @@ ${JSON.stringify(payload, null, 2)}`,
             name: 'GupshupWaitingTimeClassifierError',
             message: error?.message || String(error),
             description: error?.stack || 'Erro ao classificar intenção de tempo de espera',
+        });
+        await notifyAiClassifierFailure({
+            error,
+            body: params.body,
+            appName: params.appName,
+            fromDigits: params.fromDigits,
+            source: params.source,
+            chat: params.chat,
         });
         return null;
     }

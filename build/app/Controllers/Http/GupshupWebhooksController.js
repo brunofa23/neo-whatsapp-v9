@@ -5,6 +5,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const GupshupMonitoring_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-gupshup-monitoring/GupshupMonitoring"));
 const Chat_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Chat"));
+const Log_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Log"));
+const luxon_1 = require("luxon");
+const Env_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Env"));
 const axios_1 = __importDefault(require("axios"));
 const Application_1 = __importDefault(global[Symbol.for('ioc.use')]("Adonis/Core/Application"));
 const fs_1 = require("fs");
@@ -23,6 +26,7 @@ class GupshupWebhookController {
         const body = request.all();
         response.status(200).send({ ok: true });
         try {
+            await captureTestWebhookPayload(body, rawBody);
             if (body?.type === 'message' && body?.payload?.type === 'audio') {
                 const audioPayload = body.payload?.payload;
                 const url = audioPayload?.url;
@@ -96,6 +100,52 @@ class GupshupWebhookController {
     }
 }
 exports.default = GupshupWebhookController;
+function onlyDigits(value) {
+    return String(value ?? '').replace(/\D/g, '');
+}
+function getCapturePhones() {
+    return String(Env_1.default.get('GUPSHUP_WEBHOOK_CAPTURE_PHONES', Env_1.default.get('GUPSHUP_WEBHOOK_TEST_PHONES', '')))
+        .split(',')
+        .map((phone) => onlyDigits(phone))
+        .filter(Boolean);
+}
+function getPayloadPhone(payload) {
+    const p = payload?.payload || {};
+    return onlyDigits(p?.sender?.phone || p?.source || p?.destination || '');
+}
+function truncateLogMessage(message) {
+    const maxLength = 60000;
+    return message.length > maxLength ? message.slice(0, maxLength) : message;
+}
+async function captureTestWebhookPayload(payload, rawBody) {
+    try {
+        const capturePhones = getCapturePhones();
+        if (!capturePhones.length)
+            return;
+        const phone = getPayloadPhone(payload);
+        if (!phone || !capturePhones.includes(phone))
+            return;
+        const p = payload?.payload || {};
+        const message = rawBody && rawBody.trim()
+            ? rawBody
+            : JSON.stringify(payload);
+        await Log_1.default.create({
+            name: 'GupshupWebhookTestCapture',
+            message: truncateLogMessage(message),
+            description: JSON.stringify({
+                phone,
+                app: payload?.app || null,
+                type: payload?.type || null,
+                payload_type: p?.type || null,
+                payload_id: p?.id || p?.gsId || null,
+                captured_at: luxon_1.DateTime.now().toISO(),
+            }),
+        });
+    }
+    catch (error) {
+        console.error('Erro ao capturar webhook de teste da Gupshup:', error);
+    }
+}
 function mapEventToAck(eventTypeRaw) {
     const t = String(eventTypeRaw || '').trim().toLowerCase();
     if (!t)

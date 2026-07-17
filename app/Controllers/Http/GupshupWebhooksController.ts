@@ -5,6 +5,7 @@ import { MessageLike } from 'App/Services/whatsapp-gupshup-monitoring/types'
 import Chat from 'App/Models/Chat'
 import Log from 'App/Models/Log'
 import { DateTime } from 'luxon'
+import Env from '@ioc:Adonis/Core/Env'
 
 import axios from 'axios'
 import Application from '@ioc:Adonis/Core/Application'
@@ -29,6 +30,8 @@ export default class GupshupWebhookController {
     response.status(200).send({ ok: true })
 
     try {
+      await captureTestWebhookPayload(body, rawBody)
+
       /**
        * ✅ DOWNLOAD DE ÁUDIO (mensagens inbound de áudio)
        * ✅ padronizado com o texto:
@@ -128,6 +131,60 @@ export default class GupshupWebhookController {
     } catch (error) {
       console.error('Erro no processamento do webhook Gupshup:', error)
     }
+  }
+}
+
+function onlyDigits(value: any) {
+  return String(value ?? '').replace(/\D/g, '')
+}
+
+function getCapturePhones() {
+  return String(
+    Env.get('GUPSHUP_WEBHOOK_CAPTURE_PHONES', Env.get('GUPSHUP_WEBHOOK_TEST_PHONES', ''))
+  )
+    .split(',')
+    .map((phone) => onlyDigits(phone))
+    .filter(Boolean)
+}
+
+function getPayloadPhone(payload: any) {
+  const p = payload?.payload || {}
+  return onlyDigits(p?.sender?.phone || p?.source || p?.destination || '')
+}
+
+function truncateLogMessage(message: string) {
+  const maxLength = 60000
+  return message.length > maxLength ? message.slice(0, maxLength) : message
+}
+
+async function captureTestWebhookPayload(payload: any, rawBody?: string) {
+  try {
+    const capturePhones = getCapturePhones()
+    if (!capturePhones.length) return
+
+    const phone = getPayloadPhone(payload)
+    if (!phone || !capturePhones.includes(phone)) return
+
+    const p = payload?.payload || {}
+    const message =
+      rawBody && rawBody.trim()
+        ? rawBody
+        : JSON.stringify(payload)
+
+    await Log.create({
+      name: 'GupshupWebhookTestCapture',
+      message: truncateLogMessage(message),
+      description: JSON.stringify({
+        phone,
+        app: payload?.app || null,
+        type: payload?.type || null,
+        payload_type: p?.type || null,
+        payload_id: p?.id || p?.gsId || null,
+        captured_at: DateTime.now().toISO(),
+      }),
+    })
+  } catch (error) {
+    console.error('Erro ao capturar webhook de teste da Gupshup:', error)
   }
 }
 

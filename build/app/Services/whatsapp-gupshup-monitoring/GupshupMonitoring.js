@@ -30,6 +30,34 @@ const WAITING_TIME_KEYWORDS = [
     'muito demorado',
     'demorou muito',
     'demorando muito',
+    'demorou demais',
+    'demora demais',
+    'demorado demais',
+    'esperei muito',
+    'esperei demais',
+    'fiquei esperando',
+    'horas esperando',
+];
+const WAITING_TIME_SIGNAL_GROUPS = [
+    ['demora', 'atendimento'],
+    ['demorou', 'atendimento'],
+    ['demorado', 'atendimento'],
+    ['demorando', 'atendimento'],
+    ['esperei', 'atendimento'],
+    ['esperando', 'atendimento'],
+    ['espera', 'atendimento'],
+    ['tempo', 'atendimento'],
+    ['horas', 'atendimento'],
+    ['cheguei', 'sai'],
+    ['cheguei', 'saida'],
+    ['cheguei', 'demorou'],
+    ['cheguei', 'demora'],
+    ['cheguei', 'horas'],
+    ['consulta', 'atrasou'],
+    ['consulta', 'demorou'],
+    ['consulta', 'demora'],
+    ['medico', 'atrasou'],
+    ['medico', 'demorou'],
 ];
 const WAITING_TIME_DEFAULT_MESSAGE = 'Olá! Agradecemos o seu contato. A sua satisfação é muito importante para nós. No momento do agendamento, informamos que o tempo estimado de permanência no NEO é de cerca de duas horas, informação que também é reforçada na confirmação enviada por WhatsApp. O horário agendado corresponde ao início do atendimento, que pode variar conforme a necessidade de exames e da dilatação da pupila.';
 const WAITING_TIME_CLASSIFIER_DEFAULT_MODEL = 'llama-3.1-8b-instant';
@@ -42,9 +70,12 @@ function normalizeText(value) {
         .normalize('NFD')
         .replace(/[\u0300-\u036f]/g, '');
 }
-function hasWaitingTimeKeyword(body) {
+function shouldClassifyWaitingTimeIntent(body) {
     const normalizedBody = normalizeText(body);
-    return WAITING_TIME_KEYWORDS.some((keyword) => normalizedBody.includes(normalizeText(keyword)));
+    if (WAITING_TIME_KEYWORDS.some((keyword) => normalizedBody.includes(normalizeText(keyword)))) {
+        return true;
+    }
+    return WAITING_TIME_SIGNAL_GROUPS.some((signals) => signals.every((signal) => normalizedBody.includes(normalizeText(signal))));
 }
 function envBoolean(key, defaultValue) {
     const value = String(Env_1.default.get(key, defaultValue ? 'true' : 'false')).trim().toLowerCase();
@@ -405,7 +436,7 @@ class GupshupMonitoring {
         const sourceFallback = onlyDigits(gupshupAgent?.gupshup_source || '');
         const defaultAgent = gupshupAgent?.default_chat ? gupshupAgent : null;
         let chat = null;
-        if (body && hasWaitingTimeKeyword(body)) {
+        if (body && shouldClassifyWaitingTimeIntent(body)) {
             if (inboundGsId) {
                 chat = await getChatByGsId(inboundGsId);
             }

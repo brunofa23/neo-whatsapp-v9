@@ -517,6 +517,14 @@ function isEvaluationResponseExpired(chat: any) {
   return createdAt.plus({ hours: EVALUATION_RESPONSE_LIMIT_HOURS }) < DateTime.now()
 }
 
+function isWaitingForEvaluationReason(chat: any) {
+  return (
+    Number(chat?.interaction_id) === 2 &&
+    Number(chat?.interaction_seq) === 2 &&
+    !chat?.response
+  )
+}
+
 async function sendEvaluationExpiredMessage(chat: any, fromDigits: string, toDigits: string) {
   const source = onlyDigits(chat?.chatnumber || '') || toDigits
   const destination = onlyDigits(fromDigits)
@@ -672,19 +680,21 @@ export default class GupshupMonitoring {
         chat = evaluationChat || (await getChatByPhone(fromDigits, toDigits))
       }
 
-      const shouldAutoReply = await shouldSendWaitingTimeResponse({
-        body,
-        appName,
-        fromDigits,
-        fromKey,
-        source: sourceFallback || toDigits || onlyDigits(chat?.chatnumber || ''),
-        chat,
-      })
+      if (!isWaitingForEvaluationReason(chat)) {
+        const shouldAutoReply = await shouldSendWaitingTimeResponse({
+          body,
+          appName,
+          fromDigits,
+          fromKey,
+          source: sourceFallback || toDigits || onlyDigits(chat?.chatnumber || ''),
+          chat,
+        })
 
-      if (shouldAutoReply) {
-        await saveInboundTalk(fromDigits, fromKey, sourceFallback || toDigits || onlyDigits(chat?.chatnumber || ''), body)
-        await sendWaitingTimeKeywordResponse(chat, fromDigits, toDigits, sourceFallback)
-        return
+        if (shouldAutoReply) {
+          await saveInboundTalk(fromDigits, fromKey, sourceFallback || toDigits || onlyDigits(chat?.chatnumber || ''), body)
+          await sendWaitingTimeKeywordResponse(chat, fromDigits, toDigits, sourceFallback)
+          return
+        }
       }
     }
 

@@ -424,6 +424,11 @@ function isEvaluationResponseExpired(chat) {
         return false;
     return createdAt.plus({ hours: EVALUATION_RESPONSE_LIMIT_HOURS }) < luxon_1.DateTime.now();
 }
+function isWaitingForEvaluationReason(chat) {
+    return (Number(chat?.interaction_id) === 2 &&
+        Number(chat?.interaction_seq) === 2 &&
+        !chat?.response);
+}
 async function sendEvaluationExpiredMessage(chat, fromDigits, toDigits) {
     const source = onlyDigits(chat?.chatnumber || '') || toDigits;
     const destination = onlyDigits(fromDigits);
@@ -532,18 +537,20 @@ class GupshupMonitoring {
                 const evaluationChat = await getChatByPhone(fromDigits, toDigits, 2);
                 chat = evaluationChat || (await getChatByPhone(fromDigits, toDigits));
             }
-            const shouldAutoReply = await shouldSendWaitingTimeResponse({
-                body,
-                appName,
-                fromDigits,
-                fromKey,
-                source: sourceFallback || toDigits || onlyDigits(chat?.chatnumber || ''),
-                chat,
-            });
-            if (shouldAutoReply) {
-                await saveInboundTalk(fromDigits, fromKey, sourceFallback || toDigits || onlyDigits(chat?.chatnumber || ''), body);
-                await sendWaitingTimeKeywordResponse(chat, fromDigits, toDigits, sourceFallback);
-                return;
+            if (!isWaitingForEvaluationReason(chat)) {
+                const shouldAutoReply = await shouldSendWaitingTimeResponse({
+                    body,
+                    appName,
+                    fromDigits,
+                    fromKey,
+                    source: sourceFallback || toDigits || onlyDigits(chat?.chatnumber || ''),
+                    chat,
+                });
+                if (shouldAutoReply) {
+                    await saveInboundTalk(fromDigits, fromKey, sourceFallback || toDigits || onlyDigits(chat?.chatnumber || ''), body);
+                    await sendWaitingTimeKeywordResponse(chat, fromDigits, toDigits, sourceFallback);
+                    return;
+                }
             }
         }
         if (defaultAgent) {

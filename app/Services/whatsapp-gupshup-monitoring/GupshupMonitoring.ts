@@ -25,10 +25,12 @@ const EVALUATION_EXPIRED_MESSAGE =
 const WAITING_TIME_RESPONSE_LOCAL = 'waiting_time_keyword'
 const WAITING_TIME_KEYWORDS = [
   'tempo de espera',
+  'tempo de demora',
   'pontualidade',
   'atraso',
   'demora no atendimento',
   'demora atendimento',
+  'demora na clinica',
   'atendimento demorado',
   'muita demora',
   'muito demorado',
@@ -51,7 +53,9 @@ const WAITING_TIME_SIGNAL_GROUPS = [
   ['esperando', 'atendimento'],
   ['espera', 'atendimento'],
   ['tempo', 'atendimento'],
+  ['tempo', 'demora'],
   ['horas', 'atendimento'],
+  ['demora', 'clinica'],
   ['cheguei', 'sai'],
   ['cheguei', 'saida'],
   ['cheguei', 'demorou'],

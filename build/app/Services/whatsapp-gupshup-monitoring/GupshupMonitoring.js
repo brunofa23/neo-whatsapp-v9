@@ -529,6 +529,7 @@ class GupshupMonitoring {
         const sourceFallback = onlyDigits(gupshupAgent?.gupshup_source || '');
         const defaultAgent = gupshupAgent?.default_chat ? gupshupAgent : null;
         let chat = null;
+        let shouldReplyWaitingTimeAfterEvaluation = false;
         if (body && shouldClassifyWaitingTimeIntent(body)) {
             if (inboundGsId) {
                 chat = await getChatByGsId(inboundGsId);
@@ -551,6 +552,9 @@ class GupshupMonitoring {
                     await sendWaitingTimeKeywordResponse(chat, fromDigits, toDigits, sourceFallback);
                     return;
                 }
+            }
+            else {
+                shouldReplyWaitingTimeAfterEvaluation = true;
             }
         }
         if (defaultAgent) {
@@ -622,6 +626,9 @@ class GupshupMonitoring {
                 hasMedia,
                 context: inboundGsId ? { gsId: inboundGsId } : undefined,
             }, chat);
+            if (shouldReplyWaitingTimeAfterEvaluation) {
+                await sendWaitingTimeKeywordResponse(chat, fromDigits, toDigits, sourceFallback);
+            }
             return;
         }
     }

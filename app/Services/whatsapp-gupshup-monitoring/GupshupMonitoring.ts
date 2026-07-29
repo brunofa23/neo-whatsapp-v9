@@ -669,6 +669,7 @@ export default class GupshupMonitoring {
     const sourceFallback = onlyDigits(gupshupAgent?.gupshup_source || '')
     const defaultAgent = gupshupAgent?.default_chat ? gupshupAgent : null
     let chat: any = null
+    let shouldReplyWaitingTimeAfterEvaluation = false
 
     if (body && shouldClassifyWaitingTimeIntent(body)) {
       if (inboundGsId) {
@@ -695,6 +696,8 @@ export default class GupshupMonitoring {
           await sendWaitingTimeKeywordResponse(chat, fromDigits, toDigits, sourceFallback)
           return
         }
+      } else {
+        shouldReplyWaitingTimeAfterEvaluation = true
       }
     }
 
@@ -812,6 +815,11 @@ export default class GupshupMonitoring {
         },
         chat
       )
+
+      if (shouldReplyWaitingTimeAfterEvaluation) {
+        await sendWaitingTimeKeywordResponse(chat, fromDigits, toDigits, sourceFallback)
+      }
+
       return
     }
   }

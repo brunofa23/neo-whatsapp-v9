@@ -66,6 +66,7 @@ const WAITING_TIME_SIGNAL_GROUPS = [
 const WAITING_TIME_DEFAULT_MESSAGE =
   'Olá! Agradecemos o seu contato. A sua satisfação é muito importante para nós. No momento do agendamento, informamos que o tempo estimado de permanência no NEO é de cerca de duas horas, informação que também é reforçada na confirmação enviada por WhatsApp. O horário agendado corresponde ao início do atendimento, que pode variar conforme a necessidade de exames e da dilatação da pupila.'
 const WAITING_TIME_CLASSIFIER_DEFAULT_MODEL = 'llama-3.1-8b-instant'
+let lastAiAlertSentAt: DateTime | null = null
 
 function onlyDigits(v: any) {
   return String(v ?? '').replace(/\D/g, '')
@@ -99,6 +100,86 @@ function getClassifierThreshold() {
   const threshold = Number(Env.get('WAITING_TIME_INTENT_THRESHOLD', 0.8))
   if (!Number.isFinite(threshold) || threshold <= 0 || threshold > 1) return 0.8
   return threshold
+}
+
+function getAiAlertCooldownMinutes() {
+  const minutes = Number(Env.get('AI_ALERT_COOLDOWN_MINUTES', 30))
+  if (!Number.isFinite(minutes) || minutes < 1) return 30
+  return minutes
+}
+
+function shouldSendAiAlert() {
+  if (!envBoolean('AI_ALERT_WHATSAPP_ENABLED', false)) return false
+
+  const now = DateTime.now()
+  const cooldownMinutes = getAiAlertCooldownMinutes()
+
+  if (lastAiAlertSentAt && lastAiAlertSentAt.plus({ minutes: cooldownMinutes }) > now) {
+    return false
+  }
+
+  lastAiAlertSentAt = now
+  return true
+}
+
+function getGroqErrorMessage(error: any) {
+  const status = error?.response?.status
+  const statusText = error?.response?.statusText
+  const apiError = error?.response?.data?.error?.message || error?.response?.data?.message
+  return [status, statusText, apiError || error?.message || String(error)].filter(Boolean).join(' - ')
+}
+
+async function notifyAiClassifierFailure(params: {
+  error: any
+  body: string
+  appName: string
+  fromDigits: string
+  source: string
+  chat?: any
+}) {
+  if (!shouldSendAiAlert()) return
+
+  const destination = onlyDigits(Env.get('AI_ALERT_WHATSAPP_PHONE', ''))
+  const source = onlyDigits(Env.get('AI_ALERT_WHATSAPP_SOURCE', params.source))
+
+  if (!destination || !source) {
+    await Log.create({
+      name: 'GupshupAiAlertConfigError',
+      message: JSON.stringify({ destination, source }),
+      description: 'AI_ALERT_WHATSAPP_PHONE ou AI_ALERT_WHATSAPP_SOURCE não configurado',
+    })
+    return
+  }
+
+  const text = [
+    'Falha na IA Groq',
+    `App: ${params.appName || '-'}`,
+    `Paciente: ${params.fromDigits || '-'}`,
+    `Chat: ${params.chat?.id ?? '-'}`,
+    `Erro: ${getGroqErrorMessage(params.error).slice(0, 500)}`,
+    `Mensagem: ${String(params.body || '').slice(0, 300)}`,
+    `Momento: ${DateTime.now().toFormat('dd/MM/yyyy HH:mm:ss')}`,
+  ].join('\n')
+
+  try {
+    await SendTextGupshup({
+      source,
+      destination,
+      text,
+    })
+
+    await Log.create({
+      name: 'GupshupAiAlertSent',
+      message: JSON.stringify({ destination, source, patient: params.fromDigits || null }),
+      description: getGroqErrorMessage(params.error).slice(0, 1000),
+    })
+  } catch (alertError) {
+    await Log.create({
+      name: 'GupshupAiAlertSendError',
+      message: alertError?.message || String(alertError),
+      description: alertError?.stack || 'Erro ao enviar alerta de falha da IA',
+    })
+  }
 }
 
 async function getWaitingTimeResponseMessage() {
@@ -188,7 +269,24 @@ async function classifyWaitingTimeIntent(params: {
   chat?: any
 }) {
   const apiKey = Env.get('GROQ_API_KEY')
-  if (!apiKey) return null
+  if (!apiKey) {
+    await Log.create({
+      name: 'GupshupWaitingTimeClassifierError',
+      message: 'GROQ_API_KEY não configurada',
+      description: 'Não foi possível classificar intenção de tempo de espera sem GROQ_API_KEY',
+    })
+
+    await notifyAiClassifierFailure({
+      error: new Error('GROQ_API_KEY não configurada'),
+      body: params.body,
+      appName: params.appName,
+      fromDigits: params.fromDigits,
+      source: params.source,
+      chat: params.chat,
+    })
+
+    return null
+  }
 
   const context = await getRecentTalkContext(params.fromKey, params.fromDigits, params.source)
   const threshold = getClassifierThreshold()
@@ -282,6 +380,16 @@ ${JSON.stringify(payload, null, 2)}`,
       message: error?.message || String(error),
       description: error?.stack || 'Erro ao classificar intenção de tempo de espera',
     })
+
+    await notifyAiClassifierFailure({
+      error,
+      body: params.body,
+      appName: params.appName,
+      fromDigits: params.fromDigits,
+      source: params.source,
+      chat: params.chat,
+    })
+
     return null
   }
 }
@@ -407,6 +515,14 @@ function isEvaluationResponseExpired(chat: any) {
   if (!createdAt?.isValid) return false
 
   return createdAt.plus({ hours: EVALUATION_RESPONSE_LIMIT_HOURS }) < DateTime.now()
+}
+
+function isWaitingForEvaluationReason(chat: any) {
+  return (
+    Number(chat?.interaction_id) === 2 &&
+    Number(chat?.interaction_seq) === 2 &&
+    !chat?.response
+  )
 }
 
 async function sendEvaluationExpiredMessage(chat: any, fromDigits: string, toDigits: string) {
@@ -564,19 +680,21 @@ export default class GupshupMonitoring {
         chat = evaluationChat || (await getChatByPhone(fromDigits, toDigits))
       }
 
-      const shouldAutoReply = await shouldSendWaitingTimeResponse({
-        body,
-        appName,
-        fromDigits,
-        fromKey,
-        source: sourceFallback || toDigits || onlyDigits(chat?.chatnumber || ''),
-        chat,
-      })
+      if (!isWaitingForEvaluationReason(chat)) {
+        const shouldAutoReply = await shouldSendWaitingTimeResponse({
+          body,
+          appName,
+          fromDigits,
+          fromKey,
+          source: sourceFallback || toDigits || onlyDigits(chat?.chatnumber || ''),
+          chat,
+        })
 
-      if (shouldAutoReply) {
-        await saveInboundTalk(fromDigits, fromKey, sourceFallback || toDigits || onlyDigits(chat?.chatnumber || ''), body)
-        await sendWaitingTimeKeywordResponse(chat, fromDigits, toDigits, sourceFallback)
-        return
+        if (shouldAutoReply) {
+          await saveInboundTalk(fromDigits, fromKey, sourceFallback || toDigits || onlyDigits(chat?.chatnumber || ''), body)
+          await sendWaitingTimeKeywordResponse(chat, fromDigits, toDigits, sourceFallback)
+          return
+        }
       }
     }
 

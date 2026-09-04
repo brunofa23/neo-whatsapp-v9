@@ -145,6 +145,7 @@ Route.group(() => {
   Route.get('/dashboardgeneral', 'ShippingcampaignsController.dashboardGeneral')
 
   //chats
+  Route.get('/chats/sentmessages', 'ChatsController.sentMessages')
   Route.resource('/chats', 'ChatsController').apiOnly()
   Route.post('/closed', 'ChatsController.closed')
 
@@ -183,5 +184,4 @@ Route.group(() => {
 
 
 }).prefix('/api')
-
 

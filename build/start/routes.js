@@ -110,6 +110,7 @@ Route_1.default.group(() => {
     Route_1.default.get('/searchschedulepatients', 'ShippingcampaignsController.searchSchedulePatients');
     Route_1.default.get('/executeschedulepatients', 'ShippingcampaignsController.executeSchedulePatients');
     Route_1.default.get('/dashboardgeneral', 'ShippingcampaignsController.dashboardGeneral');
+    Route_1.default.get('/chats/sentmessages', 'ChatsController.sentMessages');
     Route_1.default.resource('/chats', 'ChatsController').apiOnly();
     Route_1.default.post('/closed', 'ChatsController.closed');
     Route_1.default.resource("/manifests", "ManifestsController").apiOnly();

@@ -13,6 +13,54 @@ const util_1 = require("../../Services/whatsapp-web/util");
 const ResponsesController_1 = __importDefault(require("./ResponsesController"));
 const Shippingcampaign_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Shippingcampaign"));
 class DatasourcesController {
+    async missedPatients({ request }) {
+        const dataInicial = request.input('data_inicial');
+        const dataFinal = request.input('data_final');
+        const dateFormat = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/;
+        if (!dateFormat.test(dataInicial) || !dateFormat.test(dataFinal)) {
+            throw new Error('Os parâmetros data_inicial e data_final devem estar no formato yyyy-MM-dd HH:mm');
+        }
+        const result = await Database_1.default.connection('mssql').rawQuery(`
+      SELECT
+        pac.pac_reg AS Registro,
+        agm.agm_str_cod AS unidade,
+        RTRIM(pac.pac_nome) AS Paciente,
+        pac.pac_email AS Email,
+        ISNULL(pac.pac_celular, ISNULL(pac.pac_fone, pac.pac_fone2)) AS Telefone,
+        agm.agm_hini AS Agendado,
+        agm.AGM_MED,
+        psv.PSV_APEL,
+        agm.agm_usr_login AS Usuario_Responsavel,
+        ISNULL(agm.agm_confirm_usr, 'Nao Confirmado') AS Usuario_Confirmacao,
+        cnv.cnv_nome,
+        agm.AGM_OBS AS Obs
+      FROM agm
+      JOIN pac ON agm.AGM_PAC = pac.PAC_REG
+      JOIN psv ON agm.agm_med = psv.PSV_COD
+      JOIN loc ON agm.agm_loc = loc.loc_cod
+      JOIN str ON loc.loc_str = str.str_cod
+      LEFT JOIN cnv ON agm.agm_cnv_cod = cnv.CNV_COD
+      LEFT JOIN smk ON agm.AGM_SMK = smk.SMK_COD
+      LEFT JOIN pdc ON pac.PAC_REG = pdc.PDC_PAC_REG
+      LEFT JOIN pdc_ind ON pdc.PDC_INDIC_TIPO = pdc_ind.PDC_IND_COD
+      WHERE
+        agm.agm_hini >= ?
+        AND agm.agm_hini < ?
+        AND agm.AGM_STAT NOT IN ('B', 'c')
+        AND agm.agm_ctf = '5000'
+        AND NOT EXISTS (
+          SELECT 1
+          FROM smm
+          WHERE smm.smm_pac_reg = agm.AGM_PAC
+            AND smm.SMM_DTHR_EXEC >= ?
+            AND smm.SMM_DTHR_EXEC < ?
+        )
+      ORDER BY
+        agm.agm_str_cod,
+        agm.agm_hini
+    `, [dataInicial, dataFinal, dataInicial, dataFinal]);
+        return result || [];
+    }
     async DataSource(date, interaction_id = 0, unit_cod = 0) {
         interaction_id = Number(interaction_id) || 0;
         unit_cod = Number(unit_cod) || 0;

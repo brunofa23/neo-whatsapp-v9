@@ -109,6 +109,7 @@ Route.group(() => {
   Route.get("/confirmscheduleall", "DatasourcesController.confirmScheduleAll")
   Route.get('/patientsbyprocedures', "DatasourcesController.patientsByProcedures")
   Route.get('/patientsbyschedules', "DatasourcesController.patientsBySchedules")
+  Route.get('/patients/missed', "DatasourcesController.missedPatients")
 
   //ENDPOINT PARA VILA DA SERRA
   Route.get('/pacientes/:paciente_id/medicos-convenio', "DatasourcesController.medicosPorConvenio")
@@ -184,4 +185,3 @@ Route.group(() => {
 
 
 }).prefix('/api')
-

@@ -15,6 +15,14 @@ type InboundGupshup = {
   raw?: any
 }
 
+const GOOGLE_REVIEW_LINKS: Record<string, string> = {
+  '312': 'https://g.page/r/Cen7HWNEOsLKEAE/review',
+  '1430': 'https://g.page/r/CWKaVkslTa5dEAE/review',
+  '7411': 'https://g.page/r/CezbqdLzUMo6EAE/review',
+  '1752': 'https://g.page/r/CfQcbEQZI9OdEAE/review',
+  '7755': 'https://g.page/r/CSCz2mrH9J4zEAE/review',
+}
+
 function onlyDigits(v: any) {
   return String(v ?? '').replace(/\D/g, '')
 }
@@ -176,13 +184,15 @@ export default async function ServiceEvaluationGupshup(inbound: InboundGupshup, 
       const isExcellentEvaluation =
         Number((chat as any).absoluteresp) === 9 || Number((chat as any).absoluteresp) === 10
       const patientName = String((chat as any).name || '').trim() || 'paciente'
+      const unitCode = String(chat.shippingcampaign?.unit_cod ?? '').trim()
+      const googleReviewLink = GOOGLE_REVIEW_LINKS[unitCode]
       const googleReviewText = `Olá ${patientName}, 
 
 Obrigado pela sua nota excelente ao nos avaliar! Ficamos muito felizes com sua satisfação.
 
 Como valorizamos seu feedback, gostaríamos de pedir um favor: poderia compartilhar sua experiência no Google? Sua avaliação ajuda outros pacientes a conhecerem nosso atendimento.
 
-Aqui está o link: https://g.page/r/Cen7HWNEOsLKEAE/review
+Aqui está o link: ${googleReviewLink}
 
 Muito obrigado pela colaboração!
 
@@ -203,7 +213,7 @@ NEO - Núcleo de Excelência em Oftalmologia`
           type: 'to',
         } as any)
 
-        if (isExcellentEvaluation) {
+        if (isExcellentEvaluation && googleReviewLink) {
           await sendText(source, fromDigits, googleReviewText)
 
           await Talk.create({
@@ -242,7 +252,7 @@ NEO - Núcleo de Excelência em Oftalmologia`
         type: 'to',
       } as any)
 
-      if (isExcellentEvaluation) {
+      if (isExcellentEvaluation && googleReviewLink) {
         await sendText(source, fromDigits, googleReviewText)
 
         await Talk.create({

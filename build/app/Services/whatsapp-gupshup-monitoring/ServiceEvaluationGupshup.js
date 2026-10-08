@@ -9,6 +9,13 @@ const Log_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Models/Log"));
 const luxon_1 = require("luxon");
 const SendTextGupshup_1 = __importDefault(global[Symbol.for('ioc.use')]("App/Services/whatsapp-gupshup/SendTextGupshup"));
 const util_1 = global[Symbol.for('ioc.use')]("App/Services/whatsapp-web/util");
+const GOOGLE_REVIEW_LINKS = {
+    '312': 'https://g.page/r/Cen7HWNEOsLKEAE/review',
+    '1430': 'https://g.page/r/CWKaVkslTa5dEAE/review',
+    '7411': 'https://g.page/r/CezbqdLzUMo6EAE/review',
+    '1752': 'https://g.page/r/CfQcbEQZI9OdEAE/review',
+    '7755': 'https://g.page/r/CSCz2mrH9J4zEAE/review',
+};
 function onlyDigits(v) {
     return String(v ?? '').replace(/\D/g, '');
 }
@@ -110,13 +117,15 @@ async function ServiceEvaluationGupshup(inbound, chat) {
             console.log('PASSO 2.1 5555');
             const isExcellentEvaluation = Number(chat.absoluteresp) === 9 || Number(chat.absoluteresp) === 10;
             const patientName = String(chat.name || '').trim() || 'paciente';
+            const unitCode = String(chat.shippingcampaign?.unit_cod ?? '').trim();
+            const googleReviewLink = GOOGLE_REVIEW_LINKS[unitCode];
             const googleReviewText = `Olá ${patientName}, 
 
 Obrigado pela sua nota excelente ao nos avaliar! Ficamos muito felizes com sua satisfação.
 
 Como valorizamos seu feedback, gostaríamos de pedir um favor: poderia compartilhar sua experiência no Google? Sua avaliação ajuda outros pacientes a conhecerem nosso atendimento.
 
-Aqui está o link: https://g.page/r/Cen7HWNEOsLKEAE/review
+Aqui está o link: ${googleReviewLink}
 
 Muito obrigado pela colaboração!
 
@@ -134,7 +143,7 @@ NEO - Núcleo de Excelência em Oftalmologia`;
                     message: text,
                     type: 'to',
                 });
-                if (isExcellentEvaluation) {
+                if (isExcellentEvaluation && googleReviewLink) {
                     await sendText(source, fromDigits, googleReviewText);
                     await Talk_1.default.create({
                         chat_id: chat.id,
@@ -167,7 +176,7 @@ NEO - Núcleo de Excelência em Oftalmologia`;
                 message: text,
                 type: 'to',
             });
-            if (isExcellentEvaluation) {
+            if (isExcellentEvaluation && googleReviewLink) {
                 await sendText(source, fromDigits, googleReviewText);
                 await Talk_1.default.create({
                     chat_id: chat.id,

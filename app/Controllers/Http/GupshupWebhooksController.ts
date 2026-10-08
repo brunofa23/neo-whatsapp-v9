@@ -3,9 +3,11 @@ import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import GupshupMonitoring from 'App/Services/whatsapp-gupshup-monitoring/GupshupMonitoring'
 import { MessageLike } from 'App/Services/whatsapp-gupshup-monitoring/types'
 import Chat from 'App/Models/Chat'
+import Shippingcampaign from 'App/Models/Shippingcampaign'
 import Log from 'App/Models/Log'
 import { DateTime } from 'luxon'
 import Env from '@ioc:Adonis/Core/Env'
+import Database from '@ioc:Adonis/Lucid/Database'
 
 import axios from 'axios'
 import Application from '@ioc:Adonis/Core/Application'
@@ -115,8 +117,42 @@ export default class GupshupWebhookController {
       const evt = parseMessageEvent(body)
       if (evt) {
         const ack = mapEventToAck(evt.eventType)
+        const insufficientBalance =
+          ack === 9 && Number(evt.raw?.payload?.payload?.code) === 1003
 
-        await Chat.query().where('gupshup_gs_id', evt.gsId).update({ ack })
+        if (insufficientBalance) {
+          const today = DateTime.local().startOf('day')
+          await Database.connection(Env.get('DB_CONNECTION_MAIN')).transaction(async (trx) => {
+            const chat = await Chat.query({ client: trx })
+              .where('gupshup_gs_id', evt.gsId)
+              .forUpdate()
+              .first()
+
+            // Um evento antigo de falha não deve reabrir uma mensagem já confirmada como enviada.
+            if (chat && Number(chat.ack) >= 1 && Number(chat.ack) <= 4) return
+
+            if (chat && !chat.excluded) {
+              const shippingCampaign = await Shippingcampaign.query({ client: trx })
+                .where('id', chat.shippingcampaigns_id)
+                .andWhere('messagesent', true)
+                .andWhere('created_at', '>=', today.toSQL({ includeOffset: false })!)
+                .andWhere('created_at', '<', today.plus({ days: 1 }).toSQL({ includeOffset: false })!)
+                .first()
+
+              if (shippingCampaign) {
+                await Chat.query({ client: trx }).where('id', chat.id).update({ ack, excluded: true })
+                await Shippingcampaign.query({ client: trx })
+                  .where('id', shippingCampaign.id)
+                  .update({ messagesent: false })
+                return
+              }
+            }
+
+            await Chat.query({ client: trx }).where('gupshup_gs_id', evt.gsId).update({ ack })
+          })
+        } else {
+          await Chat.query().where('gupshup_gs_id', evt.gsId).update({ ack })
+        }
 
         const updated = await Customchat.query().where('gupshup_gs_id', evt.gsId).update({ ack })
 

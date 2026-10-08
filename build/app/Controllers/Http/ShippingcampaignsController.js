@@ -178,6 +178,7 @@ class ShippingcampaignsController {
         const countMessage = await Chat_1.default.query()
             .countDistinct('shippingcampaigns_id as tot')
             .where('chatname', chatName)
+            .where((query) => query.whereNull('excluded').orWhere('excluded', false))
             .whereBetween('created_at', [dateStart, dateEnd]).first();
         if (!countMessage || countMessage == undefined || countMessage == null)
             return 0;
